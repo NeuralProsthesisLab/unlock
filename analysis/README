@@ -1,0 +1,6 @@
+This directory contains artifacts that are related to the Unlock
+framework, but are not, strictly speaking, part of the framework
+itself.  
+
+For example, matlab code used in analysis, experimental results, data,
+etc.
