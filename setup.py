@@ -24,9 +24,7 @@ def walk_dirs(dirs):
             elif filenames:
                 relative_path = []
                 while '.'.join(parts) not in packages:
-                    part = parts.pop()
-                    print 'parts...', part
-                    relative_path.append(part)
+                    relative_path.append(parts.pop())
                 relative_path.reverse()
                 path = os.path.join(*relative_path)
                 package_files = package_data.setdefault('.'.join(parts), [])
