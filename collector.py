@@ -144,7 +144,6 @@ class SampleCollector(UnlockApplication):
         self.stop()
         print "Waiting fgor thread to stop"
         self.thread.join()
-        
     def acquisition_loop(self):
         while self.gtec.acquire() and not self.done:
             tval = self.trigger.value()
