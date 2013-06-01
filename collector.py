@@ -7,43 +7,75 @@ from optparse import OptionParser
 from os.path import join, abspath
 from threading import Thread, RLock
 from time import sleep
+from pyglet.gl import *
 
+import pyglet
 import random
 import numpy as np
 import time
 import socket
 import sys
 
+
 class VisualCues(UnlockApplication):
     name = "Visual Cue"
     icon = "robot.png"  
-    def __init__(self, cues_list, screen, duration, trigger, rand):
+    def __init__(self, cues_list, screen, duration, trigger, rand, trials, reset_cue_filename='targets.png'):
         super(self.__class__, self).__init__(screen)
         assert len(cues_list) > 0 and screen != None
         self.cues = cues_list
-        self.current = 0
         self.screen = screen
-        self.text = screen.drawText(self.cues[self.current], screen.width / 2,
-                                    screen.height / 2)        
         self.duration = duration
-        self.trial_time = 0
         self.trigger = trigger
         self.rand = rand
+        self.trials = trials
+        self.filename = reset_cue_filename
+
         self.count = 1
+        self.current = 0
+        self.trial_time = 0
+        self.draw_image = False
+        viewport.window.event(self.draw)
+        self.controller_draw = viewport.controller.draw
+        viewport.controller.draw = self.draw
+        self.text = screen.drawText(self.cues[self.current], screen.width / 2,
+                                    screen.height / 2)
     def stop(self):
-        self.trigger.close()    
+        self.trigger.close()
+    #@viewport.window.event    
+    def draw(self):
+        if self.draw_image:
+            self.img.blit(viewport.window.width // 2, viewport.window.height // 2, 0)
+        else:
+            self.controller_draw()
+    def setup_target(self):
+      viewport.window.clear()
+      img = pyglet.image.load(self.filename).get_texture(rectangle=True)
+      img.anchor_x = img.width // 2
+      img.anchor_y = img.height // 2
+      viewport.window.set_visible()
+      self.img = img
+      self.draw_image = True
     def update(self, dt, decision, selection):
         try:
             self.trial_time += dt
             if self.trial_time >= self.duration:
-                self.trial_time = 0
-                self.current = self.rand.randint(0, len(self.cues)-1) 
-                self.text.text = self.cues[self.current]
                 self.count += 1
+                if self.count > self.trials:
+                    pyglet.app.exit()
+                    return
+                self.trial_time = 0
+                self.draw_image = False
+                if self.count % 2 == 0:
+                    self.setup_target()
+                    self.current = len(self.cues)
+                else:
+                    self.current = self.rand.randint(0, len(self.cues)-1) 
+                    self.text.text = self.cues[self.current]      
                 self.trigger.send(self.current+1)
         except Exception, e:
             print e
-        
+            
             
 class AsyncTrigger(object):
     def __init__(self):
@@ -95,14 +127,16 @@ class SampleCollector(UnlockApplication):
         output_help = 'path to the output file containing the samples; defaults to gtec'
         port_help = 'sets the port to connect to to get the sample feed; default value is COM3'
         channels_help = '1 byte(2 hexidecimal digits) bit mask specifying the channels; default is 0x78'
+        trials_help = 'number of trials; default is 25'
         
         parser.add_option("-m", "--msequence", default=False, action='store_true', dest="msequence", metavar="MSEQUENCE", help=msequence_help)
         parser.add_option("-p", "--port", default='COM3', dest="port", metavar="PORT", help=port_help)
         parser.add_option("-v", "--visual-cues", default='', type=str, dest="cues", metavar="CUES", help=visual_cues_help)
-        parser.add_option("-d", "--cue-duration", default=1, type=int, dest="duration", metavar="DURATION", help=duration_help)
+        parser.add_option("-d", "--cue-duration", default=3, type=int, dest="duration", metavar="DURATION", help=duration_help)
         parser.add_option("-c", "--channels", default='0x78', dest="channels", metavar="CHANNELS", help=channels_help)
         parser.add_option("-o", "--output", default='gtec', type=str, dest="output", metavar="OUTPUT", help=output_help)
         parser.add_option("-s", "--seed", default=42, type=int, dest="seed", metavar="SEED", help=seed_help)
+        parser.add_option("-t", "--trials", default=25, type=int, dest="trials", metavar="TRIALS", help=trials_help)        
         
         (options, args) = parser.parse_args()
         if options.msequence == '' and options.cues == '':
@@ -137,7 +171,7 @@ class SampleCollector(UnlockApplication):
             self.apps.append(ssvep)
         if options.cues != '':
             app_screen = Screen(0, 0, viewport.window.width, viewport.window.height)        
-            self.vc = VisualCues(options.cues.split(','), app_screen, self.duration, self.trigger, self.rand)
+            self.vc = VisualCues(options.cues.split(','), app_screen, self.duration, self.trigger, self.rand, options.trials)
             self.apps.append(self.vc)
         try:
             self.gtec = MOBIlab()
@@ -167,12 +201,11 @@ class SampleCollector(UnlockApplication):
             np.savetxt(self.fh, data, fmt='%d', delimiter='\t')            
         self.fh.flush()
         self.fh.close()
-        print "closed file"
     def stop(self):
         self.done = True
         self.vc.stop()
-
-
+        
+        
 if __name__ == '__main__':
     s = SampleCollector()
     s.collect()
