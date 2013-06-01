@@ -38,7 +38,6 @@ class OscillatingImage(object):
     def update(self, dt):
         if self.image_drawn:
             self.image_drawn = False
-            self.img.delete()
             self.setup_target()
         else:
             self.image_drawn = True
@@ -49,5 +48,5 @@ if __name__ == '__main__':
     if len(sys.argv) != 2:
         print __doc__
         sys.exit(1)
-    image = OscillatingImage(sys.argv[1])
-    target.start()
+    oimage = OscillatingImage(sys.argv[1])
+    oimage.start()
