@@ -30,11 +30,9 @@ class OscillatingImage(object):
     def on_draw(self):
         self.background.blit_tiled(0, 0, 0, self.window.width, self.window.height)
         if self.image_drawn:
-            self.draw_image()
-            
+            self.draw_image()          
     def draw_image(self):
         self.img.blit(self.window.width // 2, self.window.height // 2, 0)
-
     def update(self, dt):
         if self.image_drawn:
             self.image_drawn = False
