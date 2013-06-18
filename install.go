@@ -141,7 +141,7 @@ func (w *ZipMeta) walk(zipfile string) error {
     var err error
     var r *zip.ReadCloser
     if r, err = zip.OpenReader(zipfile); err != nil {
-      log.Fatal(err)
+      log.Fatalln(err)
       return err
     }
 
@@ -178,12 +178,12 @@ func (w *ZipMeta) walk(zipfile string) error {
 func downloadAndWrite(url_name string, file_name string) {
     resp, err := http.Get(url_name)
     if err != nil {
-        panic(err)
+        log.Fatalln(err)
     }
     defer resp.Body.Close()
     body, err1 := ioutil.ReadAll(resp.Body)
     if err1 = ioutil.WriteFile(file_name, body, 0744); err1 != nil {
-        panic(err1)
+        log.Fatalln(err1)
     }
 }
 
@@ -191,13 +191,13 @@ func getPath() string {
     path, err := filepath.Abs("")
     fmt.Println("path = ", path)
     if err != nil {
-        log.Fatal(err)
-        panic(err)
+        log.Fatalln(err)
     }
     return path
 }
 
 func checkForPython() error {
+    log.Println("Checking for Python...")
     cmd := exec.Command("cmd", "/C C:\\Python27\\python.exe")
     return cmd.Run()
 }
@@ -206,15 +206,14 @@ func installPython(path string) {
     log.Println("Installing Python...")
     cmd := exec.Command("cmd", "/C "+path+"\\python-2.7.5.msi")
     if err := cmd.Run(); err != nil {
-        log.Fatal("Failed to install Python ")
-        panic(err)
+        log.Fatalln("Failed to install Python ", err)
     }
 }
 
 func setupPython() {
-    log.Println("Downloading Python...")
-    downloadAndWrite("http://jpercent.org/python-2.7.5.msi", "python-2.7.5.msi")
     if err := checkForPython(); err != nil {
+        log.Println("Downloading Python...")
+        downloadAndWrite("http://jpercent.org/python-2.7.5.msi", "python-2.7.5.msi")
         path := getPath()
         installPython(path)
         log.Println("Successfully installed Python")
@@ -223,33 +222,7 @@ func setupPython() {
     }
 }
 
-func installPyglet() {
-    log.Println("Downloading pyglet-1.2alpha.zip...")
-    downloadAndWrite("http://jpercent.org/pyglet-1.2alpha.zip", "pyglet-1.2alpha.zip")
-    log.Println("Installing pyglet-1.2alpha...")
-    u := &Unzip{"pyglet-1.2alpha.zip", "", nil}
-    if err := u.Expand(); err != nil {
-        log.Fatal("Failed to expand pyglet-1.2alpha.zip")
-        panic(err)
-    }
 
-    if err := os.Chdir("pyglet-1.2alpha1"); err != nil {
-        log.Fatal("Downloading and/or installing pyglet failed ")
-        panic(err)
-    }
-    log.Println("Installing pyglet-1.2alpha...")
-    cmd2 := exec.Command("cmd", "/C C:\\Python27\\python.exe setup.py install")
-    if err := cmd2.Run(); err != nil {
-        log.Fatal("Failed to install pyglet-1.2alpha ")
-        panic(err)
-    }
-
-    if err := os.Chdir(".."); err != nil {
-//        log.Fatal("Failed to return to working folder")
-//        panic(err)
-    }
-    log.Println("Successfully intalled pyglet-1.2alpha ")
-}
 
 func installNumpy() {
     log.Println("Downloading NumPy...")
@@ -258,58 +231,73 @@ func installNumpy() {
     path := getPath()
     cmd3 := exec.Command("cmd", "/C "+path+"\\numpy-MKL-1.7.1.win32-py2.7.exe")
     if err := cmd3.Run(); err != nil {
-        log.Fatal(err)
-        panic(err)
+        log.Fatalln(err)
     }
     fmt.Println("Successfully installed NumPy")
 }
 
-func installUnlock() {
-    log.Println("Downloading Unlock... ")
-    downloadAndWrite("http://jpercent.org/unlock1.zip", "unlock.zip")
-    log.Println("Installing Unlock... ")
-    u := &Unzip{"unlock.zip", "", nil}
+var base_url = "http://jpercent.org/"
+
+func installZippedPythonPackage(file_name string, package_name string, local_dir string, post_fn func()) {
+    log.Println("Downloading "+package_name+"... ")
+    downloadAndWrite(base_url+file_name, file_name)
+    log.Println("Installing "+package_name+"... ")
+    u := &Unzip{file_name, "", nil}
     if err := u.Expand(); err != nil {
-        log.Fatal("Failed to expand unlock.zip")
-        panic(err)
+        log.Fatalln("Failed to expand "+file_name, err)
     }
 
-    if err := os.Chdir("unlock-npl"); err != nil {
-        log.Fatal("Downloading and/or installing Unlock failed ")
-        panic(err)
+    if err := os.Chdir(local_dir); err != nil {
+        log.Fatalln("Downloading and/or installing "+package_name+" failed ", err)
     }
-
     cmd2 := exec.Command("cmd", "/C C:\\Python27\\python.exe setup.py install")
     if err := cmd2.Run(); err != nil {
-        log.Fatal("Failed to install Unlock ")
-        panic(err)
+        log.Fatalln("Failed to install "+package_name, err)
     }
-
-    if err := os.MkdirAll("C:\\Unlock", 0755); err != nil {
-        panic(err)
-    }
-    if err := os.Rename("collector.py", "C:\\Unlock\\collector.py"); err != nil {
-        log.Fatal("Failed to install unlock collector")
-        panic(err)
-    }
-    if err := os.Rename("collector.bat", "C:\\Unlock\\collector.bat"); err != nil {
-        log.Fatal("Failed to install unlock collector")
-        panic(err)
-    }
-    if err := os.Rename("pygtec.py", "C:\\Unlock\\pygtec.py"); err != nil {
-        log.Fatal("Failed to install unlock collector")
-        panic(err)
-    }
-    if err := os.Rename("targets.png", "C:\\Unlock\\targets.png"); err != nil {
-        log.Fatal("Failed to install unlock collector")
-        panic(err)
-    }
-
+    post_fn()
     if err := os.Chdir(".."); err != nil {
-//        log.Fatal("Failed to return to working folder")
-//        panic(err)
+        // ...
     }
-    log.Println("Successfully intalled Unlock ")
+    log.Println("Successfully installed "+package_name)
+}
+
+func installPyglet12alpha() {
+    post_fn := func() {}
+    file_name = "pyglet-1.2alpha.zip"
+    package_name = "pyglet-1.2alpha"
+    local_dir = "pyglet-1.2alpha1"
+    installZippedPythonPackage(file_name, package_name, local_dir, post_fn)
+}
+
+func installPySerial26() {
+    post_fn := func() {}
+    file_name = "pyserial-2.6.zip"
+    package_name = "pyserial-2.6"
+    installZippedPythonPackage(file_name, package_name, package_name, post_fn)
+}
+
+func installUnlock() {
+    post_processing_fn := func() {
+        if err := os.MkdirAll("C:\\Unlock", 0755); err != nil {
+            log.Fatalln("Failed to make unlock directory", err)
+        }
+        if err := os.Rename("collector.py", "C:\\Unlock\\collector.py"); err != nil {
+            log.Fatalln("Failed to install unlock collector", err)
+        }
+
+        if err := os.Rename("collector.bat", "C:\\Unlock\\collector.bat"); err != nil {
+            log.Fatalln("Failed to install unlock collector", err)
+        }
+
+        if err := os.Rename("pygtec.py", "C:\\Unlock\\pygtec.py"); err != nil {
+            log.Fatalln("Failed to install unlock collector", err)
+        }
+
+        if err := os.Rename("targets.png", "C:\\Unlock\\targets.png"); err != nil {
+            log.Fatalln("Failed to install unlock collector", err)
+        }
+    }
+    installZippedPythonPackage("unlock.zip", "unlock", "unlock-npl", post_processing_fn)
 }
 
 func main() {
@@ -318,9 +306,9 @@ func main() {
         log.Fatalln(err)
     }
     log.SetOutput(io.MultiWriter(logf, os.Stdout))
-
-    setupPython()
-    installPyglet()
+    //setupPython()
+    installPyglet12alpha()
     installNumpy()
+    installPySerial26()
     installUnlock()
 }
