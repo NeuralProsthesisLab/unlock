@@ -7,7 +7,6 @@ import (
     "os"
     "os/exec"
     "log"
-//    "time"
     "path/filepath"
     "io"
     "archive/zip"
@@ -189,13 +188,13 @@ func downloadAndWrite(url_name string, file_name string) {
     }
 }
 
-func getPath() string {
-    path, err := filepath.Abs("")
-    fmt.Println("path = ", path)
+func cwdAbs() string {
+    cwd, err := filepath.Abs("")
+    log.Println("Current working directory = ", cwd)
     if err != nil {
         log.Fatalln(err)
     }
-    return path
+    return cwd
 }
 
 func checkForPython() error {
@@ -206,10 +205,10 @@ func checkForPython() error {
 
 func installExe(exe_name string, package_name string, post_fn func()) {
     log.Println("Downloading "+package_name+"...")
-    downloadAndWrite(base_url+exe_file, exe_file)
+    downloadAndWrite(base_url+exe_name, exe_name)
     log.Println("Installing "+package_name+"...")
-    path := getPath()
-    cmd3 := exec.Command("cmd", "/C "+path+"\\"+exe_name)
+    cwd := cwdAbs()
+    cmd3 := exec.Command("cmd", "/C "+cwd+"\\"+exe_name)
     if err := cmd3.Run(); err != nil {
         log.Fatalln(err)
     }
@@ -241,10 +240,8 @@ func installZippedPythonPackage(file_name string, package_name string, local_dir
 
 func installPython27() {
     if err := checkForPython(); err != nil {
-        exe_name := "python-2.7.5.msi",
-        package_name := "Python-2.7.5"
         post_fn := func() {}
-        installExe(exe_name, package_name, post_fn)
+        installExe("python-2.7.5.msi", "Python-2.7.5", post_fn)
     } else {
         log.Println("Python is already installed")
     }
@@ -252,24 +249,17 @@ func installPython27() {
 
 func installPyglet12alpha() {
     post_fn := func() {}
-    file_name := "pyglet-1.2alpha.zip"
-    package_name := "pyglet-1.2alpha"
-    local_dir := "pyglet-1.2alpha1"
-    installZippedPythonPackage(file_name, package_name, local_dir, post_fn)
+    installZippedPythonPackage("pyglet-1.2alpha.zip", "pyglet-1.2alpha", "pyglet-1.2alpha1", post_fn)
 }
 
-func installNumPy() {
-    exe_name := "numpy-MKL-1.7.1.win32-py2.7.exe"
-    package_name := "NumPy-1.7.1"
+func installNumPy171() {
     post_fn := func() {}
-    installExe(exe_name, package_name, post_fn)
+    installExe("numpy-MKL-1.7.1.win32-py2.7.exe", "NumPy-1.7.1", post_fn)
 }
 
 func installPySerial26() {
     post_fn := func() {}
-    file_name = "pyserial-2.6.zip"
-    package_name = "pyserial-2.6"
-    installZippedPythonPackage(file_name, package_name, package_name, post_fn)
+    installZippedPythonPackage("pyserial-2.6.zip", "pyserial-2.6", "pyserial-2.6", post_fn)
 }
 
 func installUnlock() {
@@ -304,7 +294,7 @@ func main() {
     log.SetOutput(io.MultiWriter(logf, os.Stdout))
     installPython27()
     installPyglet12alpha()
-    installNumpy()
+    installNumPy171()
     installPySerial26()
     installUnlock()
 }
