@@ -20,7 +20,7 @@ import sys
 class VisualCues(UnlockApplication):
     name = "Visual Cue"
     icon = "robot.png"  
-    def __init__(self, cues_list, screen, duration, trigger, rand, trials, reset_cue_filename='targets.png'):
+    def __init__(self, cues_list, screen, duration, trigger, rand, trials, reset_cue_filename='targets.jpg'):
         super(self.__class__, self).__init__(screen)
         assert len(cues_list) > 0 and screen != None
         self.cues = cues_list
@@ -131,7 +131,7 @@ class SampleCollector(UnlockApplication):
         
         parser.add_option("-m", "--msequence", default=False, action='store_true', dest="msequence", metavar="MSEQUENCE", help=msequence_help)
         parser.add_option("-p", "--port", default='COM3', dest="port", metavar="PORT", help=port_help)
-        parser.add_option("-v", "--visual-cues", default='', type=str, dest="cues", metavar="CUES", help=visual_cues_help)
+        #parser.add_option("-v", "--visual-cues", default='', type=str, dest="cues", metavar="CUES", help=visual_cues_help)
         parser.add_option("-d", "--cue-duration", default=3, type=int, dest="duration", metavar="DURATION", help=duration_help)
         parser.add_option("-c", "--channels", default='0x78', dest="channels", metavar="CHANNELS", help=channels_help)
         parser.add_option("-o", "--output", default='gtec', type=str, dest="output", metavar="OUTPUT", help=output_help)
@@ -171,7 +171,7 @@ class SampleCollector(UnlockApplication):
             self.apps.append(ssvep)
         if options.cues != '':
             app_screen = Screen(0, 0, viewport.window.width, viewport.window.height)        
-            self.vc = VisualCues(options.cues.split(','), app_screen, self.duration, self.trigger, self.rand, options.trials)
+            self.vc = VisualCues(['left', 'right', 'up', 'down'], app_screen, self.duration, self.trigger, self.rand, options.trials)
             self.apps.append(self.vc)
         try:
             self.gtec = MOBIlab()
