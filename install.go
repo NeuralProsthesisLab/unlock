@@ -175,6 +175,8 @@ func (w *ZipMeta) walk(zipfile string) error {
 
 /////////////////////////////////////////////////////////////////////////
 
+var base_url = "http://jpercent.org/"
+
 func downloadAndWrite(url_name string, file_name string) {
     resp, err := http.Get(url_name)
     if err != nil {
@@ -202,41 +204,17 @@ func checkForPython() error {
     return cmd.Run()
 }
 
-func installPython(path string) {
-    log.Println("Installing Python...")
-    cmd := exec.Command("cmd", "/C "+path+"\\python-2.7.5.msi")
-    if err := cmd.Run(); err != nil {
-        log.Fatalln("Failed to install Python ", err)
-    }
-}
-
-func setupPython() {
-    if err := checkForPython(); err != nil {
-        log.Println("Downloading Python...")
-        downloadAndWrite("http://jpercent.org/python-2.7.5.msi", "python-2.7.5.msi")
-        path := getPath()
-        installPython(path)
-        log.Println("Successfully installed Python")
-    } else {
-        log.Println("Python is already installed")
-    }
-}
-
-
-
-func installNumpy() {
-    log.Println("Downloading NumPy...")
-    downloadAndWrite("http://jpercent.org/numpy-MKL-1.7.1.win32-py2.7.exe", "numpy-MKL-1.7.1.win32-py2.7.exe")
-    log.Println("Installing NumPy...")
+func installExe(exe_name string, package_name string, post_fn func()) {
+    log.Println("Downloading "+package_name+"...")
+    downloadAndWrite(base_url+exe_file, exe_file)
+    log.Println("Installing "+package_name+"...")
     path := getPath()
-    cmd3 := exec.Command("cmd", "/C "+path+"\\numpy-MKL-1.7.1.win32-py2.7.exe")
+    cmd3 := exec.Command("cmd", "/C "+path+"\\"+exe_name)
     if err := cmd3.Run(); err != nil {
         log.Fatalln(err)
     }
-    fmt.Println("Successfully installed NumPy")
+    fmt.Println("Successfully installed "+package_name)
 }
-
-var base_url = "http://jpercent.org/"
 
 func installZippedPythonPackage(file_name string, package_name string, local_dir string, post_fn func()) {
     log.Println("Downloading "+package_name+"... ")
@@ -261,12 +239,30 @@ func installZippedPythonPackage(file_name string, package_name string, local_dir
     log.Println("Successfully installed "+package_name)
 }
 
+func installPython27() {
+    if err := checkForPython(); err != nil {
+        exe_name := "python-2.7.5.msi",
+        package_name := "Python-2.7.5"
+        post_fn := func() {}
+        installExe(exe_name, package_name, post_fn)
+    } else {
+        log.Println("Python is already installed")
+    }
+}
+
 func installPyglet12alpha() {
     post_fn := func() {}
-    file_name = "pyglet-1.2alpha.zip"
-    package_name = "pyglet-1.2alpha"
-    local_dir = "pyglet-1.2alpha1"
+    file_name := "pyglet-1.2alpha.zip"
+    package_name := "pyglet-1.2alpha"
+    local_dir := "pyglet-1.2alpha1"
     installZippedPythonPackage(file_name, package_name, local_dir, post_fn)
+}
+
+func installNumPy() {
+    exe_name := "numpy-MKL-1.7.1.win32-py2.7.exe"
+    package_name := "NumPy-1.7.1"
+    post_fn := func() {}
+    installExe(exe_name, package_name, post_fn)
 }
 
 func installPySerial26() {
@@ -306,7 +302,7 @@ func main() {
         log.Fatalln(err)
     }
     log.SetOutput(io.MultiWriter(logf, os.Stdout))
-    //setupPython()
+    installPython27()
     installPyglet12alpha()
     installNumpy()
     installPySerial26()
