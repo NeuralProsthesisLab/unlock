@@ -105,11 +105,13 @@ class PseudoRandomTransitioner(object):
         self.state_id = state_id
         self.trials = trials
         self.count = 0
+        self.transition = False
     def update(self, unlock_state):
         unlock_state.display()
-        transition = self.state.update(unlock_state)
-        if transition:
+        if self.transition:
             self.state = self.next_state()
+        self.transition = self.state.update(unlock_state)
+
     def next_state(self):
         if self.state.state_id == self.state_id['reset']:
             state = self.next_cue()
@@ -141,12 +143,28 @@ class VisualizationManager(UnlockApplication):
         position_x = viewport.window.width // 2
         position_y = viewport.window.height // 2
         self.reset_state = VisualizationState(self.state_id['reset'], ImageDraw(reset_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, reset_duration)
-
+ 
         self.text = self.screen.drawText('left', self.screen.width / 2, self.screen.height / 2)
-        self.left = CueState(self.state_id['left'], TextDraw('left', self.text, viewport.controller.draw), self.trigger.send, cue_duration, self.reset_state)
-        self.right = CueState(self.state_id['right'], TextDraw('right', self.text, viewport.controller.draw), self.trigger.send, cue_duration, self.reset_state)
-        self.up = CueState(self.state_id['up'], TextDraw('up', self.text, viewport.controller.draw), self.trigger.send, cue_duration, self.reset_state)
-        self.down = CueState(self.state_id['down'], TextDraw('down', self.text, viewport.controller.draw), self.trigger.send, cue_duration, self.reset_state)
+#        self.reset_state = CueState(self.state_id['reset'], TextDraw('+', self.text, viewport.controller.draw), self.trigger.send, reset_duration, None)
+
+        position_x = img.width // 2
+        self.left_indicator = VisualizationState(self.state_id['indicator'], ImageDraw(reset_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
+        self.left_indicator.drawer.screen = screen
+        
+        position_x = viewport.window.width - img.width // 2
+        self.right_indicator = VisualizationState(self.state_id['indicator'], ImageDraw(reset_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
+        
+        position_x = viewport.window.width // 2
+        position_y = viewport.window.height - img.height // 2
+        self.up_indicator = VisualizationState(self.state_id['indicator'], ImageDraw(reset_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
+        
+        position_y = img.height // 2
+        self.down_indicator = VisualizationState(self.state_id['indicator'], ImageDraw(reset_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
+
+        self.left = CueState(self.state_id['left'], TextDraw('left', self.text, viewport.controller.draw), self.trigger.send, cue_duration, self.left_indicator)
+        self.right = CueState(self.state_id['right'], TextDraw('right', self.text, viewport.controller.draw), self.trigger.send, cue_duration, self.right_indicator)
+        self.up = CueState(self.state_id['up'], TextDraw('up', self.text, viewport.controller.draw), self.trigger.send, cue_duration, self.up_indicator)
+        self.down = CueState(self.state_id['down'], TextDraw('down', self.text, viewport.controller.draw), self.trigger.send, cue_duration, self.down_indicator)
 
         self.cue_states = [self.left, self.right, self.up, self.down]
         self.reset_state.next = lambda: self.cue_states[self.rand.randint(0, len(self.cues_states)-1)]
@@ -221,7 +239,7 @@ class SampleCollector(UnlockApplication):
         parser.add_option('-p', '--port', default='COM3', dest='port', metavar='PORT', help=port_help)
         parser.add_option('-e', '--emg', default=False, action='store_true', dest='emg', metavar='emg', help=emg_help)
         parser.add_option('-d', '--cue-duration', default=3, type=int, dest='cue_duration', metavar='CUE-DURATION', help=cue_duration_help)
-        parser.add_option('-r', '--reset-duration', default=2, type=int, dest='reset_duration', metavar='RESET-DURATION', help=reset_duration_help)        
+        parser.add_option('-r', '--reset-duration', default=1, type=int, dest='reset_duration', metavar='RESET-DURATION', help=reset_duration_help)        
         parser.add_option('-c', '--channels', default='0x78', dest='channels', metavar='CHANNELS', help=channels_help)
         parser.add_option('-o', '--output', default='gtec', type=str, dest='output', metavar='OUTPUT', help=output_help)
         parser.add_option('-s', '--seed', default=42, type=int, dest='seed', metavar='SEED', help=seed_help)
