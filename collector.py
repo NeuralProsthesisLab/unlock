@@ -1,7 +1,22 @@
 from core import Screen
 from apps.stimuli.ssvep import SSVEP, SSVEPStimulus
 from core import UnlockApplication
-from pygtec import MOBIlab
+
+try:
+    from pygtec import MOBIlab
+    pygtec = True
+except Exception:
+    pygtec = False
+    
+try:
+    from pynobio import Enobio
+    pynobio = True
+except Exception:
+    pynobio = False
+
+from fakebci import FakeBCI
+
+#if not (pynobio or pygtec):
 from core import viewport
 from optparse import OptionParser
 from os.path import join, abspath
@@ -217,7 +232,10 @@ class AsyncTrigger(object):
             self.trigger = 0
         return val
             
-            
+
+
+
+          
 class SampleCollector(UnlockApplication):
     name = "Sample Collector"
     icon = "robot.png"  
@@ -229,7 +247,7 @@ class SampleCollector(UnlockApplication):
         
         msequence_help = 'runs the msequence collector; one of --msequence or --emg, but not both, must be set'
         emg_help = 'runs the EMG data collector; one of --msequence or --emg, but not both, must be set'
-        cue_duration_help = 'wall clock time of cue; default is 3 seconds'
+        cue_duration_help = 'wall clock time of cue; default is 2 seconds'
         indicator_duration_help = 'wall clock time of indication; default is 3 seconds'        
         reset_duration_help = 'wall clock time of the reset; default is 1 second'
         seed_help = 'value to seed the pseudo random number generator; default value is 42'
@@ -238,6 +256,7 @@ class SampleCollector(UnlockApplication):
         channels_help = '1 byte(2 hexidecimal digits) bit mask specifying the channels; default is 0x78'
         trials_help = 'number of trials; default is 25'
         loglevel_help = 'set the logging level; valid values are debug, info, warn, error and critical; default value is warn'
+        bci_help = 'selects the BCI; valid values are: fake, mobilab, enobio; default value is fake'
         parser.add_option('-m', '--msequence', default=False, action='store_true', dest='msequence', metavar='MSEQUENCE', help=msequence_help)
         parser.add_option('-p', '--port', default='COM3', dest='port', metavar='PORT', help=port_help)
         parser.add_option('-e', '--emg', default=False, action='store_true', dest='emg', metavar='emg', help=emg_help)
@@ -245,10 +264,11 @@ class SampleCollector(UnlockApplication):
         parser.add_option('-i', '--indicator-duration', default=3, type=int, dest='indicator_duration', metavar='INDICATOR-DURATION', help=indicator_duration_help)        
         parser.add_option('-r', '--reset-duration', default=1, type=int, dest='reset_duration', metavar='RESET-DURATION', help=reset_duration_help)        
         parser.add_option('-c', '--channels', default='0x78', dest='channels', metavar='CHANNELS', help=channels_help)
-        parser.add_option('-o', '--output', default='gtec', type=str, dest='output', metavar='OUTPUT', help=output_help)
+        parser.add_option('-o', '--output', default='bci', type=str, dest='output', metavar='OUTPUT', help=output_help)
         parser.add_option('-s', '--seed', default=42, type=int, dest='seed', metavar='SEED', help=seed_help)
         parser.add_option('-t', '--trials', default=25, type=int, dest='trials', metavar='TRIALS', help=trials_help)        
-        parser.add_option('-l', '--logging-level', dest='loglevel', metavar='LEVEL', help=loglevel_help)
+        parser.add_option('-l', '--logging-level', type=str, dest='loglevel', metavar='LEVEL', help=loglevel_help)
+        parser.add_option('-b', '--bci', dest='bci', default='fake', type=str, metavar='BCI', help=bci_help)        
         
         valid_levels = { 'debug' : logging.DEBUG, 'info' : logging.INFO,
                          'warn' : logging.WARN, 'error' : logging.ERROR,
@@ -266,7 +286,7 @@ class SampleCollector(UnlockApplication):
                 logger.error('Invalid log level: '+self.options.loglevel+ \
                              ' using default, which is WARN')
             set_logger_level(logging.WARN)
-    
+        
         self.cue_duration = options.cue_duration
         self.indicator_duration = options.indicator_duration
         self.reset_duration = options.reset_duration   
@@ -302,13 +322,31 @@ class SampleCollector(UnlockApplication):
             self.apps.append(self.visual_cues)
         
         try:
-            self.gtec = MOBIlab()
-            if not self.gtec.open(options.port):
-                raise Exception('MOBIlab did not open')
-            if not self.gtec.init(int(options.channels, 0), 0):
-                raise Exception('MOBIlab device did not initialize')
-            if not self.gtec.start():
-                raise Exception('DAQ device did not start streaming')
+            #self.bci = MOBIlab()
+            if options.bci == 'fake' or options.bci == 'mobilab':
+                if options.bci == 'fake':
+                    self.bci = FakeBCI()
+                else:
+                    assert options.bci == 'mobilab'
+                    self.bci = MOBIlab()
+                self.bci_channels = 4
+                if not self.bci.open(options.port):
+                    raise Exception(options.bci+' did not open')
+                if not self.bci.init(int(options.channels, 0), 0):
+                    raise Exception(options.bci+' device did not initialize')
+                if not self.bci.start():
+                    raise Exception(options.bci+' device did not start streaming')                
+            else:
+                assert options.bci == 'enobio'
+                self.bci_channels = 8
+                self.bci = Enobio()
+                if not self.bci.open():
+                    raise Exception(options.bci+' did not open')
+                #if options.bci != 'enobio' and not self.bci.init(int(options.channels, 0), 0):
+                #    raise Exception(self.bci_desc+' device did not initialize')
+                if not self.bci.start():
+                    raise Exception(options.bci+' device did not start streaming')                
+
         except Exception, e:
             self.visual_cues.stop()
             raise e
@@ -322,11 +360,19 @@ class SampleCollector(UnlockApplication):
         self.stop()
         self.thread.join()
     def acquisition_loop(self):
-        while self.gtec.acquire() and not self.done:
-            tval = self.trigger.value()
-            data = np.hstack((self.gtec.getdata(4), [tval]))
-            data = data.reshape((1, 5))
-            np.savetxt(self.fh, data, fmt='%d', delimiter='\t')            
+        while not self.done:
+            samples = self.bci.acquire()
+            if samples == 0:
+                continue
+            trigger_value = self.trigger.value()
+            trigger_vector = np.zeros((samples, 1))
+            logger.debug(trigger_vector)
+            trigger_vector[-1] = trigger_value
+            flat_data_vector = self.bci.getdata(self.bci_channels * samples)
+            data_matrix = flat_data_vector.reshape((samples, self.bci_channels))
+            final_data_matrix = np.hstack((data_matrix, trigger_vector))
+            logger.debug("Data = ", final_data_matrix)
+            np.savetxt(self.fh, final_data_matrix, fmt='%d', delimiter='\t')            
         self.fh.flush()
         self.fh.close()
     def stop(self):
