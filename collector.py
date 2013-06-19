@@ -22,7 +22,6 @@ try:
     logging.config.fileConfig('logger.config')
 except:
     pass
-#logging.config.string
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -131,17 +130,20 @@ class PseudoRandomTransitioner(object):
             
             
 class VisualizationManager(UnlockApplication):
-    def __init__(self, screen, indicator_duration, cue_duration, reset_duration, trigger, rand, trials, reset_image_filename='targets.jpg'):
+    def __init__(self, screen, indicator_duration, cue_duration, reset_duration, trigger, rand, trials, reset_image_filename='targets-3.png'):
         super(self.__class__, self).__init__(screen)
         assert screen != None
         self.screen = screen
         self.trigger = trigger
         self.state_id = {'none': 0, 'left':1, 'right':2, 'up':3, 'down':4, 'indicator':5, 'reset':6}
         img = pyglet.image.load(reset_image_filename).get_texture(rectangle=True)
+        #img.width = img.width // 8
+        #img.height = img.height // 8
         anchor_x = img.width // 2
         anchor_y = img.height // 2
         position_x = viewport.window.width // 2
         position_y = viewport.window.height // 2
+
         self.reset_state = VisualizationState(self.state_id['reset'], ImageDraw(reset_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, reset_duration)
  
         self.text = self.screen.drawText('left', self.screen.width / 2, self.screen.height / 2)
