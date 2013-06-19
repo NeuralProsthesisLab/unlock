@@ -130,7 +130,7 @@ class PseudoRandomTransitioner(object):
             
             
 class VisualizationManager(UnlockApplication):
-    def __init__(self, screen, indicator_duration, cue_duration, reset_duration, trigger, rand, trials, reset_image_filename='targets-3.png'):
+    def __init__(self, screen, cue_duration, indicator_duration, reset_duration, trigger, rand, trials, reset_image_filename='targets-3.png'):
         super(self.__class__, self).__init__(screen)
         assert screen != None
         self.screen = screen
@@ -229,7 +229,8 @@ class SampleCollector(UnlockApplication):
         
         msequence_help = 'runs the msequence collector; one of --msequence or --emg, but not both, must be set'
         emg_help = 'runs the EMG data collector; one of --msequence or --emg, but not both, must be set'
-        cue_duration_help = 'wall clock time between cues; default is 3 seconds'
+        cue_duration_help = 'wall clock time of cue; default is 3 seconds'
+        indicator_duration_help = 'wall clock time of indication; default is 3 seconds'        
         reset_duration_help = 'wall clock time of the reset; default is 1 second'
         seed_help = 'value to seed the pseudo random number generator; default value is 42'
         output_help = 'path to the output file containing the samples; defaults to gtec concatenated with the date'
@@ -240,7 +241,8 @@ class SampleCollector(UnlockApplication):
         parser.add_option('-m', '--msequence', default=False, action='store_true', dest='msequence', metavar='MSEQUENCE', help=msequence_help)
         parser.add_option('-p', '--port', default='COM3', dest='port', metavar='PORT', help=port_help)
         parser.add_option('-e', '--emg', default=False, action='store_true', dest='emg', metavar='emg', help=emg_help)
-        parser.add_option('-d', '--cue-duration', default=3, type=int, dest='cue_duration', metavar='CUE-DURATION', help=cue_duration_help)
+        parser.add_option('-d', '--cue-duration', default=2, type=int, dest='cue_duration', metavar='CUE-DURATION', help=cue_duration_help)
+        parser.add_option('-i', '--indicator-duration', default=3, type=int, dest='indicator_duration', metavar='INDICATOR-DURATION', help=indicator_duration_help)        
         parser.add_option('-r', '--reset-duration', default=1, type=int, dest='reset_duration', metavar='RESET-DURATION', help=reset_duration_help)        
         parser.add_option('-c', '--channels', default='0x78', dest='channels', metavar='CHANNELS', help=channels_help)
         parser.add_option('-o', '--output', default='gtec', type=str, dest='output', metavar='OUTPUT', help=output_help)
@@ -266,7 +268,8 @@ class SampleCollector(UnlockApplication):
             set_logger_level(logging.WARN)
     
         self.cue_duration = options.cue_duration
-        self.reset_duration = options.reset_duration        
+        self.indicator_duration = options.indicator_duration
+        self.reset_duration = options.reset_duration   
         self.apps = []
         self.trigger = AsyncTrigger()
         self.rand = random.Random(options.seed)
@@ -293,10 +296,10 @@ class SampleCollector(UnlockApplication):
             # Uncomment the following line to turn off the flickering stimuli.
             #ssvep.stop()
             self.apps.append(ssvep)
-        
-        app_screen = Screen(0, 0, viewport.window.width, viewport.window.height)        
-        self.visual_cues = VisualizationManager(app_screen, self.cue_duration, self.reset_duration, self.reset_duration, self.trigger, self.rand, options.trials)
-        self.apps.append(self.visual_cues)
+        if options.emg:
+            app_screen = Screen(0, 0, viewport.window.width, viewport.window.height)        
+            self.visual_cues = VisualizationManager(app_screen, self.cue_duration, self.indicator_duration, self.reset_duration, self.trigger, self.rand, options.trials)
+            self.apps.append(self.visual_cues)
         
         try:
             self.gtec = MOBIlab()
