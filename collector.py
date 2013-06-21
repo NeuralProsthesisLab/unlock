@@ -368,7 +368,7 @@ class SampleCollector(UnlockApplication):
             trigger_vector = np.zeros((samples, 1))
             logger.debug(trigger_vector)
             trigger_vector[-1] = trigger_value
-            flat_data_vector = self.bci.getdata(self.bci_channels * samples)
+            flat_data_vector = np.array(self.bci.getdata(self.bci_channels * samples))
             data_matrix = flat_data_vector.reshape((samples, self.bci_channels))
             final_data_matrix = np.hstack((data_matrix, trigger_vector))
             logger.debug("Data = ", final_data_matrix)
