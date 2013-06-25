@@ -250,7 +250,9 @@ class AsyncTrigger(object):
     #                break
     #    conn.close()
     def value(self):
-        return self.trigger
+        val = self.trigger
+        self.trigger = 0
+        return val
         #val = 0
         #with self.lock:
         #    val = self.trigger
@@ -280,9 +282,11 @@ class SampleCollector(UnlockApplication):
         trials_help = 'number of trials; default is 25'
         loglevel_help = 'set the logging level; valid values are debug, info, warn, error and critical; default value is warn'
         bci_help = 'selects the BCI; valid values are: fake, mobilab, enobio; default value is fake'
+        fps_help = 'displays the frequency per second'
+        not_fullscreen_help = 'turns off full screen mode'
         parser.add_option('-m', '--msequence', default=False, action='store_true', dest='msequence', metavar='MSEQUENCE', help=msequence_help)
         parser.add_option('-p', '--port', default='COM3', dest='port', metavar='PORT', help=port_help)
-        parser.add_option('-e', '--emg', default=False, action='store_true', dest='emg', metavar='emg', help=emg_help)
+        parser.add_option('-e', '--emg', default=False, action='store_true', dest='emg', metavar='EMG', help=emg_help)
         parser.add_option('-d', '--cue-duration', default=2, type=int, dest='cue_duration', metavar='CUE-DURATION', help=cue_duration_help)
         parser.add_option('-i', '--indicator-duration', default=3, type=int, dest='indicator_duration', metavar='INDICATOR-DURATION', help=indicator_duration_help)        
         parser.add_option('-r', '--reset-duration', default=1, type=int, dest='reset_duration', metavar='RESET-DURATION', help=reset_duration_help)        
@@ -292,7 +296,8 @@ class SampleCollector(UnlockApplication):
         parser.add_option('-t', '--trials', default=25, type=int, dest='trials', metavar='TRIALS', help=trials_help)        
         parser.add_option('-l', '--logging-level', type=str, dest='loglevel', metavar='LEVEL', help=loglevel_help)
         parser.add_option('-b', '--bci', dest='bci', default='fake', type=str, metavar='BCI', help=bci_help)        
-        
+        parser.add_option('-f', '--fps', default=False, action='store_true', dest='fps', metavar='FPS', help=fps_help)
+        parser.add_option('-n', '--not-fullscreen', default=True, action='store_false', dest='not_fullscreen', metavar='NOT-FULLSCREEN', help=not_fullscreen_help)        
         valid_levels = { 'debug' : logging.DEBUG, 'info' : logging.INFO,
                          'warn' : logging.WARN, 'error' : logging.ERROR,
                          'critical' : logging.CRITICAL} 
@@ -318,7 +323,7 @@ class SampleCollector(UnlockApplication):
         self.rand = random.Random(options.seed)
         self.cues = ['left', 'right', 'up', 'down']
         
-        self.window = PygletWindow(fullscreen=True, show_fps=True)
+        self.window = PygletWindow(fullscreen=options.not_fullscreen, show_fps=options.fps)
         
         if options.msequence:
             ssvep_screen = Screen(0, 0, self.window.width, self.window.height)        
