@@ -22,28 +22,14 @@ class Dashboard(UnlockApplication):
         self.marker = self.screen.drawRect(cx-64, cy-64, 128, 128)
         icon = self.screen.loadSprite(self.resource_path + self.icon, cx, cy)
         self.grid = {self.cursor: {'app':self, 'icon':icon}}
-
-#        self.image_size = self.grid[1][0].get_width()
-#        self.box_padding = 10
-#        self.box_size = self.image_size + 2 * self.box_padding
-#        self.x_center  = (self.screen.get_width() - self.box_size) / 2
-#        self.y_center  = (self.screen.get_height() - self.box_size) / 2
-
-#    def onReturn(self, kwargs):
-#        self.controller.current_stimulus.start()
-#
-#    def drawStrokeBox(self):
-#        pygame.draw.rect(self.screen, (67,86,102),
-#            (self.x_center + self.cursor[0] * self.box_size,
-#             self.y_center - self.cursor[1] * self.box_size,
-#             self.box_size, self.box_size), 1)
-
+    @override
     def on_attach(self, app):
         """
         Update the dashboard to reflect the new app.
         """
+        super(self.__class__, self).on_attach(app)
+        
         place = self.app_order[self.installed_apps]
-
         cx, cy = self.screen.get_center()
         ix = cx + place[0] * self.icon_size[0]
         iy = cy + place[1] * self.icon_size[1]
@@ -52,7 +38,6 @@ class Dashboard(UnlockApplication):
         except AttributeError:
             icon = self.screen.drawText(app.name, ix, iy, size=18)
         self.grid[place] = {'app': app, 'icon': icon}
-
         self.installed_apps += 1
 
     def update(self, dt, decision, selection):

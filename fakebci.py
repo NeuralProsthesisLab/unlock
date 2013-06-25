@@ -6,6 +6,7 @@ class FakeBCI(object):
         self.rand = random.Random(1337)
         self.getdata_count = 0
         self.acquire_count = 0
+        self.ret = None
     def open(self, port):
         self.port = port
         return 1
@@ -23,7 +24,9 @@ class FakeBCI(object):
     def getdata(self, chans):
         self.getdata_count += 1
         self.last_chans = chans
-        ret = []
+#        if self.ret == None:
+        self.ret = []        
         for i in range(chans):
-            ret.append(self.rand.randint(1, sys.maxint))
-        return ret
+            self.ret.append(self.rand.randint(1, sys.maxint))
+        #print 'FakeBCI.getdata ret = ', self.ret
+        return self.ret

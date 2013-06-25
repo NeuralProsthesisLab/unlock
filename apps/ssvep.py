@@ -1,7 +1,7 @@
 import pyglet
-import time
 import array
 import socket
+import time
 from core import UnlockApplication
 from math import cos, sin, radians
 
@@ -308,6 +308,7 @@ class SSVEPStimulus():
         if self.image_reverse is not None:
             self.image_reverse.visible = False
 
+
 class DefaultSSVEP(SSVEP):
     """
     Convenience class for quickly generating the default stimuli setup for
@@ -321,3 +322,5 @@ class DefaultSSVEP(SSVEP):
             SSVEPStimulus(screen, 15.0, 'east', rotation=90),
             ]
         super(DefaultSSVEP, self).__init__(screen, stimuli)
+        
+        

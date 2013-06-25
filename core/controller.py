@@ -91,4 +91,6 @@ class Controller():
 
     def draw(self):
         for app in self.apps:
-            app.screen.batch.draw()
+            app.draw()
+            
+            

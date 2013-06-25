@@ -1,6 +1,6 @@
 import pyglet
 
-class Screen():
+class Screen(object):
     def __init__(self, x, y, width, height):
 
         self.x = x
@@ -138,7 +138,7 @@ class Screen():
         "adds a group to the list of groups"
         return pyglet.graphics.OrderedGroup(order)
 
-class LinePlot():
+class LinePlot(object):
     def __init__(self, line, y_offset):
         self.line = line
         self.y = y_offset

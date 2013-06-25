@@ -1,6 +1,15 @@
 import os
 import inspect
+from util import observer
 
+class Resource(object):
+    def __init__(self, path=None):    
+        if path == None:
+            self.path = os.path.dirname(inspect.getfile(Resource))+'/resource/'
+        else:                
+            self.path = path
+            
+            
 class UnlockApplication(object):
     """Unlock Application base class
 
@@ -10,15 +19,24 @@ class UnlockApplication(object):
     name = "Unlock Application"
     gets_samples = False
 
-    def __init__(self, screen):
+    def __init__(self, screen, resource=Resource()):
         """__init__"""
         self.screen = screen
-        self.controller = None
+        self.resource = resource
+        self.observer = observer.Observer(self.__notify__)
+        self.children = []
+        self.resource = resource
         self.parent = None
-        self.apps = {}
-        self.resource_path = os.path.dirname(
-            inspect.getfile(self.__class__)) + '/resource/'
-
+    def __notify__(self, **kwargs):
+        assert kwargs.has_key('cmd')
+        if kwargs['cmd'] == 'on_attach':
+            assert kwargs.has_key('parent')
+            onattach = getattr(self, kwargs['cmd'])
+            onattach(kwargs['parent'])
+        elif kwargs['cmd'] == 'on_return':
+            onattach = getattr(self, kwargs['cmd'])
+            onattach(kwargs)
+        
 #    def draw(self):
 #        """Draw"""
 #        raise NotImplementedError(
@@ -28,16 +46,21 @@ class UnlockApplication(object):
         """Update: Unlock Applications must define the update method"""
         raise NotImplementedError(
             "Unlock Applications must define the update method")
-
     def sample(self, data):
         """Sample"""
         pass
-
+        
     def attach(self, app):
-        self.apps[app] = app
-        app.parent = self
-        self.on_attach(app)
+        c = Connection(app, 'cmd', 'parent')
+        self.children.append(c)
+        c.send_message(cmd='on_attach', parent=self)
+        
+    #def attach(self, app):
+    #    self.apps[app] = app
+    #    app.parent = self
+    #    self.on_attach(app)
 
+    # WTF?
     def open(self, app, **kwargs):
         #if self.controller and app in self.apps:
         if app is not None:
@@ -49,7 +72,7 @@ class UnlockApplication(object):
         if self.parent is not None:
             self.controller.replace_app(self, self.parent)
             self.parent.on_return(kwargs)
-
+    
     def root(self):
         """
         Returns the root app associated with this app
@@ -72,11 +95,9 @@ class UnlockApplication(object):
         """
         pass
 
-    def on_attach(self, app):
-        """
-        Called when a child app is attached to this app.
-        """
-        pass
+    def on_attach(self, parent):
+        self.parent = parent
+        self.parent_conn = Connection(parent)
 
     def quit(self):
         """
