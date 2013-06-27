@@ -10,9 +10,9 @@ class BaseCommand(object):
         
 class CommandReceiverInterface(object):
     def get_next_command(self):
-        raise NotImplementedError("Every CommandReceiverInterface must get_next_command")
+        raise NotImplementedError("Every CommandReceiverInterface must implement get_next_command")
     def stop(self):
-        raise NotImplementedError("Every CommandReceiverInterface must get_next_command")
+        raise NotImplementedError("Every CommandReceiverInterface must implement stop")
         
 class SocketBasedCommandReceiver(CommandReceiverInterface):
     def __init__(self, address='127.0.0.1', decision_port=33445, selection_port=33446, data_port=33447, socket_family=socket.AF_INET, socket_type=socket.SOCK_DGRAM, socket_timeout=0.001):
