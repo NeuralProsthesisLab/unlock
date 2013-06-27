@@ -15,7 +15,7 @@ try:
 except Exception:
     pynobio = False
 
-from fakebci import FakeBCI
+from bci import FakeBCI
 
 #if not (pynobio or pygtec):
 
