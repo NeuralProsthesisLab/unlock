@@ -5,7 +5,7 @@ class Observable(object):
         self.dispatcher = dispatcher.Signal(providing_args=notification_keywords)
     def register_observers(self, *observers):
         for observer in observers:
-            issubclass(observer,AbstractObserver)
+            issubclass(observer,Observer)
             self.dispatcher.connect(observer.notify)
     def send_notification(self, **kwargs):
         self.dispatcher.send(sender=self, **kwargs)
