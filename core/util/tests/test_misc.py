@@ -1,4 +1,4 @@
-from .. import SocketWrapper
+from .. import DatagramWrapper
 from .. import Observer, Observable
 from .. import switch
 
@@ -11,6 +11,7 @@ import unittest
 class Model(object):
     def __init__(self, val):
         self.val = val
+
 
 class MiscTests(unittest.TestCase):
     def notify(self, **kwargs):
@@ -49,9 +50,9 @@ class MiscTests(unittest.TestCase):
         self.assertFalse(self.last_args[1].has_key('model'))
         self.assertEqual(m1, self.last_args[rand.randint(2,4)]['model'])
 
-    def testSocketWrapper(self):
-        socket_wrapper = SocketWrapper('', 31337, socket.AF_INET, socket.SOCK_DGRAM, 0.001)
-        val = socket_wrapper.receive_from()
+    def testDatagramWrapper(self):
+        socket_wrapper = DatagramWrapper('', 31337, 0.001)
+        val = socket_wrapper.receive()
         self.assertEquals(None, val)
             
         def async_sendto():
@@ -66,7 +67,7 @@ class MiscTests(unittest.TestCase):
             print error
             
         while val == None:
-            val = socket_wrapper.receive_from(int, 2, error_handler_fn = error_fn)
+            val = socket_wrapper.receive(int, 2, error_handler_fn = error_fn)
             time.sleep(.5)
             count += 1
             if count > 2:

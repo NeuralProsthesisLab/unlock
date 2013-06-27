@@ -30,16 +30,15 @@ class Connection(object):
         self.observable.send_notification(kwargs)
         
 
-class SocketWrapper(object):
-    def __init__(self, address, port, socket_family, socket_type, socket_timeout):
+class DatagramWrapper(object):
+    def __init__(self, address, port, socket_timeout):
         self.address = address
         self.port = port
-        self.socket_type = socket_type
         self.socket_timeout = socket_timeout
-        self.socket = socket.socket(socket.AF_INET, self.socket_type)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.settimeout(self.socket_timeout)
         self.socket.bind((self.address,self.port))
-    def receive_from(self, transformer_fn=lambda x: x, buffer_size=1, error_handler_fn=None):
+    def receive(self, transformer_fn=lambda x: x, buffer_size=1, error_handler_fn=None):
         if error_handler_fn == None:
             error_handler_fn = lambda x: None
         value = None
