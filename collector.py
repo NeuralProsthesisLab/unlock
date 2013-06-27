@@ -186,26 +186,26 @@ class VisualizationManager(UnlockApplication):
         down = CueState(self.state_id['down'], TextDraw('down', self.text, self.controller.draw), self.trigger.send, cue_duration, blank_indicator)
         self.cue_states = [left, right, up, down]        
 
-    def create_emg_cue_states(self, img, position_x, position_y, anchor_x, anchor_y, indicator_image_filename, cue_duration, indicator_duration, reset_duration):
+    def create_emg_cue_states(self, img, position_x, position_y, anchor_x, anchor_y, reset_indicator_image_filename, cue_duration, indicator_duration, reset_duration):
         self.reset_state = VisualizationState(self.state_id['reset'],
-            ImageDraw(self.window, reset_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, reset_duration) 
+            ImageDraw(self.window, reset_indicator_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, reset_duration) 
         position_x = img.width // 2
         left_indicator = VisualizationState(self.state_id['indicator'],
-            ImageDraw(self.window, indicator_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
+            ImageDraw(self.window, reset_indicator_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
         left_indicator.drawer.screen = self.screen
         
         position_x = self.window.width - img.width // 2
         right_indicator = VisualizationState(self.state_id['indicator'],
-            ImageDraw(self.window, indicator_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
+            ImageDraw(self.window, reset_indicator_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
         
         position_x = self.window.width // 2
         position_y = self.window.height - img.height // 2
         up_indicator = VisualizationState(self.state_id['indicator'],
-            ImageDraw(self.window, indicator_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
+            ImageDraw(self.window, reset_indicator_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
         
         position_y = img.height // 2
         down_indicator = VisualizationState(self.state_id['indicator'],
-            ImageDraw(self.window, indicator_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
+            ImageDraw(self.window, reset_indicator_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
     
         left = CueState(self.state_id['left'], TextDraw('left', self.text, self.controller.draw), self.trigger.send, cue_duration, left_indicator)
         right = CueState(self.state_id['right'], TextDraw('right', self.text, self.controller.draw), self.trigger.send, cue_duration, right_indicator)
@@ -326,7 +326,7 @@ class SampleCollector(UnlockApplication):
         self.window = PygletWindow(fullscreen=options.not_fullscreen, show_fps=options.fps)
         
         if options.msequence:
-            ssvep_screen = Screen(0, 0, self.window.width, self.window.height)        
+            app_screen = Screen(0, 0, self.window.width, self.window.height)        
             stimuli = [
                 SSVEPStimulus(ssvep_screen, 15.0, 'north', width=200, height=200,
                     x_freq=4, y_freq=4, filename_reverse=True,
@@ -347,7 +347,6 @@ class SampleCollector(UnlockApplication):
             #ssvep.stop()
             self.apps.append(ssvep)
             cue_states_factory_method_name = 'create_m_cue_states'
-            app_screen = ssvep_screen
         elif options.emg:
             app_screen = Screen(0, 0, self.window.width, self.window.height)
             cue_states_factory_method_name = 'create_emg_cue_states'
