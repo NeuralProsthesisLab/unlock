@@ -1,6 +1,6 @@
-from core import Screen
-from apps.tutorials import HelloWorld
-from apps.stimuli.ssvep import DefaultSSVEP
+from unlock.core import Screen
+from unlock.apps.tutorials import HelloWorld
+from unlock.apps.stimuli.ssvep import DefaultSSVEP
 
 
 def get_apps(window):

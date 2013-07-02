@@ -1,7 +1,8 @@
-from core import Screen
-from core import UnlockApplication
-from core import PygletWindow
-from apps import SSVEP, SSVEPStimulus
+
+from unlock.core import Screen
+from unlock.core import UnlockApplication
+from unlock.core import PygletWindow
+from unlock.apps import SSVEP, SSVEPStimulus
 
 try:
     from pygtec import MOBIlab
@@ -31,6 +32,8 @@ import numpy as np
 import time
 import socket
 import sys
+import os
+import inspect
 
 import logging
 import logging.config
@@ -45,6 +48,7 @@ logger.addHandler(logging.StreamHandler())
 def set_logger_level(log_level):
     logger.setLevel(log_level)
 
+path = os.path.dirname(inspect.getfile(set_logger_level))
   
 class UnlockState(object):
     def __init__(self, delta, decision, selection):
@@ -150,7 +154,7 @@ class PseudoRandomTransitioner(object):
             
             
 class VisualizationManager(UnlockApplication):
-    def __init__(self, window, screen, cue_duration, indicator_duration, reset_duration, trigger, rand, trials, cue_states_factory_method_name, reset_image_filename='targets-3.png', indicator_image_filename='targets-3.png', ):
+    def __init__(self, window, screen, cue_duration, indicator_duration, reset_duration, trigger, rand, trials, cue_states_factory_method_name, reset_image_filename=path+'/targets-3.png', indicator_image_filename=path+'/targets-3.png', ):
         super(self.__class__, self).__init__(screen)
         assert screen != None
         self.window = window
@@ -221,45 +225,18 @@ class VisualizationManager(UnlockApplication):
             print e
               
             
-class AsyncTrigger(object):
+class TriggerValue(object):
     def __init__(self):
-        #self.server = socket.socket()
-        #self.server.bind(('localhost', 31337))
-        #self.server.listen(1)        
-        #self.server_thread = Thread(target = self.recv_thread, args = ())
-        #self.server_thread.start()        
-        #self.client = socket.socket()
-        #self.client.connect(('localhost', 31337))    
         self.trigger = 0
-        #self.lock = RLock()
-    #def close(self, ):
-        #self.client.close()
-        #self.server_thread.join()
     def send(self, value):
         self.trigger = value #self.client.send(str(value)
         return
-    ##def recv_thread(self):
-    #    conn, addr = self.server.accept()
-    #    while 1:
-    #        data = conn.recv(1024)
-    #
-    #        with self.lock:
-    #            if data:
-    #                self.trigger = int(data)
-    #            else:
-    #                break
-    #    conn.close()
     def value(self):
         val = self.trigger
         self.trigger = 0
         return val
-        #val = 0
-        #with self.lock:
-        #    val = self.trigger
-        #    self.trigger = 0
-        #return val
-            
-            
+        
+        
 class SampleCollector(UnlockApplication):
     name = "Sample Collector"
     icon = "robot.png"  
@@ -319,7 +296,7 @@ class SampleCollector(UnlockApplication):
         self.indicator_duration = options.indicator_duration
         self.reset_duration = options.reset_duration   
         self.apps = []
-        self.trigger = AsyncTrigger()
+        self.trigger = TriggerValue()
         self.rand = random.Random(options.seed)
         self.cues = ['left', 'right', 'up', 'down']
         
@@ -328,21 +305,22 @@ class SampleCollector(UnlockApplication):
         if options.msequence:
             app_screen = Screen(0, 0, self.window.width, self.window.height)        
             stimuli = [
-                SSVEPStimulus(ssvep_screen, 15.0, 'north', width=200, height=200,
+                SSVEPStimulus(app_screen, 15.0, 'north', width=200, height=200,
                     x_freq=4, y_freq=4, filename_reverse=True,
                     sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0)),
-                SSVEPStimulus(ssvep_screen, 15.0, 'south', width=200, height=200,
+                SSVEPStimulus(app_screen, 15.0, 'south', width=200, height=200,
                     x_freq=4, y_freq=4, filename_reverse=True,
                     sequence=(0,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1)),
                         
-                SSVEPStimulus(ssvep_screen, 15.0, 'east', width=200, height=200,
+                SSVEPStimulus(app_screen, 15.0, 'east', width=200, height=200,
                     x_freq=4, y_freq=4, filename_reverse=True,
                     sequence=(0,1,0,0,0,1,0,1,0,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,0,1,0,0,1,1,0)),
-                SSVEPStimulus(ssvep_screen, 15.0, 'west', width=200, height=200,
+                SSVEPStimulus(app_screen, 15.0, 'west', width=200, height=200,
                     x_freq=4, y_freq=4, filename_reverse=True,
                     sequence=(0,0,1,1,0,0,0,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0))
             ]
-            ssvep = SSVEP(ssvep_screen, stimuli, rest_length=0)
+            self.start_sequence_trigger = TriggerValue()
+            ssvep = SSVEP(app_screen, stimuli, rest_length=0, trigger_value=self.start_sequence_trigger)
             # Uncomment the following line to turn off the flickering stimuli.
             #ssvep.stop()
             self.apps.append(ssvep)
@@ -404,14 +382,21 @@ class SampleCollector(UnlockApplication):
             return
         trigger_value = self.trigger.value()
         trigger_vector = np.zeros((samples, 1))
-        logger.debug(trigger_vector)
         trigger_vector[-1] = trigger_value
+        logger.debug(trigger_vector)
+        sequence_start_value = self.start_sequence_trigger.value()
+        sequence_start_vector = np.zeros((samples, 1))
+        sequence_start_vector[-1] = sequence_start_value
+
         flat_data_vector = np.array(self.bci.getdata(self.bci_channels * samples))
 #            print flat_data_vector.shape, self.bci_channels * samples
         data_matrix = flat_data_vector.reshape((samples, self.bci_channels))
-        final_data_matrix = np.hstack((data_matrix, trigger_vector))
+        #final_data_matrix = np.hstack((data_matrix, trigger_vector))#, sequence_start_vector))
+        final_data_matrix = np.hstack((data_matrix, trigger_vector, sequence_start_vector))
+        print final_data_matrix
         logger.debug("Data = ", final_data_matrix)
-        np.savetxt(self.fh, final_data_matrix, fmt='%d', delimiter='\t')            
+        np.savetxt(self.fh, final_data_matrix, fmt='%d', delimiter='\t')
+        #np.savetxt(self.fh, final_data_matrix1, fmt='%d', delimiter='\t')            
     def draw(self):
         for app in self.apps:
             app.screen.batch.draw()

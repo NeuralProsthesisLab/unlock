@@ -1,4 +1,4 @@
-from core import UnlockApplication
+from unlock.core import UnlockApplication
 
 
 class MSpeller(UnlockApplication):

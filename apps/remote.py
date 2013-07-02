@@ -6,7 +6,7 @@ __version__ = "0.1"
 __email__ = "npl@bu.edu"
 __status__ = "Development"
 
-from core import UnlockApplication
+from unlock.core import UnlockApplication
 import serial
 import socket
 

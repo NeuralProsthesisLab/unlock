@@ -1,4 +1,4 @@
-from unlock.core.util import sockets
+from unlock.core.util import misc
 import socket
 
 class BaseCommand(object):

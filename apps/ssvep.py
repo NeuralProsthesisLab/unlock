@@ -2,7 +2,7 @@ import pyglet
 import array
 import socket
 import time
-from core import UnlockApplication
+from unlock.core import UnlockApplication
 from math import cos, sin, radians
 
 class SSVEP(UnlockApplication):
@@ -10,16 +10,14 @@ class SSVEP(UnlockApplication):
     name = "SSVEP"
 
     def __init__(self, screen, stimuli, trial_length=4.0,
-                 rest_length=1.0, trigger_addr=None):
+                 rest_length=1.0, trigger_value=None):
         super(SSVEP, self).__init__(screen)
         self._stimuli = stimuli
         self.trial_length = trial_length
         self.rest_length = rest_length
 
-        self.trigger_addr = trigger_addr
-        if trigger_addr is not None:
-            self._trigger_socket = socket.socket(type=socket.SOCK_DGRAM)
-            self._trigger_socket.settimeout(0.001)
+        self.trigger_value = trigger_value
+        if trigger_value is not None:
             for stim in self._stimuli:
                 stim.send_trigger = True
 
@@ -86,8 +84,8 @@ class SSVEP(UnlockApplication):
                 send_trigger = False
                 for stim in self._stimuli:
                     send_trigger |= bool(stim.update(self._trial_time))
-                if self.trigger_addr is not None and send_trigger:
-                    self._trigger_socket.sendto('1',self.trigger_addr)
+                if self.trigger_value is not None and send_trigger:
+                    self.trigger_value.send('1')
 
 
 def generateCheckerboard(size, frequencies, duty_cycles, uneven, colors):

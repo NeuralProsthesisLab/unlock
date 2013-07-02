@@ -1,5 +1,5 @@
-from core import Screen
-from core import PygletWindow
+from unlock.core import Screen
+from unlock.core import PygletWindow
 from time_scope import TimeScope
 from frequency import SpectrumScope
 from selector import FreqButton
