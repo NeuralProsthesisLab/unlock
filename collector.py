@@ -383,7 +383,7 @@ class SampleCollector(UnlockApplication):
         trigger_value = self.trigger.value()
         trigger_vector = np.zeros((samples, 1))
         trigger_vector[-1] = trigger_value
-        logger.debug(trigger_vector)
+        #logger.debug(trigger_vector)
         sequence_start_value = self.start_sequence_trigger.value()
         sequence_start_vector = np.zeros((samples, 1))
         sequence_start_vector[-1] = sequence_start_value
@@ -393,8 +393,8 @@ class SampleCollector(UnlockApplication):
         data_matrix = flat_data_vector.reshape((samples, self.bci_channels))
         #final_data_matrix = np.hstack((data_matrix, trigger_vector))#, sequence_start_vector))
         final_data_matrix = np.hstack((data_matrix, trigger_vector, sequence_start_vector))
-        print final_data_matrix
-        logger.debug("Data = ", final_data_matrix)
+        #print final_data_matrix
+        #logger.debug("Data = ", final_data_matrix)
         np.savetxt(self.fh, final_data_matrix, fmt='%d', delimiter='\t')
         #np.savetxt(self.fh, final_data_matrix1, fmt='%d', delimiter='\t')            
     def draw(self):
