@@ -1,6 +1,6 @@
 import os
 import inspect
-from util import observer
+from unlock.core.util import observer
 
 class Resource(object):
     def __init__(self, path=None):    
