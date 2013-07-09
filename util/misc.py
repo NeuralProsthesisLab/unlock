@@ -19,7 +19,6 @@ class Observable(object):
         self.dispatcher.send(sender=self, **kwargs)
         
         
-
 class Connection(object):
     def __init__(self, endpoint, *callback_fns):
         assert issubclass(endpoint, Observer)
@@ -29,7 +28,7 @@ class Connection(object):
     def send_message(self, **kwargs):
         self.observable.send_notification(kwargs)
         
-
+        
 class DatagramWrapper(object):
     def __init__(self, address, port, socket_timeout):
         self.address = address
@@ -55,17 +54,17 @@ class DatagramWrapper(object):
     def stop(self):
         self.socket.close()
         
-
+        
 class switch(object):
     def __init__(self, value):
         self.value = value
         self.fall = False
-
+        
     def __iter__(self):
         """Return the match method once, then stop"""
         yield self.match
         raise StopIteration
-    
+       
     def match(self, *args):
         """Indicate whether or not to enter a case suite"""
         if self.fall or not args:
@@ -75,4 +74,5 @@ class switch(object):
             return True
         else:
             return False
-        
+            
+       
