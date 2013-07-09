@@ -85,7 +85,7 @@ class SSVEP(UnlockApplication):
                 for stim in self._stimuli:
                     send_trigger |= bool(stim.update(self._trial_time))
                 if self.trigger_value is not None and send_trigger:
-                    self.trigger_value.send('1')
+                    self.trigger_value.send(time.time()*1000)
 
 
 def generateCheckerboard(size, frequencies, duty_cycles, uneven, colors):
@@ -273,6 +273,7 @@ class SSVEPStimulus():
         If a trigger signal has been requested, a value of True is returned
         at the start of the state sequence.
         """
+        #print time.time(), trial_time
         if trial_time > self.flick_time:
             self.flick_time += self.flick_rate
             self.sequence_index += 1
