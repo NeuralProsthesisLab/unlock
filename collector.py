@@ -120,6 +120,7 @@ class CueState(VisualizationState):
        
 class PseudoRandomTransitioner(object):
     def __init__(self, cue_states, reset_state, rand, state_id, trials):
+        self.sound = pyglet.media.StaticSource(pyglet.media.load('bell-ring-01.mp3'))
         self.cue_states = cue_states
         self.reset_state = reset_state
         self.state = reset_state
@@ -139,6 +140,8 @@ class PseudoRandomTransitioner(object):
             state = self.next_cue()
         elif self.state.state_id == self.state_id['indicator']:
             state = self.reset_state
+            self.sound.play()
+                
             self.count += 1
             if self.count > self.trials:
                 pyglet.app.exit()
