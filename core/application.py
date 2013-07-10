@@ -1,6 +1,6 @@
 import os
 import inspect
-from unlock.core.util import observer
+from unlock.util import Observer, Connection
 
 class Resource(object):
     def __init__(self, path=None):    
@@ -23,7 +23,7 @@ class UnlockApplication(object):
         """__init__"""
         self.screen = screen
         self.resource = resource
-        self.observer = observer.Observer(self.__notify__)
+        self.observer = Observer(self.__notify__)
         self.children = []
         self.resource = resource
         self.parent = None
