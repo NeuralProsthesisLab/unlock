@@ -1,6 +1,7 @@
 import socket
 import cPickle
 import json
+import logging
 from unlock.util import DatagramWrapper
 
 class Command(object):
@@ -46,11 +47,12 @@ class PygletKeyboardCommand(Command):
             self.stop = True
         elif symbol in labels:
             self.decision = labels.index(symbol) + 1        
-    
+            
+            
 class CommandReceiverInterface(object):
     def next_command(self):
         raise NotImplementedError("Every CommandReceiverInterface must implement the next_command method")
-    
+        
     def stop(self):
         raise NotImplementedError("Every CommandReceiverInterface must implement the stop method")
         
@@ -60,38 +62,61 @@ class CommandSenderInterface(object):
         raise NotImplementedError("Every CommandSenderInterface must implement the send method")        
         
         
-class DatagramCommandSender(object):
-    def __init__(self):
-        pass
+class DatagramCommandReceiver(CommandReceiverInterface):
+    def __init__(self, sink):
+        self.sink = sink
+        self.log = logging.getLogger(__name__)
         
-        
-class DatagramDecomposedCommandReceiver(CommandReceiverInterface):
-    def __init__(self, address='127.0.0.1', port=33445, socket_timeout=0.001):
-        self.decision_socket = DatagramWrapper(address, port, socket_timeout)
-        
-    def next_command(self, delta_since_last_poll):
-        raw_command = self.datagram_socket.receive(int)
-        decision = self.decision_socket.receive(int)
-        selection = self.selection_socket.receive(int)
-        data = []
-        done = False
-        while not done:
-            def stop(socket_error):
-                done = True
-            self.data_socket.receive(lambda x: data.append(json.loads(x)), 64, stop)
-        return BaseCommand(delta_since_last_poll, decision, selection, data)
-    
+    def next_command(self):        
+        def error_handler(e):
+            self.log.error("DatagramCommandReceiver failed ", exc_info=True)
+            raise e
+            
+        command_size = int(self.sink.receive(4, error_handler))
+        assert command_size > 0
+            
+        serialized_command = ''
+        serialized_command = self.sink.receive(command_size, error_handler)
+        command = Command.deserialize(serialized_command)
+        return command
+            
     def stop(self):
-        self.decision_socket.close()
-        self.selection_socket.close()
-        self.data_socket.close()
+        self.sink.close()
+            
+    @staticmethod
+    def create(address='', port=31337, socket_timeout=0.001):
+        return DatagramCommandReceiver(DatagramWrapper.create_sink(address, port, socket_timeout))
+            
+            
+class DatagramCommandSender(object):
+    def __init__(self, source):
+        self.source = source
+        self.log = logging.getLogger(__name__)
+            
+    def send(self, command):
+        def error_handler(e):
+            self.log.error("DatagramCommandSender failed ", exc_info=True)
+            raise e
+            
+        bytes_sent = 0
+        serialized_command = Command.serialize(command)
+        bytes_sent += self.source.send(str(len(serialized_command)), error_handler)
+        bytes_sent += self.source.send(serialized_command, error_handler)
+        return bytes_sent
+            
+    def stop(self):
+        self.source.close()
+            
+    @staticmethod
+    def create(address='', port=31337):
+        return DatagramCommandSender(DatagramWrapper.create_source(address, port))
             
             
 class InlineCommandReceiver(CommandReceiverInterface):
     def __init__(self):
         self.Q = []
         self.pos = 0
-    
+            
     def next_command(self):
         if self.pos == len(self.Q):
             ret = None
@@ -99,10 +124,11 @@ class InlineCommandReceiver(CommandReceiverInterface):
             ret = self.Q[self.pos]
             self.pos += 1
         return ret
-    
+            
     def stop(self):
         logger.debug("stop called")
-    
+            
     def put(self, command):
         self.Q.append(command)
-    
+            
+            

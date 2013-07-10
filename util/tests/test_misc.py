@@ -50,8 +50,8 @@ class MiscTests(unittest.TestCase):
         self.assertFalse(self.last_args[1].has_key('model'))
         self.assertEqual(m1, self.last_args[rand.randint(2,4)]['model'])
 
-    def testDatagramWrapper(self):
-        socket_wrapper = DatagramWrapper('', 31337, 0.001)
+    def testDatagramSink(self):
+        socket_wrapper = DatagramWrapper.create_sink('', 31337, 0.001)
         val = socket_wrapper.receive()
         self.assertEquals(None, val)
             
@@ -67,15 +67,52 @@ class MiscTests(unittest.TestCase):
             print error
             
         while val == None:
-            val = socket_wrapper.receive(int, 2, error_handler_fn = error_fn)
+            val = socket_wrapper.receive(2, error_handler_fn = error_fn)
             time.sleep(.5)
             count += 1
             if count > 2:
                 self.assertFalse(True)
                 
         t.join()
-        self.assertEquals(42, val)
+        self.assertEquals(42, int(val))
+        count = 0
+        while val == None:
+            val = socket_wrapper.receive(2, error_handler_fn = error_fn)
+            time.sleep(.5)
+            count += 1
+            if count > 2:
+                break
+                
+    def testDatagramSourceSink(self):
+        socket_wrapper = DatagramWrapper.create_sink('', 31337, 0.001)
+        val = socket_wrapper.receive()
+        self.assertEquals(None, val)
+            
+        def async_sendto():
+            def send_error_fn(ex):
+                print 'send error ', ex
+                
+            s = DatagramWrapper.create_source('', 31337)
+            print 'sending too...'
+            s.send('42', send_error_fn)
+        t = threading.Thread(target = async_sendto, args = ())
+        t.start()
         
+        count = 0
+        def error_fn(error):
+            print error
+            
+        while val == None:
+            val = socket_wrapper.receive(2, error_handler_fn = error_fn)
+            time.sleep(.5)
+            count += 1
+            if count > 2:
+                self.assertFalse(True)
+                
+        t.join()
+        self.assertEquals(42, int(val))
+                
+                
     def testSwitch(self):
         correct = False
         incorrect = False
