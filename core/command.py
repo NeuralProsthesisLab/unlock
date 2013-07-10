@@ -10,7 +10,7 @@ class Command(object):
         self.selection = selection
         self.data = data
         self.json = json
-
+           
     @staticmethod
     def serialize(command):
         if command.json:
@@ -18,7 +18,7 @@ class Command(object):
         else:
             ret = cPickle.dumps(command)
         return ret
-
+           
     @staticmethod
     def deserialize(serialized_command, json=False):
         if json:
@@ -27,7 +27,26 @@ class Command(object):
             ret = cPickle.loads(serialized_command)
         return ret
             
-          
+            
+class PygletKeyboardCommand(Command):
+    def __init__(self, symbol, modifiers):
+        super(PygletKeyboardCommand, self).__init__()
+        labels = [ord(c) for c in 'abcdefghijklmnopqrstuvwxyz_12345']
+        if symbol == pyglet.window.key.UP:
+            self.decision = 1
+        elif symbol == pyglet.window.key.DOWN:
+            self.decision = 2
+        elif symbol == pyglet.window.key.LEFT:
+            self.decision = 3 
+        elif symbol == pyglet.window.key.RIGHT:
+            self.decision = 4
+        elif symbol == pyglet.window.key.SPACE:
+            self.selection = 1
+        elif symbol == pyglet.window.key.ESCAPE:
+            self.stop = True
+        elif symbol in labels:
+            self.decision = labels.index(symbol) + 1        
+    
 class CommandReceiverInterface(object):
     def next_command(self):
         raise NotImplementedError("Every CommandReceiverInterface must implement the next_command method")
@@ -47,12 +66,11 @@ class DatagramCommandSender(object):
         
         
 class DatagramDecomposedCommandReceiver(CommandReceiverInterface):
-    def __init__(self, address='127.0.0.1', decision_port=33445, selection_port=33446, data_port=33447, socket_timeout=0.001):
-        self.decision_socket = DatagramWrapper(address, decision_port, socket_timeout)
-        self.selection_socket = DatagramWrapper(address, selection_port, socket_timeout)
-        self.data_socket = DatagramWrapper(address, data_port, socket_timeout)
+    def __init__(self, address='127.0.0.1', port=33445, socket_timeout=0.001):
+        self.decision_socket = DatagramWrapper(address, port, socket_timeout)
         
     def next_command(self, delta_since_last_poll):
+        raw_command = self.datagram_socket.receive(int)
         decision = self.decision_socket.receive(int)
         selection = self.selection_socket.receive(int)
         data = []
