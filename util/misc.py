@@ -1,5 +1,8 @@
 import dispatcher
 import socket
+import inspect
+import os
+
 
 class Observer(object):
     def __init__(self, callout_fn):
@@ -78,7 +81,7 @@ class DatagramSink(DatagramWrapper):
             received = self.socket.recv(chunk_size)
             obj = obj.join(received)
             consumed += chunk_size
-        
+          
         return obj if obj != '' else None
           
             
@@ -100,13 +103,13 @@ class DatagramSource(DatagramWrapper):
         buffer_size = len(buf)
         chunk_size = self.chunk_size
         sent = 0
-        
+            
         while sent < buffer_size:
             if chunk_size < buffer_size:
                 chunk_size = buffer_size
             send_buf = buf[sent:sent+chunk_size]
             sent += self.socket.sendto(send_buf, (self.address, self.port))            
-            
+                
         return sent
           
             
@@ -114,12 +117,12 @@ class switch(object):
     def __init__(self, value):
         self.value = value
         self.fall = False
-        
+            
     def __iter__(self):
         """Return the match method once, then stop"""
         yield self.match
         raise StopIteration
-       
+           
     def match(self, *args):
         """Indicate whether or not to enter a case suite"""
         if self.fall or not args:
@@ -131,3 +134,45 @@ class switch(object):
             return False
             
             
+class Resource(object):
+    def __init__(self, path=None):
+        if path == None:
+            #os.path.dirname(inspect.getabsfile(unlock.Resource))
+            self.path = os.path.dirname(inspect.getfile(Resource))+'/resource/'
+        else:                
+            self.path = path
+        self.resources = []
+        
+    def reset_path(self, path):
+        self.path = path
+        
+    def add_resource(self, resource):
+        self.resources.append(resource)
+            
+            
+class RunState(object):
+    def __init__(self):
+        self.stop()
+        
+    def start(self):
+        self.state = 'started'
+        
+    def pause(self):
+        self.state = 'paused'
+        
+    def stop(self):
+        self.state = 'stopped'
+        
+    def get_state(self):
+        return self.state
+        
+    def is_started(self):
+        return True if self.state == 'started' else False
+        
+    def is_paused(self):
+        return True if self.state == 'paused' else False
+        
+    def is_stopped(self):
+        return True if self.state == 'stopped' else False
+        
+        

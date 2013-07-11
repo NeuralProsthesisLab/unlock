@@ -1,6 +1,4 @@
-from .. import DatagramWrapper
-from .. import Observer, Observable
-from .. import switch
+from .. import DatagramWrapper, Observer, Observable, RunState, switch
 
 import socket
 import threading
@@ -163,6 +161,38 @@ class MiscTests(unittest.TestCase):
         self.assertTrue(correct and not incorrect)
         
         
+    def testRunState(self):
+        run_state = RunState()
+        self.assertEquals('stopped', run_state.get_state())
+        self.assertEquals(True, run_state.is_stopped())
+        self.assertEquals(False, run_state.is_started())
+        self.assertEquals(False, run_state.is_paused())
+
+        run_state.start()
+        self.assertEquals('started', run_state.get_state())
+        self.assertEquals(False, run_state.is_stopped())
+        self.assertEquals(True, run_state.is_started())
+        self.assertEquals(False, run_state.is_paused())
+        
+        run_state.pause()
+        self.assertEquals('paused', run_state.get_state())
+        self.assertEquals(False, run_state.is_stopped())
+        self.assertEquals(False, run_state.is_started())
+        self.assertEquals(True, run_state.is_paused())
+        
+        run_state.start()
+        self.assertEquals('started', run_state.get_state())
+        self.assertEquals(False, run_state.is_stopped())
+        self.assertEquals(True, run_state.is_started())
+        self.assertEquals(False, run_state.is_paused())
+        
+        run_state.stop()
+        self.assertEquals('stopped', run_state.get_state())        
+        self.assertEquals(True, run_state.is_stopped())
+        self.assertEquals(False, run_state.is_started())
+        self.assertEquals(False, run_state.is_paused())
+            
+         
 def getSuite():
     return unittest.makeSuite(MiscTests,'test')
 
