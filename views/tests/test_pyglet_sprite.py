@@ -18,9 +18,7 @@ class PygletSpriteTests(unittest.TestCase):
         screen = ScreenDescriptor.create(window.width, window.height)
         app = App()
         window.set_app(app)
-        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(model, screen)
-        fs.sprite.configure(fs.sprite.configure_north)
-        fs.reversed_sprite.configure(fs.reversed_sprite.configure_north)
+        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(model, screen, PygletSprite.configure_center)
         window.add_view(fs)
         window.start()
 
