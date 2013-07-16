@@ -96,6 +96,7 @@ class TrialState():
     def create(stimuli_duration, rest_duration, run_state=RunState()):
         return TrialState(TrialTimeState(stimuli_duration, rest_duration), run_state)
         
+        
 class SequenceState(object):
     def __init__(self, sequence):
         self.sequence = sequence

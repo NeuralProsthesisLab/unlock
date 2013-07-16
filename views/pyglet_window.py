@@ -12,7 +12,8 @@ class ScreenDescriptor(object):
     def create(width, height):
         batch = pyglet.graphics.Batch()
         return ScreenDescriptor(batch, width, height)
-    
+        
+        
 class App(object):
     def __init__(self):
         pass
@@ -22,8 +23,9 @@ class App(object):
     def keyboard_input(self, command):
         print "keypbaord inpute "
     def poll_bci(self, delta):
-        #print "poll bci ", delta     
-        pass 
+        pass
+            
+            
 class PygletWindow(pyglet.window.Window):
     def __init__(self, fullscreen=False, vsync=False, show_fps=False):
         super(PygletWindow, self).__init__(**{'fullscreen':fullscreen, 'vsync':vsync})

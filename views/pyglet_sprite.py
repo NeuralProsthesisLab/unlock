@@ -92,11 +92,10 @@ class PygletSprite(object):
     def __init__(self, model, screen_desc, image, x, y, rotation):
         self.model = model
         self.screen_desc = screen_desc
-
+        
         image.anchor_x = image.width / 2
         image.anchor_y = image.height / 2
-
-
+        
         self.sprite = pyglet.sprite.Sprite(image, batch=self.screen_desc.batch)
         self.sprite.rotation = rotation
         self.sprite.x = x
@@ -105,7 +104,7 @@ class PygletSprite(object):
         
     def render(self):
         self.sprite.visible = self.model.state()
-
+        
     @staticmethod
     def create_image_sprite(model, screen_desc, filename, rotation):
         abstract_image = pyglet.image.load(filename)
@@ -170,7 +169,7 @@ class PygletSprite(object):
                                       array.array('B',buffer).tostring())
         texture_region = texture.get_texture().get_transform(flip_y=True)
         return texture_region
-    
+            
     @staticmethod
     def create_checkered_box_sprite(model, screen_desc, position=SpritePositionComputer.Center, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
             xduty=0.5, yduty=0.5, xuneven=False, yuneven=False, color_on=(0,0,0), color_off=(255,255,255)):
@@ -178,10 +177,10 @@ class PygletSprite(object):
         texture_region = PygletSprite.create_checkered_box_texture_region(
             width, height, xfreq, yfreq, xduty, yduty, xuneven, yuneven,
             color_on, color_off)
-        
+            
         spc = SpritePositionComputer(screen_desc.width, screen_desc.height, texture_region.width, texture_region.height, rotation)
         spc.compute(position)
-        
+           
         return PygletSprite(model, screen_desc, texture_region, spc.x, spc.y, rotation)
             
             
