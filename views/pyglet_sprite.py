@@ -3,79 +3,109 @@ import array
 
 from math import cos, sin, radians
 from unlock.util import switch
+   
+class SpritePositionComputer(object):
+    North=0
+    NorthEast=1
+    East=2
+    SouthEast=3
+    South=4
+    SouthWest=5
+    West=6
+    NorthWest=7
+    Center=8
+    def __init__(self, screen_width, screen_height, image_width, image_height, rotation):
+        self.width = screen_width
+        self.height = screen_height
+        self.angle = abs(radians(rotation))
+        self.box_width = (image_width * cos(self.angle) + image_height * sin(self.angle))
+        self.box_height = (image_width * sin(self.angle) + image_height * cos(self.angle))
+        
+    def compute(self, position):
+        for case in switch(position):
+            if case(SpritePositionComputer.North):
+                self.north()
+                break
+            if case(SpritePositionComputer.NorthEast):
+                self.northeast()
+                break
+            if case(SpritePositionComputer.East):
+                self.east()
+                break
+            if case(SpritePositionComputer.SouthEast):
+                self.southeast()
+                break
+            if case(SpritePositionComputer.South):
+                self.south()
+                break
+            if case(SpritePositionComputer.SouthWest):
+                self.southwest()
+                break
+            if case(SpritePositionComputer.West):
+                self.west()
+                break
+            if case(SpritePositionComputer.Center):
+                self.center()
+                break
+            if case ():
+                self.center()
+                break
+                
+    def north(self):
+        self.x = self.width / 2
+        self.y = self.height - self.box_height / 2        
 
+    def northeast(self):
+        self.x = self.width - self.box_width / 2
+        self.y = self.height - self.box_height / 2
+        
+    def east(self):
+        self.x = self.width - self.box_width / 2
+        self.y = self.height / 2        
+        
+    def southeast(self):
+        self.x = self.width - self.box_width / 2
+        self.y = self.box_height / 2
+        
+    def south(self):
+        self.x = self.width / 2
+        self.y = self.box_height / 2
+        
+    def southwest(self):
+        self.x = self.box_width / 2
+        self.y = self.box_height / 2
+        
+    def west(self):
+        self.x = self.box_width / 2
+        self.y = self.height / 2
+        
+    def northwest(self):
+        self.x = self.box_width / 2
+        self.y = self.height  - self.box_height/2
+        
+    def center(self):
+        self.x = self.width / 2
+        self.y = self.height / 2    
+         
+            
 class PygletSprite(object):
-    def __init__(self, model, screen_desc, image, location_fn, rotation):
+    def __init__(self, model, screen_desc, image, x, y, rotation):
         self.model = model
         self.screen_desc = screen_desc
-        self.angle = abs(radians(rotation))
 
         image.anchor_x = image.width / 2
         image.anchor_y = image.height / 2
-        
-        self.box_width = (image.width * cos(self.angle) + image.height * sin(self.angle))
-        self.box_height = (image.width * sin(self.angle) + image.height * cos(self.angle))        
+
 
         self.sprite = pyglet.sprite.Sprite(image, batch=self.screen_desc.batch)
         self.sprite.rotation = rotation
-        self.location_fn = location_fn
-        PygletSprite.configure(self, location_fn)
+        self.sprite.x = x
+        self.sprite.y = y
+        self.sprite.visible = False
         
     def render(self):
         self.sprite.visible = self.model.state()
-    
-    @staticmethod
-    def configure(self, location_fn):
-        location_fn(self)
-        self.sprite.x = self.x #+ self.screen_desc.x_offset
-        self.sprite.y = self.y #+ self.screen_desc.y_offset
-        self.sprite.visible = False
 
-    @staticmethod      
-    def configure_north(self):
-        self.x = self.screen_desc.width / 2
-        self.y = self.screen_desc.height - self.box_height / 2        
-
-    @staticmethod        
-    def configure_northeast(self):
-        self.x = self.screen_desc.width - self.box_width / 2
-        self.y = self.screen_desc.height - self.box_height / 2
-        
-    @staticmethod
-    def configure_east(self):
-        self.x = self.screen_desc.width - self.box_width / 2
-        self.y = self.screen_desc.height / 2
-
-    @staticmethod        
-    def configure_southeast(self):
-        self.x = self.screen_desc.width - self.box_width / 2
-        self.y = self.box_height / 2
-        
-    @staticmethod    
-    def configure_south(self):
-        self.x = self.screen_desc.width / 2
-        self.y = self.box_height / 2
-        
-    @staticmethod
-    def configure_southwest(self):
-        self.x = self.box_width / 2
-        self.y = self.box_height / 2
-
-    @staticmethod    
-    def configure_west(self):
-        self.x = self.box_width / 2
-        self.y = self.screen_desc.height / 2
-
-    @staticmethod        
-    def configure_northwest(self):
-        self.x = self.box_width / 2
-        self.y = self.screen_desc.height  - self.box_height/2
-
-    @staticmethod        
-    def configure_center(self):
-        self.x = self.screen_desc.width / 2
-        self.y = self.screen_desc.height / 2    
-    
     @staticmethod
     def create_image_sprite(model, screen_desc, filename, rotation):
         abstract_image = pyglet.image.load(filename)
@@ -142,14 +172,17 @@ class PygletSprite(object):
         return texture_region
     
     @staticmethod
-    def create_checkered_box_sprite(model, screen_desc, location_fn, width=600, height=100, xfreq=6, yfreq=1,
+    def create_checkered_box_sprite(model, screen_desc, position=SpritePositionComputer.Center, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
             xduty=0.5, yduty=0.5, xuneven=False, yuneven=False, color_on=(0,0,0), color_off=(255,255,255)):
             
-        textured_region = PygletSprite.create_checkered_box_texture_region(
+        texture_region = PygletSprite.create_checkered_box_texture_region(
             width, height, xfreq, yfreq, xduty, yduty, xuneven, yuneven,
             color_on, color_off)
-            
-        return PygletSprite(model, screen_desc, texture_region, location_fn, rotation)
+        
+        spc = SpritePositionComputer(screen_desc.width, screen_desc.height, texture_region.width, texture_region.height, rotation)
+        spc.compute(position)
+        
+        return PygletSprite(model, screen_desc, texture_region, spc.x, spc.y, rotation)
             
             
 class FlickeringPygletSprite(PygletSprite):
@@ -165,19 +198,13 @@ class FlickeringPygletSprite(PygletSprite):
         self.batch.draw()
         
     @staticmethod
-    def create_flickering_checkered_box_sprite(model, screen_desc, location_fn, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
+    def create_flickering_checkered_box_sprite(model, screen_desc, position=SpritePositionComputer.Center, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
             xduty=0.5, yduty=0.5, xuneven=False, yuneven=False, color_on=(0,0,0), color_off=(255,255,255)):
             
-        texture_region = PygletSprite.create_checkered_box_texture_region(
-            width, height, xfreq, yfreq, xduty, yduty, xuneven, yuneven, color_on, color_off)
-            
-        sprite = PygletSprite(model, screen_desc, texture_region, location_fn, rotation)
-            
-        # note, the color is reversed.
-        reversed_texture_region = PygletSprite.create_checkered_box_texture_region(
-            width, height, xfreq, yfreq, xduty, yduty, xuneven, yuneven, color_off, color_on)
-            
-        reversed_sprite = PygletSprite(model, screen_desc, reversed_texture_region, location_fn, rotation)
+        sprite = PygletSprite.create_checkered_box_sprite(model, screen_desc, position, rotation, width, height, xfreq, yfreq,
+                                                          xduty, yduty, xuneven, yuneven, color_on, color_off)
+        reversed_sprite = PygletSprite.create_checkered_box_sprite(model, screen_desc, position, rotation, width, height, xfreq, yfreq,
+                                                          xduty, yduty, xuneven, yuneven, color_off, color_on)
             
         return FlickeringPygletSprite(sprite, reversed_sprite, screen_desc.batch)
             
