@@ -43,7 +43,6 @@ class TrialTimeState(object):
         self.last_time = time.time()
         
     def update_trial_time(self, delta):
-        print "delta ", delta
         self.trial_time += delta
         
     def is_trial_complete(self):
@@ -98,18 +97,22 @@ class TrialState():
         
         
 class SequenceState(object):
-    def __init__(self, sequence):
+    def __init__(self, sequence, value_transformer_fn=lambda x: x):
         self.sequence = sequence
-        self.index = -1
-        
-    def step(self):
-        self.index += 1
-        if self.index == len(self.sequence):
-            self.index = 0
-        
-    def state(self):
-        return self.sequence[self.index]
+        self.value_transformer_fn
+        self.start()
     
+    def start(self):
+        self.index = 0
+       
+    def step(self):
+        self.index += 1        
+        if self.index == len(self.sequence):
+            self.start()
+            
+    def state(self):
+        return self.value_transformer_fn(self.sequence[self.index])
+            
     def is_start(self):
         if self.index == 0:
             return True
