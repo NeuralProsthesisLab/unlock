@@ -8,26 +8,36 @@ from unlock.util import TrialState, Trigger
 
 
 class TimedSequenceStimuliManager(object):
-    ''' This class manages multiple stimuli.  The reason for wrapping the stimuli is temporal precision.''' 
+    """ Manages multiple timed, sequence-based stimuli.  The reason for wrapping the stimuli is temporal precision. """
     def __init__(self, state, trigger):
         self.state = state
         self.trigger = trigger
-        self.stimuli = []
+        self.stimuli = set([])
         
     def add_stimulus(self, stimulus):
-        self.stimuli.append(stimulus)
+        """
+        add_stimulus(): adds a stimulus to the managed set
+        """        
+        self.stimuli.add(stimulus)
         
     def start(self):
+        """
+        start(): starts the stimuli
+        """
+        state.start()
         for stimulus in self.stimuli:
             stimulus.start()
             
     def pause(self):
+        """
+        pause(): pause the stimuli
+        """
         for stimulus in self.stimuli:
             stimulus.stop()
             
     def stop(self):
         """
-        stop(): Stop displaying the stimulus
+        stop(): stops the trial
         """
         self.state.stop()
         for stimulus in self.stimuli:
@@ -35,6 +45,9 @@ class TimedSequenceStimuliManager(object):
         self.trigger.send(Trigger.Stop)
             
     def process_command(self, command):
+        """
+        process_command(): processes the next command
+        """
         if self.state.stopped():
             log.debug("TimedSequenceStimuliManager.process_command: called when stopped")
             return
@@ -58,11 +71,9 @@ class TimedSequenceStimuliManager(object):
             
 class TimedSequenceStimulus(object):
     """
-    Timed sequence stimulus emits a sequence of values managed by a TrialTimeState object.  For each trial the next
-    value is emited to the view.  This can be used to control a flickering view.
-
-    time_state: manages the time (when to toggle the pattern)
-    seq_state: manages the pattern displayed (on, on, off, on, off, on, off, off, etc..)
+    Emits a sequence of values at fixed time interval.
+    time_state: manages the time (when to emit the next value)
+    seq_state: manages the values to emit (on, on, off, on, off, on, off, off, etc..)
     """
     def __init__(self, time_state, seq_state):
         self.time_state = time_state
@@ -79,16 +90,16 @@ class TimedSequenceStimulus(object):
         
     def stop(self):
         """
-        Hides all stimulus images.
+        Stops stimulus 
         """
         self.state_value = False
             
     def update(self, command):
         """
         Updates the stimulus to the next state in the presentation
-        sequence if the elapsed trial time exceeds the next flicker time.
+        sequence if the trial time is exceeded.
         
-        A value of True is returned at the start of the state sequence.
+        A value of True is returned at the start of the sequence.
         """
         start_trigger = False
         self.time_state.update_trial_time(command.delta)
