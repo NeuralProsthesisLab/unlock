@@ -1,8 +1,10 @@
 import sys
 import random
+class BCIConfig(object):
+    pass
 
 class FakeBCI(object):
-    def __init__(self):
+    def __init__(self, bci_config):
         self.rand = random.Random(1337)
         self.getdata_count = 0
         self.acquire_count = 0

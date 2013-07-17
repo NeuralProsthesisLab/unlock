@@ -14,12 +14,14 @@ class SpritePositionComputer(object):
     West=6
     NorthWest=7
     Center=8
+    
     def __init__(self, screen_width, screen_height, image_width, image_height, rotation):
         self.width = screen_width
         self.height = screen_height
         self.angle = abs(radians(rotation))
         self.box_width = (image_width * cos(self.angle) + image_height * sin(self.angle))
         self.box_height = (image_width * sin(self.angle) + image_height * cos(self.angle))
+        self.center()
         
     def compute(self, position):
         for case in switch(position):
@@ -174,9 +176,7 @@ class PygletSprite(object):
     def create_checkered_box_sprite(model, screen_desc, position=SpritePositionComputer.Center, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
             xduty=0.5, yduty=0.5, xuneven=False, yuneven=False, color_on=(0,0,0), color_off=(255,255,255)):
             
-        texture_region = PygletSprite.create_checkered_box_texture_region(
-            width, height, xfreq, yfreq, xduty, yduty, xuneven, yuneven,
-            color_on, color_off)
+        texture_region = PygletSprite.create_checkered_box_texture_region(width, height, xfreq, yfreq, xduty, yduty, xuneven, yuneven, color_on, color_off)
             
         spc = SpritePositionComputer(screen_desc.width, screen_desc.height, texture_region.width, texture_region.height, rotation)
         spc.compute(position)
