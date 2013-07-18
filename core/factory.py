@@ -2,6 +2,7 @@
 import logging
 import sys
 
+
 class ObjectFactory(object):
     def create_object(self, constr, named_constr):
         raise NotImplementedError()
