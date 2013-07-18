@@ -1,6 +1,31 @@
 import inspect
 import os
-            
+    
+class Trigger(object):
+    NoValue=-1
+    Start=0
+    Stop=1
+    Pause=3
+    Cue=4
+    Indication=5
+    Reset=6
+    UsageDefined=7
+    UsageDefined1=7
+    UsageDefined2=7
+    
+    def __init__(self, log_triggers=False, store_triggers=False):
+        self.value = 0
+        if log_triggers:
+            self.log = logging.getLogger(__name__)
+    def send(self, value):
+        self.value = value 
+        return
+    def value(self):
+        val = self.trigger
+        self.trigger = 0
+        return val
+        
+               
 class switch(object):
     def __init__(self, value):
         self.value = value
