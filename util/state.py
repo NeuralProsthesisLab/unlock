@@ -29,8 +29,8 @@ class RunState(object):
         
 class TrialTimeState(object):
     def __init__(self, trial_duration=None, rest_duration=None):
-        self.trial_duration = trial_duration
-        self.rest_duration = rest_duration
+        self.trial_duration = float(trial_duration)
+        self.rest_duration = float(rest_duration)
         self.__set_period_duration__()
         self.trial_time = 0      
         self.last_time = -1
@@ -52,11 +52,11 @@ class TrialTimeState(object):
         return True if self.trial_time >= self.period_duration else False
         
     def set_stimuli_duration(self, duration):
-        self.trial_duration = duration
+        self.trial_duration = float(duration)
         self.__set_period_duration__()
         
     def set_rest_duration(self, duration):
-        self.reset_duration = duration
+        self.reset_duration = float(duration)
         self.__set_period_duration__()        
         
         
