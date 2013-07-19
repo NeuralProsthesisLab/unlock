@@ -13,6 +13,7 @@ class ContextTests(unittest.TestCase):
         app_ctx_xml = os.path.join(os.path.dirname(inspect.getfile(ContextTests)), "app-ctx.xml")
         app_ctx = ApplicationContext(XMLConfig(config_location = app_ctx_xml))
         trial_state = app_ctx.get_object("trial_state")
+        trial_state1 = app_ctx.get_object("trial_state1")        
         trial_state.start()
         start = time.time()
         state, change = trial_state.update_state(0)

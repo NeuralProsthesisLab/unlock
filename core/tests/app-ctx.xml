@@ -11,9 +11,16 @@
 		<constructor-arg name="rest_duration"><value>1.0</value></constructor-arg>		
 	</object>
 	
-	<object id="trial_state" class="unlock.util.TrialState">
+	<object id="trial_state" class="unlock.util.TrialState" factory_method="create">
+		<constructor-arg><value>1.0</value></constructor-arg>
+		<constructor-arg><value>1.0</value></constructor-arg>		
+	</object>
+	
+	<object id="trial_state1" class="unlock.util.TrialState">
 		<constructor-arg><ref object="time_state"/></constructor-arg>
 		<constructor-arg><ref object="run_state"/></constructor-arg>		
 	</object>
+	
+	
 	
 </objects>

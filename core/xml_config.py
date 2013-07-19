@@ -164,7 +164,7 @@ class ListDef(ValueDef):
     """Handles behavior for a list-based value."""
     def __init__(self, name, value):
         super(ListDef, self).__init__(name, value)
-        self.logger = logging.getLogger("springpython.config.ListDef")
+        self.logger = logging.getLogger(__name__)
 
     def _replace_refs_with_actuals(self, obj, container):
         for i in range(0, len(self.value)):
@@ -197,7 +197,7 @@ class SetDef(ValueDef):
     """Handles behavior for a set-based value."""
     def __init__(self, name, value):
         super(SetDef, self).__init__(name, value)
-        self.logger = logging.getLogger("springpython.config.SetDef")
+        self.logger = logging.getLogger(__name__)
 
     def _replace_refs_with_actuals(self, obj, container):
         self.logger.debug("Replacing refs with actuals...")
@@ -233,7 +233,7 @@ class FrozenSetDef(ValueDef):
     """Handles behavior for a frozen-set-based value."""
     def __init__(self, name, value):
         super(FrozenSetDef, self).__init__(name, value)
-        self.logger = logging.getLogger("springpython.config.FrozenSetDef")
+        self.logger = logging.getLogger(__name__)
 
     def _replace_refs_with_actuals(self, obj, container):
         self.logger.debug("Replacing refs with actuals...")
@@ -293,15 +293,15 @@ class XMLConfig(Config):
     XMLConfig supports current Spring Python format of XML object definitions.
     """
 
-    NS = "{http://www.springframework.org/springpython/schema/objects}"
-    NS_11 = "{http://www.springframework.org/springpython/schema/objects/1.1}"
+    NS = ''#"{http://www.springframework.org/springpython/schema/objects}"
+    NS_11 = ''#"{http://www.springframework.org/springpython/schema/objects/1.1}"
 
     def __init__(self, config_location):
         if isinstance(config_location, list):
             self.config_location = config_location
         else:
             self.config_location = [config_location]
-        self.logger = logging.getLogger("springpython.config.XMLConfig")
+        self.logger = logging.getLogger(__name__)
 
         # By making this an instance-based property (instead of function local), inner object
         # definitions can add themselves to the list in the midst of parsing an input.
@@ -474,8 +474,8 @@ class XMLConfig(Config):
             scope_ = scope.convert(object.get("scope"))
         else:
             scope_ = scope.SINGLETON
-
-        return(object.get("id"),  ReflectiveObjectFactory(class_),
+        
+        return(object.get("id"),  ReflectiveObjectFactory(class_, object.get("factory_method")),
             object.get("lazy-init", False), object.get("abstract", False),
                object.get("parent"), scope_)
 
