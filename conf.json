@@ -1,7 +1,14 @@
 {
     "Author" : "James Percent",
     "Contact": "james@shift5.net",
-    "Application-Context" : "/Users/jpercent/unlock/app-ctx.xml",
+//
+// Uncomment the following line if you want to change the location of the app-ctx.
+//    "Application-Context" : "/Users/jpercent/unlock/app-ctx.xml",
+//
+// The Logging-Config object determines the configuration of the logging
+// System.  It follows the standard Python JSON logging config; see
+// http://docs.python.org/2/howto/logging-cookbook.html for more details.
+//
     "Logging-Config": {
         "version": 1,
         "disable_existing_loggers": false,
@@ -18,6 +25,7 @@
                 "formatter": "simple",
                 "stream": "ext://sys.stdout"
             },
+            
             "file_handler": {
                 "class": "logging.handlers.RotatingFileHandler",
                 "formatter": "simple",
@@ -26,7 +34,8 @@
                 "backupCount": "20",
                 "encoding": "utf8"
             }
-        },     
+        },
+        
         "root": {
             "level": "INFO",
             "handlers": ["console", "file_handler"]
