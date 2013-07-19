@@ -11,8 +11,6 @@ import re
 import types
 import inspect
 import logging
-import scope
-from factory import *
 
 
 def get_string(value):
@@ -28,7 +26,7 @@ class ObjectDef(object):
     a handle for the actual ObjectFactory that should be used to utilize this information when
     creating an instance of a object.
     """
-    def __init__(self, id, props=None, factory=None, scope=scope.SINGLETON,
+    def __init__(self, id, props=None, factory=None, scope=context.SINGLETON,
                  lazy_init=False, abstract=False, parent=None):
         super(ObjectDef, self).__init__()
         self.id = id
@@ -471,9 +469,9 @@ class XMLConfig(Config):
         """
 
         if "scope" in object.attrib:
-            scope_ = scope.convert(object.get("scope"))
+            scope_ = context.convert(object.get("scope"))
         else:
-            scope_ = scope.SINGLETON
+            scope_ = context.SINGLETON
         
         return(object.get("id"),  ReflectiveObjectFactory(class_, object.get("factory_method")),
             object.get("lazy-init", False), object.get("abstract", False),
