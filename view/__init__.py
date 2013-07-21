@@ -1,2 +1,2 @@
 from pyglet_sprite import *
-from pyglet_window import *
+from pyglet_text import *
