@@ -1,13 +1,24 @@
-from unlock.core import PygletKeyboardCommand
+from command import PygletKeyboardCommand
 import pyglet
 import time
 
 
+class App(object):
+    def __init__(self):
+        super(App, self).__init__()
+    def poll_bci(self, command):
+        print "Poll BCI called"
+    def quit(self):
+        return True
+        
+        
 class ScreenDescriptor(object):
-    def __init__(self, batch, width, height):
+    def __init__(self, batch, width, height, xoffset=0, yoffset=0):
         self.batch = batch
         self.width = width
         self.height = height
+        self.x = xoffset
+        self.y = yoffset
         
     @staticmethod
     def create(width, height):
@@ -16,8 +27,8 @@ class ScreenDescriptor(object):
             
             
 class PygletController(pyglet.window.Window):
-    def __init__(self, fullscreen=False, vsync=False, show_fps=False):
-        super(PygletWindow, self).__init__(**{'fullscreen':fullscreen, 'vsync':vsync})
+    def __init__(self, fullscreen=False, vsync=False, show_fps=False, bci_poll_freq=1.0/120.0):
+        super(PygletController, self).__init__(**{'fullscreen':fullscreen, 'vsync':vsync})
         self.views = []
         if show_fps:
             self.fps = pyglet.clock.ClockDisplay().draw
@@ -26,13 +37,14 @@ class PygletController(pyglet.window.Window):
                 pass
             self.fps = empty
         self.count = 0
+        self.bci_poll_freq = bci_poll_freq
         
         @self.event
         def on_draw():
             self.count += 1
             print "Draw... ", time.time()
-            if self.count == 80:
-                pyglet.app.exit()
+#            if self.count == 80:
+                #pyglet.app.exit()
                 
             self.clear()
             for view in self.views:
@@ -51,7 +63,7 @@ class PygletController(pyglet.window.Window):
                 
     def set_app(self, app):
         self.app = app
-        pyglet.clock.schedule_interval(app.poll_bci, 1.0/120.0)
+        pyglet.clock.schedule_interval(app.poll_bci, self.bci_poll_freq)
             
     def add_view(self, view):
         self.views.append(view)
