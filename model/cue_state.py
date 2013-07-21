@@ -17,7 +17,6 @@ class RandomCueStateMachine(UnlockModel):
         next_state.last = self.state
         next_state.start()
         self.state = next_state
-
         
     def indicator_state(self):
         self.__transition__(self.rest_state)
@@ -75,7 +74,6 @@ class CueState(UnlockModel):
         assert self.transition_fn != None
         self.trial_state.update_trial_time(command.delta)
         if self.trial_state.is_trial_complete():
-            self.stop()
             self.transition_fn()
             
     @staticmethod
