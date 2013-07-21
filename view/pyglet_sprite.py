@@ -1,11 +1,97 @@
 import pyglet
 import array
 
+from view import UnlockView
 from math import cos, sin, radians
 from unlock.util import switch
-   
 
-class PygletSprite(object):
+
+class SpritePositionComputer(object):
+    North=0
+    NorthEast=1
+    East=2
+    SouthEast=3
+    South=4
+    SouthWest=5
+    West=6
+    NorthWest=7
+    Center=8 
+    def __init__(self, screen_width, screen_height, image_width, image_height, rotation):
+        self.width = screen_width
+        self.height = screen_height
+        self.angle = abs(radians(rotation))
+        self.box_width = (image_width * cos(self.angle) + image_height * sin(self.angle))
+        self.box_height = (image_width * sin(self.angle) + image_height * cos(self.angle))
+        self.center()
+        
+    def compute(self, position):
+        for case in switch(position):
+            if case(SpritePositionComputer.North):
+                self.north()
+                break
+            if case(SpritePositionComputer.NorthEast):
+                self.northeast()
+                break
+            if case(SpritePositionComputer.East):
+                self.east()
+                break
+            if case(SpritePositionComputer.SouthEast):
+                self.southeast()
+                break
+            if case(SpritePositionComputer.South):
+                self.south()
+                break
+            if case(SpritePositionComputer.SouthWest):
+                self.southwest()
+                break
+            if case(SpritePositionComputer.West):
+                self.west()
+                break
+            if case(SpritePositionComputer.Center):
+                self.center()
+                break
+            if case ():
+                self.center()
+                break
+                
+    def north(self):
+        self.x = self.width / 2
+        self.y = self.height - self.box_height / 2        
+
+    def northeast(self):
+        self.x = self.width - self.box_width / 2
+        self.y = self.height - self.box_height / 2
+        
+    def east(self):
+        self.x = self.width - self.box_width / 2
+        self.y = self.height / 2        
+        
+    def southeast(self):
+        self.x = self.width - self.box_width / 2
+        self.y = self.box_height / 2
+        
+    def south(self):
+        self.x = self.width / 2
+        self.y = self.box_height / 2
+        
+    def southwest(self):
+        self.x = self.box_width / 2
+        self.y = self.box_height / 2
+        
+    def west(self):
+        self.x = self.box_width / 2
+        self.y = self.height / 2
+        
+    def northwest(self):
+        self.x = self.box_width / 2
+        self.y = self.height  - self.box_height/2
+        
+    def center(self):
+        self.x = self.width / 2
+        self.y = self.height / 2    
+         
+           
+class PygletSprite(UnlockView):
     def __init__(self, model, screen_desc, image, x, y, rotation):
         self.model = model
         self.screen_desc = screen_desc
@@ -20,7 +106,7 @@ class PygletSprite(object):
         self.sprite.visible = False
         
     def render(self):
-        self.sprite.visible = self.model.state()
+        self.sprite.visible = self.model.get_state()
         
     @staticmethod
     def create_image_sprite(model, screen_desc, filename, rotation):
@@ -123,89 +209,4 @@ class FlickeringPygletSprite(PygletSprite):
         return FlickeringPygletSprite(sprite, reversed_sprite, screen_desc.batch)
             
            
-class SpritePositionComputer(object):
-    North=0
-    NorthEast=1
-    East=2
-    SouthEast=3
-    South=4
-    SouthWest=5
-    West=6
-    NorthWest=7
-    Center=8
-    
-    def __init__(self, screen_width, screen_height, image_width, image_height, rotation):
-        self.width = screen_width
-        self.height = screen_height
-        self.angle = abs(radians(rotation))
-        self.box_width = (image_width * cos(self.angle) + image_height * sin(self.angle))
-        self.box_height = (image_width * sin(self.angle) + image_height * cos(self.angle))
-        self.center()
-        
-    def compute(self, position):
-        for case in switch(position):
-            if case(SpritePositionComputer.North):
-                self.north()
-                break
-            if case(SpritePositionComputer.NorthEast):
-                self.northeast()
-                break
-            if case(SpritePositionComputer.East):
-                self.east()
-                break
-            if case(SpritePositionComputer.SouthEast):
-                self.southeast()
-                break
-            if case(SpritePositionComputer.South):
-                self.south()
-                break
-            if case(SpritePositionComputer.SouthWest):
-                self.southwest()
-                break
-            if case(SpritePositionComputer.West):
-                self.west()
-                break
-            if case(SpritePositionComputer.Center):
-                self.center()
-                break
-            if case ():
-                self.center()
-                break
-                
-    def north(self):
-        self.x = self.width / 2
-        self.y = self.height - self.box_height / 2        
-
-    def northeast(self):
-        self.x = self.width - self.box_width / 2
-        self.y = self.height - self.box_height / 2
-        
-    def east(self):
-        self.x = self.width - self.box_width / 2
-        self.y = self.height / 2        
-        
-    def southeast(self):
-        self.x = self.width - self.box_width / 2
-        self.y = self.box_height / 2
-        
-    def south(self):
-        self.x = self.width / 2
-        self.y = self.box_height / 2
-        
-    def southwest(self):
-        self.x = self.box_width / 2
-        self.y = self.box_height / 2
-        
-    def west(self):
-        self.x = self.box_width / 2
-        self.y = self.height / 2
-        
-    def northwest(self):
-        self.x = self.box_width / 2
-        self.y = self.height  - self.box_height/2
-        
-    def center(self):
-        self.x = self.width / 2
-        self.y = self.height / 2    
-         
-            
+ 
