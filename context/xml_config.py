@@ -6,7 +6,7 @@ except ImportError:
         import xml.etree.ElementTree as etree
     except ImportError:
         from elementtree import ElementTree as etree
-
+        
 import re
 import types
 import inspect
@@ -19,6 +19,7 @@ def get_string(value):
         return str(value)
     except UnicodeEncodeError:
         return unicode(value)
+        
         
 class ObjectDef(object):
     """
@@ -41,10 +42,11 @@ class ObjectDef(object):
         self.parent = parent
         self.pos_constr = []
         self.named_constr = {}
-
+        
     def __str__(self):
         return "id=%s props=%s scope=%s factory=%s" % (self.id, self.props, self.scope, self.factory)
-
+        
+        
 class ReferenceDef(object):
     """
     This class represents a definition that is referencing another object.

@@ -40,7 +40,6 @@ class RandomCueStateMachine(UnlockModel):
             cue_state.transition_fn = state_machine.cue_state
         rest_state.transition_fn = state_machine.rest_state
         indicator_state.transition_fn = state_machine.indicator_state
-        
         rest_state.start()
         
         
@@ -60,7 +59,7 @@ class CueState(UnlockModel):
         
     def get_state(self):
         return self.state
-
+        
     def start(self):
         assert self.transition_fn != None        
         self.trial_state.begin_trial()
