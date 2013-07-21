@@ -1,7 +1,4 @@
 
-# self.sound = pyglet.media.StaticSource(pyglet.media.load('bell-ring-01.mp3'))
-# self.sound.play()
-   
 
 class RandomCueStateMachine(UnlockModel):
     def __init__(self, rand, trials, cue_states, rest_state, indicator_state):
@@ -37,13 +34,14 @@ class RandomCueStateMachine(UnlockModel):
         for cue in cues:
             cue_states.append(CueState.create(cue, cue_duration))
         rest_state = CueState.create(CueState.Rest, rest_duration)
-        rest_state.start()
         indicator_state = CueState.create(CueState.Indicator, indication_duration)
         state_machine = RandomCueStateMachine(random.Random(seed), trials, cue_states, rest_state, indicator_state)
         for cue_state in cues_states:
             cue_state.transition_fn = state_machine.cue_state
         rest_state.transition_fn = state_machine.rest_state
         indicator_state.transition_fn = state_machine.indicator_state
+        
+        rest_state.start()
         
         
 class CueState(UnlockModel):
@@ -64,6 +62,7 @@ class CueState(UnlockModel):
         return self.state
 
     def start(self):
+        assert self.transition_fn != None        
         self.trial_state.begin_trial()
         self.state = True
         
