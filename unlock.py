@@ -53,7 +53,7 @@ class UnlockRuntime(object):
                 
                 
                 sys.exit(1)
-    
+                
     def parse_conf(self):
         self.app_ctx = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'app-ctx.xml')
         with open(self.conf, 'rt') as file_descriptor:

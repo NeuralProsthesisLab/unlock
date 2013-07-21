@@ -1,6 +1,7 @@
 import inspect
 import os
-    
+
+
 class Trigger(object):
     NoValue=-1
     Start=0
@@ -19,12 +20,12 @@ class Trigger(object):
             self.log = logging.getLogger(__name__)
     def send(self, value):
         self.value = value 
-        return
+        
     def value(self):
         val = self.trigger
         self.trigger = 0
         return val
-        
+                
                
 class switch(object):
     def __init__(self, value):
