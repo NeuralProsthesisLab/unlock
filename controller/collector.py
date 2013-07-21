@@ -1,8 +1,8 @@
 
-from unlock.core import Screen
-from unlock.core import UnlockApplication
-from unlock.core import PygletWindow
-from unlock.apps import SSVEP, SSVEPStimulus
+#from unlock.core import Screen
+#from unlock.core import UnlockApplication
+#from unlock.core import PygletWindow
+#from unlock.apps import SSVEP, SSVEPStimulus
 
 try:
     from pygtec import MOBIlab
@@ -20,7 +20,6 @@ from bci import FakeBCI
 
 #if not (pynobio or pygtec):
 
-from optparse import OptionParser
 from os.path import join, abspath
 from threading import Thread, RLock
 from time import sleep
@@ -35,126 +34,7 @@ import sys
 import os
 import inspect
 
-import logging
-import logging.config
-try:
-    logging.config.fileConfig('logger.config')
-except:
-    pass
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.StreamHandler())
-                    
-def set_logger_level(log_level):
-    logger.setLevel(log_level)
-
-path = os.path.dirname(inspect.getfile(set_logger_level))
-  
-class UnlockState(object):
-    def __init__(self, delta, decision, selection):
-        self.delta = delta
-        self.decision = decision
-        self.selection = selection
-    def display(self):
-        logger.debug( 'delta = ', self.delta, ' decision = ', self.decision, ' selection = ', self.selection)
-        
-      
-class TextDraw(object):
-    def __init__(self, cue, text, controller_draw):
-        self.cue = cue
-        self.text = text
-        self.controller_draw = controller_draw
-    def prepare_draw(self):
-        self.text.text = self.cue
-    def draw(self):
-        self.controller_draw()
-        
-        
-class ImageDraw(object):
-    def __init__(self, window, filename, anchor_x, anchor_y, position_x, position_y):
-        self.window = window
-        self.filename = filename
-        self.anchor_x = anchor_x
-        self.anchor_y = anchor_y
-        self.position_x = position_x
-        self.position_y = position_y
-        self.prepare_draw()
-    def prepare_draw(self):          
-        self.window.clear()
-        img = pyglet.image.load(self.filename).get_texture(rectangle=True)
-        img.anchor_x = self.anchor_x
-        img.anchor_y = self.anchor_y
-        self.window.set_visible()
-        self.img = img
-    def draw(self):
-        self.img.blit(self.position_x, self.position_y, 0)
-        
-        
-class VisualizationState(object):
-    def __init__(self, state_id, drawer, draw_notifier, duration):
-        self.state_id = state_id
-        self.drawer = drawer
-        self.draw_notifier = draw_notifier
-        self.duration = duration
-        self.trial_time = 0
-        self.count = 0 
-    def draw(self):
-        self.drawer.draw()
-    def update(self, unlock_state):
-        if self.trial_time == 0:
-            self.drawer.prepare_draw()            
-            self.draw_notifier(self.state_id)
-        self.trial_time += unlock_state.delta
-        if self.trial_time >= self.duration:
-            self.trial_time = 0
-            return True
-        else:
-            return False                    
-            
-            
-class CueState(VisualizationState):
-    def __init__(self, state_id, drawer, draw_notifier, duration, indicator):
-        super(self.__class__, self).__init__(state_id, drawer, draw_notifier, duration)
-        self.indicator = indicator
-        
-       
-class PseudoRandomTransitioner(object):
-    def __init__(self, cue_states, reset_state, rand, state_id, trials):
-        self.sound = pyglet.media.StaticSource(pyglet.media.load('bell-ring-01.mp3'))
-        self.cue_states = cue_states
-        self.reset_state = reset_state
-        self.state = reset_state
-        self.rand = rand
-        self.state_id = state_id
-        self.trials = trials
-        self.count = 0
-        self.transition = False
-    def update(self, unlock_state):
-        unlock_state.display()
-        if self.transition:
-            self.state = self.next_state()
-        self.transition = self.state.update(unlock_state)
-        
-    def next_state(self):
-        if self.state.state_id == self.state_id['reset']:
-            state = self.next_cue()
-        elif self.state.state_id == self.state_id['indicator']:
-            state = self.reset_state
-            self.sound.play()
-                
-            self.count += 1
-            if self.count > self.trials:
-                pyglet.app.exit()
-        elif self.state.state_id < self.state_id['indicator']:
-            assert self.state.state_id > self.state_id['none']
-            state = self.state.indicator
-        return state
-    def next_cue(self):
-        return self.cue_states[self.rand.randint(0, len(self.cue_states)-1)]
-    def draw(self):
-        self.state.draw()
-            
-            
             
 class VisualizationManager(UnlockApplication):
     def __init__(self, window, screen, cue_duration, indicator_duration, reset_duration, trigger, rand, trials, cue_states_factory_method_name, reset_image_filename=path+'/targets-3.png', indicator_image_filename=path+'/targets-3.png', ):
@@ -228,152 +108,54 @@ class VisualizationManager(UnlockApplication):
             print e
               
             
-class TriggerValue(object):
-    def __init__(self):
-        self.trigger = 0
-    def send(self, value):
-        self.trigger = value #self.client.send(str(value)
-        return
-    def value(self):
-        val = self.trigger
-        self.trigger = 0
-        return val
+
         
-        
-class SampleCollector(UnlockApplication):
-    name = "Sample Collector"
+class Collector(UnlockController):
+    name = "Collector"
     icon = "robot.png"  
-    def __init__(self):
-        super(SampleCollector, self).__init__(None)
-        args = None
-        options = None
-        usage = "usage: %prog -m | -e [options]"
-        parser = OptionParser(version="%prog 1.0", usage=usage)
-        
-        msequence_help = 'runs the msequence collector; one of --msequence or --emg, but not both, must be set'
-        emg_help = 'runs the EMG data collector; one of --msequence or --emg, but not both, must be set'
-        cue_duration_help = 'wall clock time of cue; default is 2 seconds'
-        indicator_duration_help = 'wall clock time of indication; default is 3 seconds'        
-        reset_duration_help = 'wall clock time of the reset; default is 1 second'
-        seed_help = 'value to seed the pseudo random number generator; default value is 42'
-        output_help = 'path to the output file containing the samples; defaults to gtec concatenated with the date'
-        port_help = 'sets the port to connect to to get the sample feed; default value is COM3'
-        channels_help = '1 byte(2 hexidecimal digits) bit mask specifying the channels; default is 0x78'
-        trials_help = 'number of trials; default is 25'
-        loglevel_help = 'set the logging level; valid values are debug, info, warn, error and critical; default value is warn'
-        bci_help = 'selects the BCI; valid values are: fake, mobilab, enobio; default value is fake'
-        fps_help = 'displays the frequency per second'
-        not_fullscreen_help = 'turns off full screen mode'
-        parser.add_option('-m', '--msequence', default=False, action='store_true', dest='msequence', metavar='MSEQUENCE', help=msequence_help)
-        parser.add_option('-p', '--port', default='COM3', dest='port', metavar='PORT', help=port_help)
-        parser.add_option('-e', '--emg', default=False, action='store_true', dest='emg', metavar='EMG', help=emg_help)
-        parser.add_option('-d', '--cue-duration', default=2, type=int, dest='cue_duration', metavar='CUE-DURATION', help=cue_duration_help)
-        parser.add_option('-i', '--indicator-duration', default=3, type=int, dest='indicator_duration', metavar='INDICATOR-DURATION', help=indicator_duration_help)        
-        parser.add_option('-r', '--reset-duration', default=1, type=int, dest='reset_duration', metavar='RESET-DURATION', help=reset_duration_help)        
-        parser.add_option('-c', '--channels', default='0x78', dest='channels', metavar='CHANNELS', help=channels_help)
-        parser.add_option('-o', '--output', default='bci', type=str, dest='output', metavar='OUTPUT', help=output_help)
-        parser.add_option('-s', '--seed', default=42, type=int, dest='seed', metavar='SEED', help=seed_help)
-        parser.add_option('-t', '--trials', default=25, type=int, dest='trials', metavar='TRIALS', help=trials_help)        
-        parser.add_option('-l', '--logging-level', type=str, dest='loglevel', metavar='LEVEL', help=loglevel_help)
-        parser.add_option('-b', '--bci', dest='bci', default='fake', type=str, metavar='BCI', help=bci_help)        
-        parser.add_option('-f', '--fps', default=False, action='store_true', dest='fps', metavar='FPS', help=fps_help)
-        parser.add_option('-n', '--not-fullscreen', default=True, action='store_false', dest='not_fullscreen', metavar='NOT-FULLSCREEN', help=not_fullscreen_help)        
-        valid_levels = { 'debug' : logging.DEBUG, 'info' : logging.INFO,
-                         'warn' : logging.WARN, 'error' : logging.ERROR,
-                         'critical' : logging.CRITICAL} 
-        
-        (options, args) = parser.parse_args()
-        if (options.msequence == False and options.emg == False) or (options.msequence == True and options.emg == True):
-            parser.print_help()
-            sys.exit(1)
-    
-        if options.loglevel != None and options.loglevel in valid_levels:
-            set_logger_level(valid_levels[options.loglevel])
-        else:
-            if options.loglevel:
-                logger.error('Invalid log level: '+self.options.loglevel+ \
-                             ' using default, which is WARN')
-            set_logger_level(logging.WARN)
-        
-        self.cue_duration = options.cue_duration
-        self.indicator_duration = options.indicator_duration
-        self.reset_duration = options.reset_duration   
-        self.apps = []
-        self.trigger = TriggerValue()
-        self.rand = random.Random(options.seed)
+    def __init__(self, trigger, window, app_screen, timed_stimuli):
+        super(Collector, self).__init__(None)
+        self.trigger = trigger
+        self.mode = None
+        self.port = None
+        self.cue_duration = 1
+        self.indicator_duration = 2
+        self.reset_duration = 1
+        self.channels = 0x78
+        self.trials = 25
+        self.seed = 42
+        self.output = 'bci'
+        self.rand = random.Random(self.seed)
         self.cues = ['left', 'right', 'up', 'down']
         self.start_sequence_trigger = None
-        self.window = PygletWindow(fullscreen=options.not_fullscreen, show_fps=options.fps)
+        self.window = window#PygletWindow(fullscreen=options.not_fullscreen, show_fps=options.fps)
+        self.timed_stimuli = timed_stimuli
         
-        if options.msequence:
-            app_screen = Screen(0, 0, self.window.width, self.window.height)        
-            stimuli = [
-                SSVEPStimulus(app_screen, 15.0, 'north', width=200, height=200,
-                    x_freq=4, y_freq=4, filename_reverse=True,
-                    sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0)),
-                SSVEPStimulus(app_screen, 15.0, 'south', width=200, height=200,
-                    x_freq=4, y_freq=4, filename_reverse=True,
-                    sequence=(0,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1)),
-                        
-                SSVEPStimulus(app_screen, 15.0, 'east', width=200, height=200,
-                    x_freq=4, y_freq=4, filename_reverse=True,
-                    sequence=(0,1,0,0,0,1,0,1,0,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,0,1,0,0,1,1,0)),
-                SSVEPStimulus(app_screen, 15.0, 'west', width=200, height=200,
-                    x_freq=4, y_freq=4, filename_reverse=True,
-                    sequence=(0,0,1,1,0,0,0,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0))
-            ]
-            self.start_sequence_trigger = TriggerValue()
-            ssvep = SSVEP(app_screen, stimuli, rest_length=0, trigger_value=self.start_sequence_trigger)
-            # Uncomment the following line to turn off the flickering stimuli.
-            #ssvep.stop()
-            self.apps.append(ssvep)
+    def start(self):
+        if mode == msequence:
             cue_states_factory_method_name = 'create_m_cue_states'
-        elif options.emg:
-            app_screen = Screen(0, 0, self.window.width, self.window.height)
-            cue_states_factory_method_name = 'create_emg_cue_states'
-    
-        self.visual_cues = VisualizationManager(self.window, app_screen, self.cue_duration, self.indicator_duration, self.reset_duration, self.trigger, self.rand, options.trials, cue_states_factory_method_name)
-        self.apps.append(self.visual_cues)
-        
-        try:
-            #self.bci = MOBIlab()
-            if options.bci == 'fake' or options.bci == 'mobilab':
-                if options.bci == 'fake':
-                    self.bci = FakeBCI()
-                else:
-                    assert options.bci == 'mobilab'
-                    self.bci = MOBIlab()
-                self.bci_channels = 4
-                if not self.bci.open(options.port):
-                    raise Exception(options.bci+' did not open')
-                if not self.bci.init(int(options.channels, 0), 0):
-                    raise Exception(options.bci+' device did not initialize')
-                if not self.bci.start():
-                    raise Exception(options.bci+' device did not start streaming')                
-            else:
-                assert options.bci == 'enobio'
-                self.bci_channels = 8
-                self.bci = Enobio()
-                if not self.bci.open():
-                    raise Exception(options.bci+' did not open')
-                #if options.bci != 'enobio' and not self.bci.init(int(options.channels, 0), 0):
-                #    raise Exception(self.bci_desc+' device did not initialize')
-                if not self.bci.start():
-                    raise Exception(options.bci+' device did not start streaming')                
+        else:
+           cue_states_factory_method_name = 'create_emg_cue_states'
+           
+#       elif options.emg:
+#          app_screen = Screen(0, 0, self.window.width, self.window.height)
 
-        except Exception, e:
-            self.visual_cues.stop()
-            raise e
+    
+        self.visual_cues = VisualizationManager(self.window, app_screen, self.cue_duration, self.indicator_duration, self.reset_duration, self.trigger, self.rand, self.trials, cue_states_factory_method_name)
+        self.apps.append(self.visual_cues)
+   
+   
+   
         self.fh = open("%s_%d.txt" % (options.output, time.time()), 'a')
         self.done = False
-    def collect(self):
-        #self.thread = Thread(target = self.acquisition_loop, args = ())
-        #self.thread.start()
-        # XXX
+        
         self.window.controller.set_apps([self])#self.apps)
         self.window.start()
-        self.stop()
-        #self.thread.join()
+        
+        self.done = True
+        self.fh.flush()
+        self.fh.close()
+        
     def update(self, delta, decision, selection):
         for app in self.apps:
             app.update(delta, decision, selection)
@@ -407,13 +189,8 @@ class SampleCollector(UnlockApplication):
     def draw(self):
         for app in self.apps:
             app.screen.batch.draw()
-    def stop(self):
-        self.done = True
-        self.fh.flush()
-        self.fh.close()
-        #self.visual_cues.stop()
         
-if __name__ == '__main__':
-    s = SampleCollector()
-    s.collect()
+#if __name__ == '__main__':
+#    s = SampleCollector()
+#    s.collect()
 

@@ -4,6 +4,7 @@ import socket
 import time
 
 from unlock.util import TrialState, Trigger
+from model import UnlockModel
 
 
 class TimedSequenceStimuliManager(UnlockModel):

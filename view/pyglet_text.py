@@ -5,7 +5,7 @@ import inspect
 import os
 
 class PygletTextLabel(UnlockView):
-    def __init__(self, model, screen, text, x, y, anchor_x='center', anchor_y='center', font='Helvetica', size=48,
+    def __init__(self, model, canvas, text, x, y, anchor_x='center', anchor_y='center', font='Helvetica', size=48,
                  color=(255,255,255,255), group=None):
         """
         Draws text at a specific point on the screen
@@ -18,7 +18,7 @@ class PygletTextLabel(UnlockView):
         :param color: Color of text. Tuple of length four.
         """
         self.model = model
-        self.screen = screen
+        self.canvas = canvas
         self.text = text
         self.x = x
         self.y = y
@@ -29,9 +29,9 @@ class PygletTextLabel(UnlockView):
             color = color + (255,)
         self.color = color
         self.label = pyglet.text.Label(self.text, font_name=self.font, font_size=self.size,
-                                    x=self.screen.x+self.x, y=self.screen.y+self.y,
+                                    x=self.canvas.x+self.x, y=self.canvas.y+self.y,
                                     anchor_x=anchor_x, anchor_y=anchor_y, color=self.color,
-                                    group=group,batch=self.screen.batch)
+                                    group=group,batch=self.canvas.batch)
         self.label.text = text
         
     def render(self):
@@ -40,9 +40,7 @@ class PygletTextLabel(UnlockView):
         else:
             self.label.text = ''
             
-        self.screen.batch.draw()
-        
-
+            
 class BellRingTextLabelDecorator(UnlockView):
     def __init__(self, text_label):
         self.text_label = text_label
@@ -61,11 +59,7 @@ class BellRingTextLabelDecorator(UnlockView):
         else:
             self.text_label.label.text = ''
             
-        self.text_label.screen.batch.draw()
-   
-
-
-
+            
 #class Image(object):
 #    def __init__(self, window, filename, anchor_x, anchor_y, position_x, position_y):
 #        self.window = window

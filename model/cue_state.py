@@ -1,4 +1,4 @@
-
+from model import UnlockModel
 
 class RandomCueStateMachine(UnlockModel):
     def __init__(self, rand, trials, cue_states, rest_state, indicator_state):
