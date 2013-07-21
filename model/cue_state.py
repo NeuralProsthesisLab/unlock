@@ -11,13 +11,13 @@ class RandomCueStateMachine(UnlockModel):
         self.indicator_state = indicator_state
         self.rand = rand
         self.trials = trials
-        self.transition = False
         
     def __transition__(self, next_state):
-        self.state.current = False
-        next_state.current = True
+        self.state.stop()
         next_state.last = self.state
-        self.state = next_state 
+        next_state.start()
+        self.state = next_state
+
         
     def indicator_state(self):
         self.__transition__(self.rest_state)
@@ -38,12 +38,13 @@ class RandomCueStateMachine(UnlockModel):
         for cue in cues:
             cue_states.append(CueState.create(cue, cue_duration))
         rest_state = CueState.create(CueState.Rest, rest_duration)
+        rest_state.start()
         indicator_state = CueState.create(CueState.Indicator, indication_duration)
         state_machine = RandomCueStateMachine(random.Random(seed), trials, cue_states, rest_state, indicator_state)
         for cue_state in cues_states:
-            cue_state.transition_fn = self.cue_state
-        rest_state.transition_fn = self.rest_state
-        indicator_state.transition_fn = self.indicator_state
+            cue_state.transition_fn = state_machine.cue_state
+        rest_state.transition_fn = state_machine.rest_state
+        indicator_state.transition_fn = state_machine.indicator_state
         
         
 class CueState(UnlockModel):
@@ -55,14 +56,26 @@ class CueState(UnlockModel):
     Down = 5
     def __init__(self, state_id, trial_time_state, transition_fn=None):
         super(TimedState, self).__init__()
-        self.state = state_id
+        self.state = False
         self.state_id = state_id
         self.trial_time_state = trial_time_state
         self.transition_fn = transition_fn
         
+    def get_state(self):
+        return self.state
+
+    def start(self):
+        self.trial_state.begin_trial()
+        self.state = True
+        
+    def stop(self):
+        self.state = False
+        
     def process_command(self, command):
+        assert self.transition_fn != None
         self.trial_state.update_trial_time(command.delta)
         if self.trial_state.is_trial_complete():
+            self.stop()
             self.transition_fn()
             
     @staticmethod
