@@ -19,8 +19,7 @@ def convert(scope_str):
     else:
         raise Exception("Can not handle scope %s" % s)
         
-    
-
+        
 class ReflectiveObjectFactory(object):
     def __init__(self, module_and_class, factory_method):
         super(ReflectiveObjectFactory, self).__init__()
