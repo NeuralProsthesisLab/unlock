@@ -5,6 +5,12 @@ class UnlockModel(object):
         super(UnlockModel, self).__init__()
         self.state = None
         
+    def start(self):
+        pass
+        
+    def stop(self):
+        pass
+        
     def get_state(self):
         return self.state
         
