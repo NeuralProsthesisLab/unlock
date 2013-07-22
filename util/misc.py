@@ -3,13 +3,13 @@ import os
 
 
 class Trigger(object):
-    NoValue=-1
+    Null=-1
     Start=0
     Stop=1
     Pause=3
     Cue=4
-    Indication=5
-    Reset=6
+    Indicate=5
+    Rest=6
     UsageDefined=7
     UsageDefined1=7
     UsageDefined2=7

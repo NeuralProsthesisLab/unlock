@@ -1,3 +1,4 @@
+
 import time
 
 
@@ -51,7 +52,7 @@ class TrialTimeState(object):
     def is_rest_complete(self):
         return True if self.trial_time >= self.period_duration else False
         
-    def set_stimuli_duration(self, duration):
+    def set_trial_duration(self, duration):
         self.trial_duration = float(duration)
         self.__set_period_duration__()
         
