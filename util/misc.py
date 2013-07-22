@@ -3,30 +3,22 @@ import os
 
 
 class Trigger(object):
-    Null=-1
-    Start=0
-    Stop=1
+    Null=0
+    Start=1
+    Stop=2
     Pause=3
     Cue=4
     Indicate=5
     Rest=6
-    UsageDefined=7
-    UsageDefined1=7
-    UsageDefined2=7
-    
-    def __init__(self, log_triggers=False, store_triggers=False):
-        self.value = 0
-        if log_triggers:
-            self.log = logging.getLogger(__name__)
-    def send(self, value):
-        self.value = value 
+    Up=7
+    Right=8
+    Down=9
+    Left=10
+    UsageDefined=11
+    UsageDefined1=12
+    UsageDefined2=13
         
-    def value(self):
-        val = self.trigger
-        self.trigger = 0
-        return val
-                
-               
+        
 class switch(object):
     def __init__(self, value):
         self.value = value
