@@ -3,11 +3,12 @@ import random
 
 
 class FakeBCI(object):
-    def __init__(self):
+    def __init__(self, channels=4):
         self.rand = random.Random(1337)
         self.getdata_count = 0
         self.acquire_count = 0
         self.ret = None
+        self.channels = channels
         
     def open(self, port):
         self.port = port
@@ -27,12 +28,12 @@ class FakeBCI(object):
         self.acquire_count += 1
         return 1
         
-    def getdata(self, chans):
+    def getdata(self, samples_cross_channels):
         self.getdata_count += 1
-        self.last_chans = chans
         self.ret = []        
-        for i in range(chans):
+        for i in range(samples_cross_channels):
             self.ret.append(self.rand.randint(1, sys.maxint))
+            
         return self.ret
         
         
