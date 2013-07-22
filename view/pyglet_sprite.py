@@ -92,14 +92,14 @@ class SpritePositionComputer(object):
          
            
 class PygletSprite(UnlockView):
-    def __init__(self, model, screen_desc, image, x, y, rotation):
+    def __init__(self, model, canvas, image, x, y, rotation):
         self.model = model
-        self.screen_desc = screen_desc
+        self.canvas = canvas
         
         image.anchor_x = image.width / 2
         image.anchor_y = image.height / 2
         
-        self.sprite = pyglet.sprite.Sprite(image, batch=self.screen_desc.batch)
+        self.sprite = pyglet.sprite.Sprite(image, batch=self.canvas.batch)
         self.sprite.rotation = rotation
         self.sprite.x = x
         self.sprite.y = y
@@ -109,9 +109,9 @@ class PygletSprite(UnlockView):
         self.sprite.visible = self.model.get_state()
         
     @staticmethod
-    def create_image_sprite(model, screen_desc, filename, rotation):
+    def create_image_sprite(model, canvas, filename, rotation):
         abstract_image = pyglet.image.load(filename)
-        return PygletSprite(model, screen_desc, abstract_image, rotation)
+        return PygletSprite(model, canvas, abstract_image, rotation)
            
     @staticmethod
     def create_checkered_box_texture_region(width=600, height=100, xfreq=6, yfreq=1,
@@ -174,15 +174,15 @@ class PygletSprite(UnlockView):
         return texture_region
             
     @staticmethod
-    def create_checkered_box_sprite(model, screen_desc, position=SpritePositionComputer.Center, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
+    def create_checkered_box_sprite(model, canvas, position=SpritePositionComputer.Center, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
             xduty=0.5, yduty=0.5, xuneven=False, yuneven=False, color_on=(0,0,0), color_off=(255,255,255)):
             
         texture_region = PygletSprite.create_checkered_box_texture_region(width, height, xfreq, yfreq, xduty, yduty, xuneven, yuneven, color_on, color_off)
             
-        spc = SpritePositionComputer(screen_desc.width, screen_desc.height, texture_region.width, texture_region.height, rotation)
+        spc = SpritePositionComputer(canvas.width, canvas.height, texture_region.width, texture_region.height, rotation)
         spc.compute(position)
            
-        return PygletSprite(model, screen_desc, texture_region, spc.x, spc.y, rotation)
+        return PygletSprite(model, canvas, texture_region, spc.x, spc.y, rotation)
             
             
 class FlickeringPygletSprite(PygletSprite):
@@ -192,21 +192,20 @@ class FlickeringPygletSprite(PygletSprite):
         self.batch = batch
         
     def render(self):
-        state = self.sprite.model.state()
+        state = self.sprite.model.get_state()
         self.sprite.sprite.visible = state
         self.reversed_sprite.sprite.visible = not state
-        self.batch.draw()
         
     @staticmethod
-    def create_flickering_checkered_box_sprite(model, screen_desc, position=SpritePositionComputer.Center, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
+    def create_flickering_checkered_box_sprite(model, canvas, position=SpritePositionComputer.Center, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
             xduty=0.5, yduty=0.5, xuneven=False, yuneven=False, color_on=(0,0,0), color_off=(255,255,255)):
             
-        sprite = PygletSprite.create_checkered_box_sprite(model, screen_desc, position, rotation, width, height, xfreq, yfreq,
+        sprite = PygletSprite.create_checkered_box_sprite(model, canvas, position, rotation, width, height, xfreq, yfreq,
                                                           xduty, yduty, xuneven, yuneven, color_on, color_off)
-        reversed_sprite = PygletSprite.create_checkered_box_sprite(model, screen_desc, position, rotation, width, height, xfreq, yfreq,
+        reversed_sprite = PygletSprite.create_checkered_box_sprite(model, canvas, position, rotation, width, height, xfreq, yfreq,
                                                           xduty, yduty, xuneven, yuneven, color_off, color_on)
             
-        return FlickeringPygletSprite(sprite, reversed_sprite, screen_desc.batch)
+        return FlickeringPygletSprite(sprite, reversed_sprite, canvas.batch)
             
            
  
