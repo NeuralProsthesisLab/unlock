@@ -56,8 +56,8 @@ class PygletKeyboardCommand(Command):
             
             
 class RawBCICommand(Command):
-    def __init__(self, raw_data_vector, samples, channels):
-        super(RawBCIData, self).__init__()
+    def __init__(self, delta, raw_data_vector, samples, channels):
+        super(RawBCIData, self).__init__(delta)
         self.raw_data_vector = raw_data_vector
         self.samples = samples
         self.channels = channels
@@ -159,16 +159,15 @@ class InlineCommandReceiver(CommandReceiverInterface):
         self.Q.append(command)
             
           
-class RawInlineReceiver(CommandReceiverInterface):
+class RawInlineBCIReceiver(CommandReceiverInterface):
     def __init__(bci):
         self.bci = bci
         
     def next_command(self, delta):
-        #while not self.done:
         samples = self.bci.acquire()
         if samples == 0:
             return None
-#    np.array(self.bci.getdata(command.channels * command.samples))        
         raw_data_vector = np.array(self.bci.getdata(samples * bci.channels))
-        return RawBCICommand(raw_data_vector, samples, bci.channels)
-        #np.savetxt(self.fh, final_data_matrix1, fmt='%d', delimiter='\t')             
+        return RawBCICommand(delta, raw_data_vector, samples, bci.channels)
+        
+        
