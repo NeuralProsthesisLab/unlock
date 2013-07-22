@@ -1,5 +1,6 @@
 import pyglet
 import array
+import logging
 
 from view import UnlockView
 from math import cos, sin, radians
@@ -104,10 +105,11 @@ class PygletSprite(UnlockView):
         self.sprite.x = x
         self.sprite.y = y
         self.sprite.visible = False
+        self.logger = logging.getLogger(__name__)
         
     def render(self):
         self.sprite.visible = self.model.get_state()
-        
+             
     @staticmethod
     def create_image_sprite(model, canvas, filename, rotation):
         abstract_image = pyglet.image.load(filename)
@@ -190,9 +192,11 @@ class FlickeringPygletSprite(PygletSprite):
         self.sprite = sprite
         self.reversed_sprite = reversed_sprite
         self.batch = batch
+        self.logger = logging.getLogger(__name__)        
         
     def render(self):
         state = self.sprite.model.get_state()
+        self.logger.debug("FlickeringPygletSprite, x,y = ", self.sprite.sprite.x, self.sprite.sprite.y, " rotation ", self.sprite.sprite.rotation, " visible = ", state)
         self.sprite.sprite.visible = state
         self.reversed_sprite.sprite.visible = not state
         
