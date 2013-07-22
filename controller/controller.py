@@ -1,3 +1,4 @@
+
 from command import PygletKeyboardCommand
 import pyglet
 import time
@@ -55,12 +56,18 @@ class PygletWindow(pyglet.window.Window):
             if self.active_controller and (command.decision or command.selection):
                 self.active_controller.keyboard_input(command)
                 
-    def set_active_controller(self, controller):
+    def activate_controller(self, controller):
         self.views = controller.get_views()
         self.batch = controller.get_batch()
         pyglet.clock.schedule_interval(controller.poll_bci, controller.get_bci_poll_freq())
         self.active_controller = controller
         
+    def deactivate_controller(self):
+        if self.active_controller != None:
+            self.views = []        
+            pyglet.clock.unschedule(self.active_controller.poll_bci)            
+            self.active_controller = None
+                
     def start(self):
         pyglet.app.run()
             
@@ -73,8 +80,8 @@ class UnlockController(object):
         self.canvas = canvas
         self.bci_poll_freq = bci_poll_freq
         
-    def make_active(self):
-        self.window.set_active_controller(self)
+    def activate(self):
+        self.window.activate_controller(self)
         
     def poll_bci(self, delta):
         pass
