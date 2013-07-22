@@ -57,12 +57,13 @@ class PygletKeyboardCommand(Command):
             
 class RawBCICommand(Command):
     def __init__(self, delta, raw_data_vector, samples, channels):
-        super(RawBCIData, self).__init__(delta)
+        super(RawBCICommand, self).__init__(delta)
         self.raw_data_vector = raw_data_vector
         self.samples = samples
         self.channels = channels
         self.sequence_trigger_vector = np.zeros((samples, 1))        
         self.cue_trigger_vector = np.zeros((samples, 1))
+        self.logger = logging.getLogger(__name__)
         
     def set_sequence_trigger(self, sequence_trigger_value):
         self.sequence_trigger_vector[-1] = sequence_trigger_value
@@ -71,9 +72,9 @@ class RawBCICommand(Command):
        self.cue_trigger_vector[-1] = cue_trigger_value
         
     def matrixize(self):
-        data_matrix = self.raw_data_vector.reshape((samples, self.bci_channels))
-        self.matrix = np.hstack((data_matrix, trigger_vector, sequence_start_vector))
-        logger.debug("Data = ", final_data_matrix)
+        data_matrix = self.raw_data_vector.reshape((self.samples, self.channels))
+        self.matrix = np.hstack((data_matrix, self.cue_trigger_vector, self.sequence_trigger_vector))
+        self.logger.debug("Data = ", self.matrix)
         
         
 class CommandReceiverInterface(object):
@@ -160,14 +161,15 @@ class InlineCommandReceiver(CommandReceiverInterface):
             
           
 class RawInlineBCIReceiver(CommandReceiverInterface):
-    def __init__(bci):
+    def __init__(self, bci):
         self.bci = bci
         
     def next_command(self, delta):
         samples = self.bci.acquire()
         if samples == 0:
             return None
-        raw_data_vector = np.array(self.bci.getdata(samples * bci.channels))
-        return RawBCICommand(delta, raw_data_vector, samples, bci.channels)
+        raw_data_vector = np.array(self.bci.getdata(samples * self.bci.channels))
+        return RawBCICommand(delta, raw_data_vector, samples, self.bci.channels)
         
-        
+    def stop(self):
+        pass
