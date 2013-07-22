@@ -2,6 +2,7 @@ from view import UnlockView
 
 import pyglet
 import inspect
+import logging
 import os
 
 class PygletTextLabel(UnlockView):
@@ -32,9 +33,15 @@ class PygletTextLabel(UnlockView):
                                     anchor_x=anchor_x, anchor_y=anchor_y, color=self.color,
                                     group=group,batch=self.canvas.batch)
         self.label.text = text
+        self.state = True
+        self.logger = logging.getLogger(__name__)
         
     def render(self):
-        if self.model.get_state():
+        self.last_state = self.state
+        self.state = self.model.get_state()
+        self.logger.debug("PygletTextLabel text = ", self.label.text, " last state, state = ", self.last_state, self.state)
+        
+        if self.state:
             self.label.text = self.text
         else:
             self.label.text = ''
@@ -46,36 +53,19 @@ class BellRingTextLabelDecorator(UnlockView):
         self.model = self.text_label.model
         self.sound = pyglet.media.StaticSource(pyglet.media.load(os.path.join(os.path.dirname(inspect.getfile(BellRingTextLabelDecorator)), 'bell-ring-01.mp3')))
         self.state = True
+        self.logger = logging.getLogger(__name__)        
         
     def render(self):
         self.last_state = self.state
         self.state = self.model.get_state()
-        if self.last_state != self.state:
-            self.sound.play()
+        self.logger.debug("BellRingTextLabelDecorator text = ", self.text_label.label.text, " last state, state = ", self.last_state, self.state)
             
         if self.state:
+            if self.last_state != self.state:
+                self.sound.play()
+                
             self.text_label.label.text = self.text_label.text
         else:
             self.text_label.label.text = ''
             
             
-#class Image(object):
-#    def __init__(self, window, filename, anchor_x, anchor_y, position_x, position_y):
-#        self.window = window
-#        self.filename = filename
-#        self.anchor_x = anchor_x
-#        self.anchor_y = anchor_y
-#        self.position_x = position_x
-#        self.position_y = position_y
-#        self.prepare_draw()
-#    def prepare_draw(self):          
-#        self.window.clear()
-#        img = pyglet.image.load(self.filename).get_texture(rectangle=True)
-#        img.anchor_x = self.anchor_x
-#        img.anchor_y = self.anchor_y
-#        self.window.set_visible()
-#        self.img = img
-#    def draw(self):
-#        self.img.blit(self.position_x, self.position_y, 0)
-#        
-#     
