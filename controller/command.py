@@ -1,9 +1,13 @@
+
+from unlock.util import DatagramWrapper
+
 import socket
 import cPickle
 import json
 import logging
 import pyglet
-from unlock.util import DatagramWrapper
+import numpy as np
+
 
 class Command(object):
     def __init__(self, delta=None, decision=None, selection=None, data=None, json=False):
@@ -51,6 +55,27 @@ class PygletKeyboardCommand(Command):
             self.decision = labels.index(symbol) + 1        
             
             
+class RawBCICommand(Command):
+    def __init__(self, raw_data_vector, samples, channels):
+        super(RawBCIData, self).__init__()
+        self.raw_data_vector = raw_data_vector
+        self.samples = samples
+        self.channels = channels
+        self.sequence_trigger_vector = np.zeros((samples, 1))        
+        self.cue_trigger_vector = np.zeros((samples, 1))
+        
+    def set_sequence_trigger(self, sequence_trigger_value):
+        self.sequence_trigger_vector[-1] = sequence_trigger_value
+        
+    def set_cue_trigger(self, cue_trigger_value):
+       self.cue_trigger_vector[-1] = cue_trigger_value
+        
+    def matrixize(self):
+        data_matrix = self.raw_data_vector.reshape((samples, self.bci_channels))
+        self.matrix = np.hstack((data_matrix, trigger_vector, sequence_start_vector))
+        logger.debug("Data = ", final_data_matrix)
+        
+        
 class CommandReceiverInterface(object):
     def next_command(self):
         raise NotImplementedError("Every CommandReceiverInterface must implement the next_command method")
@@ -69,7 +94,7 @@ class DatagramCommandReceiver(CommandReceiverInterface):
         self.sink = sink
         self.log = logging.getLogger(__name__)
         
-    def next_command(self):        
+    def next_command(self, delta):        
         def error_handler(e):
             self.log.error("DatagramCommandReceiver failed ", exc_info=True)
             raise e
@@ -119,7 +144,7 @@ class InlineCommandReceiver(CommandReceiverInterface):
         self.Q = []
         self.pos = 0
             
-    def next_command(self):
+    def next_command(self, delta):
         if self.pos == len(self.Q):
             ret = None
         else:
@@ -133,4 +158,17 @@ class InlineCommandReceiver(CommandReceiverInterface):
     def put(self, command):
         self.Q.append(command)
             
-            
+          
+class RawInlineReceiver(CommandReceiverInterface):
+    def __init__(bci):
+        self.bci = bci
+        
+    def next_command(self, delta):
+        #while not self.done:
+        samples = self.bci.acquire()
+        if samples == 0:
+            return None
+#    np.array(self.bci.getdata(command.channels * command.samples))        
+        raw_data_vector = np.array(self.bci.getdata(samples * bci.channels))
+        return RawBCICommand(raw_data_vector, samples, bci.channels)
+        #np.savetxt(self.fh, final_data_matrix1, fmt='%d', delimiter='\t')             
