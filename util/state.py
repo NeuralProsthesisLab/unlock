@@ -47,7 +47,7 @@ class TrialTimeState(object):
         self.trial_time += delta
         
     def is_trial_complete(self):
-        return True if self.trial_time >= self.trial_duration and self.rest_duration > 0 else False
+        return True if self.trial_time >= self.trial_duration else False
         
     def is_rest_complete(self):
         return True if self.trial_time >= self.period_duration else False
@@ -75,7 +75,7 @@ class TrialState():
                 change_value = self.trial_expiry
             elif self.run_state.is_resting() and self.time_state.is_rest_complete():
                 self.run_state.run()
-                time_state.begin_trial()
+                self.time_state.begin_trial()
                 change_value = self.rest_expiry                
             return self.run_state.state, change_value
             
@@ -90,7 +90,10 @@ class TrialState():
         self.time_state.begin_trial()
         
     def stop(self):
-        run_state.stop()
+        self.run_state.stop()
+        
+    def is_stopped(self):
+        return self.run_state.is_stopped()
         
     @staticmethod
     def create(stimuli_duration, rest_duration, run_state=RunState()):
@@ -100,9 +103,8 @@ class TrialState():
 class SequenceState(object):
     def __init__(self, sequence, value_transformer_fn=lambda x: x):
         self.sequence = sequence
-        self.value_transformer_fn
-        self.start()
-    
+        self.value_transformer_fn = value_transformer_fn
+        
     def start(self):
         self.index = 0
        
