@@ -8,10 +8,9 @@ from model import UnlockModel
 
 
 class TimedSequenceStimuliManager(UnlockModel):
-    """ Manages multiple timed, sequence-based stimuli.  The reason for wrapping the stimuli is temporal precision. """
+    """ Manages multiple timed, sequence-based stimuli. """
     def __init__(self, state, trigger):
         self.state = state
-        self.trigger = trigger
         self.stimuli = set([])
             
     def add_stimulus(self, stimulus):
@@ -42,7 +41,6 @@ class TimedSequenceStimuliManager(UnlockModel):
         self.state.stop()
         for stimulus in self.stimuli:
             stimulus.stop()
-        self.trigger.send(Trigger.Stop)
             
     def process_command(self, command):
         """
@@ -56,22 +54,24 @@ class TimedSequenceStimuliManager(UnlockModel):
             log.debug("TimedSequenceStimuliManager.process_command: no stimulus available ")
             return
             
+        ret = Trigger.Null
         state, change_value = self.state.update_state(command.delta)
         if state == RunState.running:
             sequence_start_trigger = False
             for stimulus in self.stimuli:
                 sequence_start_trigger = stimulus.update(command)
             if sequence_start_trigger:
-                self.trigger.send(Trigger.Start)            
+                ret = Trigger.Start
         elif change_value == TrialState.trial_expiry:
             self.pause()
         elif change_value == TrialState.rest_expiry:
             self.start()
             
+        return ret
+    
     @staticmethod
-    def create():
+    def create(trial_state):
         state = TrialState()
-        trigger = Trigger()
             
             
 class TimedSequenceStimulus(UnlockModel):

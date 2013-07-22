@@ -1,4 +1,5 @@
 
+
 class UnlockModel(object):
     def __init__(self):
         super(UnlockModel, self).__init__()
@@ -6,8 +7,8 @@ class UnlockModel(object):
         
     def get_state(self):
         return self.state
-    
-    
+        
+        
 class AlternatingBinaryStateModel(UnlockModel):
     def __init__(self, hold_duration=300):
         self.hold_duration = hold_duration
