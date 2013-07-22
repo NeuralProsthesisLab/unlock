@@ -1,7 +1,15 @@
 
-from bci import FakeBCI
+from unlock.model import TimedStimuli, TimedStimulus, OfflineData, RandomCueStateMachine
+from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator
+from unlock.util import TrialState, Trigger
+from unlock.bci import FakeBCI
+from controller import Canvas, UnlockController
+from command import RawInlineBCIReceiver
 
-
+import logging
+import time
+    
+    
 class Collector(UnlockController):
     name = "Collector"
     icon = "robot.png"  
@@ -12,10 +20,13 @@ class Collector(UnlockController):
         self.offline_data = offline_data
         self.timed_stimuli = timed_stimuli
         self.standalone = standalone
+        self.logger = logging.getLogger(__name__)
         
     def poll_bci(self, delta):
+        
+        self.logger.debug('Collector.poll bci delta = ', delta, ' time = ', time.time())
         command = self.command_receiver.next_command(delta)
-        if self.timed_stimuli: 
+        if self.timed_stimuli:
             sequence_trigger = self.timed_stimuli.process_command(command)
             if sequence_trigger != Trigger.Null:
                 command.set_sequence_trigger(sequence_trigger)
@@ -23,8 +34,14 @@ class Collector(UnlockController):
         cue_trigger = self.cue_state.process_command(command)
         command.set_cue_trigger(cue_trigger)
             
-        command.combine()
+        command.matrixize()
         self.offline_data.process_command(command)
+        
+    def activate(self):
+        self.cue_state.start()
+        self.timed_stimuli.start()
+        self.offline_data.start()
+        super(Collector, self).activate()
         
     def quit(self):
         self.command_receiver.stop()
@@ -43,12 +60,12 @@ class Collector(UnlockController):
         pass
         
     @staticmethod
-    def create_msequence_collector(bci=FakeBCI(), stimulation_duration=4.0, trials=25, cue_duration=1, rest_duration=2, indicate_duration=2, output_file='bci'):
-        window = PygletWindow(fullscreen=False, show_fps=True)
+    def create_msequence_collector(window, bci=FakeBCI(), stimulation_duration=4.0, trials=25, cue_duration=1, rest_duration=2, indicate_duration=4, output_file='bci', seed=42):
+        
         canvas = Canvas.create(window.width, window.height)
-        trial_state = TrialState.create(stimulation_duration, 0)
-        timed_stimuli = TimedStimuli.create(trial_state)
-
+        
+        timed_stimuli = TimedStimuli.create(stimulation_duration)
+        
         north_stimulus = TimedStimulus.create(15.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0))
         fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(north_stimulus, canvas, SpritePositionComputer.North, width=200, height=200, xfreq=4, yfreq=4)
         timed_stimuli.add_stimulus(north_stimulus)
@@ -65,7 +82,7 @@ class Collector(UnlockController):
         fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(west_stimulus, canvas, SpritePositionComputer.West, 90, width=200, height=200, xfreq=4, yfreq=4)
         timed_stimuli.add_stimulus(west_stimulus)
 
-        cue_state = RandomCueStateMachine(25, [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left], cue_duration, rest_duration, seed=seed)
+        cue_state = RandomCueStateMachine.create(25, [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left], cue_duration, rest_duration, indicate_duration, seed=seed)
         
         up = PygletTextLabel(cue_state.cue_states[0], canvas, 'up', canvas.width / 2.0, canvas.height / 2.0)
         right = PygletTextLabel(cue_state.cue_states[1], canvas, 'right', canvas.width / 2.0, canvas.height / 2.0)
@@ -80,9 +97,10 @@ class Collector(UnlockController):
         
         command_receiver = RawInlineBCIReceiver(bci)
         
-        offline_data = OfflineData()
-
-        controller = Collector(window, [fs, fs1, fs2, fs3, up, right, down, left, rest], canvas, command_receiver, cue_state, timed_stimuli)
+        offline_data = OfflineData(output_file)
+        
+        return Collector(window, [fs, fs1, fs2, fs3, up, right, down, left, rest, indicate], canvas, command_receiver, cue_state, offline_data, timed_stimuli)
+        
 ##        controller.make_active()
 # #       window.switch_to()
 #        self.mode = None

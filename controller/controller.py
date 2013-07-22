@@ -49,7 +49,6 @@ class PygletWindow(pyglet.window.Window):
                 stop = self.active_controller.quit()
                 if stop:
                     pyglet.app.exit()
-                    
             elif command.stop:
                 pyglet.app.exit()
                 
