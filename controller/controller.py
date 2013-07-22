@@ -72,11 +72,11 @@ class UnlockController(object):
         self.views = views
         self.canvas = canvas
         self.bci_poll_freq = bci_poll_freq
-
+        
     def make_active(self):
         self.window.set_active_controller(self)
         
-    def poll_bci(self, command):
+    def poll_bci(self, delta):
         pass
         
     def get_bci_poll_freq(self):
