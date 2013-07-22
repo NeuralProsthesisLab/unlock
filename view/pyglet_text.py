@@ -9,7 +9,6 @@ class PygletTextLabel(UnlockView):
                  color=(255,255,255,255), group=None):
         """
         Draws text at a specific point on the screen
-
         :param text: Text to display
         :param x: x-coordinate of center of text(Pixels from left)
         :param y: y-coordinate of center of text(Pixels from bottom)
