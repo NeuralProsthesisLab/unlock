@@ -34,6 +34,8 @@ class PygletWindow(pyglet.window.Window):
             self.fps = empty
         self.active_controller = None
         
+    # XXX: this is a remenent of the legacy code; it's probably better to have the controller itself
+    #      handle the drawing and use the clock interval to schedule the interrupts appropriately
         @self.event
         def on_draw():
             self.clear()
@@ -83,6 +85,9 @@ class UnlockController(object):
         self.window.activate_controller(self)
         
     def poll_bci(self, delta):
+        pass
+        
+    def keyboard_input(self, command):
         pass
         
     def get_bci_poll_freq(self):
