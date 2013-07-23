@@ -8,6 +8,7 @@ import time
 class OfflineData(UnlockModel):
     def __init__(self, output_file_prefix, cache_size=1):
         super(UnlockModel, self).__init__()
+        self.output_file_prefix = output_file_prefix
         self.file_handle = open("%s_%d.txt" % (output_file_prefix, time.time()), 'a')
         self.logger = logging.getLogger(__name__)
         self.cache = range(cache_size)
@@ -21,10 +22,15 @@ class OfflineData(UnlockModel):
         
     def get_state(self):
         raise NotImplementedError()
-        
+
+    def start(self):
+        if not self.file_handle:
+            self.file_handle = open("%s_%d.txt" % (self.output_file_prefix, time.time()), 'a')
+            
     def stop(self):
         self.file_handle.flush()
         self.file_handle.close()
+        self.file_handle = None
         
         
 class NonBlockingOfflineData(UnlockModel):
