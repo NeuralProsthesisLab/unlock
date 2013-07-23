@@ -1,9 +1,9 @@
 
 
 class UnlockModel(object):
-    def __init__(self):
+    def __init__(self, state=None):
         super(UnlockModel, self).__init__()
-        self.state = None
+        self.state = state
         
     def start(self):
         pass
