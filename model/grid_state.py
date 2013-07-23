@@ -12,8 +12,8 @@ class GridStateChange(object):
 class GridState(UnlockModel):
     IncrementYCursor=1
     DecrementYCursor=2
-    IncrementXCursor=3
-    DecrementXCursor=4
+    DecrementXCursor=3
+    IncrementXCursor=4
     def __init__(self, controllers, center_x, center_y):
         super(CrawlableGrid, self).__init__()
         assert len(controllers) > 0
