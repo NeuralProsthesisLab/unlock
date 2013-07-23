@@ -109,9 +109,10 @@ class PygletSprite(UnlockView):
         
     def render(self):
         self.sprite.visible = self.model.get_state()
-             
+        
+            
     @staticmethod
-    def create_image_sprite(model, canvas, filename, rotation):
+    def create_image_sprite(model, canvas, filename, x=0, y=0, rotation=0):
         abstract_image = pyglet.image.load(filename)
         return PygletSprite(model, canvas, abstract_image, rotation)
            
