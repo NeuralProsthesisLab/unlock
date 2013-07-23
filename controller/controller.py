@@ -12,6 +12,15 @@ class Canvas(object):
         self.x = xoffset
         self.y = yoffset
         
+    def center(self):
+        return self.xcenter(), self.ycenter()
+        
+    def xcenter(self):
+        return self.width / 2
+    
+    def ycenter(self):
+        return self.height / 2
+        
     @staticmethod
     def create(width, height, xoffset=0, yoffset=0):
         batch = pyglet.graphics.Batch()
@@ -25,6 +34,7 @@ class Canvas(object):
 class PygletWindow(pyglet.window.Window):
     def __init__(self, fullscreen=False, vsync=False, show_fps=False):
         super(PygletWindow, self).__init__(fullscreen=fullscreen, vsync=vsync)
+        self.controller_stack = []
         self.views = []
         if show_fps:
             self.fps = pyglet.clock.ClockDisplay().draw
@@ -51,13 +61,21 @@ class PygletWindow(pyglet.window.Window):
                 stop = self.active_controller.quit()
                 if stop:
                     pyglet.app.exit()
+                return pyglet.event.EVENT_HANDLED
             elif command.stop:
                 pyglet.app.exit()
                 
             if self.active_controller and (command.decision or command.selection):
                 self.active_controller.keyboard_input(command)
                 
+        @self.event
+        def on_close():
+            pass
+                
     def activate_controller(self, controller):
+        if self.active_controller:
+            self.controller_stack.append(self.active_controller)
+            
         self.views = controller.get_views()
         self.batch = controller.get_batch()
         pyglet.clock.schedule_interval(controller.poll_bci, controller.get_bci_poll_freq())
@@ -68,7 +86,12 @@ class PygletWindow(pyglet.window.Window):
             self.views = []        
             pyglet.clock.unschedule(self.active_controller.poll_bci)            
             self.active_controller = None
-                
+            
+        if len(self.controller_stack) > 0:
+            controller = self.controller_stack[-1]
+            controller.activate()
+            self.controller_stack = self.controller_stack[:-1]
+            
     def start(self):
         pyglet.app.run()
             
