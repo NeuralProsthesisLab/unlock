@@ -1,3 +1,4 @@
+
 import pyglet
 import array
 import logging
@@ -114,7 +115,7 @@ class PygletSprite(UnlockView):
     @staticmethod
     def create_image_sprite(model, canvas, filename, x=0, y=0, rotation=0):
         abstract_image = pyglet.image.load(filename)
-        return PygletSprite(model, canvas, abstract_image, rotation)
+        return PygletSprite(model, canvas, abstract_image, x, y, rotation)
            
     @staticmethod
     def create_checkered_box_texture_region(width=600, height=100, xfreq=6, yfreq=1,
