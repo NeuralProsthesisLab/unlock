@@ -40,6 +40,26 @@ class switch(object):
             return False
             
             
+class DelegatorMixin(object):
+    def __init__(self):
+        super(DelegatorMixin, self).__init__()
+        self.delegates = set([])
+        self.ordering = []
+        
+    def __getattr__(self, name):
+        for delegate in self.ordering:
+            try:
+                return getattr(delegate, name)
+            except:
+                pass
+        raise AttributeError
+            
+    def add_delegate(self, delegate):
+        if not delegate in self.delegates:
+            self.delegates.add(delegate)
+            self.ordering.append(delegate)
+        
+        
 class Resource(object):
     def __init__(self, path=None):
         if path == None:
@@ -55,4 +75,4 @@ class Resource(object):
     def add_resource(self, resource):
         self.resources.append(resource)
             
- 
+            
