@@ -65,15 +65,20 @@ class RawBCICommand(Command):
         self.cue_trigger_vector = np.zeros((samples, 1))
         self.logger = logging.getLogger(__name__)
         
+    def __reset_trigger_vectors__(self):
+        self.sequence_trigger_vector[-1] = 0
+        self.cue_trigger_vector[-1] = 0
+        
     def set_sequence_trigger(self, sequence_trigger_value):
         self.sequence_trigger_vector[-1] = sequence_trigger_value
         
     def set_cue_trigger(self, cue_trigger_value):
        self.cue_trigger_vector[-1] = cue_trigger_value
         
-    def matrixize(self):
+    def make_matrix(self):
         data_matrix = self.raw_data_vector.reshape((self.samples, self.channels))
         self.matrix = np.hstack((data_matrix, self.cue_trigger_vector, self.sequence_trigger_vector))
+        self.__reset_trigger_vectors__()
         self.logger.debug("Data = ", self.matrix)
         
         
@@ -91,8 +96,8 @@ class CommandSenderInterface(object):
         
         
 class DatagramCommandReceiver(CommandReceiverInterface):
-    def __init__(self, sink):
-        self.sink = sink
+    def __init__(self, source):
+        self.source = source
         self.log = logging.getLogger(__name__)
         
     def next_command(self, delta):        
@@ -100,16 +105,16 @@ class DatagramCommandReceiver(CommandReceiverInterface):
             self.log.error("DatagramCommandReceiver failed ", exc_info=True)
             raise e
             
-        command_size = int(self.sink.receive(4, error_handler))
+        command_size = int(self.source.receive(4, error_handler))
         assert command_size > 0
             
         serialized_command = ''
-        serialized_command = self.sink.receive(command_size, error_handler)
+        serialized_command = self.source.receive(command_size, error_handler)
         command = Command.deserialize(serialized_command)
         return command
             
     def stop(self):
-        self.sink.close()
+        self.source.close()
             
     @staticmethod
     def create(address='', port=31337, socket_timeout=0.001):
