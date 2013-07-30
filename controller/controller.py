@@ -75,7 +75,7 @@ class PygletWindow(pyglet.window.Window):
     def activate_controller(self, controller):
         if self.active_controller:
             self.controller_stack.append(self.active_controller)
-            self.deactivate_controller()
+            pyglet.clock.unschedule(self.active_controller.poll_bci)            
             
         self.views = controller.get_views()
         self.batch = controller.get_batch()
