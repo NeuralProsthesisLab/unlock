@@ -1,7 +1,9 @@
+
 from .. import *
 import unittest
 import threading
 import time
+
 
 class CommandTests(unittest.TestCase):
     """Test suite for the command module"""
@@ -47,7 +49,6 @@ class CommandTests(unittest.TestCase):
             ex = True
         self.assertTrue(ex)
             
-            
     def testDatagramCommandSenderReceiver(self):
         receiver = DatagramCommandReceiver.create(socket_timeout=2)
         sender = DatagramCommandSender.create()
@@ -65,7 +66,6 @@ class CommandTests(unittest.TestCase):
         self.assertEquals(c.decision, c1.decision)
         self.assertEquals(c.selection, c1.selection)        
         self.assertEquals(c.data, c1.data)
-            
             
     def testInlineCommandReceiver(self):
         icr = InlineCommandReceiver()
