@@ -30,7 +30,7 @@ class Dashboard(UnlockController):
         self.timed_stimuli.start()
         super(Dashboard, self).activate()
         
-    def quit(self):
+    def deactivate(self):
         self.command_receiver.stop()
         self.timed_stimuli.stop()
         self.window.deactivate_controller()
