@@ -58,7 +58,7 @@ class PygletWindow(pyglet.window.Window):
         def on_key_press(symbol, modifiers):
             command = PygletKeyboardCommand(symbol, modifiers)
             if command.stop and self.active_controller:
-                stop = self.active_controller.quit()
+                stop = self.active_controller.deactivate()
                 if stop:
                     pyglet.app.exit()
                 return pyglet.event.EVENT_HANDLED
@@ -75,6 +75,7 @@ class PygletWindow(pyglet.window.Window):
     def activate_controller(self, controller):
         if self.active_controller:
             self.controller_stack.append(self.active_controller)
+            self.deactivate_controller()
             
         self.views = controller.get_views()
         self.batch = controller.get_batch()
@@ -107,6 +108,9 @@ class UnlockController(object):
     def activate(self):
         self.window.activate_controller(self)
         
+    def deactivate(self):
+        return True
+        
     def poll_bci(self, delta):
         pass
         
@@ -121,8 +125,5 @@ class UnlockController(object):
         
     def get_batch(self):
         return self.canvas.batch
-        
-    def quit(self):
-        return True
             
             
