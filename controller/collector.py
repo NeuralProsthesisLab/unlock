@@ -36,7 +36,7 @@ class Collector(UnlockController):
         cue_trigger = self.cue_state.process_command(command)
         command.set_cue_trigger(cue_trigger)
             
-        command.matrixize()
+        command.make_matrix()
         self.offline_data.process_command(command)
         
     def activate(self):
@@ -46,7 +46,7 @@ class Collector(UnlockController):
         self.offline_data.start()
         super(Collector, self).activate()
         
-    def quit(self):
+    def deactivate(self):
         self.command_receiver.stop()
         if self.timed_stimuli:
             self.timed_stimuli.stop()
