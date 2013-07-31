@@ -24,7 +24,7 @@ class Canvas(object):
     @staticmethod
     def create(width, height, xoffset=0, yoffset=0):
         batch = pyglet.graphics.Batch()
-        return Canvas(batch, width, height)
+        return Canvas(batch, width, height, xoffset, yoffset)
             
             
 #class Graphic(object):
