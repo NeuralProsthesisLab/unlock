@@ -2,6 +2,26 @@ import inspect
 import os
 
 
+class DelegatorMixin(object):
+    def __init__(self):
+        super(DelegatorMixin, self).__init__()
+        self.delegates = set([])
+        self.ordering = []
+        
+    def __getattr__(self, name):
+        for delegate in self.ordering:
+            try:
+                return getattr(delegate, name)
+            except:
+                pass
+        raise AttributeError(name)
+            
+    def add_delegate(self, delegate):
+        if not delegate in self.delegates:
+            self.delegates.add(delegate)
+            self.ordering.append(delegate)
+            
+          
 class Trigger(object):
     Null=0
     Start=1
@@ -14,9 +34,10 @@ class Trigger(object):
     Right=8
     Down=9
     Left=10
-    UsageDefined=11
-    UsageDefined1=12
-    UsageDefined2=13
+    Complete=11
+    UsageDefined=12
+    UsageDefined1=13
+    UsageDefined2=14
         
         
 class switch(object):
@@ -38,28 +59,8 @@ class switch(object):
             return True
         else:
             return False
-            
-            
-class DelegatorMixin(object):
-    def __init__(self):
-        super(DelegatorMixin, self).__init__()
-        self.delegates = set([])
-        self.ordering = []
-        
-    def __getattr__(self, name):
-        for delegate in self.ordering:
-            try:
-                return getattr(delegate, name)
-            except:
-                pass
-        raise AttributeError
-            
-    def add_delegate(self, delegate):
-        if not delegate in self.delegates:
-            self.delegates.add(delegate)
-            self.ordering.append(delegate)
-        
-        
+              
+              
 class Resource(object):
     def __init__(self, path=None):
         if path == None:
