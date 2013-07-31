@@ -91,7 +91,7 @@ class SpritePositionComputer(object):
     def center(self):
         self.x = self.width / 2
         self.y = self.height / 2    
-         
+            
            
 class PygletSprite(UnlockView):
     def __init__(self, model, canvas, image, x, y, rotation):
@@ -189,6 +189,7 @@ class PygletSprite(UnlockView):
         return PygletSprite(model, canvas, texture_region, spc.x, spc.y, rotation)
             
             
+           
 class FlickeringPygletSprite(PygletSprite):
     def __init__(self, sprite, reversed_sprite, batch):
         self.sprite = sprite
@@ -198,10 +199,14 @@ class FlickeringPygletSprite(PygletSprite):
         
     def render(self):
         state = self.sprite.model.get_state()
-        self.logger.debug("FlickeringPygletSprite, x,y = ", self.sprite.sprite.x, self.sprite.sprite.y, " rotation ", self.sprite.sprite.rotation, " visible = ", state)
-        self.sprite.sprite.visible = state
-        self.reversed_sprite.sprite.visible = not state
-        
+        if state == None:
+            self.sprite.sprite.visible = False
+            self.reversed_sprite.visible = False
+        else:
+            self.logger.debug("FlickeringPygletSprite, x,y = ", self.sprite.sprite.x, self.sprite.sprite.y, " rotation ", self.sprite.sprite.rotation, " visible = ", state)
+            self.sprite.sprite.visible = state
+            self.reversed_sprite.sprite.visible = not state
+            
     @staticmethod
     def create_flickering_checkered_box_sprite(model, canvas, position=SpritePositionComputer.Center, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
             xduty=0.5, yduty=0.5, xuneven=False, yuneven=False, color_on=(0,0,0), color_off=(255,255,255)):
