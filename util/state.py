@@ -122,4 +122,8 @@ class SequenceState(object):
         else:
             return False
             
+    def is_end(self):
+        if self.index+1 == len(self.sequence):
+            return True
+            
             
