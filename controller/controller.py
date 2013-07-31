@@ -44,26 +44,11 @@ class PygletWindow(pyglet.window.Window):
             self.fps = empty
         self.active_controller = None
         
-    # XXX: this is a remenent of the legacy code; it's probably better to have the controller itself
-    #      handle the drawing and use the clock interval to schedule the interrupts appropriately
-        @self.event
-        def on_draw():
-            self.clear()
-            for view in self.views:
-                view.render()
-            self.batch.draw()
-            self.fps()
-                
         @self.event
         def on_key_press(symbol, modifiers):
             command = PygletKeyboardCommand(symbol, modifiers)
-            if command.stop and self.active_controller:
-                stop = self.active_controller.deactivate()
-                if stop:
-                    pyglet.app.exit()
-                return pyglet.event.EVENT_HANDLED
-            elif command.stop:
-                pyglet.app.exit()
+            if command.stop:
+                return self.handle_stop_request()
                 
             if self.active_controller and (command.decision or command.selection):
                 self.active_controller.keyboard_input(command)
@@ -71,7 +56,24 @@ class PygletWindow(pyglet.window.Window):
         @self.event
         def on_close():
             pass
-                
+            
+    def render(self):
+        self.clear()
+        for view in self.views:
+            view.render()
+        self.batch.draw()
+        self.fps()
+        
+    def handle_stop_request(self):
+        if self.active_controller:
+            stop = self.active_controller.deactivate()
+            if stop:
+                pyglet.app.exit()        
+            return pyglet.event.EVENT_HANDLED
+        else:
+            pyglet.app.exit()
+            
+            
     def activate_controller(self, controller):
         if self.active_controller:
             self.controller_stack.append(self.active_controller)
@@ -98,7 +100,7 @@ class PygletWindow(pyglet.window.Window):
             
             
 class UnlockController(object):
-    def __init__(self, window, views, canvas, bci_poll_freq=1.0/120.0):
+    def __init__(self, window, views, canvas, bci_poll_freq=1.0/512.0):
         super(UnlockController, self).__init__()
         self.window = window
         self.views = views
@@ -107,6 +109,9 @@ class UnlockController(object):
         
     def activate(self):
         self.window.activate_controller(self)
+        
+    def render(self):
+        self.window.render()
         
     def deactivate(self):
         return True
