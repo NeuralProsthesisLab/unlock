@@ -111,6 +111,7 @@ class DatagramCommandReceiver(CommandReceiverInterface):
         serialized_command = ''
         serialized_command = self.source.receive(command_size, error_handler)
         command = Command.deserialize(serialized_command)
+        command.delta = delta
         return command
             
     def stop(self):
