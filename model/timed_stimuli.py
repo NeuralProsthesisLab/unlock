@@ -8,6 +8,7 @@ import logging
 class TimedStimuli(UnlockModel):
     """ Manages multiple timed, sequence-based stimuli. """
     def __init__(self, state):
+        super(UnlockModel, self).__init__()
         self.state = state
         self.stimuli = set([])
         self.logger = logging.getLogger(__name__)
@@ -70,6 +71,7 @@ class TimedStimulus(UnlockModel):
     seq_state: manages the values to emit (on, on, off, on, off, on, off, off, etc..)
     """
     def __init__(self, time_state, seq_state):
+        super(TimedStimulus, self).__init__()
         self.time_state = time_state
         self.seq_state = seq_state
         self.state = False
@@ -80,8 +82,9 @@ class TimedStimulus(UnlockModel):
             
     def start(self):
         self.seq_state.start()
+        self.state = self.seq_state.state()
         self.time_state.begin_trial()
-        self.first_pass = True
+            
             
     def stop(self):
         self.state = False
@@ -93,18 +96,18 @@ class TimedStimulus(UnlockModel):
         
         A value of Trigger.Start is returned at the start of the sequence.
         """
-        start_trigger = Trigger.Null
+        trigger_value = Trigger.Null
         self.time_state.update_trial_time(command.delta)
-        if self.time_state.is_trial_complete() or self.first_pass:
-            self.first_pass = False
+        if self.time_state.is_trial_complete():
             self.state = self.seq_state.state()
-            self.logger.debug("TimedStimulus trial complete; next state = ", self.state)
             if self.seq_state.is_start():
                 start_trigger = Trigger.Start
+            elif self.seq_state.is_end():
+                trigger_value = Trigger.Stop
             self.time_state.begin_trial()
             self.seq_state.step()
-            
-        return start_trigger
+            self.logger.debug("TimedStimulus trial complete; next state = ", self.state)
+        return trigger_value
             
     @staticmethod
     def create(rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x)):
