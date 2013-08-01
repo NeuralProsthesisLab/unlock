@@ -22,7 +22,7 @@ if [ -z "$?" ] ; then
 fi
 
 cd boost_1_54_0
-./bootstrap.sh --prefix=../boost/macosx-x86-64 -with-libraries=thread,test,python
+./bootstrap.sh --prefix=../$dir -with-libraries=thread,test,python
 if [ -z "$?" ] ; then
     echo "Failed to boostrap boost "
     exit 1
