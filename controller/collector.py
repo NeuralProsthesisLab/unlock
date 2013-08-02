@@ -34,7 +34,6 @@ class Collector(UnlockController):
                 command.set_sequence_trigger(sequence_trigger)
                 
         cue_trigger = self.cue_state.process_command(command)
-            
         command.set_cue_trigger(cue_trigger)        
         command.make_matrix()
         self.offline_data.process_command(command)
