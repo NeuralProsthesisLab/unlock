@@ -1,0 +1,215 @@
+<span id="textcolor1">DRAFT</span>            
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"  
+  "http://www.w3.org/TR/html4/loose.dtd">  
+<html > 
+<head><title>Collecting Data with Unlock</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+<meta name="generator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<!-- html --> 
+<meta name="src" content="offline-analysis.tex"> 
+<meta name="date" content="2013-07-17 14:25:00"> 
+<link rel="stylesheet" type="text/css" href="offline-analysis.css"> 
+</head><body 
+>
+<div class="maketitle">
+                                                                     
+
+                                        <span id="textcolor2"> <span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+                                                                     
+
+                                        <span id="textcolor3"><span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+
+<h2 class="titleHead">Collecting Data with Unlock</h2>
+ <div class="author" ><span 
+class="cmr-12">James Percent</span><br /><span 
+class="cmr-12">james@shift5.net</span></div>
+<br />
+<div class="date" ><span 
+class="cmr-12">July 17, 2013</span></div>
+</div>
+<h3 class="sectionHead"><span class="titlemark">1   </span> <a 
+ id="x1-10001"></a>Overview</h3>
+<!--l. 29--><p class="noindent" >This document provides details about using the Unlock framework, on the Mouth
+workstation, to collect data for offline analysis. Section&#x00A0;<a 
+href="#x1-20002">2<!--tex4ht:ref: unlock --></a> covers Mouth account
+setup, Unlock software setup and MOBIlab hardware setup, and Section&#x00A0;<a 
+href="#x1-30003">3<!--tex4ht:ref: collector --></a> covers
+collecting data.
+<!--l. 31--><p class="noindent" >
+<h3 class="sectionHead"><span class="titlemark">2   </span> <a 
+ id="x1-20002"></a>Setup</h3>
+<!--l. 33--><p class="noindent" >A Mouth account is required to get started. If you do not have a Mouth account,
+then send me an email and I&#8217;ll create 1 for you.
+                                                                     
+
+                                        <span id="textcolor4"> <span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<!--l. 35--><p class="noindent" >Next, login to Mouth and launch the Git Bash Shell. To launch the Git Bash
+Shell, click Start Menu<span 
+class="cmsy-10x-x-109">&#x2192;</span>Git Bash Shell. See Figure&#x00A0;<a 
+href="#x1-20011">1<!--tex4ht:ref: fig:gitbash --></a>.
+<!--l. 37--><p class="noindent" >Note that the images in this document have high enough resolution to clearly
+read the text on them, so if you&#8217;re having trouble reading the text, then
+use the Zoom In feature of your PDF viewer to increase the size of the
+image.
+<!--l. 39--><p class="noindent" >The next step is Github configuration. Github needs to be configured with your
+public ssh key from Mouth. You do not have a public key on Mouth by default,
+so we need to generate 1 using ssh-keygen. After we generate a public key, we
+need to upload it to Github. Finally, after the public key is uploaded, we can
+clone the repo.
+<!--l. 41--><p class="noindent" >Figure&#x00A0;<a 
+href="#x1-20022">2<!--tex4ht:ref: fig:bash-cmds --></a> shows the commands that need to be run from Mouth; in particular
+note that the generated public key is located in the .ssh directory of your home
+directory; also note, public keys end in <span 
+class="cmmi-10x-x-109">.pub</span>. To upload the key to Github, click
+on the Account settings icon, and, after that page loads, click on SSH Keys
+link.
+<!--l. 43--><p class="noindent" >The MOBIlab device must be connected to collect data. Connecting the
+MOBIlab to Mouth consists of 2 steps: powering on the MOBIlab and
+connecting its USB fob. The MOBIlab USB is the 1 with the green key-ring
+identifier.
+<!--l. 45--><p class="noindent" ><hr class="figure"><div class="figure" 
+>
+                                                                     
+
+                                        <span id="textcolor5"> <span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<a 
+ id="x1-20011"></a>
+                                                                     
+
+                                        <span id="textcolor6"><span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<!--l. 46--><p class="noindent" ><img 
+src="images/git-bash0.png" alt="PIC"  
+>
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;1: </span><span  
+class="content"> Git bash shell</span></div><!--tex4ht:label?: x1-20011 -->
+                                                                     
+
+                                        <span id="textcolor7"> <span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<!--l. 48--><p class="noindent" ></div><hr class="endfigure">
+<!--l. 50--><p class="noindent" ><hr class="figure"><div class="figure" 
+>
+                                                                     
+
+                                        <span id="textcolor8"><span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<a 
+ id="x1-20022"></a>
+                                                                     
+
+                                        <span id="textcolor9"><span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<!--l. 51--><p class="noindent" ><img 
+src="images/bash-cmds.png" alt="PIC"  
+>
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;2: </span><span  
+class="content"> Bash commands </span></div><!--tex4ht:label?: x1-20022 -->
+                                                                     
+
+                                        <span id="textcolor10"> <span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<!--l. 53--><p class="noindent" ></div><hr class="endfigure">
+<h3 class="sectionHead"><span class="titlemark">3   </span> <a 
+ id="x1-30003"></a>Collecting Data</h3>
+<!--l. 57--><p class="noindent" >After completing the steps in Section&#x00A0;<a 
+href="#x1-20002">2<!--tex4ht:ref: unlock --></a>, a directory called unlock-npl should
+exist in your home directory; enter this directory. Collector.py is the program
+that we use to collect data. Running the collector is simple. To see the options
+run the following command.
+                                                                     
+
+                                        <span id="textcolor11"> <span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<div class="verbatim" id="verbatim-1">
+$&#x00A0;python&#x00A0;collector.py&#x00A0;--help
+</div>
+<!--l. 60--><p class="nopar" > Running an m-sequence visualization, with 4 cues, separated by 5 seconds, can
+be accomplished by executing the following command.
+                                                                     
+
+                                        <span id="textcolor12"> <span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<div class="verbatim" id="verbatim-2">
+$&#x00A0;python&#x00A0;collector.py&#x00A0;-v&#x00A0;left,right,up,down&#x00A0;-m
+</div>
+<!--l. 64--><p class="nopar" > The output file consists of a sequence of samples separated line breaks. Each
+sample consists of <span 
+class="cmmi-10x-x-109">n </span>= <span 
+class="cmmi-10x-x-109">channels </span>+ <span 
+class="cmmi-10x-x-109">cue </span>integers, separated by tabs. For example, a
+4 channel sample would look like the following.
+                                                                     
+
+                                        <span id="textcolor13"> <span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<div class="verbatim" id="verbatim-3">
+11123 -2123 23456 1234 0
+</div>
+<!--l. 68--><p class="nopar" > The cue will be the last integer in the sequence. A cue value can only be 0 or 1.
+Figure&#x00A0;<a 
+href="#x1-30013">3<!--tex4ht:ref: fig:cmds --></a> shows the help output and some possible executions. The default
+number of channels is 4, the default duration between cue events is 5
+seconds, and the default output file will be named gtec concatenated with
+a timestamp. Figure&#x00A0;<a 
+href="#x1-30024">4<!--tex4ht:ref: fig:mseq --></a> shows what an m-sequence visualization looks
+like.
+<!--l. 71--><p class="noindent" ><hr class="figure"><div class="figure" 
+>
+                                                                     
+
+                                        <span id="textcolor14"> <span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<a 
+ id="x1-30013"></a>
+                                                                     
+
+                                        <span id="textcolor15"><span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<!--l. 72--><p class="noindent" ><img 
+src="images/commands.png" alt="PIC"  
+>
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;3: </span><span  
+class="content"> Example collector usage</span></div><!--tex4ht:label?: x1-30013 -->
+                                                                     
+
+                                        <span id="textcolor16"> <span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<!--l. 74--><p class="noindent" ></div><hr class="endfigure">
+<!--l. 76--><p class="noindent" ><hr class="figure"><div class="figure" 
+>
+                                                                     
+
+                                        <span id="textcolor17"><span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<a 
+ id="x1-30024"></a>
+                                                                     
+
+                                        <span id="textcolor18"><span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<!--l. 77--><p class="noindent" ><img 
+src="images/msequence.png" alt="PIC"  
+>
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;4: </span><span  
+class="content"> Example of running the m-sequence collector</span></div><!--tex4ht:label?: x1-30024 -->
+                                                                     
+
+                                        <span id="textcolor19"> <span 
+class="cmr-17x-x-143">DRAFT</span></span>            
+<!--l. 79--><p class="noindent" ></div><hr class="endfigure">
+ 
+</body></html> 
+
+                                                                     
+
+

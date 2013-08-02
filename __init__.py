@@ -1,3 +1,7 @@
-from apps import *
-from core import *
-from core.util import *
+from util import *
+from model import *
+from view import *
+from controller import *
+
+
+

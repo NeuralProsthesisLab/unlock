@@ -1,0 +1,77 @@
+{
+    // Meta data that gets passed into the Unlock runtime.  See the
+    // user guide for a comprehensive list of meta data and where it
+    // can be found.
+    "Author" : "James Percent",
+    "Contact": "james@shift5.net",
+    
+    // The controllers stanza contains information on which applications loaded and how they are
+    // configured. 
+    "controllers" : [
+        {
+            "name" : "collector",
+            "args" : {
+                "mode" : "emg",
+                "cue_duration" : 2,
+                "indicator_duration" : 3,
+                "reset_duration" : 1,
+                "seed" : 42,
+                "output" : "/Users/jpercent/unlock/collector.data",
+                "port" : "COM3",
+                "channels" : 0x78,
+                "trials" : 25,
+                "bci" : "enobio"
+            },
+        },
+    /*
+        {
+            "name" : "fastpad",
+            "args" : {
+                "some" : "such"
+            }
+        },
+    */
+        
+    ],
+    
+    // The Logging-Config object determines the configuration of the logging    
+    // System.  It follows the standard Python JSON logging config; see
+    // http://docs.python.org/2/howto/logging-cookbook.html for more details.
+    "Logging-Config": {
+        "version": 1,
+        "disable_existing_loggers": false,
+        "formatters": {
+            "simple": {
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            }
+        },
+     
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "level": "DEBUG",
+                "formatter": "simple",
+                "stream": "ext://sys.stdout"
+            },
+            
+            "file_handler": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "formatter": "simple",
+                "filename": "unlock.log",
+                "maxBytes": "10485760",
+                "backupCount": "20",
+                "encoding": "utf8"
+            }
+        },
+        
+        "root": {
+            "level": "INFO",
+            "handlers": ["console", "file_handler"]
+        }
+    }
+
+    // Uncomment the following line if you want to change the location of the app-ctx.
+    //    "Application-Context" : "/Users/jpercent/unlock/app-ctx.xml",
+    // See the developers guide for more information on application context configuration.
+    
+}
