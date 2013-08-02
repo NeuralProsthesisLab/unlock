@@ -171,9 +171,10 @@ class RawInlineBCIReceiver(CommandReceiverInterface):
         self.bci = bci
         
     def next_command(self, delta):
-        samples = self.bci.acquire()
-        if samples == 0:
-            return None
+        samples = None
+        while samples == None or samples < 1:
+            samples = self.bci.acquire()
+        
         raw_data_vector = np.array(self.bci.getdata(samples * self.bci.channels))
         return RawBCICommand(delta, raw_data_vector, samples, self.bci.channels)
         
