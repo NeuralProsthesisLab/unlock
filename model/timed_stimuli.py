@@ -109,6 +109,8 @@ class TimedStimulus(UnlockModel):
                 if self.count == self.repeat_count:
                     self.count = 0 
                     trigger_value = Trigger.Stop
+                else:
+                    trigger_value = Trigger.Repeat
                     
             self.time_state.begin_trial()
             self.seq_state.step()
