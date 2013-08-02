@@ -7,8 +7,37 @@ import pyglet
 
 class CollectorTests(unittest.TestCase):       
     def testMSequenceCollector(self):
+        
+        try:
+            from pynobio import Enobio
+            pynobio = True
+            fakebci = False
+        except Exception:
+            pynobio = False
+            fakebci = True
+            
+
+        if pynobio:
+            try:
+                bci = Enobio()
+                bci.channels = 8
+                if not bci.open():
+                    print "enobio did not open"
+                    raise Exception('enobio did not open')
+                if not bci.start():
+                    print 'enobio device did not start streaming'                                 
+                    raise Exception('enobio device did not start streaming')                       
+            except Exception, e:
+                raise e
+                fakebci = True
+
+        #if fakebci:
+        #    from unlock.bci import FakeBCI
+        #    bci = FakeBCI()
+            
+            
         window = PygletWindow(fullscreen=True, show_fps=True)
-        collector = Collector.create_multi_centered_msequence_collector(window)
+        collector = Collector.create_multi_centered_msequence_collector(window, bci=bci)
         collector.activate()
         window.start()        
         window.close()
