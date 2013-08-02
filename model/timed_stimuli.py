@@ -70,11 +70,13 @@ class TimedStimulus(UnlockModel):
     time_state: manages the time (when to emit the next value)
     seq_state: manages the values to emit (on, on, off, on, off, on, off, off, etc..)
     """
-    def __init__(self, time_state, seq_state):
+    def __init__(self, time_state, seq_state, repeat_count=1):
         super(TimedStimulus, self).__init__()
         self.time_state = time_state
         self.seq_state = seq_state
         self.state = False
+        self.count = 0
+        self.repeat_count = repeat_count
         self.logger = logging.getLogger(__name__)
             
     def get_state(self):
@@ -103,17 +105,21 @@ class TimedStimulus(UnlockModel):
             if self.seq_state.is_start():
                 start_trigger = Trigger.Start
             elif self.seq_state.is_end():
-                trigger_value = Trigger.Stop
+                self.count += 1
+                if self.count == self.repeat_count:
+                    self.count = 0 
+                    trigger_value = Trigger.Stop
+                    
             self.time_state.begin_trial()
             self.seq_state.step()
             self.logger.debug("TimedStimulus trial complete; next state = ", self.state)
         return trigger_value
             
     @staticmethod
-    def create(rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x)):
+    def create(rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x), repeat_count=1):
         flick_rate = 0.5/rate
         time_state = TrialTimeState(flick_rate, 0)
         seq_state = SequenceState(sequence, value_transformer_fn)
-        return TimedStimulus(time_state, seq_state)
+        return TimedStimulus(time_state, seq_state, repeat_count=repeat_count)
             
          
