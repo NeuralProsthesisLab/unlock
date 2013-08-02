@@ -1,0 +1,23 @@
+import os
+import sys
+
+lib_path = []
+libs = []
+includes = []
+      
+if sys.platform == 'darwin':
+      boost_lib_path = [os.path.join('boost', 'macosx-x86-64', 'lib')]
+      boost_includes = [os.path.join('boost', 'macosx-x86-64', 'include')]
+      boost_libs = ['libboost_prg_exec_monitor.a', 'libboost_python.a', 'libboost_system.a', 
+            'libboost_test_exec_monitor.a', 'libboost_thread.a', 
+            'libboost_unit_test_framework.a']
+else:
+      boost_lib_path = []
+      boost_includes = []
+      boost_libs = []
+
+lib_path.extend(boost_lib_path)
+libs.extend(boost_libs)
+includes.extend(boost_includes)
+
+SharedLibrary('enobio', ['enobio.cc'], LIBPATH=lib_path, CPPPATH=includes, LIBS=libs)
