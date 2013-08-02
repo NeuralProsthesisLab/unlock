@@ -158,7 +158,8 @@ class MultipleSequentialTimedStimuliCueState(UnlockModel):
         if trigger_value == Trigger.Stop:
             ret = self.transition_fn()
         else:
-            self.state = self.stimulus.get_state()
+            ret = trigger_value
+            self.state = self.stimulus.get_state()            
         return ret
         
                                
