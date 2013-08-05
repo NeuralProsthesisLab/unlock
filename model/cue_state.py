@@ -88,7 +88,6 @@ class CueState(UnlockModel):
         self.trial_time_state.update_trial_time(command.delta)
         if self.trial_time_state.is_trial_complete():
             ret = self.transition_fn()
-            
         return ret
             
     @staticmethod
@@ -123,4 +122,44 @@ class TimedStimulusCueState(UnlockModel):
             
         return ret
         
+
+class MultipleSequentialTimedStimuliCueState(UnlockModel):
+    
+    def __init__(self):
+        super(MultipleSequentialTimedStimuliCueState, self).__init__()
+        self.pos = -1
+        self.stimuli = []
+        self.trigger = None
+        self.stimulus = None
+    def add_stimulus(self, trigger, stimulus):
+        self.stimuli.append((trigger, stimulus))
+
+    def setup_next_stimulus(self):
+        self.pos = (self.pos + 1) % len(self.stimuli)
+        self.trigger, self.stimulus = self.stimuli[self.pos]
+    
+    def start(self):
+        assert self.transition_fn != None
+        assert len(self.stimuli) > 0
+        self.setup_next_stimulus()
+        self.stimulus.start()
+        self.state = self.stimulus.get_state()
         
+    def stop(self):
+        assert len(self.stimuli) > 0
+        self.stimulus.stop()
+        self.state = None
+        
+    def process_command(self, command):
+        assert self.transition_fn != None
+        assert len(self.stimuli) > 0
+        ret = Trigger.Null
+        trigger_value = self.stimulus.process_command(command)
+        if trigger_value == Trigger.Stop:
+            ret = self.transition_fn()
+        else:
+            ret = trigger_value
+            self.state = self.stimulus.get_state()            
+        return ret
+        
+                               
