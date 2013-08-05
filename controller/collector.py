@@ -40,12 +40,13 @@ class Collector(UnlockController):
         if cue_trigger == Trigger.Complete:
             self.window.handle_stop_request()
         
-        self.window.render()  
+        self.render()  
             
     def activate(self):
         self.cue_state.start()
         if self.timed_stimuli:
             self.timed_stimuli.start()
+            
         self.offline_data.start()
         super(Collector, self).activate()
         
@@ -53,6 +54,7 @@ class Collector(UnlockController):
         self.command_receiver.stop()
         if self.timed_stimuli:
             self.timed_stimuli.stop()
+            
         self.cue_state.stop()
         self.offline_data.stop()
         self.window.deactivate_controller()
@@ -63,7 +65,7 @@ class Collector(UnlockController):
         pass
         
     @staticmethod
-    def create_emg_collector(window, bci=FakeBCI(), stimulation_duration=4.0, trials=25, cue_duration=1, rest_duration=2, indicate_duration=4, output_file='bci', seed=42):
+    def create_emg_collector(window, bci, stimulation_duration=4.0, trials=25, cue_duration=1, rest_duration=2, indicate_duration=4, output_file='bci', seed=42):
         canvas = Canvas.create(window.width, window.height)        
         cue_state = RandomCueStateMachine.create(25, [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left], cue_duration, rest_duration, indicate_duration, seed=seed)
         
@@ -85,7 +87,7 @@ class Collector(UnlockController):
         return Collector(window, [up, right, down, left, rest, indicate], canvas, command_receiver, cue_state, offline_data)
         
     @staticmethod
-    def create_msequence_collector(window, standalone=True, bci=FakeBCI(), stimulation_duration=4.0, trials=2, cue_duration=1, rest_duration=2, indicate_duration=4, output_file='bci', seed=42):
+    def create_msequence_collector(window, bci, standalone=True, stimulation_duration=4.0, trials=2, cue_duration=1, rest_duration=2, indicate_duration=4, output_file='bci', seed=42):
         canvas = Canvas.create(window.width, window.height)        
         
         timed_stimuli = TimedStimuli.create(stimulation_duration)
@@ -133,7 +135,7 @@ class Collector(UnlockController):
         return Collector(window, [fs, fs1, fs2, fs3, up, right, down, left, rest, indicate], canvas, command_receiver, cue_state, offline_data, timed_stimuli, standalone)
         
     @staticmethod
-    def create_single_centered_msequence_collector(window, standalone=True, bci=FakeBCI(), stimulation_duration=4.0, trials=5, rest_duration=2, output_file='bci', seed=42):
+    def create_single_centered_msequence_collector(window, bci, standalone=True, stimulation_duration=4.0, trials=5, rest_duration=2, output_file='bci', seed=42):
         canvas = Canvas.create(window.width, window.height)        
         
         stimulus = TimedStimulus.create(15.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0), repeat_count=20)
@@ -155,9 +157,9 @@ class Collector(UnlockController):
         
            
     @staticmethod
-    def create_multi_centered_msequence_collector(window, standalone=True, bci=FakeBCI(), stimulation_duration=4.0, trials=9, repeat_count=20, rest_duration=2, output_file='bci', seed=42):
+    def create_multi_centered_msequence_collector(window, bci, standalone=True, stimulation_duration=4.0, trials=9, repeat_count=20, rest_duration=2, output_file='bci', seed=42):
         canvas = Canvas.create(window.width, window.height)        
-        
+        # this should be a wrapper model that knows how to 
         north_stimulus = TimedStimulus.create(15.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0), repeat_count=repeat_count)
         east_stimulus = TimedStimulus.create(15.0,  sequence=(0,1,0,0,0,1,0,1,0,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,0,1,0,0,1,1,0), repeat_count=repeat_count)
         south_stimulus = TimedStimulus.create(15.0,  sequence=(0,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1), repeat_count=repeat_count)
