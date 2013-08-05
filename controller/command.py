@@ -77,7 +77,7 @@ class RawBCICommand(Command):
         
     def make_matrix(self):
         data_matrix = self.raw_data_vector.reshape((self.samples, self.channels))
-        self.matrix = np.hstack((data_matrix, self.cue_trigger_vector, self.sequence_trigger_vector))
+        self.matrix = np.hstack((data_matrix, self.sequence_trigger_vector, self.cue_trigger_vector))
         self.__reset_trigger_vectors__()
         self.logger.debug("Data = ", self.matrix)
         
@@ -171,9 +171,10 @@ class RawInlineBCIReceiver(CommandReceiverInterface):
         self.bci = bci
         
     def next_command(self, delta):
-        samples = self.bci.acquire()
-        if samples == 0:
-            return None
+        samples = None
+        while samples == None or samples < 1:
+            samples = self.bci.acquire()
+        
         raw_data_vector = np.array(self.bci.getdata(samples * self.bci.channels))
         return RawBCICommand(delta, raw_data_vector, samples, self.bci.channels)
         

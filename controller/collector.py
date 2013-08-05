@@ -1,5 +1,5 @@
 
-from unlock.model import TimedStimuli, TimedStimulus, OfflineData, RandomCueStateMachine, CueState, TimedStimulusCueState
+from unlock.model import TimedStimuli, TimedStimulus, OfflineData, RandomCueStateMachine, CueState, TimedStimulusCueState, MultipleSequentialTimedStimuliCueState
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator
 from unlock.util import TrialState, Trigger
 from unlock.bci import FakeBCI
@@ -136,7 +136,7 @@ class Collector(UnlockController):
     def create_single_centered_msequence_collector(window, standalone=True, bci=FakeBCI(), stimulation_duration=4.0, trials=5, rest_duration=2, output_file='bci', seed=42):
         canvas = Canvas.create(window.width, window.height)        
         
-        stimulus = TimedStimulus.create(15.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0))
+        stimulus = TimedStimulus.create(15.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0), repeat_count=20)
         stimulated_cue = TimedStimulusCueState(stimulus)
         fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulated_cue, canvas, SpritePositionComputer.Center, width=200, height=200, xfreq=4, yfreq=4)
         
@@ -153,4 +153,35 @@ class Collector(UnlockController):
         
         return Collector(window, [fs, rest], canvas, command_receiver, cue_state, offline_data, None, standalone)
         
+           
+    @staticmethod
+    def create_multi_centered_msequence_collector(window, standalone=True, bci=FakeBCI(), stimulation_duration=4.0, trials=9, repeat_count=20, rest_duration=2, output_file='bci', seed=42):
+        canvas = Canvas.create(window.width, window.height)        
         
+        north_stimulus = TimedStimulus.create(15.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0), repeat_count=repeat_count)
+        east_stimulus = TimedStimulus.create(15.0,  sequence=(0,1,0,0,0,1,0,1,0,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,0,1,0,0,1,1,0), repeat_count=repeat_count)
+        south_stimulus = TimedStimulus.create(15.0,  sequence=(0,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1), repeat_count=repeat_count)
+        west_stimulus = TimedStimulus.create(15.0,  sequence=(0,0,1,1,0,0,0,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0), repeat_count=repeat_count)        
+
+        stimulated_cue = MultipleSequentialTimedStimuliCueState()
+        stimulated_cue.add_stimulus(Trigger.Up, north_stimulus)
+        stimulated_cue.add_stimulus(Trigger.Right, east_stimulus)
+        stimulated_cue.add_stimulus(Trigger.Down, south_stimulus)
+        stimulated_cue.add_stimulus(Trigger.Left, west_stimulus)
+
+        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulated_cue, canvas, SpritePositionComputer.Center, width=200, height=200, xfreq=4, yfreq=4)
+        
+        #cues = [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left]        
+        
+        cue_states = [stimulated_cue]
+        rest_state = CueState.create(Trigger.Rest, rest_duration)
+        
+        cue_state = RandomCueStateMachine.create_cue_rest(cue_states, rest_state, seed=seed, trials=trials)
+        rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
+        rest = BellRingTextLabelDecorator(rest_text)
+        
+        command_receiver = RawInlineBCIReceiver(bci)
+        
+        offline_data = OfflineData(output_file)
+        
+        return Collector(window, [fs, rest], canvas, command_receiver, cue_state, offline_data, None, standalone) 
