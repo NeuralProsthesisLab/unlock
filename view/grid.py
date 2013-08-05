@@ -20,8 +20,7 @@ class GridView(UnlockView):
         self.controller_count = 0
         self.cursor = (0,0)
         self.icon_widgets = []
-        self.vertex_list = self.drawRect(center_x-rect_xoffset, center_y-rect_yoffset,
-                                            icon_width, icon_height, canvas.batch)
+        self.vertex_list = self.drawRect(center_x-rect_xoffset, center_y-rect_yoffset, icon_width, icon_height, canvas.batch)
         index = 0
         fixed_state_model = UnlockModel(state=True)
         name = "Unlock Dashboard"
@@ -44,7 +43,7 @@ class GridView(UnlockView):
             except AttributeError:
                 icon_widget = PygletTextLabel(fixed_state_model, canvas, icon_name, icon_x, icon_y, size=18)
                 
-            icon_widget.render()                    
+            icon_widget.render()
             self.icon_widgets.append(icon_widget)
             index += 1
             
