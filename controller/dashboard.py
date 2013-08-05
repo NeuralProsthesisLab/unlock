@@ -1,10 +1,11 @@
 
+from unlock.bci import FakeBCI
 from unlock.model import GridState, TimedStimuli, TimedStimulus
-from unlock.view import FlickeringPygletSprite, SpritePositionComputer
-from unlock.view import GridView
+from unlock.util import Trigger
+from unlock.view import FlickeringPygletSprite, SpritePositionComputer, GridView
+
 from controller import UnlockController, Canvas
 from command import RawInlineBCIReceiver
-from unlock.bci import FakeBCI
 
 import logging
 
@@ -23,8 +24,12 @@ class Dashboard(UnlockController):
         
     def poll_bci(self, delta):
         command = self.command_receiver.next_command(delta)
-        self.timed_stimuli.process_command(command)        
+        sequence_trigger = self.timed_stimuli.process_command(command)
+        if sequence_trigger != Trigger.Null:
+            command.set_sequence_trigger(sequence_trigger)
+            
         self.__handle_command__(command)
+        self.render()
         
     def activate(self):
         self.timed_stimuli.start()
@@ -40,7 +45,10 @@ class Dashboard(UnlockController):
         self.__handle_command__(command)
         
     @staticmethod
-    def create(window, controllers, bci=FakeBCI(), stimulation_duration=4.0):
+    def create(window, controllers, bci, stimulation_duration=4.0):
+        if not controllers:
+            raise ValueError
+            
         canvas = Canvas.create(window.width, window.height)
         grid_state = GridState(controllers)
         command_receiver = RawInlineBCIReceiver(bci)
@@ -68,7 +76,6 @@ class Dashboard(UnlockController):
         west_stimulus = TimedStimulus.create(15.0, sequence=(0,0,1,1,0,0,0,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0))
         timed_stimuli.add_stimulus(west_stimulus)
         fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(west_stimulus, canvas, SpritePositionComputer.West, 90, width=200, height=200, xfreq=4, yfreq=4)
-       
         
         return Dashboard(window, [fs, fs1, fs2, fs3, grid_view], canvas, timed_stimuli, grid_state, command_receiver)
         
