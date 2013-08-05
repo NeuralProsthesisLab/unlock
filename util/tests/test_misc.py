@@ -1,4 +1,4 @@
-from .. import switch, DelegatorMixin
+from .. import switch
 
 import threading
 import time
@@ -71,31 +71,7 @@ class MiscTests(unittest.TestCase):
                 break
         self.assertTrue(correct and not incorrect)
         
-    def testDelegator(self):
-        d = DelegatorMixin()
-        a = AttrTest()
-        a1 = AttrTest()
-        a1.a = 111
-        a1.b = 111
-        a1.c = 111
-        
-        a1.c = "A1F"
-        d.add_delegate(a)
-        d.add_delegate(a1)
-        d.g = "DG"
-        d.c = 222
-        d.d()
-        d.e(1,3)
-        
-        self.assertEquals(0, d.a)
-        self.assertEquals(1, d.b)
-        self.assertEquals(222, d.c)
-        self.assertEquals(True, d.d_value)
-        self.assertEquals(1, d.e_value)
-        self.assertEquals(3, d.e1_value)
-        self.assertEquals("DG", d.g)
-        
-        
+
 def getSuite():
     return unittest.makeSuite(MiscTests,'test')
 

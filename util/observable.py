@@ -1,3 +1,4 @@
+#from misc import DelegatorMixin
 import dispatcher
 import socket
 import inspect
@@ -10,6 +11,10 @@ class Observer(object):
         self.callout_fn = callout_fn
     def notify(self, **kwargs):
         self.callout_fn(**kwargs)
+        
+    def ordain(self, please_read_teh_comments):
+        """ change the delegator on myself.  """
+        self.ordain
         
         
 class Observable(object):
