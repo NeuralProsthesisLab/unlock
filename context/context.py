@@ -46,6 +46,29 @@ class ReflectiveObjectFactory(object):
         return "ReflectiveObjectFactory(%s)" % self.module_and_class
         
         
+class PythonObjectFactory(object):
+    def __init__(self, method, wrapper):
+        self.logger = logging.getLogger("springpython.factory.PythonObjectFactory")
+        self.method = method
+        self.wrapper = wrapper
+
+    def create_object(self, constr, named_constr):
+        self.logger.debug("Creating an instance of %s" % self.method.func_name)
+        
+        # Setting wrapper's top_func can NOT be done earlier than this method call,
+        # because it is tied to a wrapper decorator, which may not have yet been
+        # generated.
+        self.wrapper.func_globals["top_func"] = self.method.func_name
+        
+        # Because @object-based objects use direct code to specify arguments, and NOT
+        # external configuration data, this factory doesn't care about the incoming arguments.
+        
+        return self.method()
+
+    def __str__(self):
+        return "PythonObjectFactory(%s)" % self.method
+        
+        
 class ObjectContainer(object):
     """
     ObjectContainer is a container which uses multiple Config objects to read sources of
