@@ -4,69 +4,30 @@
        xsi:schemaLocation="http://www.springframework.org/springpython/schema/objects
        		http://springpython.webfactional.com/schema/context/spring-python-context-1.0.xsd">
 			
-	<object id="run_state" class="unlock.util.RunState"/>
-	
-	<object id="time_state" class="unlock.util.TrialTimeState">
-		<constructor-arg name="trial_duration"><value>1.0</value></constructor-arg>
-		<constructor-arg name="rest_duration"><value>1.0</value></constructor-arg>		
+	<object id="window" class="unlock.controller.PygletWindow">
+		<constructor-arg name="fullscreen"><value>False</value></constructor-arg>
+		<constructor-arg name="show_fps"><value>True</value></constructor-arg>
 	</object>
-	
-	<object id="trial_state" class="unlock.util.TrialState">
-		<constructor-arg><ref object="time_state"/></constructor-arg>
-		<constructor-arg><ref object="run_state"/></constructor-arg>		
-	</object>
-	       if options.msequence:
-            app_screen = Screen(0, 0, self.window.width, self.window.height)        
-            stimuli = [
-                SSVEPStimulus(app_screen, 15.0, 'north', width=200, height=200,
-                    x_freq=4, y_freq=4, filename_reverse=True,
-                    sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0)),
-                SSVEPStimulus(app_screen, 15.0, 'south', width=200, height=200,
-                    x_freq=4, y_freq=4, filename_reverse=True,
-                    sequence=(0,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1)),
-                        
-                SSVEPStimulus(app_screen, 15.0, 'east', width=200, height=200,
-                    x_freq=4, y_freq=4, filename_reverse=True,
-                    sequence=(0,1,0,0,0,1,0,1,0,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,0,1,0,0,1,1,0)),
-                SSVEPStimulus(app_screen, 15.0, 'west', width=200, height=200,
-                    x_freq=4, y_freq=4, filename_reverse=True,
-                    sequence=(0,0,1,1,0,0,0,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0))
-            ]
-            self.start_sequence_trigger = TriggerValue()
-            ssvep = SSVEP(app_screen, stimuli, rest_length=0, trigger_value=self.start_sequence_trigger)
-            # Uncomment the following line to turn off the flickering stimuli.
-            #ssvep.stop()
-            self.apps.append(ssvep)
-			
-			     
-        try:
-            #self.bci = MOBIlab()
-            if options.bci == 'fake' or options.bci == 'mobilab':
-                if options.bci == 'fake':
-                    self.bci = FakeBCI()
-                else:
-                    assert options.bci == 'mobilab'
-                    self.bci = MOBIlab()
-                self.bci_channels = 4
-                if not self.bci.open(options.port):
-                    raise Exception(options.bci+' did not open')
-                if not self.bci.init(int(options.channels, 0), 0):
-                    raise Exception(options.bci+' device did not initialize')
-                if not self.bci.start():
-                    raise Exception(options.bci+' device did not start streaming')                
-            else:
-                assert options.bci == 'enobio'
-                self.bci_channels = 8
-                self.bci = Enobio()
-                if not self.bci.open():
-                    raise Exception(options.bci+' did not open')
-                #if options.bci != 'enobio' and not self.bci.init(int(options.channels, 0), 0):
-                #    raise Exception(self.bci_desc+' device did not initialize')
-                if not self.bci.start():
-                    raise Exception(options.bci+' device did not start streaming')                
 
-        except Exception, e:
-            self.visual_cues.stop()
-            raise e
-			
+	<object id="collector_single_centered_msequence_collector" class="controller.Collector" factory_method="create_single_centered_msequence_collector">
+		<constructor-arg><ref object="window" /></constructor-arg>
+		<constructor-arg name="standalone"><value>False</value></constructor-arg>
+		<constructor-arg name="rest"><value>4</value></constructor-arg>
+	</object>
+	
+	<object id="standalone_collector_single_centered_msequence_collector" class="controller.Collector" factory_method="create_single_centered_msequence_collector">
+		<constructor-arg><ref object="window" /></constructor-arg>
+		<constructor-arg name="rest"><value>4</value></constructor-arg>
+	</object>
+	
+	<object id="collector_msequence_collector" class="controller.Collector" factory_method="create_msequence_collector">
+		<constructor-arg><ref object="window" /></constructor-arg>
+		<constructor-arg name="standalone"><value>False</value></constructor-arg>
+	</object>
+	
+	<object id="standalone_collector_msequence_collector" class="controller.Collector" factory_method="create_msequence_collector">
+		<constructor-arg><ref object="window" /></constructor-arg>
+	</object>	
+	
 </objects>
+
