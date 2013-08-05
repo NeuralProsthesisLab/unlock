@@ -8,7 +8,6 @@ import logging
 import logging.config
 
 from controller import PygletWindow, Collector, Dashboard
-#from context import PythonConfig, ApplicationContext
 from optparse import OptionParser
 
 
@@ -90,13 +89,13 @@ class UnlockRuntime(object):
             (options, args) = parser.parse_args()
             
             self.conf = options.conf
-            self.args = self.parse_conf()
+            self.args = self.__parse_conf__()
             self.args['fullscreen'] = options.fullscreen
             self.args['fps'] = options.fps
             self.args['bci'] = options.bci            
             
-            self.configure_logging()
-            self.create_controllers()
+            self.__configure_logging__()
+            self.__create_controllers__()
             
         except:
             print 'UnlockRuntime: WARNING logging has not been setup yet'
@@ -107,14 +106,14 @@ class UnlockRuntime(object):
             traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)
             sys.exit(1)
          
-    def parse_conf(self):
+    def __parse_conf__(self):
         with open(self.conf, 'rt') as file_descriptor:
             json_string = file_descriptor.read()
             args = json.loads(json_string)
             
         return args            
          
-    def create_controllers(self):
+    def __create_controllers__(self):
         for controller in self.args['controllers']:
             self.args[controller['name']] = controller['args']
             
@@ -125,24 +124,21 @@ class UnlockRuntime(object):
         self.factory.bci = self.app_ctx.get_object(self.args['bci'])
         self.main = self.app_ctx.get_object(self.args['main'])
             
-    def configure_logging(self):
+    def __configure_logging__(self):
         # The Logging-Config object determines the configuration of the logging
         # System.  It follows the standard Python JSON logging config; see
         # http://docs.python.org/2/howto/logging-cookbook.html for more details.        
-        """Setup logging configuration """
         if 'logging' in self.args:
             logging.config.dictConfig(self.args['logging'])
         else:
             logging.basicConfig(level=log_level)
             
     def start(self):
+        """Starts the UnlockRuntime."""
         self.main.activate()
         self.main.window.start()
         self.main.window.close()
         
-    @staticmethod
-    def create():
-        print "create called"
         
 if __name__ == '__main__':
     unlock = UnlockRuntime()
