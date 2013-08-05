@@ -1,7 +1,7 @@
 import os
 import sys
 
-lib_path = []
+lib_path = ['.']
 libs = []
 includes = []
       
@@ -21,3 +21,15 @@ libs.extend(boost_libs)
 includes.extend(boost_includes)
 
 SharedLibrary('enobio', ['enobio.cc'], LIBPATH=lib_path, CPPPATH=includes, LIBS=libs)
+Program('enobio-main', 'enobio-main.cc', LIBS='enobio', CPPPATH=includes, LIBPATH=lib_path)
+
+#env = Environment()
+#sources = env.Glob("*.cc")
+#print sources
+#env.Append(CPPPATH = [os.path.join(boost_prefix, "include")])
+#env.Append(LIBPATH = [os.path.join(boost_prefix, "lib")]
+#Program(target = "test", source = sources, LIBS = [])
+#env.Default(app)
+#env.Append(CPPPATH = ["boost_1_54_0"])
+#obj = Object("enobio.cc")
+#
