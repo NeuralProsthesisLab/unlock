@@ -16,7 +16,7 @@ class CollectorTests(unittest.TestCase):
             pynobio = False
             fakebci = True
             
-
+        
         if pynobio:
             try:
                 bci = Enobio()
@@ -31,13 +31,13 @@ class CollectorTests(unittest.TestCase):
                 raise e
                 fakebci = True
 
-        #if fakebci:
-        #    from unlock.bci import FakeBCI
-        #    bci = FakeBCI()
+        ##if fakebci:
+        #from unlock.bci import FakeBCI
+        #bci = FakeBCI()
             
             
         window = PygletWindow(fullscreen=True, show_fps=True)
-        collector = Collector.create_multi_centered_msequence_collector(window, bci=bci)
+        collector = Collector.create_multi_centered_msequence_collector(window, bci)
         collector.activate()
         window.start()        
         window.close()
