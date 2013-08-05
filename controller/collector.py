@@ -11,7 +11,7 @@ import logging
 import time
 import os
 
-          
+
 class Collector(UnlockController):
     name = "Collector"
     icon = "scope.png"  
