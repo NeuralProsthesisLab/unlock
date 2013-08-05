@@ -1,2 +1,2 @@
 from context import *
-from xml_config import *
+from config import *
