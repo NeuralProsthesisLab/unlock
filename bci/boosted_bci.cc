@@ -1,17 +1,12 @@
 
+#include "bci.hpp"
+#include "fake_bci.hpp"
+#include "nonblocking_bci.hpp"
+
 #include <boost/python.hpp>
 #include <stdint.h>
 
-#include "bci.hpp"
-#include "nonblocking_bci.hpp"
-#include "fake_bci.hpp"
-
-
 using namespace boost::python;
-/*
-class NonblockingBCIWrapper : NonblockingBCI, wrapper<NonblockingBCI> {
-};
-*/
 
 class BCIPythonWrap : public BCI, public wrapper<BCI>
 {
