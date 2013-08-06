@@ -2,6 +2,7 @@
 #define BCI_HPP
 
 #include <stdint.h>
+#include <cstddef>
 
 class BCI {
 public:
