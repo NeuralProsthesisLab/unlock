@@ -11,6 +11,8 @@ if sys.platform == 'darwin':
       boost_libs = ['libboost_prg_exec_monitor.a', 'libboost_python.a', 'libboost_system.a', 
             'libboost_test_exec_monitor.a', 'libboost_thread.a', 
             'libboost_unit_test_framework.a']
+      python_includes = ['/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/']
+      libname = 'boosted_bci_darwin_x86_64'
 else:
       boost_lib_path = []
       boost_includes = []
@@ -19,17 +21,13 @@ else:
 lib_path.extend(boost_lib_path)
 libs.extend(boost_libs)
 includes.extend(boost_includes)
+includes.extend(python_includes)
+frameworks = ["Python"]
 
-SharedLibrary('enobio', ['enobio.cc'], LIBPATH=lib_path, CPPPATH=includes, LIBS=libs)
-Program('enobio-main', 'enobio-main.cc', LIBS='enobio', CPPPATH=includes, LIBPATH=lib_path)
+env = Environment(CPPPATH = includes, LIBS = libs, LIBPATH = lib_path,
+                  FRAMEWORKS = frameworks, SHLIBPREFIX = '',
+                  SHLIBSUFFIX = '.so')
 
-#env = Environment()
-#sources = env.Glob("*.cc")
-#print sources
-#env.Append(CPPPATH = [os.path.join(boost_prefix, "include")])
-#env.Append(LIBPATH = [os.path.join(boost_prefix, "lib")]
-#Program(target = "test", source = sources, LIBS = [])
-#env.Default(app)
-#env.Append(CPPPATH = ["boost_1_54_0"])
-#obj = Object("enobio.cc")
-#
+SOURCES=['boosted_bci.cc', 'nonblocking_bci.cc']
+env.SharedLibrary(libname, SOURCES)
+
