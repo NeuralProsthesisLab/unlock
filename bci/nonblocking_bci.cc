@@ -93,16 +93,16 @@ bool NonblockingBCI::start()  {
 
 size_t NonblockingBCI::acquire()  {
   size_t count = mQueue.pop(&mpSamples, SAMPLE_BUFFER_SIZE);
-  size_t size = 0;
-  for (int sample = 0; sample < count: sample++) {
-    size += mpSample[sample].length * sizeof(uint32_t);
+  size_t acquired_size = 0;
+  for (size_t sample = 0; sample < count; sample++) {
+    acquired_size += (mpSamples[sample].length() * sizeof(uint32_t));
   }
-  return size;
+  return acquired_size;
 }
 
 void NonblockingBCI::getdata(uint32_t* data, size_t n)  {
   for (int sample=0, pos=0; sample < n; sample++) {
-    uint32_t sample = mpSamples[pos].sample()
+    uint32_t* sample = mpSamples[pos].sample();
     size_t length = mpSamples[pos].length();
     std::copy(sample, sample+length, data);
     data += length;
