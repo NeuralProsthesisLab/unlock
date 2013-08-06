@@ -67,12 +67,16 @@ private:
 };
 
 
-NonblockingBCI::NonblockingBCI(BCI* pBCI) : mpBCI(pBCI), mQueue(), mDone(false) {  
+NonblockingBCI::NonblockingBCI(BCI* pBCI) : mpBCI(pBCI), mpSamples(0), mQueue(), mDone(false) {  
   mAsyncSampleCollector = thread(AsyncSampleCollector(mpBCI, &mQueue, &mDone));
+  mpSamples = new Sample<uint32_t>[SAMPLE_BUFFER_SIZE];
 }
 
 NonblockingBCI::~NonblockingBCI()  {
   delete mpBCI;
+  delete mpSamples;
+  mpBCI=0;
+  mpSamples=0;
 }
 
 bool NonblockingBCI::open(uint8_t mac_address[]) {
@@ -88,12 +92,21 @@ bool NonblockingBCI::start()  {
 }
 
 size_t NonblockingBCI::acquire()  {
-  size_t count = mQueue.pop(mSamples, SAMPLE_BUFFER_SIZE);
-  return count;
+  size_t count = mQueue.pop(&mpSamples, SAMPLE_BUFFER_SIZE);
+  size_t size = 0;
+  for (int sample = 0; sample < count: sample++) {
+    size += mpSample[sample].length * sizeof(uint32_t);
+  }
+  return size;
 }
 
 void NonblockingBCI::getdata(uint32_t* data, size_t n)  {
-  std::copy(mSamples, mSamples+n, data);
+  for (int sample=0, pos=0; sample < n; sample++) {
+    uint32_t sample = mpSamples[pos].sample()
+    size_t length = mpSamples[pos].length();
+    std::copy(sample, sample+length, data);
+    data += length;
+  }
 }
 
 uint64_t NonblockingBCI::timestamp()  {
