@@ -29,8 +29,13 @@ public:
       mpRingBuffer(copy.mpRingBuffer), mCurrentSample(copy.mCurrentSample) {
   }
     
-  AsyncSampleCollector& operator=(const AsyncSampleCollector&) {
-        
+  AsyncSampleCollector& operator=(const AsyncSampleCollector& other) {
+    mpBCI = other.mpBCI;
+    mpQueue = other.mpQueue;
+    mpDone = other.mpDone;
+    mpSamples = other.mpSamples;
+    mpRingBuffer = other.mpRingBuffer;
+    mCurrentSample = other.mCurrentSample;
   }
     
   ~AsyncSampleCollector() {
@@ -67,16 +72,36 @@ private:
 };
 
 
-NonblockingBCI::NonblockingBCI(BCI* pBCI) : mpBCI(pBCI), mpSamples(0), mQueue(), mDone(false) {  
-  mAsyncSampleCollector = thread(AsyncSampleCollector(mpBCI, &mQueue, &mDone));
+NonblockingBCI::NonblockingBCI(BCI* pBCI) : mpBCI(pBCI), mpSamples(0), mpQueue(0), mpDone(0) {  
   mpSamples = new Sample<uint32_t>[SAMPLE_BUFFER_SIZE];
+  mpQueue = new spsc_queue<Sample<uint32_t>*, capacity<(SAMPLE_BUFFER_SIZE-1)> > ();
+  mpDone = new atomic<bool>();
+  mpAsyncSampleCollector = new thread(AsyncSampleCollector(mpBCI, mpQueue, mpDone));  
+}
+
+NonblockingBCI::NonblockingBCI(const NonblockingBCI& copy)
+  : mpBCI(copy.mpBCI), mpSamples(copy.mpSamples), mpQueue(copy.mpQueue), mpDone(copy.mpDone),
+  mpAsyncSampleCollector(copy.mpAsyncSampleCollector)
+{  
 }
 
 NonblockingBCI::~NonblockingBCI()  {
   delete mpBCI;
   delete mpSamples;
+  delete mpQueue;
+  delete mpDone;
+  delete mpAsyncSampleCollector;
   mpBCI=0;
   mpSamples=0;
+}
+
+NonblockingBCI& NonblockingBCI::operator=(const NonblockingBCI& other)
+{
+  mpBCI = other.mpBCI;
+  mpSamples = other.mpSamples;
+  mpQueue = other.mpQueue;
+  mpDone = other.mpDone;
+  mpAsyncSampleCollector = other.mpAsyncSampleCollector;
 }
 
 bool NonblockingBCI::open(uint8_t mac_address[]) {
@@ -92,7 +117,7 @@ bool NonblockingBCI::start()  {
 }
 
 size_t NonblockingBCI::acquire()  {
-  size_t count = mQueue.pop(&mpSamples, SAMPLE_BUFFER_SIZE);
+  size_t count = mpQueue->pop(&mpSamples, SAMPLE_BUFFER_SIZE);
   size_t acquired_size = 0;
   for (size_t sample = 0; sample < count; sample++) {
     acquired_size += (mpSamples[sample].length() * sizeof(uint32_t));
@@ -119,6 +144,7 @@ bool NonblockingBCI::stop()  {
 }
 
 bool NonblockingBCI::close()  {
-  mDone = true;
+  *(mpDone) = true;
+//  mpAsyncSampleCollector.join();
   return mpBCI->close();
 }

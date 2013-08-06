@@ -11,9 +11,14 @@
 static const size_t SAMPLE_BUFFER_SIZE=8192;
 
 class NonblockingBCI : public BCI {
+
 public:
   NonblockingBCI(BCI*);
+  NonblockingBCI(const NonblockingBCI& copy);
   virtual ~NonblockingBCI();
+  NonblockingBCI& operator=(const NonblockingBCI& other);
+  
+public:
   virtual bool open(uint8_t[]);
   virtual bool init(size_t);
   virtual bool start();
@@ -22,12 +27,13 @@ public:
   virtual uint64_t timestamp();
   virtual bool stop();
   virtual bool close();
+
 private:
   BCI* mpBCI;
   Sample<uint32_t>* mpSamples;
-  boost::lockfree::spsc_queue<Sample<uint32_t>*, boost::lockfree::capacity<(SAMPLE_BUFFER_SIZE-1)> > mQueue;
-  boost::thread mAsyncSampleCollector;
-  boost::atomic<bool> mDone;
+  boost::lockfree::spsc_queue<Sample<uint32_t>*, boost::lockfree::capacity<(SAMPLE_BUFFER_SIZE-1)> >* mpQueue;
+  boost::thread* mpAsyncSampleCollector;
+  boost::atomic<bool>* mpDone;
 };
 
 #endif
