@@ -28,7 +28,7 @@ def create_so():
     if not os.path.exists(boosted_bci):
         if sys.platform == 'darwin':
             if platform.architecture()[0] == '64bit':
-                shutil.copyfile(os.path.join(base_dir, 'boosted_bci_darwin_x86_64.so'), boosted_bci)
+                shutil.copyfile(os.path.join(base_dir, 'libboosted_bci_darwin_x86_64.so'), boosted_bci)
             else:
                 raise NotImplementedError("32 bit OS X is currently untested")
 
