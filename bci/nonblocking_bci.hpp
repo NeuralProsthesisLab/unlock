@@ -28,7 +28,6 @@ private:
   boost::lockfree::spsc_queue<Sample<uint32_t>*, boost::lockfree::capacity<(SAMPLE_BUFFER_SIZE-1)> > mQueue;
   boost::thread mAsyncSampleCollector;
   boost::atomic<bool> mDone;
-
 };
 
 #endif
