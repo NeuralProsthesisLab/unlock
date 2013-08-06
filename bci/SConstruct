@@ -1,5 +1,6 @@
 import os
 import sys
+#import shutils
 
 lib_path = ['.']
 libs = []
@@ -12,7 +13,7 @@ if sys.platform == 'darwin':
             'libboost_test_exec_monitor.a', 'libboost_thread.a', 
             'libboost_unit_test_framework.a']
       python_includes = ['/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/']
-      libname = 'boosted_bci_darwin_x86_64'
+      libname = 'libboosted_bci_darwin_x86_64'
 else:
       boost_lib_path = []
       boost_includes = []
@@ -29,5 +30,12 @@ env = Environment(CPPPATH = includes, LIBS = libs, LIBPATH = lib_path,
                   SHLIBSUFFIX = '.so')
 
 SOURCES=['boosted_bci.cc', 'nonblocking_bci.cc', 'fake_bci.cc']
-env.SharedLibrary(libname, SOURCES)
+boost_bci = env.SharedLibrary(libname, SOURCES)
 
+unit_test_libs=['libboost_unit_test_framework.a']
+UNIT_TEST_SOURCES=['nonblocking_bci_test.cc']
+libs.append(libname)
+
+test_env = Environment(CPPPATH = includes, LIBS = libs, LIBPATH = lib_path)
+test_boost_bci = test_env.Program('bci-unit-tests', UNIT_TEST_SOURCES)
+test_env.Requires(test_boost_bci, boost_bci)
