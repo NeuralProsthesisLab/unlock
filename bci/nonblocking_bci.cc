@@ -1,6 +1,7 @@
-#include "NonblockingBCI.hpp"
+#include "nonblocking_bci.hpp"
 #include <iostream>
 #include <boost/assert.hpp>
+#include <algorithm>
 
 using namespace boost;
 using namespace boost::lockfree;
@@ -11,10 +12,10 @@ class AsyncSampleCollector
 {
 public:
   AsyncSampleCollector(BCI* pBCI,
-    lockfree::spsc_queue<Sample<uint32_t>*, lockfree::capacity<(SAMPLE_BUFFER_SIZE-1)> >* pQueue,
-    atomic<bool>* pDone) 
+		       lockfree::spsc_queue<Sample<uint32_t>*, lockfree::capacity<(SAMPLE_BUFFER_SIZE-1)> >* pQueue,
+		       atomic<bool>* pDone) 
     : mpBCI(pBCI), mpQueue(pQueue), mpDone(pDone), mpSamples(0), mpRingBuffer(0),
-        mCurrentSample(0)
+      mCurrentSample(0)
   {
     BOOST_VERIFY(mpBCI != 0);
     BOOST_VERIFY(mpQueue != 0 && mpQueue->is_lock_free());
@@ -23,14 +24,14 @@ public:
     BOOST_VERIFY(mpSamples != 0 && mpRingBuffer != 0);
   }
 
-    AsyncSampleCollector(const AsyncSampleCollector& copy)
-        : mpBCI(copy.mpBCI), mpQueue(copy.mpQueue), mpDone(copy.mpDone), mpSamples(copy.mpSamples),
-            mpRingBuffer(copy.mpRingBuffer), mCurrentSample(copy.mCurrentSample) {
-    }
+  AsyncSampleCollector(const AsyncSampleCollector& copy)
+    : mpBCI(copy.mpBCI), mpQueue(copy.mpQueue), mpDone(copy.mpDone), mpSamples(copy.mpSamples),
+      mpRingBuffer(copy.mpRingBuffer), mCurrentSample(copy.mCurrentSample) {
+  }
     
-    AsyncSampleCollector& operator=(const AsyncSampleCollector&) {
+  AsyncSampleCollector& operator=(const AsyncSampleCollector&) {
         
-    }
+  }
     
   ~AsyncSampleCollector() {
     delete mpSamples;
@@ -49,15 +50,12 @@ public:
         mpBCI->getdata(pBuffer, samples);
         mpSamples[mCurrentSample].configure(pBuffer, samples);
         while (!mpQueue->push(mpSamples+mCurrentSample))
-            ;
+          ;
         mCurrentSample++;
       }
       thread::yield();
     }
   }
-
-private:
-
 
 private:
   BCI* mpBCI;
@@ -90,19 +88,12 @@ bool NonblockingBCI::start()  {
 }
 
 size_t NonblockingBCI::acquire()  {
-/*    while (!done) {
-        while (spsc_queue.pop(value))
-            ++consumer_count;
-    }
-
-    while (spsc_queue.pop(value))
-        ++consumer_count;    */
-  // do some shit here...
-  return 0;
+  size_t count = mQueue.pop(mSamples, SAMPLE_BUFFER_SIZE);
+  return count;
 }
 
 void NonblockingBCI::getdata(uint32_t* data, size_t n)  {
-  //  copy the data
+  std::copy(mSamples, mSamples+n, data);
 }
 
 uint64_t NonblockingBCI::timestamp()  {
