@@ -134,16 +134,27 @@ bool NonblockingBCI::open(uint8_t mac_address[]) {
 }
 
 bool NonblockingBCI::init(size_t channels) {
+//  bool ret = mpBCI->init(channels);
   return mpBCI->init(channels);
 }
 
 bool NonblockingBCI::start()  {
-  *mpDone = false;
-  mpAsyncSampleCollector = new thread(AsyncSampleCollector(mpBCI, mpQueue, mpDone, mpProducerSamples, mpSampleRingBuffer));
-  return mpBCI->start();
+  bool ret = mpBCI->start();
+  if(ret) {
+    *mpDone = false;
+    mpAsyncSampleCollector = new thread(AsyncSampleCollector(mpBCI, mpQueue, mpDone, mpProducerSamples, mpSampleRingBuffer));
+  }
+  return ret;
 }
 
 size_t NonblockingBCI::acquire()  {
+  if (*mpDone) {
+    // XXX - setup logging.  
+    cerr << "NonblockingBCI.acquire: WARNING acquire called when device not started; returning 0"
+         << endl; 
+    return 0;
+  }
+  
   size_t count = mpQueue->pop(&mpConsumerSamples, SAMPLE_BUFFER_SIZE);
   size_t acquired_size = 0;
   for (size_t sample = 0; sample < count; sample++) {
@@ -153,6 +164,12 @@ size_t NonblockingBCI::acquire()  {
 }
 
 void NonblockingBCI::getdata(uint32_t* data, size_t n)  {
+  if (*mpDone) {
+    cerr << "NonblockingBCI.getdata: WARNING getdata called with " << data << ":"
+         <<  n << " when device not started; not copying any data" << endl; 
+    return;
+  }
+  
   for (int sample=0, pos=0; sample < n; sample++) {
     uint32_t* sample = mpConsumerSamples[pos].sample();
     size_t length = mpConsumerSamples[pos].length();
@@ -168,7 +185,6 @@ uint64_t NonblockingBCI::timestamp()  {
 bool NonblockingBCI::stop()  {
   waitForAsyncCollector();
   return mpBCI->stop();
-
 }
 
 bool NonblockingBCI::close()  {
@@ -176,6 +192,8 @@ bool NonblockingBCI::close()  {
 }
 
 void NonblockingBCI::waitForAsyncCollector() {
-  *mpDone = true;
-  mpAsyncSampleCollector->join();  
+  if(!(*mpDone)) {
+    *mpDone = true;
+    mpAsyncSampleCollector->join();
+  }
 }
