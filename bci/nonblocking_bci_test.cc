@@ -2,7 +2,10 @@
 #define BOOST_TEST_MODULE NonblockingBCITest
 #include <boost/test/included/unit_test.hpp>
 #include "nonblocking_bci.hpp"
-//#include <boost/test/unit_test.hpp>
+#include "fake_bci.hpp"
+#include <iostream>
+
+using namespace std;
 
 struct NonblockingBCIWrapper
 {
@@ -21,21 +24,27 @@ struct NonblockingBCIWrapper
  
 BOOST_FIXTURE_TEST_SUITE(NonblockingBCITest, NonblockingBCIWrapper)
  
-BOOST_AUTO_TEST_CASE(test)
+BOOST_AUTO_TEST_CASE(test_create_delete)
 {
-    int e = 32;
-    int c = 4;
-    BOOST_TEST_MESSAGE(m);
-    
-    BOOST_CHECK(e == m * c * c);
+    BCI* fbci = new FakeBCI();// = new FakeBCI();
+    NonblockingBCI* bci = new NonblockingBCI(fbci);
+    delete bci;
 }
- 
-BOOST_AUTO_TEST_CASE(test1)
+
+BOOST_AUTO_TEST_CASE(test_start_stop)
 {
-    int f = 10;
-    int a = 5;
- 
-    BOOST_CHECK(f == m * a);
+    BCI* fbci = new FakeBCI();// = new FakeBCI();
+    NonblockingBCI* bci = new NonblockingBCI(fbci);
+    bci->start();
+    bci->stop();
+}
+
+BOOST_AUTO_TEST_CASE(test_start_delete)
+{
+    BCI* fbci = new FakeBCI();// = new FakeBCI();
+    NonblockingBCI* bci = new NonblockingBCI(fbci);
+    bci->start();
+    delete bci;
 }
  
 BOOST_AUTO_TEST_SUITE_END()
