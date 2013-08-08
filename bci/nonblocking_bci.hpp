@@ -21,6 +21,7 @@ public:
 public:
   virtual bool open(uint8_t[]);
   virtual bool init(size_t);
+  virtual size_t channels();
   virtual bool start();
   virtual size_t acquire();
   virtual void getdata(uint32_t* data, size_t n);

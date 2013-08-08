@@ -25,6 +25,7 @@ public:
     BOOST_VERIFY(mpDone != 0);
     BOOST_VERIFY(mpSamples != 0);
     BOOST_VERIFY(mpRingBuffer != 0);
+    cout << "Async collector created successfully " << (bool)*mpDone << endl;
   }
 
   AsyncSampleCollector(const AsyncSampleCollector& copy)
@@ -45,15 +46,18 @@ public:
     mpSamples=0;
     mpRingBuffer=0;
     mpBCI=0;
+    mpDone=0;
     mpQueue=0;
  } 
   
   void operator()() {
+    cout << " mpDone = " << (bool)*mpDone << endl;
     BOOST_VERIFY(mpBCI != 0 && mpQueue != 0 && mpSamples != 0 && mpRingBuffer != 0);
     while(!(*(mpDone))) {
       for(size_t i = 0; i < YIELD_THRESHOLD; i++) {
         size_t samples = mpBCI->acquire();
-        uint32_t* pBuffer = mpRingBuffer->reserve(samples);
+        size_t channels = mpBCI->channels();
+        uint32_t* pBuffer = mpRingBuffer->reserve(samples*channels);
         mpBCI->getdata(pBuffer, samples);
         mpSamples[mCurrentSample].configure(pBuffer, samples);
         while (!mpQueue->push(mpSamples+mCurrentSample))
@@ -134,13 +138,18 @@ bool NonblockingBCI::open(uint8_t mac_address[]) {
 }
 
 bool NonblockingBCI::init(size_t channels) {
-//  bool ret = mpBCI->init(channels);
   return mpBCI->init(channels);
 }
 
+size_t NonblockingBCI::channels() {
+  return mpBCI->channels();
+}
+
 bool NonblockingBCI::start()  {
+  waitForAsyncCollector();
   bool ret = mpBCI->start();
   if(ret) {
+    cerr << "Starting... " << endl;
     *mpDone = false;
     mpAsyncSampleCollector = new thread(AsyncSampleCollector(mpBCI, mpQueue, mpDone, mpProducerSamples, mpSampleRingBuffer));
   }
@@ -156,11 +165,13 @@ size_t NonblockingBCI::acquire()  {
   }
   
   size_t count = mpQueue->pop(&mpConsumerSamples, SAMPLE_BUFFER_SIZE);
-  size_t acquired_size = 0;
+/*  size_t acquired_size = 0;
   for (size_t sample = 0; sample < count; sample++) {
     acquired_size += (mpConsumerSamples[sample].length() * sizeof(uint32_t));
   }
-  return acquired_size;
+  */
+  cout << "count = " << count << endl;
+  return count;
 }
 
 void NonblockingBCI::getdata(uint32_t* data, size_t n)  {
