@@ -4,9 +4,9 @@
 #include <stdint.h>
 #include <cstddef>
 
-class BCI {
+class Bci {
 public:
-  virtual ~BCI() {}
+  virtual ~Bci() {}
   virtual bool open(uint8_t mac[])=0;
   virtual bool init(size_t channels)=0;
   virtual size_t channels()=0;

@@ -1,4 +1,4 @@
-#include "nonblocking_bci.hpp"
+#include "NonblockingBci.hpp"
 #include <iostream>
 #include <boost/assert.hpp>
 #include <algorithm>

@@ -5,18 +5,18 @@
 #include <boost/thread.hpp>
 #include <boost/atomic.hpp>
 
-#include "bci.hpp"
-#include "sample.hpp"
+#include "Bci.hpp"
+#include "Sample.hpp"
 
 static const size_t SAMPLE_BUFFER_SIZE=8192;
 
-class NonblockingBCI : public BCI {
+class NonblockingBci : public Bci {
 
 public:
-  NonblockingBCI(BCI*);
-  NonblockingBCI(const NonblockingBCI& copy);
-  virtual ~NonblockingBCI();
-  NonblockingBCI& operator=(const NonblockingBCI& other);
+  NonblockingBci(Bci*);
+  NonblockingBci(const NonblockingBci& copy);
+  virtual ~NonblockingBci();
+  NonblockingBci& operator=(const NonblockingBci& other);
   
 public:
   virtual bool open(uint8_t[]);
@@ -33,7 +33,7 @@ private:
   void waitForAsyncCollector();
   
 private:
-  BCI* mpBCI;
+  Bci* mpBci;
   Sample<uint32_t>* mpProducerSamples;
   Sample<uint32_t>* mpConsumerSamples;
   SampleBuffer<uint32_t>* mpSampleRingBuffer;
