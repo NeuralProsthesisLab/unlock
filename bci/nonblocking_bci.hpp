@@ -29,8 +29,13 @@ public:
   virtual bool close();
 
 private:
+  void waitForAsyncCollector();
+  
+private:
   BCI* mpBCI;
-  Sample<uint32_t>* mpSamples;
+  Sample<uint32_t>* mpProducerSamples;
+  Sample<uint32_t>* mpConsumerSamples;
+  SampleBuffer<uint32_t>* mpSampleRingBuffer;
   boost::lockfree::spsc_queue<Sample<uint32_t>*, boost::lockfree::capacity<(SAMPLE_BUFFER_SIZE-1)> >* mpQueue;
   boost::thread* mpAsyncSampleCollector;
   boost::atomic<bool>* mpDone;

@@ -8,20 +8,23 @@ using namespace boost::lockfree;
 
 static const size_t YIELD_THRESHOLD=1337;
 
+#include <iostream>
+using namespace std;
+
 class AsyncSampleCollector
 {
 public:
   AsyncSampleCollector(BCI* pBCI,
 		       lockfree::spsc_queue<Sample<uint32_t>*, lockfree::capacity<(SAMPLE_BUFFER_SIZE-1)> >* pQueue,
-		       atomic<bool>* pDone) 
-    : mpBCI(pBCI), mpQueue(pQueue), mpDone(pDone), mpSamples(0), mpRingBuffer(0),
+		       atomic<bool>* pDone, Sample<uint32_t>* pSamples, SampleBuffer<uint32_t>* pRingBuffer) 
+    : mpBCI(pBCI), mpQueue(pQueue), mpDone(pDone), mpSamples(pSamples), mpRingBuffer(pRingBuffer),
       mCurrentSample(0)
   {
     BOOST_VERIFY(mpBCI != 0);
     BOOST_VERIFY(mpQueue != 0 && mpQueue->is_lock_free());
-    mpRingBuffer = new SampleBuffer<uint32_t>();
-    mpSamples = new Sample<uint32_t>[SAMPLE_BUFFER_SIZE];
-    BOOST_VERIFY(mpSamples != 0 && mpRingBuffer != 0);
+    BOOST_VERIFY(mpDone != 0);
+    BOOST_VERIFY(mpSamples != 0);
+    BOOST_VERIFY(mpRingBuffer != 0);
   }
 
   AsyncSampleCollector(const AsyncSampleCollector& copy)
@@ -39,12 +42,11 @@ public:
   }
     
   ~AsyncSampleCollector() {
-    delete mpSamples;
-    delete mpRingBuffer;
     mpSamples=0;
+    mpRingBuffer=0;
     mpBCI=0;
     mpQueue=0;
-  }
+ } 
   
   void operator()() {
     BOOST_VERIFY(mpBCI != 0 && mpQueue != 0 && mpSamples != 0 && mpRingBuffer != 0);
@@ -72,36 +74,59 @@ private:
 };
 
 
-NonblockingBCI::NonblockingBCI(BCI* pBCI) : mpBCI(pBCI), mpSamples(0), mpQueue(0), mpDone(0) {  
-  mpSamples = new Sample<uint32_t>[SAMPLE_BUFFER_SIZE];
+NonblockingBCI::NonblockingBCI(BCI* pBCI) : mpBCI(pBCI), mpProducerSamples(0), mpConsumerSamples(0), mpSampleRingBuffer(0), mpQueue(0), mpDone(0) {
+  BOOST_VERIFY(mpBCI != 0);
+  mpProducerSamples = new Sample<uint32_t>[SAMPLE_BUFFER_SIZE];
+  mpConsumerSamples = new Sample<uint32_t>[SAMPLE_BUFFER_SIZE];
+  mpSampleRingBuffer = new SampleBuffer<uint32_t>();
   mpQueue = new spsc_queue<Sample<uint32_t>*, capacity<(SAMPLE_BUFFER_SIZE-1)> > ();
-  mpDone = new atomic<bool>();
-  mpAsyncSampleCollector = new thread(AsyncSampleCollector(mpBCI, mpQueue, mpDone));  
+  mpDone = new atomic<bool>(true);
+  BOOST_VERIFY(mpQueue != 0);
+  BOOST_VERIFY(mpProducerSamples != 0);
+  BOOST_VERIFY(mpConsumerSamples != 0);
+  BOOST_VERIFY(mpSampleRingBuffer != 0);  
+  BOOST_VERIFY(mpDone != 0 && *mpDone == true);
 }
 
 NonblockingBCI::NonblockingBCI(const NonblockingBCI& copy)
-  : mpBCI(copy.mpBCI), mpSamples(copy.mpSamples), mpQueue(copy.mpQueue), mpDone(copy.mpDone),
+  : mpBCI(copy.mpBCI), mpProducerSamples(copy.mpProducerSamples), mpConsumerSamples(copy.mpConsumerSamples),
+  mpSampleRingBuffer(copy.mpSampleRingBuffer), mpQueue(copy.mpQueue), mpDone(copy.mpDone),
   mpAsyncSampleCollector(copy.mpAsyncSampleCollector)
 {  
 }
 
 NonblockingBCI::~NonblockingBCI()  {
+  
+  if (!(*mpDone)) {
+    waitForAsyncCollector();
+  }
+  
   delete mpBCI;
-  delete mpSamples;
+  delete[] mpProducerSamples;
+  delete[] mpConsumerSamples;
+  delete mpSampleRingBuffer;
   delete mpQueue;
   delete mpDone;
   delete mpAsyncSampleCollector;
   mpBCI=0;
-  mpSamples=0;
+  mpProducerSamples=0;
+  mpConsumerSamples=0;
+  mpSampleRingBuffer=0;
+  mpQueue=0;
+  mpDone=0;
+  mpAsyncSampleCollector=0;
 }
 
 NonblockingBCI& NonblockingBCI::operator=(const NonblockingBCI& other)
 {
   mpBCI = other.mpBCI;
-  mpSamples = other.mpSamples;
+  mpProducerSamples = other.mpProducerSamples;
+  mpConsumerSamples = other.mpConsumerSamples;
+  mpSampleRingBuffer = other.mpSampleRingBuffer;
   mpQueue = other.mpQueue;
   mpDone = other.mpDone;
   mpAsyncSampleCollector = other.mpAsyncSampleCollector;
+  return *this;
 }
 
 bool NonblockingBCI::open(uint8_t mac_address[]) {
@@ -113,22 +138,24 @@ bool NonblockingBCI::init(size_t channels) {
 }
 
 bool NonblockingBCI::start()  {
+  *mpDone = false;
+  mpAsyncSampleCollector = new thread(AsyncSampleCollector(mpBCI, mpQueue, mpDone, mpProducerSamples, mpSampleRingBuffer));
   return mpBCI->start();
 }
 
 size_t NonblockingBCI::acquire()  {
-  size_t count = mpQueue->pop(&mpSamples, SAMPLE_BUFFER_SIZE);
+  size_t count = mpQueue->pop(&mpConsumerSamples, SAMPLE_BUFFER_SIZE);
   size_t acquired_size = 0;
   for (size_t sample = 0; sample < count; sample++) {
-    acquired_size += (mpSamples[sample].length() * sizeof(uint32_t));
+    acquired_size += (mpConsumerSamples[sample].length() * sizeof(uint32_t));
   }
   return acquired_size;
 }
 
 void NonblockingBCI::getdata(uint32_t* data, size_t n)  {
   for (int sample=0, pos=0; sample < n; sample++) {
-    uint32_t* sample = mpSamples[pos].sample();
-    size_t length = mpSamples[pos].length();
+    uint32_t* sample = mpConsumerSamples[pos].sample();
+    size_t length = mpConsumerSamples[pos].length();
     std::copy(sample, sample+length, data);
     data += length;
   }
@@ -139,12 +166,16 @@ uint64_t NonblockingBCI::timestamp()  {
 }
 
 bool NonblockingBCI::stop()  {
+  waitForAsyncCollector();
   return mpBCI->stop();
 
 }
 
 bool NonblockingBCI::close()  {
-  *(mpDone) = true;
-//  mpAsyncSampleCollector.join();
   return mpBCI->close();
+}
+
+void NonblockingBCI::waitForAsyncCollector() {
+  *mpDone = true;
+  mpAsyncSampleCollector->join();  
 }
