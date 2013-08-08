@@ -7,22 +7,9 @@
 
 using namespace std;
 
-struct NonblockingBCIWrapper
-{
-    int m;
- 
-    NonblockingBCIWrapper() : m(2)
-    {
-        BOOST_TEST_MESSAGE("setup mass");
-    }
- 
-    ~NonblockingBCIWrapper()
-    {
-        BOOST_TEST_MESSAGE("teardown mass");
-    }
-};
- 
-BOOST_FIXTURE_TEST_SUITE(NonblockingBCITest, NonblockingBCIWrapper)
+uint8_t mac[MAC_ADDRESS_SIZE] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6 };
+
+BOOST_AUTO_TEST_SUITE(NonblockingBCITest)
  
 BOOST_AUTO_TEST_CASE(test_create_delete)
 {
@@ -31,15 +18,35 @@ BOOST_AUTO_TEST_CASE(test_create_delete)
     delete bci;
 }
 
+BOOST_AUTO_TEST_CASE(test_create_open_delete)
+{
+    FakeBCI* fbci = new FakeBCI();// = new FakeBCI();
+    NonblockingBCI* bci = new NonblockingBCI(fbci);
+    BOOST_CHECK(bci->open(mac));
+    for (int i=0; i < MAC_ADDRESS_SIZE; i++)
+        BOOST_CHECK(fbci->mLastMac[i] == mac[i]);
+        
+    delete bci;
+}
+
 BOOST_AUTO_TEST_CASE(test_start_stop)
 {
     BCI* fbci = new FakeBCI();// = new FakeBCI();
     NonblockingBCI* bci = new NonblockingBCI(fbci);
-    bci->start();
-    bci->stop();
+    BOOST_CHECK(bci->open(mac));    
+    BOOST_CHECK(bci->start());
+    BOOST_CHECK(bci->stop());
 }
 
 BOOST_AUTO_TEST_CASE(test_start_delete)
+{
+    BCI* fbci = new FakeBCI();// = new FakeBCI();
+    NonblockingBCI* bci = new NonblockingBCI(fbci);
+    BOOST_CHECK(bci->start());
+    delete bci;
+}
+
+BOOST_AUTO_TEST_CASE(test_start_delete1)
 {
     BCI* fbci = new FakeBCI();// = new FakeBCI();
     NonblockingBCI* bci = new NonblockingBCI(fbci);
@@ -47,4 +54,6 @@ BOOST_AUTO_TEST_CASE(test_start_delete)
     delete bci;
 }
  
+ 
+
 BOOST_AUTO_TEST_SUITE_END()
