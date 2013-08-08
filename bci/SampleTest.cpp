@@ -1,5 +1,5 @@
 #include <boost/test/unit_test.hpp>
-#include "sample.hpp"
+#include "Sample.hpp"
 
 #include <iostream>
 
