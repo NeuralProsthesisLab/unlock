@@ -3,7 +3,7 @@
 #include <boost/random/uniform_int_distribution.hpp>
 
 FakeBCI::FakeBCI()
-	: mOpenCount(0), mOpenRet(true), mInitCount(0), mLastChannels(0), mInitRet(true), mStartCount(0), mStartRet(true),
+	: mOpenCount(0), mOpenRet(true), mInitCount(0), mLastChannels(4), mInitRet(true), mChannelsCount(0), mStartCount(0), mStartRet(true),
 	  mAcquireCount(0), mAcquireRet(1), mGetDataCount(0), mpLastGetData(0), mLastSamples(0),
 	  mTimestampCount(0), mTimestampRet(-1), mStopCount(0), mStopRet(true), mCloseCount(0),
 	  mCloseRet(true)
@@ -35,17 +35,24 @@ bool FakeBCI::init(size_t channels) {
 	return mInitRet;
 }
 
+size_t FakeBCI::channels() {
+	mChannelsCount++;
+	return mLastChannels;
+}
+
 bool FakeBCI::start() {
 	mStartCount++;
 	return mStartRet;
 }
 
 size_t FakeBCI::acquire() {
+	cout << "Acquire  " << mAcquireRet << endl;	
 	mAcquireCount++;
 	return mAcquireRet;
 }
 
 void FakeBCI::getdata(uint32_t* buffer, size_t samples) {
+	cout << "BUffer " << buffer << ":" << samples << endl;
 	BOOST_VERIFY(buffer != 0);
 	BOOST_VERIFY(mAcquireRet == samples);
 	mGetDataCount++;

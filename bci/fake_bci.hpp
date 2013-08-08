@@ -12,6 +12,7 @@ public:
   virtual ~FakeBCI();
   virtual bool open(uint8_t mac[]);
   virtual bool init(size_t channels);
+  virtual size_t channels();
   virtual bool start();
   virtual size_t acquire();
   virtual void getdata(uint32_t* buffer, size_t samples);
@@ -27,6 +28,7 @@ public:
 	size_t mInitCount;
 	size_t mLastChannels;
 	bool mInitRet;
+	size_t mChannelsCount;
 	size_t mStartCount;
 	bool mStartRet;
 	size_t mAcquireCount;
