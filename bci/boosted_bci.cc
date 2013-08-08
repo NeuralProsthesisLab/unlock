@@ -27,6 +27,10 @@ public:
         return this->get_override("init")(channels);
     }
     
+    size_t channels() {
+        return this->get_override("channels")();
+    }
+    
     bool start() {
         return this->get_override("start")();        
     }
@@ -65,7 +69,6 @@ BCI* create_enobio_bci() {
     return create_fake_bci();
 }
 
-
 BOOST_PYTHON_MODULE(boosted_bci)
 {
     def("create_fake_bci", create_fake_bci, return_value_policy<manage_new_object>());
@@ -74,17 +77,19 @@ BOOST_PYTHON_MODULE(boosted_bci)
     class_<BCIPythonWrap, boost::noncopyable>("BCI", no_init)
         .def("open", pure_virtual(&BCI::open))
         .def("init", pure_virtual(&BCI::init))
+        .def("channels", pure_virtual(&BCI::channels))      
         .def("start", pure_virtual(&BCI::start))
         .def("acquire", pure_virtual(&BCI::acquire))
         .def("getdata", pure_virtual(&BCI::getdata))
         .def("timestamp", pure_virtual(&BCI::timestamp))
         .def("stop", pure_virtual(&BCI::stop))
-        .def("close", pure_virtual(&BCI::close))                
+        .def("close", pure_virtual(&BCI::close))             
     ;
 
     class_<NonblockingBCI, bases<BCI> >("NonblockingBCI", init<BCI*>())
         .def("open", &NonblockingBCI::open)
         .def("init", &NonblockingBCI::init)
+        .def("channels", &NonblockingBCI::channels)        
         .def("start", &NonblockingBCI::start)    
         .def("acquire", &NonblockingBCI::acquire)
         .def("getdata", &NonblockingBCI::getdata)    
