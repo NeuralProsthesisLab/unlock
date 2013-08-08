@@ -33,7 +33,7 @@ SOURCES=['boosted_bci.cc', 'nonblocking_bci.cc', 'fake_bci.cc']
 boost_bci = env.SharedLibrary(libname, SOURCES)
 
 unit_test_libs=['libboost_unit_test_framework.a']
-UNIT_TEST_SOURCES=['nonblocking_bci_test.cc']
+UNIT_TEST_SOURCES=['bci_test_runner.cc', 'nonblocking_bci_test.cc', 'sample_test.cc']
 libs.append(libname)
 
 test_env = Environment(CPPPATH = includes, LIBS = libs, LIBPATH = lib_path)
