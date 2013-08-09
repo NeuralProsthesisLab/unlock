@@ -9,6 +9,7 @@ BOOST_AUTO_TEST_SUITE(SampleTest)
  
 BOOST_AUTO_TEST_CASE(testSample)
 {
+    cout << "SampleTest.testSample " << endl;
     uint8_t test_sample[6] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6 };
     
     Sample<uint8_t>* sample = new Sample<uint8_t>();

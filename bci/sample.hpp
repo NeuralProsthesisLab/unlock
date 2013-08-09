@@ -29,16 +29,16 @@ public:
     }
  
     T* sample() {
-        return mpSample;
+        return (T*)mpSample;
     }
     
     size_t length() {
-        return mLength;
+        return (size_t)mLength;
     }
     
 private:   
-    T* mpSample;
-    size_t mLength;
+    volatile T* mpSample;
+    volatile size_t mLength;
 };
 
 #endif
