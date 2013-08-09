@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "AsyncSampleCollector.hpp"
+#include "IntegralWorkcontroller.hpp"
 #include "FakeBci.hpp"
 #include "Sample.hpp"
 
@@ -19,12 +20,11 @@ BOOST_AUTO_TEST_CASE(test)
   Sample<uint32_t>* pProducerSamples = new Sample<uint32_t>[42];
   SampleBuffer<uint32_t> sampleRingBuffer;
   spsc_queue<Sample<uint32_t>*,  capacity<(42 - 1)> > queue;
-  atomic<bool> done(false);
+  IntegralWorkController workController(1);
 
-  thread t(AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue, 0, pProducerSamples,
-                                            &sampleRingBuffer));
-  boost::this_thread::sleep(boost::posix_time::seconds(1));
-  BOOST_CHECK(!queue.empty());
+  AsyncSampleCollector collector = AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
+                                            &workController, pProducerSamples, &sampleRingBuffer);
+  collector();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
