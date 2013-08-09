@@ -4,7 +4,8 @@
 #include <boost/assert.hpp>
 
 template<class T>
-class SampleBuffer {
+class SampleBuffer
+{
 public:
     static const size_t RING_SIZE=1048576;
     

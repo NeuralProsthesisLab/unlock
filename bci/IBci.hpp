@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include <cstddef>
 
-class IBci {
+class IBci
+{
 public:
   virtual ~IBci() {}
   virtual bool open(uint8_t mac[])=0;

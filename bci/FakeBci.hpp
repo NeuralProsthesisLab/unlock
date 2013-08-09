@@ -7,7 +7,8 @@
 
 
 
-class FakeBci : public IBci {
+class FakeBci : public IBci
+{
 public:
     static const size_t MAC_ADDRESS_SIZE=6;    
 
