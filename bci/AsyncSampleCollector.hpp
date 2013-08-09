@@ -5,7 +5,7 @@
 #include <boost/atomic.hpp>
 #include <cstddef>
 
-#include "Bci.hpp"
+#include "IBci.hpp"
 #include "Sample.hpp"
 #include "SampleBuffer.hpp"
 
@@ -19,7 +19,7 @@ public:
   
   
 public:
-  AsyncSampleCollector(Bci* pBci, lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
+  AsyncSampleCollector(IBci* pBci, lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
 		       atomic<bool>* pDone, Sample<uint32_t>* pSamples, SampleBuffer<uint32_t>* pRingBuffer);
   
   AsyncSampleCollector(const AsyncSampleCollector& copy);
@@ -30,7 +30,7 @@ public:
   void operator()();
   
 private:
-  Bci* mpBci;
+  IBci* mpBci;
   spsc_queue<Sample<uint32_t>* >* mpQueue;
   atomic<bool>* mpDone;
   Sample<uint32_t>* mpSamples;

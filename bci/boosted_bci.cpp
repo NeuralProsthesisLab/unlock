@@ -1,5 +1,5 @@
 
-#include "Bci.hpp"
+#include "IBci.hpp"
 #include "FakeBci.hpp"
 #include "NonblockingBci.hpp"
 
@@ -8,10 +8,10 @@
 
 using namespace boost::python;
 
-class BciPythonWrap : public Bci, public wrapper<Bci>
+class BciPythonWrap : public IBci, public wrapper<IBci>
 {
 public:
-    BciPythonWrap(Bci* pBci) : mpBci(pBci) {
+    BciPythonWrap(IBci* pBci) : mpBci(pBci) {
         
     }
     
@@ -58,14 +58,14 @@ public:
     }
 
 private:
-    Bci* mpBci;    
+    IBci* mpBci;    
 };
 
-Bci* create_fake_bci() {
+IBci* create_fake_bci() {
     return new BciPythonWrap(new FakeBci());
 }
 
-Bci* create_enobio_bci() {
+IBci* create_enobio_bci() {
     return create_fake_bci();
 }
 
@@ -75,18 +75,18 @@ BOOST_PYTHON_MODULE(boosted_bci)
     def("create_enobio_bci", create_enobio_bci, return_value_policy<manage_new_object>());
 
     class_<BciPythonWrap, boost::noncopyable>("Bci", no_init)
-        .def("open", pure_virtual(&Bci::open))
-        .def("init", pure_virtual(&Bci::init))
-        .def("channels", pure_virtual(&Bci::channels))      
-        .def("start", pure_virtual(&Bci::start))
-        .def("acquire", pure_virtual(&Bci::acquire))
-        .def("getdata", pure_virtual(&Bci::getdata))
-        .def("timestamp", pure_virtual(&Bci::timestamp))
-        .def("stop", pure_virtual(&Bci::stop))
-        .def("close", pure_virtual(&Bci::close))             
+        .def("open", pure_virtual(&IBci::open))
+        .def("init", pure_virtual(&IBci::init))
+        .def("channels", pure_virtual(&IBci::channels))      
+        .def("start", pure_virtual(&IBci::start))
+        .def("acquire", pure_virtual(&IBci::acquire))
+        .def("getdata", pure_virtual(&IBci::getdata))
+        .def("timestamp", pure_virtual(&IBci::timestamp))
+        .def("stop", pure_virtual(&IBci::stop))
+        .def("close", pure_virtual(&IBci::close))             
     ;
 
-    class_<NonblockingBci, bases<Bci> >("NonblockingBci", init<Bci*>())
+    class_<NonblockingBci, bases<IBci> >("NonblockingBci", init<IBci*>())
         .def("open", &NonblockingBci::open)
         .def("init", &NonblockingBci::init)
         .def("channels", &NonblockingBci::channels)        
@@ -96,6 +96,6 @@ BOOST_PYTHON_MODULE(boosted_bci)
         .def("timestamp", &NonblockingBci::timestamp)
         .def("stop", &NonblockingBci::stop)    
         .def("close", &NonblockingBci::close)             
-        ;
+    ;
 }
 

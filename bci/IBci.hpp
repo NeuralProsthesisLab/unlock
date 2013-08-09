@@ -1,12 +1,12 @@
-#ifndef BCI_HPP
-#define BCI_HPP
+#ifndef IBCI_HPP
+#define IBCI_HPP
 
 #include <stdint.h>
 #include <cstddef>
 
-class Bci {
+class IBci {
 public:
-  virtual ~Bci() {}
+  virtual ~IBci() {}
   virtual bool open(uint8_t mac[])=0;
   virtual bool init(size_t channels)=0;
   virtual size_t channels()=0;

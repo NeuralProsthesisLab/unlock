@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(test)
   spsc_queue<Sample<uint32_t>*,  capacity<(42 - 1)> > queue;
   atomic<bool> done(false);
 
-  thread t(AsyncSampleCollector((Bci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue, &done, pProducerSamples,
+  thread t(AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue, &done, pProducerSamples,
                                             &sampleRingBuffer));
   boost::this_thread::sleep(boost::posix_time::seconds(1));
   BOOST_CHECK(!queue.empty());

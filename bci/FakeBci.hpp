@@ -3,11 +3,11 @@
 
 #include <boost/random/mersenne_twister.hpp>
 
-#include "Bci.hpp"
+#include "IBci.hpp"
 
 
 
-class FakeBci : public Bci {
+class FakeBci : public IBci {
 public:
     static const size_t MAC_ADDRESS_SIZE=6;    
 
