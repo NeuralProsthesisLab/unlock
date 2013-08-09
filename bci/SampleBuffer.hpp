@@ -2,6 +2,9 @@
 #define SAMPLE_BUFFER_HPP
 
 #include <boost/assert.hpp>
+#include <iostream>
+
+using namespace std;
 
 template<class T>
 class SampleBuffer
