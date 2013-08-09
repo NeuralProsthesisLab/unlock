@@ -9,7 +9,7 @@ using namespace std;
 using namespace boost;
 using namespace boost::lockfree;
 
-NonblockingBci::NonblockingBci(Bci* pBci) : mpBci(pBci), mpProducerSamples(0), mpConsumerSamples(0), mpSampleRingBuffer(0), mpQueue(0), mpDone(0) {
+NonblockingBci::NonblockingBci(IBci* pBci) : mpBci(pBci), mpProducerSamples(0), mpConsumerSamples(0), mpSampleRingBuffer(0), mpQueue(0), mpDone(0) {
   BOOST_VERIFY(mpBci != 0);
   mpProducerSamples = new Sample<uint32_t>[SAMPLE_BUFFER_SIZE];
   mpConsumerSamples = new Sample<uint32_t>[SAMPLE_BUFFER_SIZE];

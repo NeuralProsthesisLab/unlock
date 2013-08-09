@@ -7,7 +7,7 @@
 using namespace boost;
 using namespace std;
 
-AsyncSampleCollector::AsyncSampleCollector(Bci* pBci,
+AsyncSampleCollector::AsyncSampleCollector(IBci* pBci,
 		       lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
 		       atomic<bool>* pDone, Sample<uint32_t>* pSamples, SampleBuffer<uint32_t>* pRingBuffer) 
     : mpBci(pBci), mpQueue(pQueue), mpDone(pDone), mpSamples(pSamples), mpRingBuffer(pRingBuffer),

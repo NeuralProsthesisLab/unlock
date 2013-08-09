@@ -14,7 +14,7 @@ BOOST_AUTO_TEST_SUITE(NonblockingBciTest)
 
 BOOST_AUTO_TEST_CASE(test_create_delete)
 {
-    Bci* fbci = new FakeBci();
+    IBci* fbci = new FakeBci();
     NonblockingBci* bci = new NonblockingBci(fbci);
     delete bci;
 }
