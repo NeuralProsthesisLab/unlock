@@ -1,11 +1,11 @@
 #include <boost/assert.hpp>
 #include <boost/thread.hpp>
-#include <iostream>
+//#include <iostream>
 
 #include "AsyncSampleCollector.hpp"
 
 using namespace boost;
-using namespace std;
+//using namespace std;
 
 static const size_t YIELD_THRESHOLD=1337;
 
@@ -20,7 +20,6 @@ AsyncSampleCollector::AsyncSampleCollector(IBci* pBci,
     BOOST_VERIFY(mpWorkController != 0);
     BOOST_VERIFY(mpSamples != 0);
     BOOST_VERIFY(mpRingBuffer != 0);
-    cout << "Async collector created successfully " << mpWorkController->doWork() << endl;
   }
 
 AsyncSampleCollector::AsyncSampleCollector(const AsyncSampleCollector& copy)
@@ -67,19 +66,21 @@ bool AsyncSampleCollector::operator!=(const AsyncSampleCollector& rhs) {
   
 void AsyncSampleCollector::operator()() {
     BOOST_VERIFY(mpBci != 0 && mpQueue != 0 && mpSamples != 0 && mpRingBuffer != 0 && mpWorkController != 0);
-    cout << " mpDone = " << mpWorkController->doWork() << endl;
-    
+    size_t iterations = 0;
     while(mpWorkController->doWork()) {
-      for(size_t i = 0; i < YIELD_THRESHOLD; i++) {
-        size_t samples = mpBci->acquire();
-        size_t channels = mpBci->channels();
-        uint32_t* pBuffer = mpRingBuffer->reserve(samples*channels);
-        mpBci->getdata(pBuffer, samples);
-        mpSamples[mCurrentSample].configure(pBuffer, samples);
-        while (!mpQueue->push(mpSamples+mCurrentSample))
-          ;
-        mCurrentSample++;
+      iterations++;
+      if (iterations == YIELD_THRESHOLD) {
+        iterations = 0;
+        thread::yield();
       }
-      thread::yield();
+      
+      size_t samples = mpBci->acquire();
+      size_t channels = mpBci->channels();
+      uint32_t* pBuffer = mpRingBuffer->reserve(samples*channels);
+      mpBci->getdata(pBuffer, samples);
+      mpSamples[mCurrentSample].configure(pBuffer, samples*channels);
+      while (!mpQueue->push(mpSamples+mCurrentSample))
+        ;
+      mCurrentSample++;
     }
   }
