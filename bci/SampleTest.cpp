@@ -7,7 +7,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(SampleTest)
  
-BOOST_AUTO_TEST_CASE(test_sample)
+BOOST_AUTO_TEST_CASE(testSample)
 {
     uint8_t test_sample[6] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6 };
     
@@ -34,12 +34,6 @@ BOOST_AUTO_TEST_CASE(test_sample)
     s1 = s2;
     BOOST_CHECK(s1.length() == 9);
     BOOST_CHECK(s1.sample() == test_sample1);
-}
-
-BOOST_AUTO_TEST_CASE(test_sample_buffer)
-{
-    SampleBuffer<uint32_t> sample_buffer;
-    BOOST_CHECK(sample_buffer.maximum_reservation() == RING_SIZE-1);   
 }
 
 BOOST_AUTO_TEST_SUITE_END()

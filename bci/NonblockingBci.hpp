@@ -7,11 +7,13 @@
 
 #include "Bci.hpp"
 #include "Sample.hpp"
+#include "SampleBuffer.hpp"
 
-static const size_t SAMPLE_BUFFER_SIZE=8192;
 
 class NonblockingBci : public Bci {
-
+public:
+    static const size_t SAMPLE_BUFFER_SIZE=8192;
+    
 public:
   NonblockingBci(Bci*);
   NonblockingBci(const NonblockingBci& copy);

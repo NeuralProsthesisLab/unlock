@@ -1,12 +1,16 @@
 #ifndef FAKE_BCI_HPP
 #define FAKE_BCI_HPP
 
-#include "bci.hpp"
 #include <boost/random/mersenne_twister.hpp>
 
-static const size_t MAC_ADDRESS_SIZE=6;
+#include "Bci.hpp"
+
+
 
 class FakeBci : public Bci {
+public:
+    static const size_t MAC_ADDRESS_SIZE=6;    
+
 public:
   FakeBci();
   virtual ~FakeBci();
