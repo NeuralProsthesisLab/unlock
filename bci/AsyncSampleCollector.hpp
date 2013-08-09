@@ -20,13 +20,14 @@ public:
   
 public:
   AsyncSampleCollector(IBci* pBci, lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
-		       IWorkController* pWorkController, Sample<uint32_t>* pSamples, SampleBuffer<uint32_t>* pRingBuffer);
-  
+		       IWorkController* pWorkController, Sample<uint32_t>* pSamples,
+               SampleBuffer<uint32_t>* pRingBuffer);
   AsyncSampleCollector(const AsyncSampleCollector& copy);
   virtual ~AsyncSampleCollector();
   
 public:
-  AsyncSampleCollector& operator=(const AsyncSampleCollector& other);
+  AsyncSampleCollector& operator=(const AsyncSampleCollector& rhs);
+  bool operator==(const AsyncSampleCollector& rhs);
   void operator()();
   
 private:
