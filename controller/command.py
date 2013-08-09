@@ -83,7 +83,7 @@ class RawBCICommand(Command):
         
         
 class CommandReceiverInterface(object):
-    def next_command(self):
+    def next_command(self, *args, **kwargs):
         raise NotImplementedError("Every CommandReceiverInterface must implement the next_command method")
         
     def stop(self):
@@ -180,3 +180,8 @@ class RawInlineBCIReceiver(CommandReceiverInterface):
         
     def stop(self):
         pass
+
+
+class DeltaCommandReceiver(CommandReceiverInterface):
+    def next_command(self, delta):
+        return Command(delta)
