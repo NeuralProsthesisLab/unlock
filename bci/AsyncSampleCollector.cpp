@@ -35,14 +35,24 @@ AsyncSampleCollector::~AsyncSampleCollector() {
     mpQueue=0;
  } 
 
-AsyncSampleCollector& AsyncSampleCollector::operator=(const AsyncSampleCollector& other) {
-    mpBci = other.mpBci;
-    mpQueue = other.mpQueue;
-    mpWorkController = other.mpWorkController;
-    mpSamples = other.mpSamples;
-    mpRingBuffer = other.mpRingBuffer;
-    mCurrentSample = other.mCurrentSample;
+AsyncSampleCollector& AsyncSampleCollector::operator=(const AsyncSampleCollector& rhs) {
+    mpBci = rhs.mpBci;
+    mpQueue = rhs.mpQueue;
+    mpWorkController = rhs.mpWorkController;
+    mpSamples = rhs.mpSamples;
+    mpRingBuffer = rhs.mpRingBuffer;
+    mCurrentSample = rhs.mCurrentSample;
     return *this;
+  }
+  
+bool AsyncSampleCollector::operator==(const AsyncSampleCollector& rhs) {
+    if (mpBci == rhs.mpBci && mpQueue == rhs.mpQueue && mpWorkController == rhs.mpWorkController
+        && mpSamples == rhs.mpSamples && mpRingBuffer == rhs.mpRingBuffer
+        && mCurrentSample == rhs.mCurrentSample) {
+      return true;
+    } else {
+      return false;
+    }
   }
   
 void AsyncSampleCollector::operator()() {
