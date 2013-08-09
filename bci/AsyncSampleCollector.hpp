@@ -16,9 +16,6 @@ using namespace boost::lockfree;
 class AsyncSampleCollector
 {
 public:
-  static const size_t YIELD_THRESHOLD=1337;
-  
-public:
   AsyncSampleCollector(IBci* pBci, lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
 		       IWorkController* pWorkController, Sample<uint32_t>* pSamples,
                SampleBuffer<uint32_t>* pRingBuffer);

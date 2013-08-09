@@ -7,6 +7,8 @@
 using namespace boost;
 using namespace std;
 
+static const size_t YIELD_THRESHOLD=1337;
+
 AsyncSampleCollector::AsyncSampleCollector(IBci* pBci,
 		       lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
 		       IWorkController* pWorkController, Sample<uint32_t>* pSamples, SampleBuffer<uint32_t>* pRingBuffer) 
