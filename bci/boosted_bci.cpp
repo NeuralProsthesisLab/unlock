@@ -1,22 +1,22 @@
 
-#include "bci.hpp"
-#include "fake_bci.hpp"
-#include "nonblocking_bci.hpp"
+#include "Bci.hpp"
+#include "FakeBci.hpp"
+#include "NonblockingBci.hpp"
 
 #include <boost/python.hpp>
 #include <stdint.h>
 
 using namespace boost::python;
 
-class BCIPythonWrap : public BCI, public wrapper<BCI>
+class BciPythonWrap : public Bci, public wrapper<Bci>
 {
 public:
-    BCIPythonWrap(BCI* pBCI) : mpBCI(pBCI) {
+    BciPythonWrap(Bci* pBci) : mpBci(pBci) {
         
     }
     
-    virtual ~BCIPythonWrap() {
-        delete mpBCI;
+    virtual ~BciPythonWrap() {
+        delete mpBci;
     }
     
     bool open(uint8_t mac[]) {
@@ -58,14 +58,14 @@ public:
     }
 
 private:
-    BCI* mpBCI;    
+    Bci* mpBci;    
 };
 
-BCI* create_fake_bci() {
-    return new BCIPythonWrap(new FakeBCI());
+Bci* create_fake_bci() {
+    return new BciPythonWrap(new FakeBci());
 }
 
-BCI* create_enobio_bci() {
+Bci* create_enobio_bci() {
     return create_fake_bci();
 }
 
@@ -74,28 +74,28 @@ BOOST_PYTHON_MODULE(boosted_bci)
     def("create_fake_bci", create_fake_bci, return_value_policy<manage_new_object>());
     def("create_enobio_bci", create_enobio_bci, return_value_policy<manage_new_object>());
 
-    class_<BCIPythonWrap, boost::noncopyable>("BCI", no_init)
-        .def("open", pure_virtual(&BCI::open))
-        .def("init", pure_virtual(&BCI::init))
-        .def("channels", pure_virtual(&BCI::channels))      
-        .def("start", pure_virtual(&BCI::start))
-        .def("acquire", pure_virtual(&BCI::acquire))
-        .def("getdata", pure_virtual(&BCI::getdata))
-        .def("timestamp", pure_virtual(&BCI::timestamp))
-        .def("stop", pure_virtual(&BCI::stop))
-        .def("close", pure_virtual(&BCI::close))             
+    class_<BciPythonWrap, boost::noncopyable>("Bci", no_init)
+        .def("open", pure_virtual(&Bci::open))
+        .def("init", pure_virtual(&Bci::init))
+        .def("channels", pure_virtual(&Bci::channels))      
+        .def("start", pure_virtual(&Bci::start))
+        .def("acquire", pure_virtual(&Bci::acquire))
+        .def("getdata", pure_virtual(&Bci::getdata))
+        .def("timestamp", pure_virtual(&Bci::timestamp))
+        .def("stop", pure_virtual(&Bci::stop))
+        .def("close", pure_virtual(&Bci::close))             
     ;
 
-    class_<NonblockingBCI, bases<BCI> >("NonblockingBCI", init<BCI*>())
-        .def("open", &NonblockingBCI::open)
-        .def("init", &NonblockingBCI::init)
-        .def("channels", &NonblockingBCI::channels)        
-        .def("start", &NonblockingBCI::start)    
-        .def("acquire", &NonblockingBCI::acquire)
-        .def("getdata", &NonblockingBCI::getdata)    
-        .def("timestamp", &NonblockingBCI::timestamp)
-        .def("stop", &NonblockingBCI::stop)    
-        .def("close", &NonblockingBCI::close)             
+    class_<NonblockingBci, bases<Bci> >("NonblockingBci", init<Bci*>())
+        .def("open", &NonblockingBci::open)
+        .def("init", &NonblockingBci::init)
+        .def("channels", &NonblockingBci::channels)        
+        .def("start", &NonblockingBci::start)    
+        .def("acquire", &NonblockingBci::acquire)
+        .def("getdata", &NonblockingBci::getdata)    
+        .def("timestamp", &NonblockingBci::timestamp)
+        .def("stop", &NonblockingBci::stop)    
+        .def("close", &NonblockingBci::close)             
         ;
 }
 

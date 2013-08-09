@@ -1,14 +1,19 @@
+#include <boost/assert.hpp>
+#include <boost/thread.hpp>
+#include <iostream>
+
 #include "AsyncSampleCollector.hpp"
 
-static const size_t YIELD_THRESHOLD=1337;
+using namespace boost;
+using namespace std;
 
-AsyncSampleCollector::AsyncSampleCollector(BCI* pBCI,
-		       lockfree::spsc_queue<Sample<uint32_t>*, lockfree::capacity<(SAMPLE_BUFFER_SIZE-1)> >* pQueue,
+AsyncSampleCollector::AsyncSampleCollector(Bci* pBci,
+		       lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
 		       atomic<bool>* pDone, Sample<uint32_t>* pSamples, SampleBuffer<uint32_t>* pRingBuffer) 
-    : mpBCI(pBCI), mpQueue(pQueue), mpDone(pDone), mpSamples(pSamples), mpRingBuffer(pRingBuffer),
+    : mpBci(pBci), mpQueue(pQueue), mpDone(pDone), mpSamples(pSamples), mpRingBuffer(pRingBuffer),
       mCurrentSample(0)
   {
-    BOOST_VERIFY(mpBCI != 0);
+    BOOST_VERIFY(mpBci != 0);
     BOOST_VERIFY(mpQueue != 0 && mpQueue->is_lock_free());
     BOOST_VERIFY(mpDone != 0);
     BOOST_VERIFY(mpSamples != 0);
@@ -17,7 +22,7 @@ AsyncSampleCollector::AsyncSampleCollector(BCI* pBCI,
   }
 
 AsyncSampleCollector::AsyncSampleCollector(const AsyncSampleCollector& copy)
-    : mpBCI(copy.mpBCI), mpQueue(copy.mpQueue), mpDone(copy.mpDone), mpSamples(copy.mpSamples),
+    : mpBci(copy.mpBci), mpQueue(copy.mpQueue), mpDone(copy.mpDone), mpSamples(copy.mpSamples),
       mpRingBuffer(copy.mpRingBuffer), mCurrentSample(copy.mCurrentSample) {
   }
     
@@ -25,13 +30,13 @@ AsyncSampleCollector::AsyncSampleCollector(const AsyncSampleCollector& copy)
 AsyncSampleCollector::~AsyncSampleCollector() {
     mpSamples=0;
     mpRingBuffer=0;
-    mpBCI=0;
+    mpBci=0;
     mpDone=0;
     mpQueue=0;
  } 
 
 AsyncSampleCollector& AsyncSampleCollector::operator=(const AsyncSampleCollector& other) {
-    mpBCI = other.mpBCI;
+    mpBci = other.mpBci;
     mpQueue = other.mpQueue;
     mpDone = other.mpDone;
     mpSamples = other.mpSamples;
@@ -42,13 +47,13 @@ AsyncSampleCollector& AsyncSampleCollector::operator=(const AsyncSampleCollector
   
 void AsyncSampleCollector::operator()() {
     cout << " mpDone = " << (bool)*mpDone << endl;
-    BOOST_VERIFY(mpBCI != 0 && mpQueue != 0 && mpSamples != 0 && mpRingBuffer != 0);
+    BOOST_VERIFY(mpBci != 0 && mpQueue != 0 && mpSamples != 0 && mpRingBuffer != 0);
     while(!(*(mpDone))) {
       for(size_t i = 0; i < YIELD_THRESHOLD; i++) {
-        size_t samples = mpBCI->acquire();
-        size_t channels = mpBCI->channels();
+        size_t samples = mpBci->acquire();
+        size_t channels = mpBci->channels();
         uint32_t* pBuffer = mpRingBuffer->reserve(samples*channels);
-        mpBCI->getdata(pBuffer, samples);
+        mpBci->getdata(pBuffer, samples);
         mpSamples[mCurrentSample].configure(pBuffer, samples);
         while (!mpQueue->push(mpSamples+mCurrentSample))
           ;

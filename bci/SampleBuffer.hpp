@@ -3,10 +3,11 @@
 
 #include <boost/assert.hpp>
 
-static const size_t RING_SIZE=1048576;
-
 template<class T>
 class SampleBuffer {
+public:
+    static const size_t RING_SIZE=1048576;
+    
 public:
   SampleBuffer() : mpBuffer(0), mPosition(0) {
     mpBuffer = new T[RING_SIZE];
@@ -25,7 +26,7 @@ public:
     delete[] mpBuffer;
   }
 
-  size_t maximum_reservation() {
+  size_t maximumReservation() {
     return RING_SIZE-1;
   }
     

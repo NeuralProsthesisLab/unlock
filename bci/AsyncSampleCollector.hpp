@@ -10,15 +10,20 @@
 #include "SampleBuffer.hpp"
 
 using namespace boost;
+using namespace boost::lockfree;
 
 class AsyncSampleCollector
 {
 public:
-  AsyncSampleCollector(Bci* pBci, lockfree::spsc_queue<Sample<uint32_t>*, lockfree::capacity<(SAMPLE_BUFFER_SIZE-1)> >* pQueue,
+  static const size_t YIELD_THRESHOLD=1337;
+  
+  
+public:
+  AsyncSampleCollector(Bci* pBci, lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
 		       atomic<bool>* pDone, Sample<uint32_t>* pSamples, SampleBuffer<uint32_t>* pRingBuffer);
   
   AsyncSampleCollector(const AsyncSampleCollector& copy);
-  ~AsyncSampleCollector();
+  virtual ~AsyncSampleCollector();
   
 public:
   AsyncSampleCollector& operator=(const AsyncSampleCollector& other);
@@ -26,7 +31,7 @@ public:
   
 private:
   Bci* mpBci;
-  spsc_queue<Sample<uint32_t>*, capacity<(SAMPLE_BUFFER_SIZE-1)> >* mpQueue;
+  spsc_queue<Sample<uint32_t>* >* mpQueue;
   atomic<bool>* mpDone;
   Sample<uint32_t>* mpSamples;
   SampleBuffer<uint32_t>* mpRingBuffer;

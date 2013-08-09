@@ -1,4 +1,4 @@
-#include "fake_bci.hpp"
+#include "fakeBci.hpp"
 #include <limits>
 #include <boost/random/uniform_int_distribution.hpp>
 
