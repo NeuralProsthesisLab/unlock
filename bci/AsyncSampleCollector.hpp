@@ -23,6 +23,9 @@ public:
   virtual ~AsyncSampleCollector();
   
 public:
+  size_t currentSample() const;
+  
+public:
   AsyncSampleCollector& operator=(const AsyncSampleCollector& rhs);
   bool operator==(const AsyncSampleCollector& rhs);
   bool operator!=(const AsyncSampleCollector& rhs);  

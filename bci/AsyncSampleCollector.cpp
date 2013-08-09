@@ -37,6 +37,10 @@ AsyncSampleCollector::~AsyncSampleCollector() {
     mpQueue=0;
  } 
 
+size_t AsyncSampleCollector::currentSample() const {
+  return mCurrentSample;
+}
+
 AsyncSampleCollector& AsyncSampleCollector::operator=(const AsyncSampleCollector& rhs) {
     mpBci = rhs.mpBci;
     mpQueue = rhs.mpQueue;
