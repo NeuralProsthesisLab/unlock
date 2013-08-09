@@ -28,6 +28,7 @@ public:
 public:
   AsyncSampleCollector& operator=(const AsyncSampleCollector& rhs);
   bool operator==(const AsyncSampleCollector& rhs);
+  bool operator!=(const AsyncSampleCollector& rhs);  
   void operator()();
   
 private:
