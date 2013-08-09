@@ -9,30 +9,30 @@ using namespace std;
 using namespace boost;
 using namespace boost::lockfree;
 
-NonblockingBci::NonblockingBci(IBci* pBci) : mpBci(pBci), mpProducerSamples(0), mpConsumerSamples(0), mpSampleRingBuffer(0), mpQueue(0), mpDone(0) {
+NonblockingBci::NonblockingBci(IBci* pBci) : mpBci(pBci), mpProducerSamples(0), mpConsumerSamples(0), mpSampleRingBuffer(0), mpQueue(0), mpWorkController(0) {
   BOOST_VERIFY(mpBci != 0);
   mpProducerSamples = new Sample<uint32_t>[SAMPLE_BUFFER_SIZE];
   mpConsumerSamples = new Sample<uint32_t>[SAMPLE_BUFFER_SIZE];
   mpSampleRingBuffer = new SampleBuffer<uint32_t>();
   mpQueue = new spsc_queue<Sample<uint32_t>*, capacity<(SAMPLE_BUFFER_SIZE-1)> > ();
-  mpDone = new atomic<bool>(true);
+  mpWorkController = new ManagedWorkController(false);
   BOOST_VERIFY(mpQueue != 0);
   BOOST_VERIFY(mpProducerSamples != 0);
   BOOST_VERIFY(mpConsumerSamples != 0);
-  BOOST_VERIFY(mpSampleRingBuffer != 0);  
-  BOOST_VERIFY(mpDone != 0 && *mpDone == true);
+  BOOST_VERIFY(mpSampleRingBuffer != 0);
+  BOOST_VERIFY(mpWorkController != 0 && !mpWorkController->doWork());
 }
 
 NonblockingBci::NonblockingBci(const NonblockingBci& copy)
   : mpBci(copy.mpBci), mpProducerSamples(copy.mpProducerSamples), mpConsumerSamples(copy.mpConsumerSamples),
-  mpSampleRingBuffer(copy.mpSampleRingBuffer), mpQueue(copy.mpQueue), mpDone(copy.mpDone),
+  mpSampleRingBuffer(copy.mpSampleRingBuffer), mpQueue(copy.mpQueue), mpWorkController(copy.mpWorkController),
   mpAsyncSampleCollector(copy.mpAsyncSampleCollector)
 {  
 }
 
 NonblockingBci::~NonblockingBci()  {
-  
-  if (!(*mpDone)) {
+  BOOST_VERIFY(mpWorkController != 0);
+  if (mpWorkController->doWork()) {
     waitForAsyncCollector();
   }
   
@@ -41,15 +41,17 @@ NonblockingBci::~NonblockingBci()  {
   delete[] mpConsumerSamples;
   delete mpSampleRingBuffer;
   delete mpQueue;
-  delete mpDone;
-  delete mpAsyncSampleCollector;
+  delete mpWorkController;
+  if(mpAsyncSampleCollector != 0) {
+    delete mpAsyncSampleCollector;
+    mpAsyncSampleCollector = 0;
+  }
   mpBci=0;
   mpProducerSamples=0;
   mpConsumerSamples=0;
   mpSampleRingBuffer=0;
   mpQueue=0;
-  mpDone=0;
-  mpAsyncSampleCollector=0;
+  mpWorkController=0;
 }
 
 NonblockingBci& NonblockingBci::operator=(const NonblockingBci& other)
@@ -59,7 +61,7 @@ NonblockingBci& NonblockingBci::operator=(const NonblockingBci& other)
   mpConsumerSamples = other.mpConsumerSamples;
   mpSampleRingBuffer = other.mpSampleRingBuffer;
   mpQueue = other.mpQueue;
-  mpDone = other.mpDone;
+  mpWorkController = other.mpWorkController;
   mpAsyncSampleCollector = other.mpAsyncSampleCollector;
   return *this;
 }
@@ -81,14 +83,15 @@ bool NonblockingBci::start()  {
   bool ret = mpBci->start();
   if(ret) {
     cerr << "Starting... " << endl;
-    *mpDone = false;
-    mpAsyncSampleCollector = new thread(AsyncSampleCollector(mpBci, (boost::lockfree::spsc_queue<Sample<uint32_t>* >*)mpQueue, mpDone, mpProducerSamples, mpSampleRingBuffer));
+    BOOST_VERIFY(mpAsyncSampleCollector == 0);
+    mpWorkController->setDoWorkState(true);
+    mpAsyncSampleCollector = new thread(AsyncSampleCollector(mpBci, (boost::lockfree::spsc_queue<Sample<uint32_t>* >*)mpQueue, mpWorkController, mpProducerSamples, mpSampleRingBuffer));
   }
   return ret;
 }
 
 size_t NonblockingBci::acquire()  {
-  if (*mpDone) {
+  if (!mpWorkController->doWork()) {
     // XXX - setup logging.  
     cerr << "NonblockingBci.acquire: WARNING acquire called when device not started; returning 0"
          << endl; 
@@ -106,7 +109,7 @@ size_t NonblockingBci::acquire()  {
 }
 
 void NonblockingBci::getdata(uint32_t* data, size_t n)  {
-  if (*mpDone) {
+  if (!mpWorkController->doWork()) {
     cerr << "NonblockingBci.getdata: WARNING getdata called with " << data << ":"
          <<  n << " when device not started; not copying any data" << endl; 
     return;
@@ -134,8 +137,11 @@ bool NonblockingBci::close()  {
 }
 
 void NonblockingBci::waitForAsyncCollector() {
-  if(!(*mpDone)) {
-    *mpDone = true;
+  if(mpWorkController->doWork()) {
+    BOOST_VERIFY(mpAsyncSampleCollector != 0);
+    mpWorkController->setDoWorkState(false);
     mpAsyncSampleCollector->join();
+    delete mpAsyncSampleCollector;
+    mpAsyncSampleCollector = 0;
   }
 }
