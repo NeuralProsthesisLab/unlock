@@ -34,7 +34,7 @@ boost_bci = env.SharedLibrary(libname, SOURCES)
 
 unit_test_libs=['libboost_unit_test_framework.a']
 UNIT_TEST_SOURCES=['AsyncSampleCollectorTest.cpp', 'BciTestRunner.cpp', 'NonblockingBciTest.cpp',
-                   'SampleTest.cpp', 'IntegralWorkController.cpp']
+                   'SampleTest.cpp', 'IntegralWorkController.cpp', 'ManagedWorkControllerTest.cpp', 'IntegralWorkControllerTest.cpp']
 libs.append(libname)
 
 test_env = Environment(CPPPATH = includes, LIBS = libs, LIBPATH = lib_path)
