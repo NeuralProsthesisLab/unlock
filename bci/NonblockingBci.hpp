@@ -8,7 +8,7 @@
 #include "IBci.hpp"
 #include "Sample.hpp"
 #include "SampleBuffer.hpp"
-
+#include "ManagedWorkController.hpp"
 
 class NonblockingBci : public IBci {
 public:
@@ -41,7 +41,7 @@ private:
   SampleBuffer<uint32_t>* mpSampleRingBuffer;
   boost::lockfree::spsc_queue<Sample<uint32_t>*, boost::lockfree::capacity<(SAMPLE_BUFFER_SIZE-1)> >* mpQueue;
   boost::thread* mpAsyncSampleCollector;
-  boost::atomic<bool>* mpDone;
+  ManagedWorkController* mpWorkController;
 };
 
 #endif
