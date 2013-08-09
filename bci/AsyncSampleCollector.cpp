@@ -55,6 +55,10 @@ bool AsyncSampleCollector::operator==(const AsyncSampleCollector& rhs) {
     }
   }
   
+bool AsyncSampleCollector::operator!=(const AsyncSampleCollector& rhs) {
+  return !(*this == rhs);
+}
+  
 void AsyncSampleCollector::operator()() {
     BOOST_VERIFY(mpBci != 0 && mpQueue != 0 && mpSamples != 0 && mpRingBuffer != 0 && mpWorkController != 0);
     cout << " mpDone = " << mpWorkController->doWork() << endl;
