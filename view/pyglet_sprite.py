@@ -209,13 +209,16 @@ class FlickeringPygletSprite(PygletSprite):
             
     @staticmethod
     def create_flickering_checkered_box_sprite(model, canvas, position=SpritePositionComputer.Center, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
-            xduty=0.5, yduty=0.5, xuneven=False, yuneven=False, color_on=(0,0,0), color_off=(255,255,255)):
+            xduty=0.5, yduty=0.5, xuneven=False, yuneven=False, color_on=(0,0,0), color_off=(255,255,255), reversal=True):
             
         sprite = PygletSprite.create_checkered_box_sprite(model, canvas, position, rotation, width, height, xfreq, yfreq,
                                                           xduty, yduty, xuneven, yuneven, color_on, color_off)
-        reversed_sprite = PygletSprite.create_checkered_box_sprite(model, canvas, position, rotation, width, height, xfreq, yfreq,
+        if reversal:
+            reversed_sprite = PygletSprite.create_checkered_box_sprite(model, canvas, position, rotation, width, height, xfreq, yfreq,
                                                           xduty, yduty, xuneven, yuneven, color_off, color_on)
-            
+        else:
+            reversed_sprite = PygletSprite.create_checkered_box_sprite(model, canvas, position, rotation, width, height, xfreq, yfreq,
+                                                          xduty, yduty, xuneven, yuneven, (0,0,0), (0,0,0))
         return FlickeringPygletSprite(sprite, reversed_sprite, canvas.batch)
             
            
