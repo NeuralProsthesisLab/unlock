@@ -5,8 +5,6 @@
 
 #include "IBci.hpp"
 
-
-
 class FakeBci : public IBci
 {
 public:

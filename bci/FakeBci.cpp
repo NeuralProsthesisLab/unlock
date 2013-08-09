@@ -1,10 +1,7 @@
 #include <boost/random/uniform_int_distribution.hpp>
 #include <limits>
-#include <iostream>
 
 #include "fakeBci.hpp"
-
-using namespace std;
 
 FakeBci::FakeBci()
 	: mOpenCount(0), mOpenRet(true), mInitCount(0), mLastChannels(4), mInitRet(true), mChannelsCount(0), mStartCount(0), mStartRet(true),
@@ -47,19 +44,17 @@ bool FakeBci::start() {
 }
 
 size_t FakeBci::acquire() {
-	cout << "Acquire  " << mAcquireRet << endl;	
 	mAcquireCount++;
 	return mAcquireRet;
 }
 
 void FakeBci::getdata(uint32_t* buffer, size_t samples) {
-	cout << "BUffer " << buffer << ":" << samples << endl;
 	BOOST_VERIFY(buffer != 0);
 	BOOST_VERIFY(mAcquireRet == samples);
 	mGetDataCount++;
-	for(int i=0; i < samples; i++) {
-		for (int j=0; j < channels; j++) {
-			boost::random::uniform_int_distribution<> dist(0, std::numeric_limits<uint32_t>::max());
+	for(size_t i=0; i < samples; i++) {
+		for (size_t j=0; j < mLastChannels; j++) {
+			boost::random::uniform_int_distribution<> dist(1, std::numeric_limits<int32_t>::max());
 			buffer[i+j] = (uint32_t)dist(gen);
 		}
 	}
