@@ -4,7 +4,8 @@
 #include <cstddef>
 
 template<class T>
-class Sample {
+class Sample
+{
 public:
     Sample() : mpSample(0), mLength(0) {}
     

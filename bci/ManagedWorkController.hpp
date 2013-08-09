@@ -4,7 +4,8 @@
 #include <boost/atomic.hpp>
 #include "IWorkController.hpp"
 
-class ManagedWorkController : public IWorkController {
+class ManagedWorkController : public IWorkController
+{
 public:
     ManagedWorkController(bool startState);
     virtual ~ManagedWorkController();

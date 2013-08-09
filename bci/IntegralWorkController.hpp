@@ -5,7 +5,8 @@
 
 #include "IWorkController.hpp"
 
-class IntegralWorkController : public IWorkController {
+class IntegralWorkController : public IWorkController
+{
 public:
     IntegralWorkController(size_t iterations);
     virtual ~IntegralWorkController();

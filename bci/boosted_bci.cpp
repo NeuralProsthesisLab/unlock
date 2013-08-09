@@ -56,7 +56,6 @@ public:
     bool close() {
         return this->get_override("close")();                
     }
-
 private:
     IBci* mpBci;    
 };

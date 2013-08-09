@@ -10,7 +10,8 @@
 #include "SampleBuffer.hpp"
 #include "ManagedWorkController.hpp"
 
-class NonblockingBci : public IBci {
+class NonblockingBci : public IBci
+{
 public:
     static const size_t SAMPLE_BUFFER_SIZE=8192;
     
