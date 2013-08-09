@@ -44,7 +44,14 @@ BOOST_AUTO_TEST_CASE(test_create_copy)
   BOOST_VERIFY(c == c2);
   BOOST_VERIFY(c != c1);
   BOOST_VERIFY(!(c != c2));
-  BOOST_VERIFY(!(c == c1));  
+  BOOST_VERIFY(!(c == c1));
+  c = c1;
+  BOOST_VERIFY(c != c2);
+  BOOST_VERIFY(c == c1);
+  c = c2;
+  BOOST_VERIFY(c == c2);
+  BOOST_VERIFY(c != c1);  
 }
+
 
 BOOST_AUTO_TEST_SUITE_END()
