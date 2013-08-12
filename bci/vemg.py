@@ -8,7 +8,7 @@ import pandas as pd
 from pandas import *
 
 #acquiring data
-f = open("a.txt")
+f = open("c.txt")
 data = np.loadtxt(f)
 ch1_a = data[:,0]
 ch2_a = data[:,1]
@@ -16,6 +16,8 @@ ch3_a = data[:,2]
 ref = data[:,8]
 
 #initializing variables
+past_location = 0
+
 rightVisual = []
 leftVisual = []
 upVisual = []
@@ -46,16 +48,19 @@ past_down_location=0
 BoxSize = 25
 BoxSize2 = 200
 BoxSize3 = 50
+
 ch1_b = np.array([])
 ch2_b = np.array([])
 ch3_b = np.array([])
-ch1_c = np.zeros(10000)
-ch2_c = np.zeros(10000)
-ch3_c = np.zeros(10000)
+ch1_c = np.array([])
+ch2_c = np.array([])
+ch3_c = np.array([])
+
 countD = 0
 countU = 0
 countR = 0
 countL = 0
+
 Qorder = "Start"
 
 def lin_fit(signal):
@@ -70,9 +75,9 @@ for n in range(0,len(ch1_a)):#this loop is to mimic real-time acquisition
     ch3_b = np.append(ch3_b,ch3_a[n])
 
     if n==10000:
-        ch1_c[0:10000] = lin_fit(ch1_b)
-        ch2_c[0:10000] = lin_fit(ch2_b)
-        ch3_c[0:10000] = lin_fit(ch3_b)
+        ch1_c = copy(lin_fit(ch1_b))
+        ch2_c = copy(lin_fit(ch2_b))
+        ch3_c = copy(lin_fit(ch3_b))
 
         ch1_c[0:10000] = pd.rolling_mean(ch1_c[0:10000],BoxSize)
         ch2_c[0:10000] = pd.rolling_mean(ch2_c[0:10000],BoxSize)
@@ -110,6 +115,7 @@ for n in range(0,len(ch1_a)):#this loop is to mimic real-time acquisition
         ch2_p = copy(ch2_c)
         ch3_p = copy(ch3_c)
 
+        fig1=figure()
         plot(diff(ch1_c[0:10000]))
         plot(diff(ch2_c[0:10000]))
         plot(diff(ch3_c[0:10000]))
@@ -188,7 +194,6 @@ for n in range(0,len(ch1_a)):#this loop is to mimic real-time acquisition
         ch2_y = np.append(ch2_y,ch2_z[n-1])
         ch3_y = np.append(ch3_y,ch3_z[n-1])
 
-
         ch1_X=diff(ch1_y)
         ch2_X=diff(ch2_y)
         ch3_X=diff(ch3_y)
@@ -201,14 +206,15 @@ for n in range(0,len(ch1_a)):#this loop is to mimic real-time acquisition
         if ch3_X[n-4]>ch3_X[n-3] and ch3_X[n-3]<ch3_X[n-2] and ch3_X[n-3]<minThresh:
             clue_2 = n
 
-        if abs(diff([clue_1,clue_2]))<75:
+        if abs(diff([clue_1,clue_2]))<100:
             left_location = (clue_1+clue_2)/2
             
         if past_left_location == 0 and clue_1!=1000 and clue_2!=-1000:
             past_left_location = n
             
-        if (left_location-past_left_location)>100:
+        if (left_location-past_location)>500:
             print('Left', left_location)
+            past_location = left_location
             past_left_location = left_location
             leftVisual.append(left_location)
             clue_1=1000
@@ -220,14 +226,15 @@ for n in range(0,len(ch1_a)):#this loop is to mimic real-time acquisition
         if ch1_X[n-4]>ch1_X[n-3] and ch1_X[n-3]<ch1_X[n-2] and ch1_X[n-3]<minThresh:
             clue_4 = n
 
-        if abs(diff([clue_3,clue_4]))<maxThresh:
+        if abs(diff([clue_3,clue_4]))<100:
             right_location = (clue_3+clue_4)/2
             
         if past_right_location == 0 and clue_3!=1000 and clue_4!=-1000:
             past_right_location = n
             
-        if (right_location-past_right_location)>100:
+        if (right_location-past_location)>500:
             print('Right', right_location)
+            past_location = right_location
             past_right_location = right_location
             rightVisual.append(right_location)
             clue_3=1000
@@ -242,14 +249,15 @@ for n in range(0,len(ch1_a)):#this loop is to mimic real-time acquisition
         if ch3_X[n-4]<ch3_X[n-3] and ch3_X[n-3]>ch3_X[n-2] and ch3_X[n-3]>maxThresh:
             clue_7 = n
 
-        if abs(diff([clue_5,clue_6]))<75 and abs(diff([clue_5,clue_7]))<75 and abs(diff([clue_6,clue_7]))<75:
+        if abs(diff([clue_5,clue_6]))<100 and abs(diff([clue_5,clue_7]))<100 and abs(diff([clue_6,clue_7]))<100:
             up_location = (clue_5+clue_6+clue_7)/3
             
         if past_up_location == 0 and clue_5!=-1000 and clue_6!=-1000 and clue_7!=-1000:
             past_up_location = n
             
-        if (up_location-past_up_location)>100:
+        if (up_location-past_location)>500:
             print('Up', up_location)
+            past_location = up_location
             past_up_location = up_location
             upVisual.append(up_location)
             clue_5 = -1000
@@ -265,14 +273,15 @@ for n in range(0,len(ch1_a)):#this loop is to mimic real-time acquisition
         if ch3_X[n-4]>ch3_X[n-3] and ch3_X[n-3]<ch3_X[n-2] and ch3_X[n-3]<minThresh:
             clue_10 = n
 
-        if abs(diff([clue_8,clue_9]))<75 and abs(diff([clue_8,clue_10]))<75 and abs(diff([clue_9,clue_10]))<75:
+        if abs(diff([clue_8,clue_9]))<100 and abs(diff([clue_8,clue_10]))<100 and abs(diff([clue_9,clue_10]))<100:
             down_location = (clue_8+clue_9+clue_10)/3
             
         if past_down_location == 0 and clue_5!=1000 and clue_6!=1000 and clue_7!=1000:
             past_down_location = n
             
-        if (down_location-past_down_location)>100:
+        if (down_location-past_location)>500:
             print('Down', down_location)
+            past_location = down_location
             past_down_location = down_location
             downVisual.append(down_location)
             clue_8 = 1000
