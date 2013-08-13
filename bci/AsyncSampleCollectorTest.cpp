@@ -67,8 +67,6 @@ BOOST_AUTO_TEST_CASE(test_current_sample)
   IntegralWorkController workController(1);
   IntegralWorkController workController1(1);
 
-  
-  
   AsyncSampleCollector c = AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
                                             &workController, pProducerSamples, 1339, &sampleRingBuffer);  
   for(int i=0; i < 1338; i++) {
@@ -122,7 +120,7 @@ BOOST_AUTO_TEST_CASE(test_threaded_functor)
   
   boost::thread t(AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
                                            &workController, pProducerSamples, 4200, &sampleRingBuffer));
- //c();
+
  t.join();
  
  BOOST_CHECK_EQUAL(1, fbci.mAcquireCount);
