@@ -61,7 +61,7 @@ AsyncSampleCollector& AsyncSampleCollector::operator=(const AsyncSampleCollector
     return *this;
   }
   
-bool AsyncSampleCollector::operator==(const AsyncSampleCollector& rhs) {
+bool AsyncSampleCollector::operator==(const AsyncSampleCollector& rhs) const {
     if (mpBci == rhs.mpBci && mpQueue == rhs.mpQueue && mpWorkController == rhs.mpWorkController
         && mpSamples == rhs.mpSamples && mpRingBuffer == rhs.mpRingBuffer
         && mCurrentSample == rhs.mCurrentSample) {
@@ -71,7 +71,7 @@ bool AsyncSampleCollector::operator==(const AsyncSampleCollector& rhs) {
     }
   }
   
-bool AsyncSampleCollector::operator!=(const AsyncSampleCollector& rhs) {
+bool AsyncSampleCollector::operator!=(const AsyncSampleCollector& rhs) const {
   return !(*this == rhs);
 }
   
