@@ -40,7 +40,7 @@ class TrialTimeState(object):
         self.period_duration = self.trial_duration + self.rest_duration
         
     def begin_trial(self):
-        self.trial_time = 0
+        self.trial_time -= self.trial_duration
         self.last_time = time.time()
         
     def update_trial_time(self, delta):
