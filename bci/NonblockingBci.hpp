@@ -40,7 +40,7 @@ private:
   Sample<uint32_t>* mpProducerSamples;
   Sample<uint32_t>* mpConsumerSamples;
   SampleBuffer<uint32_t>* mpSampleRingBuffer;
-  boost::lockfree::spsc_queue<Sample<uint32_t>*, boost::lockfree::capacity<(SAMPLE_BUFFER_SIZE-1)> >* mpQueue;
+  boost::lockfree::spsc_queue<Sample<uint32_t>* >* mpQueue;
   boost::thread* mpAsyncSampleCollector;
   ManagedWorkController* mpWorkController;
 };
