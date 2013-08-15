@@ -9,8 +9,9 @@
 #include "Sample.hpp"
 #include "SampleBuffer.hpp"
 #include "ManagedWorkController.hpp"
+#include "Portability.hpp"
 
-class NonblockingBci : public IBci
+class DllExport NonblockingBci : public IBci
 {
 public:
     static const size_t SAMPLE_BUFFER_SIZE=8192;

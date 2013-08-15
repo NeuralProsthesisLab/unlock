@@ -1,7 +1,9 @@
 #ifndef IWORK_CONTROLLER_HPP
 #define IWORK_CONTROLLER_HPP
 
-class IWorkController
+#include "Portability.hpp"
+
+class DllExport IWorkController
 {
 public:
     virtual ~IWorkController() {}

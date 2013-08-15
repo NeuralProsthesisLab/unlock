@@ -3,8 +3,9 @@
 
 #include <boost/atomic.hpp>
 #include "IWorkController.hpp"
+#include "Portability.hpp"
 
-class ManagedWorkController : public IWorkController
+class DllExport ManagedWorkController : public IWorkController
 {
 public:
     ManagedWorkController(bool startState);

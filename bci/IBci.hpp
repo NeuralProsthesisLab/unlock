@@ -4,7 +4,9 @@
 #include <stdint.h>
 #include <cstddef>
 
-class IBci
+#include "Portability.hpp"
+
+class DllExport IBci
 {
 public:
   virtual ~IBci() {}
