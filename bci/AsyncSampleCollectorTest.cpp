@@ -24,7 +24,7 @@ BOOST_AUTO_TEST_CASE(test_create_destroy)
   IntegralWorkController workController(1);
 
   AsyncSampleCollector* collector = new AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
-                                            &workController, pProducerSamples, &sampleRingBuffer);
+                                            &workController, pProducerSamples, 42, &sampleRingBuffer);
   delete collector;
 }
 
@@ -39,9 +39,11 @@ BOOST_AUTO_TEST_CASE(test_create_copy)
   IntegralWorkController workController1(1);
 
   AsyncSampleCollector c = AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
-                                            &workController, pProducerSamples, &sampleRingBuffer);  
+                                            &workController, pProducerSamples, 1339, &sampleRingBuffer);
+  
   AsyncSampleCollector c1 = AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
-                                            &workController1, pProducerSamples, &sampleRingBuffer);  
+                                            &workController1, pProducerSamples, 1339, &sampleRingBuffer);
+  
   AsyncSampleCollector c2(c);
   BOOST_VERIFY(c == c2);
   BOOST_VERIFY(c != c1);
@@ -55,6 +57,35 @@ BOOST_AUTO_TEST_CASE(test_create_copy)
   BOOST_VERIFY(c != c1);  
 }
 
+BOOST_AUTO_TEST_CASE(test_current_sample)
+{
+  cout << "AsyncSampleCollector.test_current_sample " << endl;    
+  FakeBci fbci;
+  Sample<uint32_t>* pProducerSamples = new Sample<uint32_t>[1339];
+  SampleBuffer<uint32_t> sampleRingBuffer;
+  spsc_queue<Sample<uint32_t>*,  capacity<(1338)> > queue;
+  IntegralWorkController workController(1);
+  IntegralWorkController workController1(1);
+
+  AsyncSampleCollector c = AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
+                                            &workController, pProducerSamples, 1339, &sampleRingBuffer);  
+  for(int i=0; i < 1338; i++) {
+    BOOST_CHECK_EQUAL(i, c.currentSample());
+    c.incrementCurrentSample();
+  }
+  
+  c.incrementCurrentSample();
+    
+  for(int i=0; i < 1338; i++) {
+    BOOST_CHECK_EQUAL(i, c.currentSample());
+    c.incrementCurrentSample();
+  }
+  
+  c.incrementCurrentSample();
+  BOOST_CHECK_EQUAL(0, c.currentSample());
+
+}
+
 BOOST_AUTO_TEST_CASE(test_functor)
 {
   cout << "AsyncSampleCollector.test_functor " << endl;
@@ -65,7 +96,7 @@ BOOST_AUTO_TEST_CASE(test_functor)
   IntegralWorkController workController(1);
   
   AsyncSampleCollector c = AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
-                                           &workController, pProducerSamples, &sampleRingBuffer);
+                                           &workController, pProducerSamples, 4200, &sampleRingBuffer);
  c();
  BOOST_CHECK_EQUAL(1, fbci.mAcquireCount);
  BOOST_CHECK_EQUAL(1, fbci.mChannelsCount);
@@ -88,8 +119,8 @@ BOOST_AUTO_TEST_CASE(test_threaded_functor)
   IntegralWorkController workController(1);
   
   boost::thread t(AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
-                                           &workController, pProducerSamples, &sampleRingBuffer));
- //c();
+                                           &workController, pProducerSamples, 4200, &sampleRingBuffer));
+
  t.join();
  
  BOOST_CHECK_EQUAL(1, fbci.mAcquireCount);
