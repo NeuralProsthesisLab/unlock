@@ -4,8 +4,9 @@
 #include <cstddef>
 
 #include "IWorkController.hpp"
+#include "Portability.hpp"
 
-class IntegralWorkController : public IWorkController
+class DllExport IntegralWorkController : public IWorkController
 {
 public:
     IntegralWorkController(size_t iterations);

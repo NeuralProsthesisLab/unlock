@@ -2,12 +2,10 @@
 #define SAMPLE_BUFFER_HPP
 
 #include <boost/assert.hpp>
-#include <iostream>
-
-using namespace std;
+#include "Portability.hpp"
 
 template<class T>
-class SampleBuffer
+class DllExport SampleBuffer
 {
 public:
     static const size_t RING_SIZE=1048576;

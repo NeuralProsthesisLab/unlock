@@ -2,13 +2,14 @@
 #include "IBci.hpp"
 #include "FakeBci.hpp"
 #include "NonblockingBci.hpp"
+#include "Portability.hpp"
 
 #include <boost/python.hpp>
 #include <stdint.h>
 
 using namespace boost::python;
 
-class BciPythonWrap : public IBci, public wrapper<IBci>
+class DllExport BciPythonWrap : public IBci, public wrapper<IBci>
 {
 public:
     BciPythonWrap(IBci* pBci) : mpBci(pBci) {
@@ -61,7 +62,7 @@ private:
 };
 
 IBci* create_fake_bci() {
-    return new BciPythonWrap(new FakeBci());
+    return new FakeBci(); 
 }
 
 IBci* create_enobio_bci() {

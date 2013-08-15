@@ -4,8 +4,9 @@
 #include <boost/random/mersenne_twister.hpp>
 
 #include "IBci.hpp"
+#include "Portability.hpp"
 
-class FakeBci : public IBci
+class DllExport FakeBci : public IBci
 {
 public:
     static const size_t MAC_ADDRESS_SIZE=6;    

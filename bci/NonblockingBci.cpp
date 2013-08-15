@@ -126,9 +126,9 @@ void NonblockingBci::getdata(uint32_t* data, size_t n)  {
   }
   
   for (int sample=0, pos=0; sample < n; sample++) {
-    uint32_t* sample = mpConsumerSamples[pos].sample();
+    uint32_t* pSample = mpConsumerSamples[pos].sample();
     size_t length = mpConsumerSamples[pos].length();
-    std::copy(sample, sample+length, data);
+    std::copy(pSample, pSample+length, data);
     data += length;
   }
 }

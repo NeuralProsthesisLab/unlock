@@ -9,11 +9,12 @@
 #include "Sample.hpp"
 #include "SampleBuffer.hpp"
 #include "IWorkController.hpp"
+#include "Portability.hpp"
 
 using namespace boost;
 using namespace boost::lockfree;
 
-class AsyncSampleCollector
+class DllExport AsyncSampleCollector
 {
 public:
   AsyncSampleCollector(IBci* pBci, lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
