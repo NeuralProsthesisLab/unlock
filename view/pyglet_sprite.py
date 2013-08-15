@@ -49,6 +49,9 @@ class SpritePositionComputer(object):
             if case(SpritePositionComputer.West):
                 self.west()
                 break
+            if case(SpritePositionComputer.NorthWest):
+                self.northwest()
+                break
             if case(SpritePositionComputer.Center):
                 self.center()
                 break
