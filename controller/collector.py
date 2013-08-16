@@ -93,8 +93,8 @@ class Collector(UnlockController):
 #        indicate = BellRingTextLabelDecorator(indicate_text)
         
         print "Setting the indicate state height/width ", indicate_text.label.height, "/", indicate_text.label.width
-        indicate_state.height = 100#indicate_text.label.height
-        indicate_state.width = 100#indicate_text.label.width
+        indicate_state.height = 50#indicate_text.label.height
+        indicate_state.width = 50#indicate_text.label.width
         
         command_receiver = RawInlineBCIReceiver(bci)
         
