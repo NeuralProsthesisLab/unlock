@@ -95,6 +95,63 @@ class CueState(UnlockModel):
         time_state = TrialTimeState(duration, 0)
         return CueState(state_id, time_state)
         
+
+
+
+class DynamicPositionCueState(CueState):
+    def __init__(self, trigger, trial_time_state, screen_height, height, screen_width, width, radius = 1, transition_fn=None):
+        super(DynamicPositionCueState, self).__init__(trigger, trial_time_state, transition_fn)
+        self.screen_height = screen_height
+        self.screen_width = screen_width
+        self.height = height
+        self.width = width
+        self.radius = radius
+        self.x = self.screen_width / 2
+        self.y = self.screen_height / 2
+        
+    def get_state(self):
+        return self.x, self.y, self.state
+ #
+ #self.reset_state = CueState(self.state_id['reset'], TextDraw('+', self.text, viewport.controller.draw), self.trigger.send, reset_duration, None)
+ #
+ #       position_x = img.width // 2
+ #       self.left_indicator = VisualizationState(self.state_id['indicator'], ImageDraw(reset_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
+ #       self.left_indicator.drawer.screen = screen
+ #       
+ #       position_x = viewport.window.width - img.width // 2
+ #       self.right_indicator = VisualizationState(self.state_id['indicator'], ImageDraw(reset_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
+ #       
+ #       position_x = viewport.window.width // 2
+ #       position_y = viewport.window.height - img.height // 2
+ #       self.up_indicator = VisualizationState(self.state_id['indicator'], ImageDraw(reset_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
+ #       
+ #       position_y = img.height // 2
+ #       self.down_indicator = VisualizationState(self.state_id['indicator'], ImageDraw(reset_image_filename, anchor_x, anchor_y, position_x, position_y), self.trigger.send, indicator_duration)
+ #
+
+   
+    def start(self):
+        #change position
+        if self.last.trigger == Trigger.Up:
+           self.x = self.screen_width / 2
+           self.y = self.screen_height*self.radius - self.height / 2
+        elif self.last.trigger == Trigger.Right:
+            self.x = (self.screen_width*self.radius) - self.width / 2 
+            self.y = self.screen_height / 2
+        elif self.last.trigger == Trigger.Down:
+            self.x = self.screen_width / 2
+            self.y = self.height / 2 + ((self.screen_width/2) - (self.screen_width/2) * self.radius)
+        elif self.last.trigger == Trigger.Left:
+            self.x = self.width / 2 + ((self.screen_width/2) - (self.screen_width/2) * self.radius)
+            self.y = self.screen_height / 2
+            
+        super(DynamicPositionCueState, self).start()
+          
+    @staticmethod
+    def create(state_id, duration, screen_height, height, screen_width, width, radius=1):
+        time_state = TrialTimeState(duration, 0)
+        return DynamicPositionCueState(state_id, time_state, screen_height, height, screen_width, width, radius)
+        
         
 class TimedStimulusCueState(UnlockModel):
     def __init__(self, timed_stimulus):
