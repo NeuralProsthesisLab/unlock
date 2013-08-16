@@ -10,8 +10,9 @@ class CollectorTests(unittest.TestCase):
     def testEMGSequenceCollector(self):
         
         try:
-            from pynobio import Enobio
-            pynobio = True
+           # from pynobio import Enobio
+            #pynobio = True
+            pynobio = False
             fakebci = False
         except Exception:
             pynobio = False
