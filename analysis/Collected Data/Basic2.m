@@ -7,7 +7,7 @@ box = 25; %size of boxcar filter
 
 %% Import Data
 
-fid = fopen('bci_1'); %open file
+fid = fopen('bci_9.txt'); %open file
 if fid==-1
     disp('File open not successful')
 else
@@ -17,7 +17,7 @@ end
 
 %% Separate Data by Channel and General Cues
 
-B = A';
+B = A;
 B(:,4:8) = []; %erase unwanted data
 
 index = find(B(:,4)==1||2||3||4); %locating all cues in data
