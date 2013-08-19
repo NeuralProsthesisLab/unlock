@@ -36,12 +36,13 @@ func cwdAbs() string {
     }
     return cwd
 }
-
+/*
 func checkForPython() error {
     log.Println("Checking for Python...")
     cmd := exec.Command("cmd", "/C C:\\Python27\\python.exe")
     return cmd.Run()
 }
+*/
 
 func installExe(exe_name string, package_name string, post_fn func()) {
     log.Println("Downloading "+package_name+"...")
@@ -123,7 +124,7 @@ func installUnlock() {
             log.Fatalln("Failed to install unlock collector", err)
         }
     }
-    installZippedPythonPackage("unlock.zip", "unlock", "unlock-npl", post_processing_fn)
+    installZippedPythonPackage("unlock.zip", "unlock", "unlock", post_processing_fn)
 }
 
 func main() {
