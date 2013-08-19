@@ -8,10 +8,10 @@
 
 class DllExport FakeBci : public IBci
 {
-public:
-    static const size_t MAC_ADDRESS_SIZE=6;    
+ public:
+  static const size_t MAC_ADDRESS_SIZE=6;    
 
-public:
+ public:
   FakeBci();
   virtual ~FakeBci();
   virtual bool open(uint8_t* mac);
@@ -24,28 +24,28 @@ public:
   virtual bool stop();
   virtual bool close();
 
-public:
-	boost::random::mt19937 gen;
-	size_t mOpenCount;
-	bool mOpenRet;
-	uint8_t mLastMac[MAC_ADDRESS_SIZE];
-	size_t mInitCount;
-	size_t mLastChannels;
-	bool mInitRet;
-	size_t mChannelsCount;
-	size_t mStartCount;
-	bool mStartRet;
-	size_t mAcquireCount;
-	size_t mAcquireRet;
-	size_t mGetDataCount;
-	uint32_t* mpLastGetData;
-	size_t mLastSamples;
-	size_t mTimestampCount;
-	uint64_t mTimestampRet;
-	size_t mStopCount;
-    bool mStopRet;
-	size_t mCloseCount;
-	bool mCloseRet;	
+ public:
+  boost::random::mt19937 gen;
+  size_t mOpenCount;
+  bool mOpenRet;
+  uint8_t mLastMac[MAC_ADDRESS_SIZE];
+  size_t mInitCount;
+  size_t mLastChannels;
+  bool mInitRet;
+  size_t mChannelsCount;
+  size_t mStartCount;
+  bool mStartRet;
+  size_t mAcquireCount;
+  size_t mAcquireRet;
+  size_t mGetDataCount;
+  uint32_t* mpLastGetData;
+  size_t mLastSamples;
+  size_t mTimestampCount;
+  uint64_t mTimestampRet;
+  size_t mStopCount;
+  bool mStopRet;
+  size_t mCloseCount;
+  bool mCloseRet;	
 };
 
 #endif

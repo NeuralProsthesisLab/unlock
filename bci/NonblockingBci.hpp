@@ -13,16 +13,16 @@
 
 class DllExport NonblockingBci : public IBci
 {
-public:
-    static const size_t SAMPLE_BUFFER_SIZE=8192;
+ public:
+  static const size_t SAMPLE_BUFFER_SIZE=8192;
     
-public:
+ public:
   NonblockingBci(IBci* pBci);
   NonblockingBci(const NonblockingBci& copy);
   virtual ~NonblockingBci();
   NonblockingBci& operator=(const NonblockingBci& other);
   
-public:
+ public:
   virtual bool open(uint8_t*);
   virtual bool init(size_t);
   virtual size_t channels();
@@ -33,10 +33,10 @@ public:
   virtual bool stop();
   virtual bool close();
 
-private:
+ private:
   void waitForAsyncCollector();
   
-private:
+ private:
   IBci* mpBci;
   Sample<uint32_t>* mpProducerSamples;
   Sample<uint32_t>* mpConsumerSamples;
