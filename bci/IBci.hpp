@@ -8,7 +8,7 @@
 
 class DllExport IBci
 {
-public:
+ public:
   virtual ~IBci() {}
   virtual bool open(uint8_t* mac)=0;
   virtual bool init(size_t channels)=0;

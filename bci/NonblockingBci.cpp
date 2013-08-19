@@ -26,8 +26,8 @@ NonblockingBci::NonblockingBci(IBci* pBci) : mpBci(pBci), mpProducerSamples(0), 
 
 NonblockingBci::NonblockingBci(const NonblockingBci& copy)
   : mpBci(copy.mpBci), mpProducerSamples(copy.mpProducerSamples), mpConsumerSamples(copy.mpConsumerSamples),
-  mpSampleRingBuffer(copy.mpSampleRingBuffer), mpQueue(copy.mpQueue), mpWorkController(copy.mpWorkController),
-  mpAsyncSampleCollector(copy.mpAsyncSampleCollector)
+    mpSampleRingBuffer(copy.mpSampleRingBuffer), mpQueue(copy.mpQueue), mpWorkController(copy.mpWorkController),
+    mpAsyncSampleCollector(copy.mpAsyncSampleCollector)
 {  
 }
 
@@ -95,7 +95,7 @@ bool NonblockingBci::start()  {
     BOOST_VERIFY(mpAsyncSampleCollector == 0);
     mpWorkController->setDoWorkState(true);
     mpAsyncSampleCollector = new thread(AsyncSampleCollector(mpBci, (boost::lockfree::spsc_queue<Sample<uint32_t>* >*)mpQueue,
-                                mpWorkController, mpProducerSamples, NonblockingBci::SAMPLE_BUFFER_SIZE, mpSampleRingBuffer));
+							     mpWorkController, mpProducerSamples, NonblockingBci::SAMPLE_BUFFER_SIZE, mpSampleRingBuffer));
   }
   return ret;
 }
