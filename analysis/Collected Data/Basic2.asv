@@ -11,16 +11,18 @@ fid = fopen('bci_9.txt'); %open file
 if fid==-1
     disp('File open not successful')
 else
-    A = fscanf(fid,'%f %f %f %f %f %f %f %f %i', [9 inf]);
+    A = fscanf(fid,'%f %f %f %f %f %f %f %f %f %f %i', [10 inf]);
     fclose(fid);
 end
 
 %% Separate Data by Channel and General Cues
 
 B = A;
-B(:,4:8) = []; %erase unwanted data
+B(:,2) = []; %erase unwanted data
+B(:,4:6) = []; %erase unwanted data
+B(:,8:10)=[];
 
-index = find(B(:,4)==1||2||3||4); %locating all cues in data
+%index = find(B(:,4)==1||2||3||4); %locating all cues in data
 
 for i = 1:length(index)-1 %separating data into channels and dividing by cues
     ch1{i}=B(index(i):index(i+1)-1,1);
