@@ -97,7 +97,9 @@ class CueState(UnlockModel):
         
 
 
-
+# XXX - this could use a refactoring.  It was put together quickly on a deadline.  In particular, the views should not maintain
+#       the position information.  It should be managed by the model, and when it changes, it should be sent to the view for
+#       rendering.  The classes in util.Observer should be used for this.
 class DynamicPositionCueState(CueState):
     def __init__(self, trigger, trial_time_state, screen_height, height, screen_width, width, radius = 1, transition_fn=None):
         super(DynamicPositionCueState, self).__init__(trigger, trial_time_state, transition_fn)
@@ -180,6 +182,8 @@ class TimedStimulusCueState(UnlockModel):
         return ret
         
 
+# XXX - this should be refactored.  this should decorate the TimedStimulusCueState
+#       with multiple sequenctial timed stimuli.
 class MultipleSequentialTimedStimuliCueState(UnlockModel):
     
     def __init__(self):
