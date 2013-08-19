@@ -135,14 +135,14 @@ class DynamicPositionCueState(CueState):
     def start(self):
         #change position
         if self.last.trigger == Trigger.Up:
-           self.x = self.screen_width / 2
-           self.y = self.screen_height*self.radius - self.height / 2
+            self.x = self.screen_width / 2
+            self.y =  (self.screen_height - (self.screen_height/2 - (self.screen_height/2*self.radius))) - self.height / 2
         elif self.last.trigger == Trigger.Right:
-            self.x = (self.screen_width*self.radius) - self.width / 2 
+            self.x =  (self.screen_width - (self.screen_width/2 - (self.screen_width/2*self.radius))) - self.width / 2            
             self.y = self.screen_height / 2
         elif self.last.trigger == Trigger.Down:
             self.x = self.screen_width / 2
-            self.y = self.height / 2 + ((self.screen_width/2) - (self.screen_width/2) * self.radius)
+            self.y = self.height / 2 + ((self.screen_height/2) - (self.screen_height/2) * self.radius)
         elif self.last.trigger == Trigger.Left:
             self.x = self.width / 2 + ((self.screen_width/2) - (self.screen_width/2) * self.radius)
             self.y = self.screen_height / 2
