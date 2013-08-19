@@ -24,7 +24,7 @@ BOOST_AUTO_TEST_CASE(test_create_destroy)
   IntegralWorkController workController(1);
 
   AsyncSampleCollector* collector = new AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
-                                            &workController, pProducerSamples, 42, &sampleRingBuffer);
+							     &workController, pProducerSamples, 42, &sampleRingBuffer);
   delete collector;
 }
 
@@ -39,10 +39,10 @@ BOOST_AUTO_TEST_CASE(test_create_copy)
   IntegralWorkController workController1(1);
 
   AsyncSampleCollector c = AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
-                                            &workController, pProducerSamples, 1339, &sampleRingBuffer);
+						&workController, pProducerSamples, 1339, &sampleRingBuffer);
   
   AsyncSampleCollector c1 = AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
-                                            &workController1, pProducerSamples, 1339, &sampleRingBuffer);
+						 &workController1, pProducerSamples, 1339, &sampleRingBuffer);
   
   AsyncSampleCollector c2(c);
   BOOST_VERIFY(c == c2);
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(test_current_sample)
   IntegralWorkController workController1(1);
 
   AsyncSampleCollector c = AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
-                                            &workController, pProducerSamples, 1339, &sampleRingBuffer);  
+						&workController, pProducerSamples, 1339, &sampleRingBuffer);  
   for(int i=0; i < 1338; i++) {
     BOOST_CHECK_EQUAL(i, c.currentSample());
     c.incrementCurrentSample();
@@ -96,14 +96,14 @@ BOOST_AUTO_TEST_CASE(test_functor)
   IntegralWorkController workController(1);
   
   AsyncSampleCollector c = AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
-                                           &workController, pProducerSamples, 4200, &sampleRingBuffer);
- c();
- BOOST_CHECK_EQUAL(1, fbci.mAcquireCount);
- BOOST_CHECK_EQUAL(1, fbci.mChannelsCount);
- BOOST_CHECK_EQUAL(1, fbci.mGetDataCount);
- BOOST_CHECK_EQUAL(pProducerSamples[0].sample(), fbci.mpLastGetData);
- BOOST_CHECK_EQUAL(pProducerSamples[0].length(), fbci.mLastChannels * fbci.mAcquireRet);  
- BOOST_CHECK_EQUAL(1, c.currentSample());
+						&workController, pProducerSamples, 4200, &sampleRingBuffer);
+  c();
+  BOOST_CHECK_EQUAL(1, fbci.mAcquireCount);
+  BOOST_CHECK_EQUAL(1, fbci.mChannelsCount);
+  BOOST_CHECK_EQUAL(1, fbci.mGetDataCount);
+  BOOST_CHECK_EQUAL(pProducerSamples[0].sample(), fbci.mpLastGetData);
+  BOOST_CHECK_EQUAL(pProducerSamples[0].length(), fbci.mLastChannels * fbci.mAcquireRet);  
+  BOOST_CHECK_EQUAL(1, c.currentSample());
 }
 
 
@@ -119,20 +119,20 @@ BOOST_AUTO_TEST_CASE(test_threaded_functor)
   IntegralWorkController workController(1);
   
   boost::thread t(AsyncSampleCollector((IBci*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
-                                           &workController, pProducerSamples, 4200, &sampleRingBuffer));
+				       &workController, pProducerSamples, 4200, &sampleRingBuffer));
 
- t.join();
+  t.join();
  
- BOOST_CHECK_EQUAL(1, fbci.mAcquireCount);
- BOOST_CHECK_EQUAL(1, fbci.mChannelsCount);
- BOOST_CHECK_EQUAL(1, fbci.mGetDataCount);
- BOOST_CHECK_EQUAL(pProducerSamples[0].sample(), fbci.mpLastGetData);
- BOOST_CHECK_EQUAL(pProducerSamples[0].length(), fbci.mLastChannels * fbci.mAcquireRet);
+  BOOST_CHECK_EQUAL(1, fbci.mAcquireCount);
+  BOOST_CHECK_EQUAL(1, fbci.mChannelsCount);
+  BOOST_CHECK_EQUAL(1, fbci.mGetDataCount);
+  BOOST_CHECK_EQUAL(pProducerSamples[0].sample(), fbci.mpLastGetData);
+  BOOST_CHECK_EQUAL(pProducerSamples[0].length(), fbci.mLastChannels * fbci.mAcquireRet);
  
- size_t count =  queue.pop(&pConsumerSamples, 4200);
- BOOST_CHECK_EQUAL(1, count);
- BOOST_CHECK_EQUAL(pProducerSamples[0].sample(), pConsumerSamples[0].sample());
- BOOST_CHECK_EQUAL(pProducerSamples[0].length(), pConsumerSamples[0].length());
+  size_t count =  queue.pop(&pConsumerSamples, 4200);
+  BOOST_CHECK_EQUAL(1, count);
+  BOOST_CHECK_EQUAL(pProducerSamples[0].sample(), pConsumerSamples[0].sample());
+  BOOST_CHECK_EQUAL(pProducerSamples[0].length(), pConsumerSamples[0].length());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
