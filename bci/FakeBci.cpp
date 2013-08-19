@@ -20,10 +20,10 @@ FakeBci::FakeBci()
 FakeBci::~FakeBci() {
 }
 
-bool FakeBci::open(uint8_t mac[]) {
-	BOOST_VERIFY(sizeof(mac) >= MAC_ADDRESS_SIZE);
+bool FakeBci::open(uint8_t* pMacAddress) {
+        BOOST_VERIFY(pMacAddress != 0);	
 	mOpenCount++;
-	std::copy(mac, mac+MAC_ADDRESS_SIZE, mLastMac);
+	std::copy(pMacAddress, pMacAddress+MAC_ADDRESS_SIZE, mLastMac);
 	return mOpenRet;
 }
 

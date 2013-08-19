@@ -14,7 +14,7 @@ public:
 public:
   FakeBci();
   virtual ~FakeBci();
-  virtual bool open(uint8_t mac[]);
+  virtual bool open(uint8_t* mac);
   virtual bool init(size_t channels);
   virtual size_t channels();
   virtual bool start();

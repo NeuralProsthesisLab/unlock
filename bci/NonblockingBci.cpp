@@ -71,9 +71,10 @@ NonblockingBci& NonblockingBci::operator=(const NonblockingBci& other)
   return *this;
 }
 
-bool NonblockingBci::open(uint8_t mac_address[]) {
-  BOOST_VERIFY(mpBci != 0);  
-  return mpBci->open(mac_address);
+bool NonblockingBci::open(uint8_t* pMacAddress) {
+  BOOST_VERIFY(mpBci != 0);
+  BOOST_VERIFY(pMacAddress != 0);
+  return mpBci->open(pMacAddress);
 }
 
 bool NonblockingBci::init(size_t channels) {
