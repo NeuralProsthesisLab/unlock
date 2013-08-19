@@ -49,6 +49,10 @@ class UnlockFactory(context.PythonConfig):
         return Collector.create_multi_centered_msequence_collector(window, self.bci, **self.args['MultiMSequenceCollector'])
         
     @context.Object(lazy_init=True)
+    def EmgCollector(self):
+        return Collector.create_multi_centered_msequence_collector(window, self.bci, **self.args['MultiMSequenceCollector'])    
+        
+    @context.Object(lazy_init=True)
     def Dashboard(self):
         args = self.args['Dashboard']
         controllers = []

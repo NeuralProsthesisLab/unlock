@@ -23,7 +23,7 @@ public:
   NonblockingBci& operator=(const NonblockingBci& other);
   
 public:
-  virtual bool open(uint8_t[]);
+  virtual bool open(uint8_t*);
   virtual bool init(size_t);
   virtual size_t channels();
   virtual bool start();
