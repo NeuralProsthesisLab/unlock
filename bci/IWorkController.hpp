@@ -5,9 +5,9 @@
 
 class DllExport IWorkController
 {
-public:
-    virtual ~IWorkController() {}
-    virtual bool doWork()=0;
+ public:
+  virtual ~IWorkController() {}
+  virtual bool doWork()=0;
 };
 
 #endif

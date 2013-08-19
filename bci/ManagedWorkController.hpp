@@ -7,14 +7,14 @@
 
 class DllExport ManagedWorkController : public IWorkController
 {
-public:
-    ManagedWorkController(bool startState);
-    virtual ~ManagedWorkController();
-    virtual bool doWork();
-    void setDoWorkState(bool state);
+ public:
+  ManagedWorkController(bool startState);
+  virtual ~ManagedWorkController();
+  virtual bool doWork();
+  void setDoWorkState(bool state);
     
-private:
-    boost::atomic<bool> mState;
+ private:
+  boost::atomic<bool> mState;
 };
 
 #endif

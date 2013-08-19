@@ -7,39 +7,39 @@
 template<class T>
 class DllExport Sample
 {
-public:
-    Sample() : mpSample(0), mLength(0) {}
+ public:
+  Sample() : mpSample(0), mLength(0) {}
     
-    Sample(const Sample &copy) : mpSample(copy.mpSample), mLength(copy.mLength) {
-    }
+  Sample(const Sample &copy) : mpSample(copy.mpSample), mLength(copy.mLength) {
+  }
     
-    ~Sample() {
-        mpSample = 0;
-        mLength = 0;
-    }
+  ~Sample() {
+    mpSample = 0;
+    mLength = 0;
+  }
     
-    Sample& operator=(const Sample& other) {
-        mpSample = other.mpSample;
-        mLength = other.mLength;
-        return *this;
-    }
+  Sample& operator=(const Sample& other) {
+    mpSample = other.mpSample;
+    mLength = other.mLength;
+    return *this;
+  }
     
-    void configure(T* pSample, int length) {
-        mpSample = pSample;
-        mLength = length;        
-    }
+  void configure(T* pSample, int length) {
+    mpSample = pSample;
+    mLength = length;        
+  }
  
-    T* sample() {
-        return (T*)mpSample;
-    }
+  T* sample() {
+    return (T*)mpSample;
+  }
     
-    size_t length() {
-        return (size_t)mLength;
-    }
+  size_t length() {
+    return (size_t)mLength;
+  }
     
-private:   
-    volatile T* mpSample;
-    volatile size_t mLength;
+ private:   
+  volatile T* mpSample;
+  volatile size_t mLength;
 };
 
 #endif
