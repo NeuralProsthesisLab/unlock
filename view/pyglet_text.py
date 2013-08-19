@@ -5,6 +5,7 @@ import inspect
 import logging
 import os
 
+
 class PygletTextLabel(UnlockView):
     def __init__(self, model, canvas, text, x, y, anchor_x='center', anchor_y='center', font='Helvetica', size=48,
                  color=(255,255,255,255), group=None):
@@ -45,7 +46,24 @@ class PygletTextLabel(UnlockView):
             self.label.text = self.text
         else:
             self.label.text = ''
-            
+
+class DynamicPositionPygletTextLabel(PygletTextLabel):
+    def __init__(self,  model, canvas, text, x, y, anchor_x='center', anchor_y='center', font='Helvetica', size=48,
+                 color=(255,255,255,255), group=None):
+        super(DynamicPositionPygletTextLabel, self).__init__(model, canvas, text, x, y, anchor_x, anchor_y, font, size, color, group)
+    def render(self):
+        self.last_state = self.state
+        self.x, self.y, self.state = self.model.get_state()
+        #print "x = ", self.x, " self.y = ", self.y, " state = ", self.state
+        self.logger.debug("PygletTextLabel text = ", self.label.text, " last state, state = ", self.last_state, self.state)
+        
+        if self.state:
+            self.label.text = self.text
+            self.label.x = self.x
+            self.label.y = self.y            
+        else:
+            self.label.text = ''
+        
             
 class BellRingTextLabelDecorator(UnlockView):
     def __init__(self, text_label):
@@ -68,4 +86,6 @@ class BellRingTextLabelDecorator(UnlockView):
         else:
             self.text_label.label.text = ''
             
-            
+
+
+         

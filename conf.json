@@ -13,12 +13,17 @@
                 "output_file" : "/Users/jamespercent/collector.data",
                 "seed" : 31337                
             }
-        },        
+        },
         {
             "name" : "MultiMSequenceCollector",
             "args" : {
+                "standalone" : false,
+                "trials" : 9,
+                "rest_duration" : 2,
+                "output_file" : "/Users/jamespercent/collector.data",
+                "seed" : 31337                
             }
-        },
+        },        
         {
             "name" : "Dashboard",
             "args" : {

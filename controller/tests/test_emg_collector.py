@@ -7,11 +7,12 @@ import pyglet
 
 
 class CollectorTests(unittest.TestCase):       
-    def testMSequenceCollector(self):
+    def testEMGSequenceCollector(self):
         
         try:
-            from pynobio import Enobio
-            pynobio = True
+           # from pynobio import Enobio
+            #pynobio = True
+            pynobio = False
             fakebci = False
         except Exception:
             pynobio = False
@@ -38,7 +39,7 @@ class CollectorTests(unittest.TestCase):
             
             
         window = PygletWindow(fullscreen=True, show_fps=True)
-        collector = Collector.create_multi_centered_msequence_collector(window, bci)
+        collector = Collector.create_emg_collector(window, bci, radius=.75)
         collector.activate()
         window.start()        
         window.close()

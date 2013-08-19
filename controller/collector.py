@@ -1,6 +1,6 @@
 
-from unlock.model import TimedStimuli, TimedStimulus, OfflineData, RandomCueStateMachine, CueState, TimedStimulusCueState, MultipleSequentialTimedStimuliCueState
-from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator
+from unlock.model import TimedStimuli, TimedStimulus, OfflineData, RandomCueStateMachine, CueState, TimedStimulusCueState, MultipleSequentialTimedStimuliCueState, DynamicPositionCueState
+from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator, DynamicPositionPygletTextLabel
 from unlock.util import TrialState, Trigger
 from unlock.bci import FakeBCI
 from controller import Canvas, UnlockController
@@ -65,9 +65,21 @@ class Collector(UnlockController):
         pass
         
     @staticmethod
-    def create_emg_collector(window, bci, stimulation_duration=4.0, trials=25, cue_duration=1, rest_duration=2, indicate_duration=4, output_file='bci', seed=42):
-        canvas = Canvas.create(window.width, window.height)        
-        cue_state = RandomCueStateMachine.create(25, [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left], cue_duration, rest_duration, indicate_duration, seed=seed)
+    def create_emg_collector(window, bci, standalone=True, stimulation_duration=4.0, trials=25, cue_duration=1, rest_duration=1, indicate_duration=2, output_file='bci', seed=42, radius=1):
+        canvas = Canvas.create(window.width, window.height)
+        
+        cues = [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left]
+        cue_states = []
+        for cue in cues:
+            cue_states.append(CueState.create(cue, cue_duration))
+        rest_state = CueState.create(Trigger.Rest, rest_duration)
+        
+ #       h = canvas.height * radius
+ #       w = canvas.width * radius
+#        print "Radious, ", h,":", w, " height width = ", canvas.height, ":", canvas.width
+        indicate_state = DynamicPositionCueState.create(Trigger.Indicate, indicate_duration, canvas.height, -1, canvas.width, -1, radius)
+        
+        cue_state = RandomCueStateMachine.create_cue_indicate_rest(cue_states, rest_state, indicate_state,seed=seed, trials=trials)
         
         up = PygletTextLabel(cue_state.cue_states[0], canvas, 'up', canvas.width / 2.0, canvas.height / 2.0)
         right = PygletTextLabel(cue_state.cue_states[1], canvas, 'right', canvas.width / 2.0, canvas.height / 2.0)
@@ -77,14 +89,18 @@ class Collector(UnlockController):
         rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
         rest = BellRingTextLabelDecorator(rest_text)        
         
-        indicate_text = PygletTextLabel(cue_state.indicate_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
-        indicate = BellRingTextLabelDecorator(indicate_text)
+        indicate_text = DynamicPositionPygletTextLabel(cue_state.indicate_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
+#        indicate = BellRingTextLabelDecorator(indicate_text)
+        
+        print "Setting the indicate state height/width ", indicate_text.label.height, "/", indicate_text.label.width
+        indicate_state.height = 50#indicate_text.label.height
+        indicate_state.width = 50#indicate_text.label.width
         
         command_receiver = RawInlineBCIReceiver(bci)
         
         offline_data = OfflineData(output_file)
         
-        return Collector(window, [up, right, down, left, rest, indicate], canvas, command_receiver, cue_state, offline_data)
+        return Collector(window, [up, right, down, left, rest, indicate_text], canvas, command_receiver, cue_state, offline_data)
         
     @staticmethod
     def create_msequence_collector(window, bci, standalone=True, stimulation_duration=4.0, trials=2, cue_duration=1, rest_duration=2, indicate_duration=4, output_file='bci', seed=42):

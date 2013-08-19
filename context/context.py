@@ -4,7 +4,7 @@ import logging
 from traceback import format_exc
 
 import logging
-import scope
+
 import sys
 
 PROTOTYPE = "scope.PROTOTYPE"
