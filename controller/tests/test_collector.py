@@ -1,5 +1,6 @@
 
 from unlock import PygletWindow, Collector, Canvas
+from unlock.bci import FakeBCI
 
 import unittest
 import pyglet
@@ -33,7 +34,7 @@ class CollectorTests(unittest.TestCase):
 
         ##if fakebci:
         #from unlock.bci import FakeBCI
-        #bci = FakeBCI()
+        bci = FakeBCI()
             
             
         window = PygletWindow(fullscreen=True, show_fps=True)
