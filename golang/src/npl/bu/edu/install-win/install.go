@@ -80,12 +80,12 @@ func installZippedPythonPackage(file_name string, package_name string, local_dir
 }
 
 func installPython27() {
-    if err := checkForPython(); err != nil {
+    //if err := checkForPython(); err != nil {
         post_fn := func() {}
         installExe("python-2.7.5.msi", "Python-2.7.5", post_fn)
-    } else {
+    /*} else {
         log.Println("Python is already installed")
-    }
+    }*/
 }
 
 func installPyglet12alpha() {
