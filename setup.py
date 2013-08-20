@@ -1,5 +1,6 @@
 from distutils.core import setup
 import os
+import shutil
 #import py2exe
 
 def fullsplit(path, result=None):
@@ -31,11 +32,6 @@ def walk_dirs(dirs):
                 package_files.extend([os.path.join(path, f) for f in filenames])
     return packages, package_data
 
-packages, package_data = walk_dirs(['core', 'apps', 'examples'])
-setup(name='unlock',
-      version='0.3.7',
-      packages=packages,
-      package_data=package_data,
-      maintainer='James Percent',
-      maintainer_email='james@syndeticlogic.net',
-      )
+packages, package_data = walk_dirs(['util', 'view', 'model', 'bci', 'context', 'controller', 'doc', 'license'])
+setup(name='unlock', version='0.3.7', packages=packages, package_data=package_data, author='James Percent',
+      author_email='james@shift5.net', maintainer='James Percent', maintainer_email='james@shift5.net')
