@@ -1,6 +1,10 @@
 #!/bin/bash
 
-/cygdrive/c/Python27/Scripts/scons.bat -c  && /cygdrive/c/Python27/Scripts/scons.bat -Q \
-&& cp  boosted_bci_win_x86.dll boost/win-x86/lib/ && cp  boosted_bci_win_x86.dll boost/win-x86/lib/boosted_bci.pyd \
-&& cp bci-unit-tests.* boost/win-x86/lib && cd boost/win-x86/lib && ./bci-unit-tests.exe
+/cygdrive/c/Python27/scons.bat -c && \
+/cygdrive/c/Python27/scons.bat -Q  && \
+cp signal_win_x86.dll boost/win-x86/lib/signal.pyd && \
+cp signal_win_x86.dll boost/win-x86/lib/signal_win_x86.dll && \
+cp signal-unit-tests.* boost/win-x86/lib && \
+cd boost/win-x86/lib && \
+./signal-unit-tests.exe
 
