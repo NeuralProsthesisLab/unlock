@@ -1,0 +1,4 @@
+#!/bin/bash
+
+scons -c && scons && ./signal-unit-tests && cp libsignal_darwin_x86_64.dylib boost/macosx-x86-64/lib/signal_darwin_x86_64.so
+
