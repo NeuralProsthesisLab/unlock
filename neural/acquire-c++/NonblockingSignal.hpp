@@ -1,26 +1,26 @@
-#ifndef NONBLOCKING_BCI_HPP
-#define NONBLOCKING_BCI_HPP
+#ifndef NONBLOCKING_SIGNAL_HPP
+#define NONBLOCKING_SIGNAL_HPP
 
 #include <boost/lockfree/spsc_queue.hpp>
 #include <boost/thread.hpp>
 #include <boost/atomic.hpp>
 
-#include "IBci.hpp"
+#include "ISignal.hpp"
 #include "Sample.hpp"
 #include "SampleBuffer.hpp"
 #include "ManagedWorkController.hpp"
 #include "Portability.hpp"
 
-class DllExport NonblockingBci : public IBci
+class DllExport NonblockingSignal : public ISignal
 {
  public:
   static const size_t SAMPLE_BUFFER_SIZE=8192;
     
  public:
-  NonblockingBci(IBci* pBci);
-  NonblockingBci(const NonblockingBci& copy);
-  virtual ~NonblockingBci();
-  NonblockingBci& operator=(const NonblockingBci& other);
+  NonblockingSignal(ISignal* pSignal);
+  NonblockingSignal(const NonblockingSignal& copy);
+  virtual ~NonblockingSignal();
+  NonblockingSignal& operator=(const NonblockingSignal& other);
   
  public:
   virtual bool open(uint8_t*);
@@ -37,7 +37,7 @@ class DllExport NonblockingBci : public IBci
   void waitForAsyncCollector();
   
  private:
-  IBci* mpBci;
+  ISignal* mpSignal;
   Sample<uint32_t>* mpProducerSamples;
   Sample<uint32_t>* mpConsumerSamples;
   SampleBuffer<uint32_t>* mpSampleRingBuffer;
