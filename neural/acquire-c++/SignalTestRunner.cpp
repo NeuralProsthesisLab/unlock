@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE BCI_Tests
+#define BOOST_TEST_MODULE Signal_Tests
 #ifdef MSVC
 #include <boost/test/unit_test.hpp>
 #else

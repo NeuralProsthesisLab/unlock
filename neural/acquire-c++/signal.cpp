@@ -61,18 +61,18 @@ class DllExport SignalPythonWrap : public ISignal, public wrapper<ISignal>
   ISignal* mpSignal;    
 };
 
-ISignal* create_fake_bci() {
+ISignal* create_fake_signal() {
   return new FakeSignal(); 
 }
 
-ISignal* create_enobio_bci() {
-  return create_fake_bci();
+ISignal* create_enobio_signal() {
+  return create_fake_signal();
 }
 
 BOOST_PYTHON_MODULE(signal)
 {
-  def("create_fake_signal", create_fake_bci, return_value_policy<manage_new_object>());
-  def("create_enobio_signal", create_enobio_bci, return_value_policy<manage_new_object>());
+  def("create_fake_signal", create_fake_signal, return_value_policy<manage_new_object>());
+  def("create_enobio_signal", create_enobio_signal, return_value_policy<manage_new_object>());
 
   class_<SignalPythonWrap, boost::noncopyable>("ISignal", no_init)
     .def("open", pure_virtual(&ISignal::open))
