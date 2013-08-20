@@ -5,7 +5,7 @@
 #include <boost/atomic.hpp>
 #include <cstddef>
 
-#include "IBci.hpp"
+#include "ISignal.hpp"
 #include "Sample.hpp"
 #include "SampleBuffer.hpp"
 #include "IWorkController.hpp"
@@ -17,7 +17,7 @@ using namespace boost::lockfree;
 class DllExport AsyncSampleCollector
 {
  public:
-  AsyncSampleCollector(IBci* pBci, lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
+  AsyncSampleCollector(ISignal* pSignal, lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
 		       IWorkController* pWorkController, Sample<uint32_t>* pSamples,
 		       size_t samplesSize, SampleBuffer<uint32_t>* pRingBuffer);
   AsyncSampleCollector(const AsyncSampleCollector& copy);
@@ -34,7 +34,7 @@ class DllExport AsyncSampleCollector
   void operator()();
   
  private:
-  IBci* mpBci;
+  ISignal* mpSignal;
   spsc_queue<Sample<uint32_t>* >* mpQueue;
   IWorkController* mpWorkController;
   Sample<uint32_t>* mpSamples;
