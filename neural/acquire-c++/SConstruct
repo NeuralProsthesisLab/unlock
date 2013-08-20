@@ -14,7 +14,7 @@ if sys.platform == 'darwin':
             'libboost_test_exec_monitor.a', 'libboost_thread.a', 
             'libboost_unit_test_framework.a']
       python_includes = ['/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/']
-      libname = 'libboosted_bci_darwin_x86_64'
+      libname = 'libsignal_darwin_x86_64'
       ccflags = []
       cppdefines = []
       target_arch = 'x86_64'
@@ -32,7 +32,7 @@ elif sys.platform == 'win32':
                   'boost_prg_exec_monitor-vc110-mt-1_54',
                     'boost_thread-vc110-mt-1_54']
       python_includes = ['C:\Python27\include']
-      libname = 'boosted_bci_win_x86'
+      libname = 'signal_win_x86'
       ccflags = ['/MD',  '/EHsc']
       cppdefines = ['BOOST_ALL_DYN_LINK', 'MSVC', 'DLL_LINK']
       target_arch = 'x86'
@@ -46,8 +46,8 @@ includes.extend(boost_includes)
 includes.extend(python_includes)
 frameworks = ["Python"]
 
-SOURCES=['boosted_bci.cpp', 'NonblockingBci.cpp', 'FakeBci.cpp', 'AsyncSampleCollector.cpp', 'ManagedWorkController.cpp']
-UNIT_TEST_SOURCES=['AsyncSampleCollectorTest.cpp', 'BciTestRunner.cpp', 'NonblockingBciTest.cpp',
+SOURCES=['signal.cpp', 'NonblockingSignal.cpp', 'FakeSignal.cpp', 'AsyncSampleCollector.cpp', 'ManagedWorkController.cpp']
+UNIT_TEST_SOURCES=['AsyncSampleCollectorTest.cpp', 'SignalTestRunner.cpp', 'NonblockingSignalTest.cpp',
                    'SampleTest.cpp', 'IntegralWorkController.cpp', 'ManagedWorkControllerTest.cpp', 'IntegralWorkControllerTest.cpp']
 
 env = Environment(CPPPATH = includes, LIBS = libs, LIBPATH = lib_path,
@@ -58,6 +58,6 @@ test_env = Environment(CPPPATH = includes, LIBS = test_libs, LIBPATH = lib_path,
                   SHLIBPREFIX = '', CCFLAGS=ccflags, CPPDEFINES=cppdefines,
                   TARGET_ARCH=target_arch)
                   
-boost_bci = env.SharedLibrary(libname, SOURCES)
-test_boost_bci = test_env.Program('bci-unit-tests', UNIT_TEST_SOURCES)
-test_env.Requires(test_boost_bci, boost_bci)
+signal = env.SharedLibrary(libname, SOURCES)
+test_signal = test_env.Program('signal-unit-tests', UNIT_TEST_SOURCES)
+test_env.Requires(test_signal, signal)

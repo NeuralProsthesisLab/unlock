@@ -2,20 +2,20 @@
 #include <algorithm>
 #include <iostream>
 
-#include "NonblockingBci.hpp"
+#include "NonblockingSignal.hpp"
 #include "AsyncSampleCollector.hpp"
 
 using namespace std;
 using namespace boost;
 using namespace boost::lockfree;
 
-NonblockingBci::NonblockingBci(IBci* pBci) : mpBci(pBci), mpProducerSamples(0), mpConsumerSamples(0), mpSampleRingBuffer(0), mpQueue(0), mpWorkController(0), mpAsyncSampleCollector(0) {
-  BOOST_VERIFY(mpBci != 0);
+NonblockingSignal::NonblockingSignal(ISignal* pSignal) : mpSignal(pSignal), mpProducerSamples(0), mpConsumerSamples(0), mpSampleRingBuffer(0), mpQueue(0), mpWorkController(0), mpAsyncSampleCollector(0) {
+  BOOST_VERIFY(mpSignal != 0);
   // XXX - these should be injected
-  mpProducerSamples = new Sample<uint32_t>[NonblockingBci::SAMPLE_BUFFER_SIZE];
-  mpConsumerSamples = new Sample<uint32_t>[NonblockingBci::SAMPLE_BUFFER_SIZE];
+  mpProducerSamples = new Sample<uint32_t>[NonblockingSignal::SAMPLE_BUFFER_SIZE];
+  mpConsumerSamples = new Sample<uint32_t>[NonblockingSignal::SAMPLE_BUFFER_SIZE];
   mpSampleRingBuffer = new SampleBuffer<uint32_t>();
-  mpQueue = new spsc_queue<Sample<uint32_t>* > (NonblockingBci::SAMPLE_BUFFER_SIZE-1);
+  mpQueue = new spsc_queue<Sample<uint32_t>* > (NonblockingSignal::SAMPLE_BUFFER_SIZE-1);
   mpWorkController = new ManagedWorkController(false);
   BOOST_VERIFY(mpQueue != 0);
   BOOST_VERIFY(mpProducerSamples != 0);
@@ -24,14 +24,14 @@ NonblockingBci::NonblockingBci(IBci* pBci) : mpBci(pBci), mpProducerSamples(0), 
   BOOST_VERIFY(mpWorkController != 0 && !mpWorkController->doWork());
 }
 
-NonblockingBci::NonblockingBci(const NonblockingBci& copy)
-  : mpBci(copy.mpBci), mpProducerSamples(copy.mpProducerSamples), mpConsumerSamples(copy.mpConsumerSamples),
+NonblockingSignal::NonblockingSignal(const NonblockingSignal& copy)
+  : mpSignal(copy.mpSignal), mpProducerSamples(copy.mpProducerSamples), mpConsumerSamples(copy.mpConsumerSamples),
     mpSampleRingBuffer(copy.mpSampleRingBuffer), mpQueue(copy.mpQueue), mpWorkController(copy.mpWorkController),
     mpAsyncSampleCollector(copy.mpAsyncSampleCollector)
 {  
 }
 
-NonblockingBci::~NonblockingBci()  {
+NonblockingSignal::~NonblockingSignal()  {
   BOOST_VERIFY(mpWorkController != 0);
   if (mpWorkController->doWork()) {
     waitForAsyncCollector();
@@ -44,14 +44,14 @@ NonblockingBci::~NonblockingBci()  {
     mpAsyncSampleCollector = 0;
   }
   
-  delete mpBci;
+  delete mpSignal;
   delete[] mpProducerSamples;
   delete[] mpConsumerSamples;
   delete mpSampleRingBuffer;
   delete mpQueue;
   delete mpWorkController;
 
-  mpBci=0;
+  mpSignal=0;
   mpProducerSamples=0;
   mpConsumerSamples=0;
   mpSampleRingBuffer=0;
@@ -59,9 +59,9 @@ NonblockingBci::~NonblockingBci()  {
   mpWorkController=0;
 }
 
-NonblockingBci& NonblockingBci::operator=(const NonblockingBci& other)
+NonblockingSignal& NonblockingSignal::operator=(const NonblockingSignal& other)
 {
-  mpBci = other.mpBci;
+  mpSignal = other.mpSignal;
   mpProducerSamples = other.mpProducerSamples;
   mpConsumerSamples = other.mpConsumerSamples;
   mpSampleRingBuffer = other.mpSampleRingBuffer;
@@ -71,57 +71,57 @@ NonblockingBci& NonblockingBci::operator=(const NonblockingBci& other)
   return *this;
 }
 
-bool NonblockingBci::open(uint8_t* pMacAddress) {
-  BOOST_VERIFY(mpBci != 0);
+bool NonblockingSignal::open(uint8_t* pMacAddress) {
+  BOOST_VERIFY(mpSignal != 0);
   BOOST_VERIFY(pMacAddress != 0);
-  return mpBci->open(pMacAddress);
+  return mpSignal->open(pMacAddress);
 }
 
-bool NonblockingBci::init(size_t channels) {
-  BOOST_VERIFY(mpBci != 0);
-  return mpBci->init(channels);
+bool NonblockingSignal::init(size_t channels) {
+  BOOST_VERIFY(mpSignal != 0);
+  return mpSignal->init(channels);
 }
 
-size_t NonblockingBci::channels() {
-  BOOST_VERIFY(mpBci != 0);
-  return mpBci->channels();
+size_t NonblockingSignal::channels() {
+  BOOST_VERIFY(mpSignal != 0);
+  return mpSignal->channels();
 }
 
-bool NonblockingBci::start()  {
-  BOOST_VERIFY(mpBci != 0);
+bool NonblockingSignal::start()  {
+  BOOST_VERIFY(mpSignal != 0);
   waitForAsyncCollector();
-  bool ret = mpBci->start();
+  bool ret = mpSignal->start();
   if(ret) {
     BOOST_VERIFY(mpAsyncSampleCollector == 0);
     mpWorkController->setDoWorkState(true);
-    mpAsyncSampleCollector = new thread(AsyncSampleCollector(mpBci, (boost::lockfree::spsc_queue<Sample<uint32_t>* >*)mpQueue,
-							     mpWorkController, mpProducerSamples, NonblockingBci::SAMPLE_BUFFER_SIZE, mpSampleRingBuffer));
+    mpAsyncSampleCollector = new thread(AsyncSampleCollector(mpSignal, (boost::lockfree::spsc_queue<Sample<uint32_t>* >*)mpQueue,
+							     mpWorkController, mpProducerSamples, NonblockingSignal::SAMPLE_BUFFER_SIZE, mpSampleRingBuffer));
   }
   return ret;
 }
 
-size_t NonblockingBci::acquire()  {
+size_t NonblockingSignal::acquire()  {
   BOOST_VERIFY(mpWorkController != 0);
   BOOST_VERIFY(mpQueue != 0);
   
   if (!mpWorkController->doWork()) {
     // XXX - setup logging.  
-    cerr << "NonblockingBci.acquire: WARNING acquire called when device not started; returning 0"
+    cerr << "NonblockingSignal.acquire: WARNING acquire called when device not started; returning 0"
          << endl; 
     return 0;
   }
   size_t count = 0;
-  while(count < NonblockingBci::SAMPLE_BUFFER_SIZE && mpQueue->pop(mpConsumerSamples+count)) {
+  while(count < NonblockingSignal::SAMPLE_BUFFER_SIZE && mpQueue->pop(mpConsumerSamples+count)) {
     count++;
   }
   return count;
 }
 
-void NonblockingBci::getdata(uint32_t* data, size_t n)  {
+void NonblockingSignal::getdata(uint32_t* data, size_t n)  {
   BOOST_VERIFY(mpWorkController != 0);
   BOOST_VERIFY(mpConsumerSamples != 0);
   if (!mpWorkController->doWork()) {
-    cerr << "NonblockingBci.getdata: WARNING getdata called with " << data << ":"
+    cerr << "NonblockingSignal.getdata: WARNING getdata called with " << data << ":"
          <<  n << " when device not started; not copying any data" << endl; 
     return;
   }
@@ -134,24 +134,24 @@ void NonblockingBci::getdata(uint32_t* data, size_t n)  {
   }
 }
 
-uint64_t NonblockingBci::timestamp()  {
-  BOOST_VERIFY(mpBci != 0);  
-  return mpBci->timestamp();
+uint64_t NonblockingSignal::timestamp()  {
+  BOOST_VERIFY(mpSignal != 0);  
+  return mpSignal->timestamp();
 }
 
-bool NonblockingBci::stop()  {
-  BOOST_VERIFY(mpBci != 0);  
+bool NonblockingSignal::stop()  {
+  BOOST_VERIFY(mpSignal != 0);  
   waitForAsyncCollector();
-  bool ret = mpBci->stop();
+  bool ret = mpSignal->stop();
   return ret;
 }
 
-bool NonblockingBci::close()  {
-  BOOST_VERIFY(mpBci != 0);  
-  return mpBci->close();
+bool NonblockingSignal::close()  {
+  BOOST_VERIFY(mpSignal != 0);  
+  return mpSignal->close();
 }
 
-void NonblockingBci::waitForAsyncCollector() {
+void NonblockingSignal::waitForAsyncCollector() {
   BOOST_VERIFY(mpWorkController != 0);
   if(mpWorkController->doWork()) {
     mpWorkController->setDoWorkState(false);

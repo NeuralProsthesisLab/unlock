@@ -9,13 +9,13 @@ using namespace std;
 
 static const size_t YIELD_THRESHOLD=512;
 
-AsyncSampleCollector::AsyncSampleCollector(IBci* pBci,
+AsyncSampleCollector::AsyncSampleCollector(ISignal* pSignal,
 					   lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
 					   IWorkController* pWorkController, Sample<uint32_t>* pSamples, size_t samplesSize, SampleBuffer<uint32_t>* pRingBuffer) 
-  : mpBci(pBci), mpQueue(pQueue), mpWorkController(pWorkController), mpSamples(pSamples), mSamplesSize(samplesSize),
+  : mpSignal(pSignal), mpQueue(pQueue), mpWorkController(pWorkController), mpSamples(pSamples), mSamplesSize(samplesSize),
     mpRingBuffer(pRingBuffer), mCurrentSample(0)
 {
-  BOOST_VERIFY(mpBci != 0);
+  BOOST_VERIFY(mpSignal != 0);
   BOOST_VERIFY(mpQueue != 0 && mpQueue->is_lock_free());
   BOOST_VERIFY(mpWorkController != 0);
   BOOST_VERIFY(mpSamples != 0);
@@ -24,7 +24,7 @@ AsyncSampleCollector::AsyncSampleCollector(IBci* pBci,
 }
 
 AsyncSampleCollector::AsyncSampleCollector(const AsyncSampleCollector& copy)
-  : mpBci(copy.mpBci), mpQueue(copy.mpQueue), mpWorkController(copy.mpWorkController), mpSamples(copy.mpSamples),
+  : mpSignal(copy.mpSignal), mpQueue(copy.mpQueue), mpWorkController(copy.mpWorkController), mpSamples(copy.mpSamples),
     mSamplesSize(copy.mSamplesSize), mCurrentSample(copy.mCurrentSample), mpRingBuffer(copy.mpRingBuffer){
 }
     
@@ -32,7 +32,7 @@ AsyncSampleCollector::AsyncSampleCollector(const AsyncSampleCollector& copy)
 AsyncSampleCollector::~AsyncSampleCollector() {
   mpSamples=0;
   mpRingBuffer=0;
-  mpBci=0;
+  mpSignal=0;
   mpWorkController=0;
   mpQueue=0;
     
@@ -51,7 +51,7 @@ void  AsyncSampleCollector::incrementCurrentSample() {
 }  
 
 AsyncSampleCollector& AsyncSampleCollector::operator=(const AsyncSampleCollector& rhs) {
-  mpBci = rhs.mpBci;
+  mpSignal = rhs.mpSignal;
   mpQueue = rhs.mpQueue;
   mpWorkController = rhs.mpWorkController;
   mpSamples = rhs.mpSamples;
@@ -62,7 +62,7 @@ AsyncSampleCollector& AsyncSampleCollector::operator=(const AsyncSampleCollector
 }
   
 bool AsyncSampleCollector::operator==(const AsyncSampleCollector& rhs) const {
-  if (mpBci == rhs.mpBci && mpQueue == rhs.mpQueue && mpWorkController == rhs.mpWorkController
+  if (mpSignal == rhs.mpSignal && mpQueue == rhs.mpQueue && mpWorkController == rhs.mpWorkController
       && mpSamples == rhs.mpSamples && mpRingBuffer == rhs.mpRingBuffer
       && mCurrentSample == rhs.mCurrentSample) {
     return true;
@@ -76,19 +76,19 @@ bool AsyncSampleCollector::operator!=(const AsyncSampleCollector& rhs) const {
 }
   
 void AsyncSampleCollector::operator()() {
-  BOOST_VERIFY(mpBci != 0 && mpQueue != 0 && mpSamples != 0 && mpRingBuffer != 0 && mpWorkController != 0);
+  BOOST_VERIFY(mpSignal != 0 && mpQueue != 0 && mpSamples != 0 && mpRingBuffer != 0 && mpWorkController != 0);
   size_t iterations = 0;
   while(mpWorkController->doWork()) {
-    BOOST_VERIFY(mpBci != 0 && mpQueue != 0 && mpSamples != 0 && mpRingBuffer != 0 && mpWorkController != 0);      
+    BOOST_VERIFY(mpSignal != 0 && mpQueue != 0 && mpSamples != 0 && mpRingBuffer != 0 && mpWorkController != 0);      
     iterations++;
     if (iterations == YIELD_THRESHOLD) {
       iterations = 0;
       thread::yield();
     }
-    size_t samples = mpBci->acquire();
-    size_t channels = mpBci->channels();
+    size_t samples = mpSignal->acquire();
+    size_t channels = mpSignal->channels();
     uint32_t* pBuffer = mpRingBuffer->reserve(samples*channels);
-    mpBci->getdata(pBuffer, samples);
+    mpSignal->getdata(pBuffer, samples);
     mpSamples[mCurrentSample].configure(pBuffer, samples*channels);
       
     while (!mpQueue->push(mpSamples+mCurrentSample)) {

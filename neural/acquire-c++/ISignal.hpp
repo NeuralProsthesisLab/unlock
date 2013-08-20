@@ -1,15 +1,15 @@
-#ifndef IBCI_HPP
-#define IBCI_HPP
+#ifndef ISIGNAL_HPP
+#define ISIGNAL_HPP
 
 #include <stdint.h>
 #include <cstddef>
 
 #include "Portability.hpp"
 
-class DllExport IBci
+class DllExport ISignal
 {
  public:
-  virtual ~IBci() {}
+  virtual ~ISignal() {}
   virtual bool open(uint8_t* mac)=0;
   virtual bool init(size_t channels)=0;
   virtual size_t channels()=0;

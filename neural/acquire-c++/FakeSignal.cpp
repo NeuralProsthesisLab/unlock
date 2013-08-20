@@ -1,9 +1,9 @@
 #include <boost/random/uniform_int_distribution.hpp>
 #include <limits>
 
-#include "fakeBci.hpp"
+#include "fakeSignal.hpp"
 
-FakeBci::FakeBci()
+FakeSignal::FakeSignal()
   : mOpenCount(0), mOpenRet(true), mInitCount(0), mLastChannels(4), mInitRet(true), mChannelsCount(0), mStartCount(0), mStartRet(true),
     mAcquireCount(0), mAcquireRet(1), mGetDataCount(0), mpLastGetData(0), mLastSamples(0),
     mTimestampCount(0), mTimestampRet(-1), mStopCount(0), mStopRet(true), mCloseCount(0),
@@ -17,38 +17,38 @@ FakeBci::FakeBci()
   mLastMac[5] = 0xd;
 }
 
-FakeBci::~FakeBci() {
+FakeSignal::~FakeSignal() {
 }
 
-bool FakeBci::open(uint8_t* pMacAddress) {
+bool FakeSignal::open(uint8_t* pMacAddress) {
   BOOST_VERIFY(pMacAddress != 0);	
   mOpenCount++;
   std::copy(pMacAddress, pMacAddress+MAC_ADDRESS_SIZE, mLastMac);
   return mOpenRet;
 }
 
-bool FakeBci::init(size_t channels) {
+bool FakeSignal::init(size_t channels) {
   mInitCount++;
   mLastChannels = channels;
   return mInitRet;
 }
 
-size_t FakeBci::channels() {
+size_t FakeSignal::channels() {
   mChannelsCount++;
   return mLastChannels;
 }
 
-bool FakeBci::start() {
+bool FakeSignal::start() {
   mStartCount++;
   return mStartRet;
 }
 
-size_t FakeBci::acquire() {
+size_t FakeSignal::acquire() {
   mAcquireCount++;
   return mAcquireRet;
 }
 
-void FakeBci::getdata(uint32_t* buffer, size_t samples) {
+void FakeSignal::getdata(uint32_t* buffer, size_t samples) {
   BOOST_VERIFY(buffer != 0);
   BOOST_VERIFY(mAcquireRet == samples);
   mGetDataCount++;
@@ -62,17 +62,17 @@ void FakeBci::getdata(uint32_t* buffer, size_t samples) {
   mLastSamples = samples;
 }
 
-uint64_t FakeBci::timestamp() {
+uint64_t FakeSignal::timestamp() {
   mTimestampCount++;
   return mTimestampRet;
 }
 
-bool FakeBci::stop() {
+bool FakeSignal::stop() {
   mStopCount++;
   return mStopRet;
 }
 
-bool FakeBci::close() {
+bool FakeSignal::close() {
   mCloseCount++;
   return mCloseRet;
 }

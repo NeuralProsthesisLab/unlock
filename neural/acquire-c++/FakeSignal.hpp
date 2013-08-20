@@ -1,19 +1,19 @@
-#ifndef FAKE_BCI_HPP
-#define FAKE_BCI_HPP
+#ifndef FAKE_SIGNAL_HPP
+#define FAKE_SIGNAL_HPP
 
 #include <boost/random/mersenne_twister.hpp>
 
-#include "IBci.hpp"
+#include "ISignal.hpp"
 #include "Portability.hpp"
 
-class DllExport FakeBci : public IBci
+class DllExport FakeSignal : public ISignal
 {
  public:
   static const size_t MAC_ADDRESS_SIZE=6;    
 
  public:
-  FakeBci();
-  virtual ~FakeBci();
+  FakeSignal();
+  virtual ~FakeSignal();
   virtual bool open(uint8_t* mac);
   virtual bool init(size_t channels);
   virtual size_t channels();
