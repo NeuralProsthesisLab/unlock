@@ -2,7 +2,7 @@
 from unlock.model import TimedStimuli, TimedStimulus, OfflineData, RandomCueStateMachine, CueState, TimedStimulusCueState, MultipleSequentialTimedStimuliCueState, DynamicPositionCueState
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator, DynamicPositionPygletTextLabel
 from unlock.util import TrialState, Trigger
-from unlock.bci import FakeBCI
+#from unlock.bci import FakeBCI
 from controller import Canvas, UnlockController
 from command import RawInlineBCIReceiver
 
