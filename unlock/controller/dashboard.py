@@ -1,5 +1,5 @@
 
-from unlock.bci import FakeBCI
+#from unlock.bci import FakeBCI
 from unlock.model import GridState, TimedStimuli, TimedStimulus
 from unlock.util import Trigger
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, GridView
