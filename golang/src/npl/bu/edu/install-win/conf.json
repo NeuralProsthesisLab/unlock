@@ -1,0 +1,20 @@
+{
+    "UnlockInstallConf" : {
+        "UnlockDirectory" : "C:\Unlock",
+        "BaseUrl" : "http://jpercent.org",
+        "PythonInstallerName" : "python-2.7.5.msi",
+        "PythonPackageName" : "Python-2.7.5",
+        "PythonBasePath" : "C:\Python27", 
+        "PythonPath" : "C:\Python27\python.exe",
+        "EasyInstallPath" : "C:\Python27\Scripts\easy_install.exe",
+        "PipPath" : "C:\Python27\Scripts\pip.exe",
+        "VirtualenvPath" : "C:\Python27\Scripts\virtualenv.exe",
+        "EnvName" : "python27",
+        "PygletZipName" : "pyglet-1.2alpha.zip",
+        "PygletPackageName": "pyglet-1.2alpha",
+        "PygletDirectory" : "pyglet-1.2alpha1",
+        "PyserialZipName" : "pyserial-2.6.zip",
+        "PyserialPackageName" : "pyserial-2.6",
+        "PyserialDirectory" : "pyserial-2.6"
+    }
+}
