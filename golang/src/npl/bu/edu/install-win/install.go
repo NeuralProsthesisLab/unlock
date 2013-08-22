@@ -12,32 +12,6 @@ import (
     "io"
 )
 
-func downloadAndWriteFile(url string, fileName string) {
-    resp, err := http.Get(url)
-    if err != nil {
-        log.Fatalln(err)
-    }
-    
-    defer resp.Body.Close()
-    body, err1 := ioutil.ReadAll(resp.Body)
-    if err1 != nil {
-        log.Fatalln(err)
-    }
-    
-    if err = ioutil.WriteFile(fileName, body, 0744); err != nil {
-        log.Fatalln(err)
-    }
-}
-
-func getWorkingDirectoryAbsolutePath() string {
-    cwd, err := filepath.Abs(``)
-    log.Println(`Current working directory = `, cwd)
-    if err != nil {
-        log.Fatalln(err)
-    }
-    return cwd
-}
-
 func runCommand(command string, errorMsg string, failOnError bool) bool {
     result := true
     cwd := getWorkingDirectoryAbsolutePath()
@@ -74,6 +48,33 @@ func unzipExpand(fileName string) {
     if err := u.Expand(); err != nil {
         log.Fatalln(`Failed to expand `+fileName, err)
     }    
+}
+
+
+func downloadAndWriteFile(url string, fileName string) {
+    resp, err := http.Get(url)
+    if err != nil {
+        log.Fatalln(err)
+    }
+    
+    defer resp.Body.Close()
+    body, err1 := ioutil.ReadAll(resp.Body)
+    if err1 != nil {
+        log.Fatalln(err)
+    }
+    
+    if err = ioutil.WriteFile(fileName, body, 0744); err != nil {
+        log.Fatalln(err)
+    }
+}
+
+func getWorkingDirectoryAbsolutePath() string {
+    cwd, err := filepath.Abs(``)
+    log.Println(`Current working directory = `, cwd)
+    if err != nil {
+        log.Fatalln(err)
+    }
+    return cwd
 }
 
 func installZippedPythonPackage(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
@@ -120,15 +121,9 @@ func installPyglet12alpha(pythonPath string, baseUrl string, fileName string, pa
 func installNumPy(pipPath string) {
     install(pipPath+` numpy`, `numpy`, true)
 }
-/*
-func installNumPy171() {
-    post_fn := func() {}
-    installExe(`numpy-MKL-1.7.1.win32-py2.7.exe`, `NumPy-1.7.1`, true, post_fn)
-}
-*/
+
 func installPySerial26(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
     installZippedPythonPackage(pythonPath, baseUrl, fileName, packageName, packageDirectory);
-    //`pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, post_fn)
 }
 
 func installUnlock() {
