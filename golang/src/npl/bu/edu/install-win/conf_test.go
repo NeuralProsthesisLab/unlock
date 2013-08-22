@@ -7,31 +7,19 @@ import(
 )
 
 func TestParseConf(t *testing.T) {
-    baseUrl := `baseurl`
     unlockDir := `unlockdir`
-    pythonDir := `pythondirectory`
-    python := `python`
-    easyInstall := `easyinstall`
-    pip := `pip`
-    virtualenv := `virtualenv`
+    baseUrl := `baseurl`
+    pythonInstallerName := `pythoninstallername`
+    pythonPackageName := `pythoninstallername`
+    pythonBasePath := `pythonbasepath`
+    pythonPath := `pythonpythonpath`
+    easyInstallPath := `easyinstallPath`
+    pipPath := `pipPath`
+    virtualenvPath := `virtualenvPath`
     envName := `envname` 
-    hostConf := HostConf{baseUrl}
-    unlockConf := UnlockConf{unlockDir}
-    pythonConf := PythonConf{pythonDir, python, easyInstall, pip, virtualenv,
-                             envName}
-    unlockInstallConf := UnlockInstallConf{hostConf, unlockConf, pythonConf}
-
-    if unlockInstallConf.Host != hostConf {
-        t.Errorf("UnlockInstallConf(%v) = %v",unlockInstallConf.Host, hostConf)        
-    }
-    
-    if unlockInstallConf.Unlock != unlockConf {
-        t.Errorf("UnlockInstallConf(%v) = %v",unlockInstallConf.Unlock, unlockConf)        
-    }
-    
-    if unlockInstallConf.Python != pythonConf {
-        t.Errorf("UnlockInstallConf(%v) = %v",unlockInstallConf.Python, pythonConf)        
-    }
+    unlockInstallConf := UnlockInstallConf{unlockDir, baseUrl, pythonInstallerName, pythonPackageName,
+                    pythonBasePath, pythonPath, easyInstallPath, pipPath, virtualenvPath,
+                             envName, ``, ``,``,``,``,`pyserail-2.6`}
 
     unlockConfBinary, e := json.Marshal(unlockInstallConf)
     if e != nil {
