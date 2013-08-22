@@ -12,23 +12,24 @@ import (
     "io"
 )
 
-/////////////////////////////////////////////////////////////////////////
-
-var base_url = `http://jpercent.org/`
-
-func downloadAndWrite(url_name string, file_name string) {
-    resp, err := http.Get(url_name)
+func downloadAndWriteFile(url string, fileName string) {
+    resp, err := http.Get(url)
     if err != nil {
         log.Fatalln(err)
     }
+    
     defer resp.Body.Close()
     body, err1 := ioutil.ReadAll(resp.Body)
-    if err1 = ioutil.WriteFile(file_name, body, 0744); err1 != nil {
-        log.Fatalln(err1)
+    if err1 != nil {
+        log.Fatalln(err)
+    }
+    
+    if err = ioutil.WriteFile(fileName, body, 0744); err != nil {
+        log.Fatalln(err)
     }
 }
 
-func cwdAbs() string {
+func getWorkingDirectoryAbsolutePath() string {
     cwd, err := filepath.Abs(``)
     log.Println(`Current working directory = `, cwd)
     if err != nil {
@@ -36,119 +37,102 @@ func cwdAbs() string {
     }
     return cwd
 }
-/*
-func checkForPython() error {
-    log.Println(`Checking for Python...`)
-    cmd := exec.Command(`cmd`, `/C C:\\Python27\\python.exe`)
-    return cmd.Run()
-}
-*/
 
-func installExe(exe_name string, package_name string, fail_on_error bool, post_fn func()) {
-    log.Println(`Installing `+package_name+`...`)
-    cwd := cwdAbs()
-    cmd3 := exec.Command("cmd", "/C "+cwd+"\\"+exe_name)
-    if err := cmd3.Run(); err != nil {
-        if fail_on_error == true {
-            log.Fatalln(`Failed installation of `+exe_name, err)
+func runCommand(command string, errorMsg string, failOnError bool) bool {
+    result := true
+    cwd := getWorkingDirectoryAbsolutePath()
+    cmd := exec.Command(`cmd`, `/C `+cwd+"\\"+command) // note the mixing of ` and "; my editor `\` are not friends
+    if err := cmd.Run(); err != nil {
+        if failOnError == true {
+            log.Fatalln(`FATAL: `+errorMsg+`; command = `+command, err)
         } else {
-            log.Println(`Did not install `+exe_name+` trying to continue`, err)
+            log.Println(`Non-fatal `+errorMsg+`; command = `+command, err)
         }
+        result = false
     }
-    post_fn()
-    fmt.Println(`Successfully installed `+package_name)
+    return result
 }
 
-func chdirFailOnError(directory string, error_msg string) {
+func install(command string, packageName string, failOnError bool) {
+    log.Print(`Installing `+packageName+`: `)
+    result := runCommand(command, `Failed to install `+packageName, failOnError)
+    if result {
+        fmt.Println(`Success`)
+    } else {
+        fmt.Println(`Failure`)
+    }
+}
+
+func chdirFailOnError(directory string, errorMsg string) {
     if err := os.Chdir(directory); err != nil {
-        log.Fatalln(`install-win.chdirFailOnError: ERROR: Change directory to `+directory+` failed: `+error_msg, err)
+        log.Fatalln(`install-win.chdirFailOnError: ERROR: Change directory to `+directory+` failed: `+errorMsg, err)
     }
 }
 
-func unzipExpand(file_name string) {
-    u := &unzip.Unzip{file_name, ``, nil}
+func unzipExpand(fileName string) {
+    u := &unzip.Unzip{fileName, ``, nil}
     if err := u.Expand(); err != nil {
-        log.Fatalln(`Failed to expand `+file_name, err)
+        log.Fatalln(`Failed to expand `+fileName, err)
     }    
 }
 
-func installZippedPythonPackage(file_name string, package_name string, local_dir string, post_fn func()) {
-    log.Println(`Downloading `+package_name+`... `)
-    downloadAndWrite(base_url+file_name, file_name)
-    log.Println(`Installing `+package_name+`... `)
-    unzipExpand(file_name)
-    chdirFailOnError(local_dir, `Failed to install `+package_name)
-
-    cmd2 := exec.Command(`cmd`, `/C C:\Python27\python.exe setup.py install`)
-    if err := cmd2.Run(); err != nil {
-        log.Fatalln(`Failed to install `+package_name, err)
-    }
-    post_fn()
+func installZippedPythonPackage(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
+    log.Println(`Downloading `+packageName+`... `)
+    downloadAndWriteFile(baseUrl+fileName, fileName)
+    unzipExpand(fileName)
+    chdirFailOnError(packageDirectory, `Failed to install `+packageName)
+    command := `/C `+pythonPath+` setup.py install`
+    install(command, packageName, true)
     os.Chdir(`..`)
-    log.Println(`Successfully installed `+package_name)
 }
 
-func installPython27(base_python_path string) {
-    python_msi := `python-2.7.5.msi`
-    package_name := `Python-2.7.5`
-    command := `msiexec /i ` + python_msi + ` TARGETDIR=`+base_python_path+` /qb ALLUSERS=0 `
-    log.Println(`Downloading `+package_name+`...`)
-    downloadAndWrite(base_url+python_msi, python_msi)        
-    post_fn := func() {}
-    installExe(command, package_name, false, post_fn)
+func installPython(baseUrl string, pythonInstallerName string, pythonBasePath string, pythonPackageName string) {// base_python_path string) {
+    command := `msiexec /i ` + pythonInstallerName + ` TARGETDIR=`+pythonBasePath+` /qb ALLUSERS=0 `
+    log.Println(`Downloading `+pythonPackageName+`...`)
+    downloadAndWriteFile(baseUrl+pythonInstallerName, pythonInstallerName)        
+    install(command, pythonPackageName, true)
 }
 
-func configureDistribute() {
-    distribute := `distribute_setup.py`
-    downloadAndWrite(base_url+distribute, distribute)
+func installEasyInstall(baseUrl string, pythonPath string) {
+    downloadAndWriteFile(baseUrl+`distribute_setup.py`, `distribute.py`)
+    install(pythonPath+` distribute_setup.py`, `easy_install`, true)    
 }
 
-func runExeNoPostProcessingFailOnError(command string, package_name string) {
-    installExe(command, package_name, true, func() {})    
+func installPip(easyInstallPath string) {
+    install(easyInstallPath+` pip`, `pip`, true)
 }
 
-func installEasyInstall(python_path string) {
-    command := python_path+` distribute_setup.py`
-    runExeNoPostProcessingFailOnError(command, `easy_install`)
+func installVirtualenv(pipPath string) {
+    install(pipPath+` install virtualenv`, `virtualenv`, true)
 }
 
-func installPip(easy_install_path string) {
-//    command := `C:\Python27\Scripts\easy_install.exe pip`
-    command := easy_install_path+` pip`
-    runExeNoPostProcessingFailOnError(command, `pip`)
+func createVirtualenv(unlockDirectory string, virtualenvPath string, envName string) {
+    errorMsg := `Failed to create virtual environment`
+    chdirFailOnError(unlockDirectory, errorMsg)
+    command := virtualenvPath+` --distribute `+envName //python27`
+    runCommand(command, errorMsg, true)
 }
 
-func installVirtualenv(pip_path string) {
-    // `C:\Python27\Scripts\pip.exe install virtualenv`
-    command := pip_path+` install virtualenv`
-    runExeNoPostProcessingFailOnError(command, `virtualenv`)
+func installPyglet12alpha(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
+    installZippedPythonPackage(pythonPath, baseUrl, fileName, packageName, packageDirectory)
 }
 
-func createVirtualenv(virtualenv_path string, envname string) {
-    directory := `C:\Unlock`
-    error_msg := `Failed to create virtual environment`
-    chdirFailOnError(directory, error_msg)
-//    command := `c:\Python27\Scripts\virtualenv.exe +` --distribute python27`    
-    command := virtualenv_path+` --distribute `+envname //python27`
-    runExeNoPostProcessingFailOnError(command, error_msg)
+func installNumPy(pipPath string) {
+    install(pipPath+` numpy`, `numpy`, true)
 }
-
-func installPyglet12alpha() {
-    post_fn := func() {}
-    installZippedPythonPackage(`pyglet-1.2alpha.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`, post_fn)
-}
-
+/*
 func installNumPy171() {
     post_fn := func() {}
     installExe(`numpy-MKL-1.7.1.win32-py2.7.exe`, `NumPy-1.7.1`, true, post_fn)
 }
-
-func installPySerial26() {
-    post_fn := func() {}
-    installZippedPythonPackage(`pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, post_fn)
+*/
+func installPySerial26(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
+    installZippedPythonPackage(pythonPath, baseUrl, fileName, packageName, packageDirectory);
+    //`pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, post_fn)
 }
 
 func installUnlock() {
+/*    
     post_processing_fn := func() {
         if err := os.MkdirAll(`C:\Unlock`, 0755); err != nil {
             log.Fatalln(`Failed to make unlock directory`, err)
@@ -170,29 +154,26 @@ func installUnlock() {
         }
     }
     installZippedPythonPackage(`unlock.zip`, `unlock`, `unlock`, post_processing_fn)
+    */
 }
 
+ 
 func main() {
     logf, err := os.OpenFile(`unlock-install.log`, os.O_WRONLY|os.O_CREATE,0640)
     if err != nil {
         log.Fatalln(err)
     }
+    
     log.SetOutput(io.MultiWriter(logf, os.Stdout))
-    base_python_directory := `C:\Python27`
-    python_path := base_python_directory + `python.exe `
-    easy_install_path := base_python_directory + `\Scripts\easy_install.exe `
-    pip_path := base_python_directory + `\Scripts\pip.exe `
-    virtualenv_path := base_python_directory + `\Scripts\virtualenv.exe `
-    
-    installPython27(base_python_directory)
-    configureDistribute()
-    installEasyInstall(python_path)
-    installPip(easy_install_path)
-    installVirtualenv(pip_path)
-    createVirtualenv(virtualenv_path, `python27`)
-    
-    installPyglet12alpha()
-    installNumPy171()
-    installPySerial26()
+    conf := ParseConf("config.json")
+
+    installPython(conf.BaseUrl, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
+    installEasyInstall(conf.BaseUrl, conf.PythonPath)
+    installPip(conf.EasyInstallPath)
+    installVirtualenv(conf.PipPath)
+    createVirtualenv(conf.UnlockDirectory, conf.VirtualenvPath, conf.EnvName)
+    installPyglet12alpha(conf.PythonPath, conf.BaseUrl, conf.PygletZipName, conf.PygletPackageName, conf.PygletDirectory)
+    installNumPy(conf.PipPath)
+    installPySerial26(conf.PythonPath, conf.BaseUrl, conf.PyserialZipName, conf.PyserialPackageName, conf.PyserialDirectory)
     installUnlock()
 }
