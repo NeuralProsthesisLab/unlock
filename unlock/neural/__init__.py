@@ -4,7 +4,7 @@ import platform
 import shutil
 import inspect
 
-from acuqire import *
+from acquire import *
 from classify import *
 
 #
