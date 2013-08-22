@@ -1,47 +1,39 @@
 package main
 
 import (
-"fmt"
-"os"
-"encoding/json"
-"io/ioutil"
+    "encoding/json"
+    "io/ioutil"
+    "log"
 )
  
 type UnlockInstallConf struct {
-    Host HostConf
-    Unlock UnlockConf
-    Python PythonConf
-}
-
-type HostConf struct {
-    BaseUrl string
-}
-
-type UnlockConf struct {
     UnlockDirectory string
-}
-
-type PythonConf struct {
-    PythonDirectory string
-    Python string
-    EasyInstall string
-    Pip string
-    Virtualenv string
-    EnvName string    
+    BaseUrl string
+    PythonInstallerName string
+    PythonPackageName string
+    PythonBasePath string
+    PythonPath string
+    EasyInstallPath string
+    PipPath string
+    VirtualenvPath string
+    EnvName string
+    PygletZipName string 
+    PygletPackageName string
+    PygletDirectory string
+    PyserialZipName string
+    PyserialPackageName string 
+    PyserialDirectory string
 }
  
 func ParseConf(confFile string) UnlockInstallConf {
     file, e := ioutil.ReadFile(confFile)
     if e != nil {
-        fmt.Printf("File error: %v\n", e)
-        os.Exit(1)
+        log.Fatalf("File error: %v\n", e)
     }
-    fmt.Printf("%s\n", string(file))
+    log.Printf("%s\n", string(file))
  
-    //m := new(Dispatch)
-    //var m interface{}
     var conf UnlockInstallConf
     json.Unmarshal(file, &conf)
-    fmt.Printf("Results: %v\n", conf)
+    log.Printf("Results: %v\n", conf)
     return conf
 }
