@@ -13,11 +13,14 @@ type UnlockInstallConf struct {
     PythonPackageName string
     PythonBasePath string
     PythonPath string
+    NumpyPackageName string
     EasyInstallPath string
     PipPath string
     VirtualenvPath string
     EnvName string
-    PygletZipName string 
+    EnvPythonPath string
+    EnvPipPath string
+    PygletZipName string
     PygletPackageName string
     PygletDirectory string
     PyserialZipName string
