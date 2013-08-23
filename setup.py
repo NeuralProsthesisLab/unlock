@@ -6,7 +6,7 @@ packages = ['unlock',
             'unlock.context', 'unlock.context.test',
             'unlock.controller', 'unlock.controller.test', 
             'unlock.model', 'unlock.model.test',
-            'unlock.neural', 'unlock.neural.acquire', 
+            'unlock.neural', 'unlock.neural.acquire', 'unlock.neural.classify', 
             'unlock.util', 'unlock.util.test',
             'unlock.view', 'unlock.view.test']
 
@@ -47,8 +47,8 @@ package_data = {
                             'acquire-c++/boost/win-x86/lib/boost_wserialization-vc110-mt-1_54.dll',
                             'acquire-c++/boost/win-x86/lib/signal-unit-tests.exe',
                             'acquire-c++/boost/win-x86/lib/signal-unit-tests.exp',
-                            'acquire-c++/boost/win-x86/lib/signal.pyd',
-                            'acquire-c++/boost/win-x86/lib/signal_win_x86.dll',
+                            'acquire-c++/boost/win-x86/lib/neuralsignal.pyd',
+                            'acquire-c++/boost/win-x86/lib/neuralsignal_win_x86.dll',
 # mac os x libs find acquire-c++/boost/macosx-x86-64/lib | grep -v -e lib$  -e gd | sed s/^/\'/ | sed s/$/\',/ 
                             'acquire-c++/boost/macosx-x86-64/lib/libboost_prg_exec_monitor.a',
                             'acquire-c++/boost/macosx-x86-64/lib/libboost_python.a',
@@ -56,7 +56,7 @@ package_data = {
                             'acquire-c++/boost/macosx-x86-64/lib/libboost_test_exec_monitor.a',
                             'acquire-c++/boost/macosx-x86-64/lib/libboost_thread.a',
                             'acquire-c++/boost/macosx-x86-64/lib/libboost_unit_test_framework.a',
-                            'acquire-c++/boost/macosx-x86-64/lib/signal_darwin_x86_64.so'],
+                            'acquire-c++/boost/macosx-x86-64/lib/neuralsignal_darwin_x86_64.so'],
                  'unlock.view' : ['bell-ring-01.mp3', 'unlock.png']}
 
 setup(name='unlock', version='0.3.7', packages=packages, package_data=package_data,
