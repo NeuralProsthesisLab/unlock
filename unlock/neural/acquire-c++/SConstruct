@@ -14,7 +14,7 @@ if sys.platform == 'darwin':
             'libboost_test_exec_monitor.a', 'libboost_thread.a', 
             'libboost_unit_test_framework.a']
       python_includes = ['/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/']
-      libname = 'libsignal_darwin_x86_64'
+      libname = 'libneuralsignal_darwin_x86_64'
       ccflags = []
       cppdefines = []
       target_arch = 'x86_64'
@@ -32,7 +32,7 @@ elif sys.platform == 'win32':
                   'boost_prg_exec_monitor-vc110-mt-1_54',
                     'boost_thread-vc110-mt-1_54']
       python_includes = ['C:\Python27\include']
-      libname = 'signal_win_x86'
+      libname = 'neuralsignal_win_x86'
       ccflags = ['/MD',  '/EHsc']
       cppdefines = ['BOOST_ALL_DYN_LINK', 'MSVC', 'DLL_LINK']
       target_arch = 'x86'
@@ -46,7 +46,7 @@ includes.extend(boost_includes)
 includes.extend(python_includes)
 frameworks = ["Python"]
 
-SOURCES=['signal.cpp', 'NonblockingSignal.cpp', 'FakeSignal.cpp', 'AsyncSampleCollector.cpp', 'ManagedWorkController.cpp']
+SOURCES=['neuralsignal.cpp', 'NonblockingSignal.cpp', 'FakeSignal.cpp', 'AsyncSampleCollector.cpp', 'ManagedWorkController.cpp']
 UNIT_TEST_SOURCES=['AsyncSampleCollectorTest.cpp', 'SignalTestRunner.cpp', 'NonblockingSignalTest.cpp',
                    'SampleTest.cpp', 'IntegralWorkController.cpp', 'ManagedWorkControllerTest.cpp', 'IntegralWorkControllerTest.cpp']
 
