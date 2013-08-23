@@ -69,7 +69,7 @@ ISignal* create_enobio_signal() {
   return create_fake_signal();
 }
 
-BOOST_PYTHON_MODULE(signal)
+BOOST_PYTHON_MODULE(neuralsignal)
 {
   def("create_fake_signal", create_fake_signal, return_value_policy<manage_new_object>());
   def("create_enobio_signal", create_enobio_signal, return_value_policy<manage_new_object>());
