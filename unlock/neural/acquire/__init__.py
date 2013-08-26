@@ -1,2 +1,2 @@
-from signal import *
+from neuralsignal import *
 

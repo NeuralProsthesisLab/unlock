@@ -45,8 +45,8 @@ package_data = {
                             'acquire-c++/boost/win-x86/lib/boost_unit_test_framework-vc110-mt-1_54.dll',
                             'acquire-c++/boost/win-x86/lib/boost_wave-vc110-mt-1_54.dll',
                             'acquire-c++/boost/win-x86/lib/boost_wserialization-vc110-mt-1_54.dll',
-                            'acquire-c++/boost/win-x86/lib/signal-unit-tests.exe',
-                            'acquire-c++/boost/win-x86/lib/signal-unit-tests.exp',
+                            'acquire-c++/boost/win-x86/lib/neuralsignal-unit-tests.exe',
+                            'acquire-c++/boost/win-x86/lib/neuralsignal-unit-tests.exp',
                             'acquire-c++/boost/win-x86/lib/neuralsignal.pyd',
                             'acquire-c++/boost/win-x86/lib/neuralsignal_win_x86.dll',
 # mac os x libs find acquire-c++/boost/macosx-x86-64/lib | grep -v -e lib$  -e gd | sed s/^/\'/ | sed s/$/\',/ 
