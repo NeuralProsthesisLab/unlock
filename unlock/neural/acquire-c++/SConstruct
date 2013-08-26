@@ -28,15 +28,17 @@ elif sys.platform == 'win32':
                     'boost_python-vc110-mt-1_54',
                     'boost_system-vc110-mt-1_54',     
                     'boost_unit_test_framework-vc110-mt-1_54',
-                  'libboost_test_exec_monitor-vc110-mt-1_54',
-                  'boost_prg_exec_monitor-vc110-mt-1_54',
-                    'boost_thread-vc110-mt-1_54']
+#                    'libboost_test_exec_monitor-vc110-mt-1_54',
+#                    'boost_prg_exec_monitor-vc110-mt-1_54',
+                    'boost_thread-vc110-mt-1_54',
+                    'Enobio3GAPI',
+                    ]
       python_includes = ['C:\Python27\include']
       libname = 'neuralsignal_win_x86'
       ccflags = ['/MD',  '/EHsc']
+      includes.append(os.path.join('boost', 'include', 'enobio'))
       cppdefines = ['BOOST_ALL_DYN_LINK', 'MSVC', 'DLL_LINK']
       target_arch = 'x86'
-
 
 lib_path.extend(boost_lib_path)
 libs.extend(boost_libs)
@@ -46,9 +48,9 @@ includes.extend(boost_includes)
 includes.extend(python_includes)
 frameworks = ["Python"]
 
-SOURCES=['neuralsignal.cpp', 'NonblockingSignal.cpp', 'FakeSignal.cpp', 'AsyncSampleCollector.cpp', 'ManagedWorkController.cpp']
+SOURCES=['neuralsignal.cpp', 'NonblockingSignal.cpp', 'FakeSignal.cpp', 'AsyncSampleCollector.cpp', 'ManagedWorkController.cpp', 'Pynobio.cpp']
 UNIT_TEST_SOURCES=['AsyncSampleCollectorTest.cpp', 'SignalTestRunner.cpp', 'NonblockingSignalTest.cpp',
-                   'SampleTest.cpp', 'IntegralWorkController.cpp', 'ManagedWorkControllerTest.cpp', 'IntegralWorkControllerTest.cpp']
+                   'SampleTest.cpp', 'IntegralWorkController.cpp', 'ManagedWorkControllerTest.cpp', 'IntegralWorkControllerTest.cpp', 'PynobioTest.cpp']
 
 env = Environment(CPPPATH = includes, LIBS = libs, LIBPATH = lib_path,
                   FRAMEWORKS = frameworks, SHLIBPREFIX = '',
@@ -58,6 +60,6 @@ test_env = Environment(CPPPATH = includes, LIBS = test_libs, LIBPATH = lib_path,
                   SHLIBPREFIX = '', CCFLAGS=ccflags, CPPDEFINES=cppdefines,
                   TARGET_ARCH=target_arch)
                   
-signal = env.SharedLibrary(libname, SOURCES)
-test_signal = test_env.Program('signal-unit-tests', UNIT_TEST_SOURCES)
-test_env.Requires(test_signal, signal)
+neuralsignal = env.SharedLibrary(libname, SOURCES)
+test_neuralsignal = test_env.Program('neuralsignal-unit-tests', UNIT_TEST_SOURCES)
+test_env.Requires(test_neuralsignal, neuralsignal)
