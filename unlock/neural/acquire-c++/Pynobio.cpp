@@ -1,5 +1,5 @@
-#include "pynobio.h"
-
+#include "Pynobio.hpp"
+#include <stdio.h>
 
 //// EnobioDataConsumer ///
 EnobioDataConsumer::EnobioDataConsumer() {
@@ -40,14 +40,17 @@ void EnobioDataConsumer::receiveData(const PData &data) {
 	}
 }
 
+
 //// EnobioStatusConsumer ///
 void EnobioStatusConsumer::receiveData(const PData &data) {
 	StatusData *status = (StatusData *)data.getData();
 	printf("%s\n", status->getString());
 }
 
+
 /// Enobio ///
 Enobio::Enobio() {
+
 	this->enobioData = new EnobioDataConsumer();
 	this->enobioStatus = new EnobioStatusConsumer();
 	this->enobio.registerConsumer(Enobio3G::ENOBIO_DATA, *this->enobioData);
@@ -55,7 +58,7 @@ Enobio::Enobio() {
 
 	this->opened = false;
 	this->started = false;
-	this->samples = new int[BUFFER_SAMPLES*CHANNELS];
+	this->samples = new size_t[BUFFER_SAMPLES*CHANNELS];
 }
 
 Enobio::~Enobio() {
@@ -71,33 +74,38 @@ Enobio::~Enobio() {
 	delete this->samples;
 }
 
-BOOL Enobio::open() {
+bool Enobio::open(uint8_t* mac) {
 	// hardcoded MAC of our Enobio 8 device
 	// will not work with the StarStim. needs refactoring
-	unsigned char mac[6] = {0x61, 0x9C, 0x58, 0x80, 0x07, 0x00};
-	this->opened = this->enobio.openDevice(mac);
+	unsigned char hardcodedMac[6] = {0x61, 0x9C, 0x58, 0x80, 0x07, 0x00};
+//	this->opened = (uint32_t)this->enobio.openDevice(hardcodedMac);
 	return this->opened;
 }
 
-BOOL Enobio::init(const int) {
+bool Enobio::init(size_t channels) {
 	// it does not appear as if the Enobio has a way to only request a
 	// subset of channels, so we would use this to create a mask on the
 	// returned sample data.
 	return true;
 }
 
-BOOL Enobio::start() {
-	this->enobio.startStreaming();
+size_t Enobio::channels() {
+	// XXX - fix me
+	return 8;
+}
+
+bool Enobio::start() {
+//	this->enobio.startStreaming();
 	this->started = true;
 	return this->started;
 }
 
-BOOL Enobio::acquire() {
-	DWORD result;
+size_t Enobio::acquire() {
+	size_t result=0;
 	result = WaitForSingleObject(this->enobioData->hEvent, 1000);
 	if (result != WAIT_OBJECT_0) {
 		printf("Wait error (%d)\n",result);
-		return false;
+		return 0;
 	} else {
 		int nSamples = this->enobioData->nSamples;
 		memcpy(this->samples, this->enobioData->buffer, CHANNELS*nSamples*sizeof(int));
@@ -106,25 +114,25 @@ BOOL Enobio::acquire() {
 	}	
 }
 
-void Enobio::getdata(int *data, int n) {
-	if(n >= BUFFER_SAMPLES*CHANNELS) {
-		n = BUFFER_SAMPLES*CHANNELS;
+void Enobio::getdata(uint32_t* buffer, size_t samples) {
+	if(samples >= BUFFER_SAMPLES*CHANNELS) {
+		samples = BUFFER_SAMPLES*CHANNELS;
 	}
-	memcpy(data, this->samples, n*sizeof(int));
+	memcpy(buffer, this->samples, samples*sizeof(size_t));
 }
 
-unsigned long long Enobio::timestamp() {
+uint64_t Enobio::timestamp() {
 	return this->enobioData->timestamp;
 }
 
-BOOL Enobio::stop() {
-	this->enobio.stopStreaming();
+bool Enobio::stop() {
+//	this->enobio.stopStreaming();
 	this->started = false;
 	return true;
 }
 
-BOOL Enobio::close() {
-	this->enobio.closeDevice();
+bool Enobio::close() {
+//	this->enobio.closeDevice();
 	this->opened = false;
 	return true;
 }
