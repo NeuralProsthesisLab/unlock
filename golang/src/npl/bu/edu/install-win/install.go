@@ -52,7 +52,7 @@ func unzipExpand(fileName string) {
 }
 
 func downloadAndWriteFile(url string, fileName string) {
-    log.Println("Downloading file "+fileName)
+    log.Println("Downloading file "+fileName+" from URL = "+url)
     resp, err := http.Get(url)
     if err != nil {
         log.Fatalln(err)
@@ -136,8 +136,8 @@ func installPySerial26(pythonPath string, baseUrl string, fileName string, packa
     installZippedPythonPackage(pythonPath, baseUrl, fileName, packageName, packageDirectory);
 }
 
-func installUnlock() {
-/*    
+func installUnlock(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
+/*
     post_processing_fn := func() {
         if err := os.MkdirAll(`C:\Unlock`, 0755); err != nil {
             log.Fatalln(`Failed to make unlock directory`, err)
@@ -158,8 +158,8 @@ func installUnlock() {
             log.Fatalln(`Failed to install unlock collector`, err)
         }
     }
-    installZippedPythonPackage(`unlock.zip`, `unlock`, `unlock`, post_processing_fn)
-    */
+*/    
+    installZippedPythonPackage(pythonPath, baseUrl, fileName, packageName, packageDirectory)
 }
 
 //var species = flag.String("species", "gopher", "the species we are studying")
@@ -171,13 +171,13 @@ var confFile = flag.String("conf", "", "Qualified file name of Unlock installati
 
 func createConf() UnlockInstallConf {
     if *confFile == `` {
-        return UnlockInstallConf {`C:\Unlock`, `http://jpercent.org/`, `python-2.7.5.msi`,
+        return UnlockInstallConf {`C:\Unlock`, `http://jpercent.org/unlock/`, `python-2.7.5.msi`,
             `Python-2.7.5`, `C:\Python27`, `C:\Python27\python.exe`, `numpy-MKL-1.7.1.win32-py2.7.exe`,
             `C:\Python27\Scripts\easy_install.exe`, `C:\Python27\Scripts\pip.exe`,
-            `C:\Python27\Scripts\virtualenv.exe`, `python27`, 
+            `C:\Python27\Scripts\virtualenv.exe`, `python27`,
             `C:\Unlock\python27\Scripts\python.exe`, `C:\Unlock\python27\Scripts\pip.exe`,
             `pyglet-1.2alpha.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`,
-            `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`}
+            `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, `unlock-0.3.7.zip`, `unlock`, `unlock-0.3.7`}
     } else {
         return ParseConf(`config.json`)
     }    
@@ -207,5 +207,5 @@ func main() {
     createVirtualenv(conf.UnlockDirectory, conf.VirtualenvPath, conf.EnvName)
     installPyglet12alpha(conf.EnvPythonPath, conf.BaseUrl, conf.PygletZipName, conf.PygletPackageName, conf.PygletDirectory)
     installPySerial26(conf.EnvPythonPath, conf.BaseUrl, conf.PyserialZipName, conf.PyserialPackageName, conf.PyserialDirectory)
-    installUnlock()
+    installUnlock(conf.EnvPythonPath, conf.BaseUrl, conf.UnlockZipName, conf.UnlockPackageName, conf.UnlockPackageDirectory)
 }

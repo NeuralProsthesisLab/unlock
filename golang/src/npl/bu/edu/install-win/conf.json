@@ -1,7 +1,7 @@
 {
     "UnlockInstallConf" : {
         "UnlockDirectory" : "C:\Unlock",
-        "BaseUrl" : "http://jpercent.org/",
+        "BaseUrl" : "http://jpercent.org/unlock",
         "PythonInstallerName" : "python-2.7.5.msi",
         "PythonPackageName" : "Python-2.7.5",
         "PythonBasePath" : "C:\Python27", 
@@ -18,6 +18,9 @@
         "PygletDirectory" : "pyglet-1.2alpha1",
         "PyserialZipName" : "pyserial-2.6.zip",
         "PyserialPackageName" : "pyserial-2.6",
-        "PyserialDirectory" : "pyserial-2.6"
+        "PyserialDirectory" : "pyserial-2.6",
+        "UnlockZipName" : "unlock-0.3.7.zip",
+        "UnlockPackageName" : "unlock",
+        "UnlockPackageDirectory" : "unlock-0.3.7"
     }
 }

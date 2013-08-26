@@ -106,8 +106,6 @@ BOOST_AUTO_TEST_CASE(test_functor)
   BOOST_CHECK_EQUAL(1, c.currentSample());
 }
 
-
-
 BOOST_AUTO_TEST_CASE(test_threaded_functor)
 {
   cout << "AsyncSampleCollector.test_functor " << endl;

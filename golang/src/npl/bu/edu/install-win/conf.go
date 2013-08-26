@@ -26,6 +26,9 @@ type UnlockInstallConf struct {
     PyserialZipName string
     PyserialPackageName string 
     PyserialDirectory string
+    UnlockZipName string
+    UnlockPackageName string
+    UnlockPackageDirectory string
 }
  
 func ParseConf(confFile string) UnlockInstallConf {
