@@ -15,7 +15,7 @@ NonblockingSignal::NonblockingSignal(ISignal* pSignal) : mpSignal(pSignal), mpPr
   mpProducerSamples = new Sample<uint32_t>[NonblockingSignal::SAMPLE_BUFFER_SIZE];
   mpConsumerSamples = new Sample<uint32_t>[NonblockingSignal::SAMPLE_BUFFER_SIZE];
   mpSampleRingBuffer = new SampleBuffer<uint32_t>();
-  mpQueue = new spsc_queue<Sample<uint32_t>* > (NonblockingSignal::SAMPLE_BUFFER_SIZE-1);
+  mpQueue = new spsc_queue<Sample<uint32_t> > (NonblockingSignal::SAMPLE_BUFFER_SIZE-1);
   mpWorkController = new ManagedWorkController(false);
   BOOST_VERIFY(mpQueue != 0);
   BOOST_VERIFY(mpProducerSamples != 0);
@@ -73,7 +73,6 @@ NonblockingSignal& NonblockingSignal::operator=(const NonblockingSignal& other)
 
 bool NonblockingSignal::open(uint8_t* pMacAddress) {
   BOOST_VERIFY(mpSignal != 0);
-  BOOST_VERIFY(pMacAddress != 0);
   return mpSignal->open(pMacAddress);
 }
 
@@ -94,7 +93,7 @@ bool NonblockingSignal::start()  {
   if(ret) {
     BOOST_VERIFY(mpAsyncSampleCollector == 0);
     mpWorkController->setDoWorkState(true);
-    mpAsyncSampleCollector = new thread(AsyncSampleCollector(mpSignal, (boost::lockfree::spsc_queue<Sample<uint32_t>* >*)mpQueue,
+    mpAsyncSampleCollector = new thread(AsyncSampleCollector(mpSignal, (boost::lockfree::spsc_queue<Sample<uint32_t> >*)mpQueue,
 							     mpWorkController, mpProducerSamples, NonblockingSignal::SAMPLE_BUFFER_SIZE, mpSampleRingBuffer));
   }
   return ret;
@@ -111,26 +110,32 @@ size_t NonblockingSignal::acquire()  {
     return 0;
   }
   size_t count = 0;
-  while(count < NonblockingSignal::SAMPLE_BUFFER_SIZE && mpQueue->pop(mpConsumerSamples+count)) {
+  size_t samples = 0;
+  while(count < NonblockingSignal::SAMPLE_BUFFER_SIZE && mpQueue->pop(mpConsumerSamples[count])) {
+    samples += mpConsumerSamples[count].length();
     count++;
   }
-  return count;
+  
+  if (samples > 0) {
+    cout << "Nonblocking signal. acquire samples = " << samples << endl;      
+  }
+  return samples;
 }
 
-void NonblockingSignal::getdata(uint32_t* data, size_t n)  {
+void NonblockingSignal::getdata(uint32_t* buffer, size_t samples)  {
   BOOST_VERIFY(mpWorkController != 0);
   BOOST_VERIFY(mpConsumerSamples != 0);
   if (!mpWorkController->doWork()) {
-    cerr << "NonblockingSignal.getdata: WARNING getdata called with " << data << ":"
-         <<  n << " when device not started; not copying any data" << endl; 
+    cerr << "NonblockingSignal.getdata: WARNING getdata called with " << buffer << ":"
+         <<  samples << " when device not started; not copying any data" << endl; 
     return;
   }
-  
-  for (int sample=0, pos=0; sample < n; sample++) {
+  for (int sample=0, pos=0; sample < samples; ) {
     uint32_t* pSample = mpConsumerSamples[pos].sample();
-    size_t length = mpConsumerSamples[pos].length();
-    std::copy(pSample, pSample+length, data);
-    data += length;
+    size_t sample_count = mpConsumerSamples[pos].length();
+    std::copy(pSample, pSample+sample_count, buffer);
+    buffer += sample_count;
+    sample += sample_count;
   }
 }
 

@@ -1,5 +1,8 @@
 #include "Pynobio.hpp"
 #include <stdio.h>
+#include <iostream>
+
+using namespace std;
 
 //// EnobioDataConsumer ///
 EnobioDataConsumer::EnobioDataConsumer() {
@@ -78,7 +81,7 @@ bool Enobio::open(uint8_t* mac) {
 	// hardcoded MAC of our Enobio 8 device
 	// will not work with the StarStim. needs refactoring
 	unsigned char hardcodedMac[6] = {0x61, 0x9C, 0x58, 0x80, 0x07, 0x00};
-//	this->opened = (uint32_t)this->enobio.openDevice(hardcodedMac);
+	this->opened = (uint32_t)this->enobio.openDevice(hardcodedMac);
 	return this->opened;
 }
 
@@ -95,7 +98,7 @@ size_t Enobio::channels() {
 }
 
 bool Enobio::start() {
-//	this->enobio.startStreaming();
+	this->enobio.startStreaming();
 	this->started = true;
 	return this->started;
 }
@@ -104,11 +107,11 @@ size_t Enobio::acquire() {
 	size_t result=0;
 	result = WaitForSingleObject(this->enobioData->hEvent, 1000);
 	if (result != WAIT_OBJECT_0) {
-		printf("Wait error (%d)\n",result);
+		cerr << "Pynobio: ERROR: waiting result = " << result << endl;
 		return 0;
 	} else {
 		int nSamples = this->enobioData->nSamples;
-		memcpy(this->samples, this->enobioData->buffer, CHANNELS*nSamples*sizeof(int));
+		memcpy(this->samples, this->enobioData->buffer, CHANNELS*nSamples*sizeof(uint32_t));
 		this->enobioData->nSamples = 0;
 		return nSamples;
 	}	
@@ -116,6 +119,7 @@ size_t Enobio::acquire() {
 
 void Enobio::getdata(uint32_t* buffer, size_t samples) {
 	if(samples >= BUFFER_SAMPLES*CHANNELS) {
+		cout << "Enobio.getdata: WARNING: number of samples requested is bigger than the buffer" << endl;
 		samples = BUFFER_SAMPLES*CHANNELS;
 	}
 	memcpy(buffer, this->samples, samples*sizeof(size_t));
@@ -126,13 +130,13 @@ uint64_t Enobio::timestamp() {
 }
 
 bool Enobio::stop() {
-//	this->enobio.stopStreaming();
+	this->enobio.stopStreaming();
 	this->started = false;
 	return true;
 }
 
 bool Enobio::close() {
-//	this->enobio.closeDevice();
+	this->enobio.closeDevice();
 	this->opened = false;
 	return true;
 }

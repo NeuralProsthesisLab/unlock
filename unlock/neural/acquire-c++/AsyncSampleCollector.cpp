@@ -7,10 +7,10 @@
 using namespace boost;
 using namespace std;
 
-static const size_t YIELD_THRESHOLD=512;
+static const size_t YIELD_THRESHOLD=13;
 
 AsyncSampleCollector::AsyncSampleCollector(ISignal* pSignal,
-					   lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
+					   lockfree::spsc_queue<Sample<uint32_t> >* pQueue,
 					   IWorkController* pWorkController, Sample<uint32_t>* pSamples, size_t samplesSize, SampleBuffer<uint32_t>* pRingBuffer) 
   : mpSignal(pSignal), mpQueue(pQueue), mpWorkController(pWorkController), mpSamples(pSamples), mSamplesSize(samplesSize),
     mpRingBuffer(pRingBuffer), mCurrentSample(0)
@@ -86,19 +86,22 @@ void AsyncSampleCollector::operator()() {
       thread::yield();
     }
     size_t samples = mpSignal->acquire();
-    size_t channels = mpSignal->channels();
-    uint32_t* pBuffer = mpRingBuffer->reserve(samples*channels);
-    mpSignal->getdata(pBuffer, samples);
-    mpSamples[mCurrentSample].configure(pBuffer, samples*channels);
+    if (samples > 0) {
+      size_t channels = mpSignal->channels();
+      uint32_t* pBuffer = mpRingBuffer->reserve(samples*channels);
+      mpSignal->getdata(pBuffer, samples*channels);
+      mpSamples[mCurrentSample].configure(pBuffer, samples*channels);
       
-    while (!mpQueue->push(mpSamples+mCurrentSample)) {
-      if (!mpWorkController->doWork()) {
-	cerr << "AsyncSampleCollector.operator()(): WARNING stopping work with a full queue" << endl;
-	break;
+      while (!mpQueue->push(mpSamples[mCurrentSample])) {
+        if (!mpWorkController->doWork()) {
+	  cerr << "AsyncSampleCollector.operator()(): WARNING stopping work with a full queue" << endl;
+	  break;
+        }
       }
+      incrementCurrentSample();
+    } else {
+      thread::yield();
     }
-      
-    incrementCurrentSample();
   }
 }
    

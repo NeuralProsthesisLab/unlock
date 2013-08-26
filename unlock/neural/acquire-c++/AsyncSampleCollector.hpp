@@ -17,7 +17,7 @@ using namespace boost::lockfree;
 class DllExport AsyncSampleCollector
 {
  public:
-  AsyncSampleCollector(ISignal* pSignal, lockfree::spsc_queue<Sample<uint32_t>* >* pQueue,
+  AsyncSampleCollector(ISignal* pSignal, lockfree::spsc_queue<Sample<uint32_t> >* pQueue,
 		       IWorkController* pWorkController, Sample<uint32_t>* pSamples,
 		       size_t samplesSize, SampleBuffer<uint32_t>* pRingBuffer);
   AsyncSampleCollector(const AsyncSampleCollector& copy);
@@ -35,7 +35,7 @@ class DllExport AsyncSampleCollector
   
  private:
   ISignal* mpSignal;
-  spsc_queue<Sample<uint32_t>* >* mpQueue;
+  spsc_queue<Sample<uint32_t> >* mpQueue;
   IWorkController* mpWorkController;
   Sample<uint32_t>* mpSamples;
   size_t mSamplesSize;

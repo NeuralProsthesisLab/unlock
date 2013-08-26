@@ -50,7 +50,7 @@ size_t FakeSignal::acquire() {
 
 void FakeSignal::getdata(uint32_t* buffer, size_t samples) {
   BOOST_VERIFY(buffer != 0);
-  BOOST_VERIFY(mAcquireRet == samples);
+  BOOST_VERIFY(mAcquireRet * mLastChannels == samples);
   mGetDataCount++;
   for(size_t i=0; i < samples; i++) {
     for (size_t j=0; j < mLastChannels; j++) {
