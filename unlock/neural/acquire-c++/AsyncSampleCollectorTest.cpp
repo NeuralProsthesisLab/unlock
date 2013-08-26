@@ -20,10 +20,10 @@ BOOST_AUTO_TEST_CASE(test_create_destroy)
   FakeSignal fbci;
   Sample<uint32_t>* pProducerSamples = new Sample<uint32_t>[42];
   SampleBuffer<uint32_t> sampleRingBuffer;
-  spsc_queue<Sample<uint32_t>*,  capacity<(42 - 1)> > queue;
+  spsc_queue<Sample<uint32_t>,  capacity<(42 - 1)> > queue;
   IntegralWorkController workController(1);
 
-  AsyncSampleCollector* collector = new AsyncSampleCollector((ISignal*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
+  AsyncSampleCollector* collector = new AsyncSampleCollector((ISignal*)&fbci, (spsc_queue<Sample<uint32_t> >* )&queue,
 							     &workController, pProducerSamples, 42, &sampleRingBuffer);
   delete collector;
 }
@@ -34,14 +34,14 @@ BOOST_AUTO_TEST_CASE(test_create_copy)
   FakeSignal fbci;
   Sample<uint32_t>* pProducerSamples = new Sample<uint32_t>[1339];
   SampleBuffer<uint32_t> sampleRingBuffer;
-  spsc_queue<Sample<uint32_t>*,  capacity<(1338)> > queue;
+  spsc_queue<Sample<uint32_t>,  capacity<(1338)> > queue;
   IntegralWorkController workController(1);
   IntegralWorkController workController1(1);
 
-  AsyncSampleCollector c = AsyncSampleCollector((ISignal*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
+  AsyncSampleCollector c = AsyncSampleCollector((ISignal*)&fbci, (spsc_queue<Sample<uint32_t> >* )&queue,
 						&workController, pProducerSamples, 1339, &sampleRingBuffer);
   
-  AsyncSampleCollector c1 = AsyncSampleCollector((ISignal*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
+  AsyncSampleCollector c1 = AsyncSampleCollector((ISignal*)&fbci, (spsc_queue<Sample<uint32_t> >* )&queue,
 						 &workController1, pProducerSamples, 1339, &sampleRingBuffer);
   
   AsyncSampleCollector c2(c);
@@ -63,11 +63,11 @@ BOOST_AUTO_TEST_CASE(test_current_sample)
   FakeSignal fbci;
   Sample<uint32_t>* pProducerSamples = new Sample<uint32_t>[1339];
   SampleBuffer<uint32_t> sampleRingBuffer;
-  spsc_queue<Sample<uint32_t>*,  capacity<(1338)> > queue;
+  spsc_queue<Sample<uint32_t>,  capacity<(1338)> > queue;
   IntegralWorkController workController(1);
   IntegralWorkController workController1(1);
 
-  AsyncSampleCollector c = AsyncSampleCollector((ISignal*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
+  AsyncSampleCollector c = AsyncSampleCollector((ISignal*)&fbci, (spsc_queue<Sample<uint32_t> >* )&queue,
 						&workController, pProducerSamples, 1339, &sampleRingBuffer);  
   for(int i=0; i < 1338; i++) {
     BOOST_CHECK_EQUAL(i, c.currentSample());
@@ -92,10 +92,10 @@ BOOST_AUTO_TEST_CASE(test_functor)
   FakeSignal fbci;
   Sample<uint32_t>* pProducerSamples = new Sample<uint32_t>[4200];
   SampleBuffer<uint32_t> sampleRingBuffer;
-  boost::lockfree::spsc_queue<Sample<uint32_t>* > queue(4200);
+  boost::lockfree::spsc_queue<Sample<uint32_t> > queue(4200);
   IntegralWorkController workController(1);
   
-  AsyncSampleCollector c = AsyncSampleCollector((ISignal*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
+  AsyncSampleCollector c = AsyncSampleCollector((ISignal*)&fbci, (spsc_queue<Sample<uint32_t> >* )&queue,
 						&workController, pProducerSamples, 4200, &sampleRingBuffer);
   c();
   BOOST_CHECK_EQUAL(1, fbci.mAcquireCount);
@@ -115,10 +115,10 @@ BOOST_AUTO_TEST_CASE(test_threaded_functor)
   Sample<uint32_t>* pProducerSamples = new Sample<uint32_t>[4200];
   Sample<uint32_t>* pConsumerSamples = new Sample<uint32_t>[4200];  
   SampleBuffer<uint32_t> sampleRingBuffer;
-  boost::lockfree::spsc_queue<Sample<uint32_t>* > queue(4200);
+  boost::lockfree::spsc_queue<Sample<uint32_t> > queue(4200);
   IntegralWorkController workController(1);
   
-  boost::thread t(AsyncSampleCollector((ISignal*)&fbci, (spsc_queue<Sample<uint32_t>* >* )&queue,
+  boost::thread t(AsyncSampleCollector((ISignal*)&fbci, (spsc_queue<Sample<uint32_t> >* )&queue,
 				       &workController, pProducerSamples, 4200, &sampleRingBuffer));
 
   t.join();
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(test_threaded_functor)
   BOOST_CHECK_EQUAL(pProducerSamples[0].sample(), fbci.mpLastGetData);
   BOOST_CHECK_EQUAL(pProducerSamples[0].length(), fbci.mLastChannels * fbci.mAcquireRet);
  
-  size_t count =  queue.pop(&pConsumerSamples, 4200);
+  size_t count =  queue.pop(pConsumerSamples[0]);
   BOOST_CHECK_EQUAL(1, count);
   BOOST_CHECK_EQUAL(pProducerSamples[0].sample(), pConsumerSamples[0].sample());
   BOOST_CHECK_EQUAL(pProducerSamples[0].length(), pConsumerSamples[0].length());
