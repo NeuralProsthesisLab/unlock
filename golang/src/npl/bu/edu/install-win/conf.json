@@ -18,6 +18,7 @@
         "PygletZipName" : "pyglet-1.2alpha.zip",
         "PygletPackageName": "pyglet-1.2alpha",
         "PygletDirectory" : "pyglet-1.2alpha1",
+        "Avbin" : "AVbin10-win32.exe",
         "PyserialZipName" : "pyserial-2.6.zip",
         "PyserialPackageName" : "pyserial-2.6",
         "PyserialDirectory" : "pyserial-2.6",
