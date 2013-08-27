@@ -6,6 +6,7 @@ import cPickle
 import json
 import logging
 import pyglet
+import time
 import numpy as np
 
 
@@ -174,9 +175,20 @@ class RawInlineBCIReceiver(CommandReceiverInterface):
         samples = None
         while samples == None or samples < 1:
             samples = self.bci.acquire()
-        
-        raw_data_vector = np.array(self.bci.getdata(samples * self.bci.channels))
-        return RawBCICommand(delta, raw_data_vector, samples, self.bci.channels)
+
+        print 'samples, bci channels = ', samples, self.bci.channels()
+        done = False
+        while not done:
+            try:
+                c_data = self.bci.getdata(samples * self.bci.channels())
+                raw_data_vector = np.array(c_data)
+                done = True
+            except MemoryError:
+                time.sleep(.1)
+                continue
+                #raw_data_vector = c_data[len(c_data)/2:]
+
+        return RawBCICommand(delta, raw_data_vector, samples, self.bci.channels())
         
     def stop(self):
         pass
