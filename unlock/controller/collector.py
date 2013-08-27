@@ -66,6 +66,7 @@ class Collector(UnlockController):
         
     @staticmethod
     def create_emg_collector(window, bci, standalone=True, stimulation_duration=4.0, trials=25, cue_duration=1, rest_duration=1, indicate_duration=2, output_file='bci', seed=42, radius=1):
+        print "STANDALONE -================", standalone
         canvas = Canvas.create(window.width, window.height)
         
         cues = [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left]
@@ -100,7 +101,7 @@ class Collector(UnlockController):
         
         offline_data = OfflineData(output_file)
         
-        return Collector(window, [up, right, down, left, rest, indicate_text], canvas, command_receiver, cue_state, offline_data)
+        return Collector(window, [up, right, down, left, rest, indicate_text], canvas, command_receiver, cue_state, offline_data, standalone=standalone)
         
     @staticmethod
     def create_msequence_collector(window, bci, standalone=True, stimulation_duration=4.0, trials=2, cue_duration=1, rest_duration=2, indicate_duration=4, output_file='bci', seed=42):
