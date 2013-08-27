@@ -25,6 +25,7 @@ type UnlockInstallConf struct {
     PygletZipName string
     PygletPackageName string
     PygletDirectory string
+    Avbin string
     PyserialZipName string
     PyserialPackageName string 
     PyserialDirectory string

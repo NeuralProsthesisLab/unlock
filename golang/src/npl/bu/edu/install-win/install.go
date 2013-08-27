@@ -141,6 +141,22 @@ func installPySerial26(pythonPath string, baseUrl string, fileName string, packa
     installZippedPythonPackage(pythonPath, baseUrl, fileName, packageName, packageDirectory);
 }
 
+func installAvbin(baseUrl string, avbin string) {
+    downloadAndWriteFile(baseUrl+avbin, avbin)
+    var cwd = getWorkingDirectoryAbsolutePath()
+    install(cwd+"\\"+avbin, `avbin`, true)
+    // XXX - last minute hack
+    data, err1 := ioutil.ReadFile(`C:\Windows\System32\avbin.dll`)
+    if err1 != nil {
+        log.Fatalln(err1)
+    }
+    
+    if err := ioutil.WriteFile(`C:\Windows\SysWOW64\avbin.dll`, data, 0744); err != nil {
+        log.Fatalln(err)
+    }    
+    
+}
+
 func installUnlock(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
 /*
     post_processing_fn := func() {
@@ -180,9 +196,9 @@ func createConf() UnlockInstallConf {
             `Python-2.7.5`, `C:\Python27`, `C:\Python27\python.exe`, `numpy-MKL-1.7.1.win32-py2.7.exe`,
             `C:\Python27\Scripts\easy_install.exe`, `C:\Python27\Scripts\pip.exe`,
             `C:\Python27\Scripts\virtualenv.exe`, `python27`,
-            `C:\Python27\Lib\site-packages\numpy\`, `C:\Unlock\python27\Lib\site-packages\`,
+            `C:\Python27\Lib\site-packages\numpy`, `C:\Unlock\python27\Lib\site-packages`,
             `C:\Unlock\python27\Scripts\python.exe`, `C:\Unlock\python27\Scripts\pip.exe`,
-            `pyglet-1.2alpha.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`,
+            `pyglet-1.2alpha.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`, `AVbin10-win32.exe`,
             `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, `unlock-0.3.7-win32.zip`, `unlock`, `unlock-0.3.7`}
     } else {
         return ParseConf(`config.json`)
@@ -216,7 +232,7 @@ func main() {
     //installEasyInstall(conf.BaseUrl, conf.PythonPath)
     //installPip(conf.EasyInstallPath)
     //installVirtualenv(conf.PipPath)
-    
+    installAvbin(conf.BaseUrl, conf.Avbin)
     
     if err := os.MkdirAll(conf.UnlockDirectory, 0755); err != nil {
         log.Fatalln(`Failed to create `+conf.UnlockDirectory, err)
