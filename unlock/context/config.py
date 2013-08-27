@@ -12,12 +12,12 @@ import types
 import inspect
 import logging
 
-import context
+import app_context
 #from _config_base import *
 #from springpython.context import scope
 from unlock.util import decorator, partial
-from context import ApplicationContextAware
-from context import PythonObjectFactory, ReflectiveObjectFactory
+from app_context import ApplicationContextAware
+from app_context import PythonObjectFactory, ReflectiveObjectFactory
 
 
 def get_string(value):
@@ -38,7 +38,7 @@ class ObjectDef(object):
     a handle for the actual ObjectFactory that should be used to utilize this information when
     creating an instance of a object.
     """
-    def __init__(self, id, props=None, factory=None, scope=context.SINGLETON,
+    def __init__(self, id, props=None, factory=None, scope=app_context.SINGLETON,
                  lazy_init=False, abstract=False, parent=None):
         super(ObjectDef, self).__init__()
         self.id = id
@@ -385,7 +385,7 @@ def _object_wrapper(f, scope, parent, log_func_name, *args, **kwargs):
 
     return _deco(f, scope, parent, log_func_name, *args, **kwargs)
 
-def Object(theScope=context.SINGLETON, lazy_init=False, abstract=False, parent=None):
+def Object(theScope=app_context.SINGLETON, lazy_init=False, abstract=False, parent=None):
     """
     This function is a wrapper around the function which returns the real decorator.
     It decides, based on scope and lazy-init, which decorator to return.
@@ -393,10 +393,10 @@ def Object(theScope=context.SINGLETON, lazy_init=False, abstract=False, parent=N
     if type(theScope) == types.FunctionType:
         return Object()(theScope)
 
-    elif theScope == context.SINGLETON:
+    elif theScope == app_context.SINGLETON:
         log_func_name = "objectSingleton"
 
-    elif theScope == context.PROTOTYPE:
+    elif theScope == app_context.PROTOTYPE:
         log_func_name = "objectPrototype"
 
     else:
@@ -610,9 +610,9 @@ class XMLConfig(Config):
         """
 
         if "scope" in object.attrib:
-            scope_ = context.convert(object.get("scope"))
+            scope_ = app_context.convert(object.get("scope"))
         else:
-            scope_ = context.SINGLETON
+            scope_ = app_context.SINGLETON
         
         return(object.get("id"),  ReflectiveObjectFactory(class_, object.get("factory_method")),
             object.get("lazy-init", False), object.get("abstract", False),
