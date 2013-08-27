@@ -132,10 +132,10 @@ class ObjectContainer(object):
                 comp = self._create_object(object_def)
                 
                 # Evaluate any scopes, and store appropriately.
-                if self.object_defs[name].scope == scope.SINGLETON:
+                if self.object_defs[name].scope == SINGLETON:
                     self.objects[name] = comp
                     self.logger.debug("Stored object '%s' in container's singleton storage" % name)
-                elif self.object_defs[name].scope == scope.PROTOTYPE:
+                elif self.object_defs[name].scope == PROTOTYPE:
                     pass
                 else:
                     raise InvalidObjectScope("Don't know how to handle scope %s" % self.object_defs[name].scope)
