@@ -1,0 +1,72 @@
+{
+    "main" : "Dashboard",
+    "signal" : "fake",
+    "fullscreen" : false,
+    "fps" : true,
+    "controllers" : [
+        {
+            "name" : "Ssvep",
+            "args" : {
+            }
+        },        
+        {
+            "name" : "EmgCollector",
+            "args" : {
+                "standalone" : false,
+                "trials" : 9,
+                "rest_duration" : 2,
+                "output_file" : "C:\\Unlock\\collector_data",
+                "seed" : 31337                
+            }
+        },
+        {
+            "name" : "MultiMSequenceCollector",
+            "args" : {
+                "standalone" : false,
+                "trials" : 9,
+                "rest_duration" : 2,
+                "output_file" : "C:\\Unlock\\collector_data",
+                "seed" : 31337                
+            }
+        },           
+        {
+            "name" : "Dashboard",
+            "args" : {
+                "controllers" : [ "Ssvep", "EmgCollector", "MultiMSequenceCollector"]
+            }
+        }
+    ],    
+    
+    "logging": {
+        "version": 1,
+        "disable_existing_loggers": false,
+        "formatters": {
+            "simple": {
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            }
+        },
+     
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "level": "DEBUG",
+                "formatter": "simple",
+                "stream": "ext://sys.stdout"
+            },
+            
+            "file_handler": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "formatter": "simple",
+                "filename": "unlock.log",
+                "maxBytes": "10485760",
+                "backupCount": "20",
+                "encoding": "utf8"
+            }
+        },
+        
+        "root": {
+            "level": "INFO",
+            "handlers": ["console", "file_handler"]
+        }
+    }
+}
