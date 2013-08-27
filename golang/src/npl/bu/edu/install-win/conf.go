@@ -18,6 +18,8 @@ type UnlockInstallConf struct {
     PipPath string
     VirtualenvPath string
     EnvName string
+    NumpyHack string
+    NumpyHack1 string
     EnvPythonPath string
     EnvPipPath string
     PygletZipName string

@@ -98,6 +98,11 @@ func installPython(baseUrl string, pythonInstallerName string, pythonBasePath st
     if err := cmd.Run(); err != nil {
         log.Fatalln(`FATAL: failed to install python `, err)
     }
+    
+    if err := os.Setenv(`PYTHONPATH`, `C:\Python27;C:\Python27\Lib;C:\Python27\DLLs`); err != nil {
+        log.Println(`Could not properly set the PYTHONPATH env variable; on some systems this can cause problems during virtual env creation`)
+    }
+    log.Println(`PYTHON PATH = `+os.Getenv(`PYTHONPATH`))
 }
 
 func installEasyInstall(baseUrl string, pythonPath string) {
@@ -118,7 +123,7 @@ func createVirtualenv(unlockDirectory string, virtualenvPath string, envName str
     var cwd = getWorkingDirectoryAbsolutePath()
     chdirFailOnError(unlockDirectory, errorMsg)
     command := virtualenvPath+` --system-site-packages `+envName //python27`
-    runCommand(command, errorMsg, true)
+    runCommand(command, errorMsg, true)    
     os.Chdir(cwd)
 }
 
@@ -175,12 +180,22 @@ func createConf() UnlockInstallConf {
             `Python-2.7.5`, `C:\Python27`, `C:\Python27\python.exe`, `numpy-MKL-1.7.1.win32-py2.7.exe`,
             `C:\Python27\Scripts\easy_install.exe`, `C:\Python27\Scripts\pip.exe`,
             `C:\Python27\Scripts\virtualenv.exe`, `python27`,
+            `C:\Python27\Lib\site-packages\numpy\`, `C:\Unlock\python27\Lib\site-packages\`,
             `C:\Unlock\python27\Scripts\python.exe`, `C:\Unlock\python27\Scripts\pip.exe`,
             `pyglet-1.2alpha.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`,
-            `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, `unlock-0.3.7.zip`, `unlock`, `unlock-0.3.7`}
+            `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, `unlock-0.3.7-win32.zip`, `unlock`, `unlock-0.3.7`}
     } else {
         return ParseConf(`config.json`)
     }    
+}
+
+func numpyHack(pythonPath string, from string, to string) {
+    var copydir = "import shutil\n"
+    copydir += "import os\n"
+    copydir += `shutil.copytree('`+from+`','`+to+`')`+"\n"
+    fmt.Println(copydir)
+    command := pythonPath+` -c '`+copydir+`'`
+    runCommand(command, "numpyHack Failed", false)
 }
 
 func main() {
@@ -195,17 +210,24 @@ func main() {
     log.Printf("conf file = "+*confFile)
     
     var conf = createConf()
-
+    
     installPython(conf.BaseUrl, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
     installNumPy(conf.BaseUrl, conf.NumpyPackageName)
-    installEasyInstall(conf.BaseUrl, conf.PythonPath)
-    installPip(conf.EasyInstallPath)
-    installVirtualenv(conf.PipPath)
+    //installEasyInstall(conf.BaseUrl, conf.PythonPath)
+    //installPip(conf.EasyInstallPath)
+    //installVirtualenv(conf.PipPath)
+    
+    
     if err := os.MkdirAll(conf.UnlockDirectory, 0755); err != nil {
         log.Fatalln(`Failed to create `+conf.UnlockDirectory, err)
     }
-    createVirtualenv(conf.UnlockDirectory, conf.VirtualenvPath, conf.EnvName)
-    installPyglet12alpha(conf.EnvPythonPath, conf.BaseUrl, conf.PygletZipName, conf.PygletPackageName, conf.PygletDirectory)
-    installPySerial26(conf.EnvPythonPath, conf.BaseUrl, conf.PyserialZipName, conf.PyserialPackageName, conf.PyserialDirectory)
-    installUnlock(conf.EnvPythonPath, conf.BaseUrl, conf.UnlockZipName, conf.UnlockPackageName, conf.UnlockPackageDirectory)
+    //createVirtualenv(conf.UnlockDirectory, conf.VirtualenvPath, conf.EnvName)
+    // XXX - this is a hack for numpy.  on my machine the virtual env does the right thing, but on other machines it does not.
+    //       I found this solution on stackoverflow; its not the best as it does register numpy with pip, but it does work for
+    //       now.
+    //numpyHack(conf.EnvPythonPath, conf.NumpyHack, conf.NumpyHack1)
+
+    installPyglet12alpha(conf.PythonPath, conf.BaseUrl, conf.PygletZipName, conf.PygletPackageName, conf.PygletDirectory)
+    installPySerial26(conf.PythonPath, conf.BaseUrl, conf.PyserialZipName, conf.PyserialPackageName, conf.PyserialDirectory)
+    installUnlock(conf.PythonPath, conf.BaseUrl, conf.UnlockZipName, conf.UnlockPackageName, conf.UnlockPackageDirectory)
 }
