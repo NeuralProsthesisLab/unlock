@@ -1,10 +1,15 @@
 
+
 #include "ISignal.hpp"
 #include "FakeSignal.hpp"
 #include "NonblockingSignal.hpp"
 #include "Portability.hpp"
+#include "PythonSignal.hpp"
+#include "Pynobio.hpp"
 
 #include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <vector>
 #include <stdint.h>
 
 using namespace boost::python;
@@ -61,16 +66,26 @@ class DllExport SignalPythonWrap : public ISignal, public wrapper<ISignal>
   ISignal* mpSignal;    
 };
 
-ISignal* create_fake_signal() {
-  return new FakeSignal(); 
+
+PythonSignal* create_fake_signal() {
+  FakeSignal* pFakeSignal = new FakeSignal();
+  //NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pFakeSignal);
+  PythonSignal* pPythonSignal = new PythonSignal(pFakeSignal);
+  return pPythonSignal;
 }
 
-ISignal* create_enobio_signal() {
-  return create_fake_signal();
+PythonSignal* create_enobio_signal() {
+  Enobio* pEnobioSignal = new Enobio();
+  NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pEnobioSignal);
+  PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal);
+  return pPythonSignal;
 }
 
 BOOST_PYTHON_MODULE(neuralsignal)
 {
+  class_<std::vector<uint32_t> >("int32_vector")
+        .def(vector_indexing_suite<std::vector<uint32_t> >() );
+
   def("create_fake_signal", create_fake_signal, return_value_policy<manage_new_object>());
   def("create_enobio_signal", create_enobio_signal, return_value_policy<manage_new_object>());
 
@@ -96,6 +111,18 @@ BOOST_PYTHON_MODULE(neuralsignal)
     .def("timestamp", &NonblockingSignal::timestamp)
     .def("stop", &NonblockingSignal::stop)    
     .def("close", &NonblockingSignal::close)             
+    ;
+    
+  class_<PythonSignal>("PythonSignal", init<ISignal*>())
+    .def("open", &PythonSignal::open)
+    .def("init", &PythonSignal::init)
+    .def("channels", &PythonSignal::channels)        
+    .def("start", &PythonSignal::start)    
+    .def("acquire", &PythonSignal::acquire)
+    .def("getdata", &PythonSignal::getdata)    
+    .def("timestamp", &PythonSignal::timestamp)
+    .def("stop", &PythonSignal::stop)    
+    .def("close", &PythonSignal::close)             
     ;
 }
 
