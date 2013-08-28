@@ -32,7 +32,7 @@ class Canvas(object):
 #        xs
    
 class PygletWindow(pyglet.window.Window):
-    def __init__(self, fullscreen=False, vsync=False, show_fps=False):
+    def __init__(self, fullscreen=False, show_fps=True, vsync=False):
         super(PygletWindow, self).__init__(fullscreen=fullscreen, vsync=vsync)
         self.controller_stack = []
         self.views = []
