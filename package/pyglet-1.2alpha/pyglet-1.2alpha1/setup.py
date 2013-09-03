@@ -281,7 +281,7 @@ else:
 
 
 if _have_setuptools:
-    # Additional dict values for setuptools
+     Additional dict values for setuptools
     setup_info.update(setuptools_info)
 
     install_requires = []
@@ -291,12 +291,12 @@ if _have_setuptools:
         install_requires=install_requires,
     ))
 
-if sys.version_info >= (3,):
-    # Automatically run 2to3 when using Python 3
-    if _have_setuptools:
-        setup_info["use_2to3"] = True
-    else:
-        from distutils.command.build_py import build_py_2to3
-        setup_info["cmdclass"] = {"build_py" : build_py_2to3}
+#if sys.version_info >= (3,):
+  #   Automatically run 2to3 when using Python 3
+   # if _have_setuptools:
+#        setup_info["use_2to3"] = True
+ #   else:
+  #      from distutils.command.build_py import build_py_2to3
+   #    setup_info["cmdclass"] = {"build_py" : build_py_2to3}
 
 setup(**setup_info)
