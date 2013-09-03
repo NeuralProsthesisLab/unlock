@@ -23,10 +23,10 @@ class WINDOW_SET_MOUSE_VISIBLE(unittest.TestCase):
         if symbol == key.V:
             visible = (modifiers & key.MOD_SHIFT)
             self.w.set_mouse_visible(visible)
-            print 'Mouse is now %s' % (visible and 'visible' or 'hidden')
+            print('Mouse is now %s' % (visible and 'visible' or 'hidden'))
 
     def on_mouse_motion(self, x, y, dx, dy):
-        print 'on_mousemotion(x=%f, y=%f, dx=%f, dy=%f)' % (x, y, dx, dy)
+        print('on_mousemotion(x=%f, y=%f, dx=%f, dy=%f)' % (x, y, dx, dy))
 
     def test_set_visible(self):
         self.width, self.height = 200, 200

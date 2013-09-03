@@ -31,17 +31,17 @@ from pyglet.window import key
 
 class WINDOW_SET_EXCLUSIVE_KEYBOARD(unittest.TestCase):
     def on_key_press(self, symbol, modifiers):
-        print 'Pressed %s with modifiers %s' % \
-            (key.symbol_string(symbol), key.modifiers_string(modifiers))
+        print('Pressed %s with modifiers %s' % \
+            (key.symbol_string(symbol), key.modifiers_string(modifiers)))
 
         if symbol == key.E:
             exclusive = not (modifiers & key.MOD_SHIFT)
             self.w.set_exclusive_keyboard(exclusive)
-            print 'Exclusive keyboard is now %r' % exclusive
+            print('Exclusive keyboard is now %r' % exclusive)
 
     def on_key_release(self, symbol, modifiers):
-        print 'Released %s with modifiers %s' % \
-            (key.symbol_string(symbol), key.modifiers_string(modifiers))
+        print('Released %s with modifiers %s' % \
+            (key.symbol_string(symbol), key.modifiers_string(modifiers)))
 
     def test_set_exclusive_keyboard(self):
         self.width, self.height = 200, 200

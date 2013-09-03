@@ -73,20 +73,20 @@ class MyWindow(pyglet.window.Window):
     if _have_carbon:
         @CarbonEventHandler(kEventClassWindow, kEventWindowClickDragRgn)
         def _on_window_click_drag_rgn(self, next_handler, event, data):
-            print 'Clicked drag rgn.'
+            print('Clicked drag rgn.')
             carbon.CallNextEventHandler(next_handler, event)
             return noErr
 
     if _have_win32:
         @Win32EventHandler(WM_DISPLAYCHANGE)
         def _on_window_display_change(self, msg, lParam, wParam):
-            print 'Display resolution changed.'
+            print('Display resolution changed.')
             return 0
 
     if _have_xlib:
         @XlibEventHandler(xlib.PropertyNotify)
         def _on_window_property_notify(self, event):
-            print 'Property notify.'
+            print('Property notify.')
 
 if __name__ == '__main__':
     window = MyWindow()

@@ -386,7 +386,7 @@ class Batch(object):
         # Create vertex list and initialize
         vlist = domain.create(count, len(indices))
         start = vlist.start
-        vlist._set_index_data(map(lambda i: i + start, indices))
+        vlist._set_index_data([i + start for i in indices])
         for i, array in initial_arrays:
             vlist._set_attribute_data(i, array)
 
@@ -512,25 +512,25 @@ class Batch(object):
 
     def _dump_draw_list(self):
         def dump(group, indent=''):
-            print indent, 'Begin group', group
+            print(indent, 'Begin group', group)
             domain_map = self.group_map[group]
-            for _, domain in domain_map.items():
-                print indent, '  ', domain
+            for _, domain in list(domain_map.items()):
+                print(indent, '  ', domain)
                 for start, size in zip(*domain.allocator.get_allocated_regions()):
-                    print indent, '    ', 'Region %d size %d:' % (start, size)
-                    for key, attribute in domain.attribute_names.items():
-                        print indent, '      ',
+                    print(indent, '    ', 'Region %d size %d:' % (start, size))
+                    for key, attribute in list(domain.attribute_names.items()):
+                        print(indent, '      ', end=' ')
                         try:
                             region = attribute.get_region(attribute.buffer,
                                                           start, size)
-                            print key, region.array[:]
+                            print(key, region.array[:])
                         except:
-                            print key, '(unmappable)'
+                            print(key, '(unmappable)')
             for child in self.group_children.get(group, ()):
                 dump(child, indent + '  ')
-            print indent, 'End group', group
+            print(indent, 'End group', group)
 
-        print 'Draw list for %r:' % self
+        print('Draw list for %r:' % self)
         for group in self.top_groups:
             dump(group)
         
@@ -564,7 +564,7 @@ class Batch(object):
 
             # Draw domains using this group
             domain_map = self.group_map[group]
-            for (_, mode, _), domain in domain_map.items():
+            for (_, mode, _), domain in list(domain_map.items()):
                 for list in vertex_lists:
                     if list.domain is domain:
                         list.draw(mode)

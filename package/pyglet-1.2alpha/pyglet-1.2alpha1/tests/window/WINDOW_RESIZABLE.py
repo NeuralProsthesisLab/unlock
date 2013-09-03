@@ -17,7 +17,7 @@ from pyglet.gl import *
 from pyglet import window
 from pyglet.window import key
 
-import window_util
+from . import window_util
 
 class WINDOW_RESIZABLE(unittest.TestCase):
     def test_resizable(self):

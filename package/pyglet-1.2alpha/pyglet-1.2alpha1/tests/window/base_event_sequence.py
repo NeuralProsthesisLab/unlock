@@ -18,9 +18,9 @@ class BaseEventSequence(unittest.TestCase):
             self.start_time = time.time()
         if not self.finished:
             if self.next_sequence != sequence:
-                print 'ERROR: %s out of order' % name
+                print('ERROR: %s out of order' % name)
             else:
-                print 'OK: %s' % name
+                print('OK: %s' % name)
                 self.next_sequence += 1
         if self.next_sequence > self.last_sequence:
             self.finished = True

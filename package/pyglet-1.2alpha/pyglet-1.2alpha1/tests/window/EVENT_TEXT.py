@@ -25,13 +25,13 @@ from pyglet.window import key
 
 class EVENT_KEYPRESS(unittest.TestCase):
     def on_text(self, text):
-        print 'Typed %r' % text
+        print('Typed %r' % text)
 
     def on_text_motion(self, motion):
-        print 'Motion %s' % key.motion_string(motion)
+        print('Motion %s' % key.motion_string(motion))
 
     def on_text_motion_select(self, motion):
-        print 'Select %s' % key.motion_string(motion)
+        print('Select %s' % key.motion_string(motion))
 
     def test_text(self):
         w = window.Window(200, 200)

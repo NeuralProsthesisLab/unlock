@@ -84,7 +84,7 @@ class WeakSet(object):
         del self._dict[value]
 
     def __iter__(self):
-        for key in self._dict.keys():
+        for key in list(self._dict.keys()):
             yield key
 
     def __contains__(self, other):

@@ -29,7 +29,7 @@ class WINDOW_SET_VISIBLE(unittest.TestCase):
                 visible = not visible
                 w.set_visible(visible)
                 last_time = time.time()
-                print 'Set visibility to %r.' % visible
+                print('Set visibility to %r.' % visible)
             w.dispatch_events()
         w.close()
 

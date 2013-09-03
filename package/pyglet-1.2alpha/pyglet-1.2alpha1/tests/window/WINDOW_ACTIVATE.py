@@ -32,7 +32,7 @@ class WINDOW_ACTVATE(unittest.TestCase):
             if time.time() - last_time > 5:
                 w.activate()
                 last_time = time.time()
-                print 'Activated window.'
+                print('Activated window.')
             w.dispatch_events()
         w.close()
 

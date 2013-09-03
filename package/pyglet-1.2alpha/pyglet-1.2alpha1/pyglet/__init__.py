@@ -241,7 +241,7 @@ def _trace_repr(value, size=40):
 
 def _trace_frame(thread, frame, indent):
     from pyglet import lib
-    if frame.f_code is lib._TraceFunction.__call__.func_code:
+    if frame.f_code is lib._TraceFunction.__call__.__code__:
         is_ctypes = True
         func = frame.f_locals['self']._func
         name = func.__name__
@@ -273,17 +273,17 @@ def _trace_frame(thread, frame, indent):
 
     if indent:
         name = 'Called from %s' % name
-    print '[%d] %s%s %s' % (thread, indent, name, location)
+    print('[%d] %s%s %s' % (thread, indent, name, location))
 
     if _trace_args:
         if is_ctypes:
             args = [_trace_repr(arg) for arg in frame.f_locals['args']]
-            print '  %sargs=(%s)' % (indent, ', '.join(args))
+            print('  %sargs=(%s)' % (indent, ', '.join(args)))
         else:
             for argname in code.co_varnames[:code.co_argcount]:
                 try:
                     argvalue = _trace_repr(frame.f_locals[argname])
-                    print '  %s%s=%s' % (indent, argname, argvalue)
+                    print('  %s%s=%s' % (indent, argname, argvalue))
                 except:
                     pass
 
@@ -303,7 +303,7 @@ def _thread_trace_func(thread):
 
         elif event == 'exception':
             (exception, value, traceback) = arg
-            print 'First chance exception raised:', repr(exception)
+            print('First chance exception raised:', repr(exception))
     return _trace_func
 
 def _install_trace():
@@ -376,23 +376,23 @@ if True:
 # Fool py2exe, py2app into including all top-level modules (doesn't understand
 # lazy loading)
 if False:
-    import app
-    import canvas
-    import clock
-    import com
-    import event
-    import font
-    import gl
-    import graphics
-    import input
-    import image
-    import lib
-    import media
-    import resource
-    import sprite
-    import text
-    import window
+    from . import app
+    from . import canvas
+    from . import clock
+    from . import com
+    from . import event
+    from . import font
+    from . import gl
+    from . import graphics
+    from . import input
+    from . import image
+    from . import lib
+    from . import media
+    from . import resource
+    from . import sprite
+    from . import text
+    from . import window
 
 # Hack around some epydoc bug that causes it to think pyglet.window is None.
 if False:
-    import window
+    from . import window

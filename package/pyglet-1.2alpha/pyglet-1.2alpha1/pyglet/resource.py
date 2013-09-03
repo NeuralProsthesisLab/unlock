@@ -244,10 +244,10 @@ class URLLocation(Location):
         self.base = base_url
 
     def open(self, filename, mode='rb'):
-        import urlparse
-        import urllib2
-        url = urlparse.urljoin(self.base, filename)
-        return urllib2.urlopen(url)
+        import urllib.parse
+        import urllib.request, urllib.error, urllib.parse
+        url = urllib.parse.urljoin(self.base, filename)
+        return urllib.request.urlopen(url)
 
 class Loader(object):
     '''Load program resource files from disk.
@@ -282,7 +282,7 @@ class Loader(object):
         '''
         if path is None:
             path = ['.']
-        if type(path) in (str, unicode):
+        if type(path) in (str, str):
             path = [path]
         self.path = list(path)
         if script_home is None:
@@ -340,7 +340,7 @@ class Loader(object):
                     dirpath = dirpath[len(path) + 1:]
                     # Force forward slashes for index
                     if dirpath:
-                        parts = filter(None, dirpath.split(os.sep))
+                        parts = [_f for _f in dirpath.split(os.sep) if _f]
                         dirpath = '/'.join(parts)
                     for filename in filenames:
                         if dirpath:
@@ -559,7 +559,7 @@ class Loader(object):
         :return: List of str
         '''
         self._require_index()
-        return self._cached_images.keys()
+        return list(self._cached_images.keys())
 
     def get_cached_animation_names(self):
         '''Get a list of animation filenames that have been cached.
@@ -570,7 +570,7 @@ class Loader(object):
         :return: List of str
         '''
         self._require_index()
-        return self._cached_animations.keys()
+        return list(self._cached_animations.keys())
 
     def get_texture_bins(self):
         '''Get a list of texture bins in use.
@@ -581,7 +581,7 @@ class Loader(object):
         :return: List of `TextureBin`
         '''
         self._require_index()
-        return self._texture_atlas_bins.values()
+        return list(self._texture_atlas_bins.values())
 
     def media(self, name, streaming=True):
         '''Load a sound or video resource.
@@ -683,7 +683,7 @@ class Loader(object):
         :rtype: list of str
         '''
         self._require_index()
-        return self._cached_textures.keys()
+        return list(self._cached_textures.keys())
 
 #: Default resource search path.
 #:

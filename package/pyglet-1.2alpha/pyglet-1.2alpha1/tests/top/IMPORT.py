@@ -61,8 +61,8 @@ def add_module_tests(name, bases, dict):
         dict[test_name] = test_module
     return type.__new__(type, name, bases, dict)
 
-class TEST_CASE(unittest.TestCase):
-    __metaclass__ = add_module_tests
+class TEST_CASE(unittest.TestCase, metaclass=add_module_tests):
+    pass
 
 
 if __name__ == '__main__':

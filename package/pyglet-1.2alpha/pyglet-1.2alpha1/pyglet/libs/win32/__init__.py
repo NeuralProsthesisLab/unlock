@@ -4,8 +4,8 @@
 from ctypes import *
 
 import pyglet
-import constants
-from types import *
+from . import constants
+from .types import *
 
 _debug_win32 = pyglet.options['debug_win32']
 
@@ -41,7 +41,7 @@ if _debug_win32:
                 if err != 0:
                     for entry in traceback.format_list(traceback.extract_stack()[:-1]):
                         _log_win32.write(entry)
-                    print >> _log_win32, format_error(err)
+                    print(format_error(err), file=_log_win32)
                 return result
             return f
 else:

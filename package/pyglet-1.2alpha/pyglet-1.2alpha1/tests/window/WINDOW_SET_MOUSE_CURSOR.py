@@ -23,7 +23,7 @@ cursor_file = join(dirname(__file__), 'cursor.png')
 
 class WINDOW_SET_MOUSE_CURSOR(unittest.TestCase):
     def on_mouse_motion(self, x, y, dx, dy):
-        print 'on_mousemotion(x=%f, y=%f, dx=%f, dy=%f)' % (x, y, dx, dy)
+        print('on_mousemotion(x=%f, y=%f, dx=%f, dy=%f)' % (x, y, dx, dy))
 
     def test_set_mouse_cursor(self):
         self.width, self.height = 200, 200

@@ -7,7 +7,7 @@ __docformat__ = 'restructuredtext'
 __version__ = '$Id: $'
 
 import unittest
-from StringIO import StringIO
+from io import StringIO
 from os.path import dirname, join
 
 from pyglet.gl import *

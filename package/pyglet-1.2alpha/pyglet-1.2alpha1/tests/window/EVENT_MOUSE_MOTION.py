@@ -21,8 +21,8 @@ from pyglet import window
 
 class EVENT_MOUSEMOTION(unittest.TestCase):
     def on_mouse_motion(self, x, y, dx, dy):
-        print 'Mouse at (%f, %f); relative (%f, %f).' % \
-            (x, y, dx, dy)
+        print('Mouse at (%f, %f); relative (%f, %f).' % \
+            (x, y, dx, dy))
 
     def test_motion(self):
         w = window.Window(200, 200)

@@ -146,9 +146,8 @@ class InterfaceMetaclass(type(ctypes.POINTER(COMInterface))):
 
         return super(InterfaceMetaclass, cls).__new__(cls, name, bases, dct)
 
-class Interface(ctypes.POINTER(COMInterface)):
+class Interface(ctypes.POINTER(COMInterface), metaclass=InterfaceMetaclass):
     '''Base COM interface pointer.'''
-    __metaclass__ = InterfaceMetaclass
 
 class IUnknown(Interface):
     _methods_ = [

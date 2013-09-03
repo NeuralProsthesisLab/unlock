@@ -22,12 +22,12 @@ from pyglet.window import key
 
 class EVENT_BUTTON(unittest.TestCase):
     def on_mouse_press(self, x, y, button, modifiers):
-        print 'Mouse button %d pressed at %f,%f with %s' % \
-            (button, x, y, key.modifiers_string(modifiers))
+        print('Mouse button %d pressed at %f,%f with %s' % \
+            (button, x, y, key.modifiers_string(modifiers)))
 
     def on_mouse_release(self, x, y, button, modifiers):
-        print 'Mouse button %d released at %f,%f with %s' % \
-            (button, x, y, key.modifiers_string(modifiers))
+        print('Mouse button %d released at %f,%f with %s' % \
+            (button, x, y, key.modifiers_string(modifiers)))
 
     def test_button(self):
         w = window.Window(200, 200)

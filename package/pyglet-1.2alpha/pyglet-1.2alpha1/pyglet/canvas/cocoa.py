@@ -10,7 +10,7 @@ from ctypes import *
 from ctypes import util
 
 from pyglet import app
-from base import Display, Screen, ScreenMode, Canvas
+from .base import Display, Screen, ScreenMode, Canvas
 
 from pyglet.libs.darwin.cocoapy import *
 

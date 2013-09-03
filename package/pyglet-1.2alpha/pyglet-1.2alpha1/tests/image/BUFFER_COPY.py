@@ -14,9 +14,9 @@ occuring.
 __docformat__ = 'restructuredtext'
 __version__ = '$Id: $'
 
-from StringIO import StringIO
+from io import StringIO
 import unittest
-import base_save
+from . import base_save
 
 from pyglet.gl import *
 from pyglet import image
@@ -37,16 +37,16 @@ class TEST_BUFFER_COPY(base_save.TestSave):
         glColor4f(1, 1, 1, 1)
 
     def load_texture(self):
-        print 'Drawing scene...'
+        print('Drawing scene...')
         self.window.set_visible()
         self.window.dispatch_events()
         self.draw()
 
-        print 'Copying colour image...'
+        print('Copying colour image...')
         self.saved_texture = \
             image.get_buffer_manager().get_color_buffer().texture
 
-        print 'Done.'
+        print('Done.')
         self.window.set_visible(False)
 
 if __name__ == '__main__':

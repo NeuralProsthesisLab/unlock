@@ -47,7 +47,7 @@ from pyglet.image.codecs import *
 try:
     import Image
 except ImportError:
-    from PIL import Image
+    from .PIL import Image
 
 class PILImageDecoder(ImageDecoder):
     def get_file_extensions(self):
@@ -58,7 +58,7 @@ class PILImageDecoder(ImageDecoder):
     def decode(self, file, filename):
         try:
             image = Image.open(file)
-        except Exception, e:
+        except Exception as e:
             raise ImageDecodeException(
                 'PIL cannot read %r: %s' % (filename or file, e))
 
@@ -103,7 +103,7 @@ class PILImageEncoder(ImageEncoder):
 
         try:
             pil_image.save(file, pil_format)
-        except Exception, e:
+        except Exception as e:
             raise ImageEncodeException(e)
 
 def get_decoders():

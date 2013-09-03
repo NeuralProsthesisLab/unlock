@@ -34,14 +34,14 @@ from pyglet.window.event import WindowEventLogger
 from pyglet.window import key
 from pyglet.gl import *
 
-import window_util
+from . import window_util
 
 class WINDOW_SET_FULLSCREEN(unittest.TestCase):
     def on_key_press(self, symbol, modifiers):
         fullscreen = not modifiers & key.MOD_CTRL
         doing = fullscreen and 'Setting' or 'Restoring from'
         if symbol == key._0:
-            print '%s default size' % doing
+            print('%s default size' % doing)
             self.w.set_fullscreen(fullscreen)
             return
         elif symbol == key._1:
@@ -58,7 +58,7 @@ class WINDOW_SET_FULLSCREEN(unittest.TestCase):
             width, height = 1280, 1024
         else:
             return
-        print '%s width=%d, height=%d' % (doing, width, height)
+        print('%s width=%d, height=%d' % (doing, width, height))
         self.w.set_fullscreen(fullscreen, width=width, height=height)
 
     def on_expose(self):

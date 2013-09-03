@@ -23,7 +23,7 @@ class WINDOW_CAPTION(unittest.TestCase):
         w2 = window.Window(400, 200, resizable=True)
         count = 1
         w1.set_caption('Window caption %d' % count)
-        w2.set_caption(u'\u00bfHabla espa\u00f1ol?')
+        w2.set_caption('\u00bfHabla espa\u00f1ol?')
         last_time = time.time()
         while not (w1.has_exit or w2.has_exit):
             if time.time() - last_time > 1:

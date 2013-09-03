@@ -1,5 +1,5 @@
 from pyglet.libs.darwin.cocoapy import *
-from systemcursor import SystemCursor
+from .systemcursor import SystemCursor
 
 NSNotificationCenter = ObjCClass('NSNotificationCenter')
 NSApplication = ObjCClass('NSApplication')

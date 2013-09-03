@@ -31,10 +31,10 @@ class WINDOW_SET_EXCLUSIVE_MOUSE(unittest.TestCase):
         if symbol == key.E:
             exclusive = not (modifiers & key.MOD_SHIFT)
             self.w.set_exclusive_mouse(exclusive)
-            print 'Exclusive mouse is now %r' % exclusive
+            print('Exclusive mouse is now %r' % exclusive)
 
     def on_mouse_motion(self, x, y, dx, dy):
-        print 'on_mousemotion(x=%f, y=%f, dx=%f, dy=%f)' % (x, y, dx, dy)
+        print('on_mousemotion(x=%f, y=%f, dx=%f, dy=%f)' % (x, y, dx, dy))
 
     def test_set_exclusive_mouse(self):
         self.width, self.height = 200, 200

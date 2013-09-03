@@ -25,10 +25,10 @@ from pyglet import window
 
 class EVENT_ACTIVATE_DEACTIVATE(unittest.TestCase):
     def on_activate(self):
-        print 'Window activated.'
+        print('Window activated.')
 
     def on_deactivate(self):
-        print 'Window deactivated.'
+        print('Window deactivated.')
 
     def test_activate_deactivate(self):
         w = window.Window(200, 200)

@@ -55,7 +55,7 @@ class WINDOW_SET_MOUSE_PLATFORM_CURSOR(unittest.TestCase):
             self.i = (self.i - 1) % len(names)
         cursor = self.w.get_system_mouse_cursor(names[self.i])
         self.w.set_mouse_cursor(cursor)
-        print 'Set cursor to "%s"' % names[self.i]
+        print('Set cursor to "%s"' % names[self.i])
             
         return True
 

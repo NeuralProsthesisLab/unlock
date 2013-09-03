@@ -38,10 +38,10 @@ import heapq
 import sys
 import threading
 import time
-import Queue
+import queue
 
-import lib_openal as al
-import lib_alc as alc
+from . import lib_openal as al
+from . import lib_alc as alc
 from pyglet.media import MediaException, MediaEvent, AbstractAudioPlayer, \
     AbstractAudioDriver, AbstractListener, MediaThread
 
@@ -67,7 +67,7 @@ def _split_nul_strings(s):
             nul = False
         i += 1
     s = s[:i - 1]
-    return filter(None, [ss.strip() for ss in s.split('\0')])
+    return [_f for _f in [ss.strip() for ss in s.split('\0')] if _f]
 
 format_map = {
     (1,  8): al.AL_FORMAT_MONO8,
@@ -208,7 +208,7 @@ class OpenALAudioPlayer(AbstractAudioPlayer):
 
     def delete(self):
         if _debug:
-            print 'OpenALAudioPlayer.delete()'
+            print('OpenALAudioPlayer.delete()')
 
         if not self._al_source:
             return
@@ -229,7 +229,7 @@ class OpenALAudioPlayer(AbstractAudioPlayer):
             return
 
         if _debug:
-            print 'OpenALAudioPlayer.play()'
+            print('OpenALAudioPlayer.play()')
         self._playing = True
         self._al_play()
         if not context.have_1_1:
@@ -239,7 +239,7 @@ class OpenALAudioPlayer(AbstractAudioPlayer):
 
     def _al_play(self):
         if _debug:
-            print 'OpenALAudioPlayer._al_play()'
+            print('OpenALAudioPlayer._al_play()')
         context.lock()
         state = al.ALint()
         al.alGetSourcei(self._al_source, al.AL_SOURCE_STATE, state)
@@ -252,7 +252,7 @@ class OpenALAudioPlayer(AbstractAudioPlayer):
             return
 
         if _debug:
-            print 'OpenALAudioPlayer.stop()'
+            print('OpenALAudioPlayer.stop()')
         self._pause_timestamp = self.get_time()
         context.lock()
         al.alSourcePause(self._al_source)
@@ -263,7 +263,7 @@ class OpenALAudioPlayer(AbstractAudioPlayer):
 
     def clear(self):
         if _debug:
-            print 'OpenALAudioPlayer.clear()'
+            print('OpenALAudioPlayer.clear()')
 
         self._lock.acquire()
         context.lock()
@@ -317,7 +317,7 @@ class OpenALAudioPlayer(AbstractAudioPlayer):
             al.alGetSourcei(self._al_source, al.AL_BYTE_OFFSET, bytes)
             context.unlock()
             if _debug:
-                print 'got bytes offset', bytes.value
+                print('got bytes offset', bytes.value)
             self._play_cursor = self._buffer_cursor + bytes.value
         else:
             # Interpolate system time past buffer timestamp
@@ -346,7 +346,7 @@ class OpenALAudioPlayer(AbstractAudioPlayer):
 
     def refill(self, write_size):
         if _debug:
-            print 'refill', write_size
+            print('refill', write_size)
 
         self._lock.acquire()
 
@@ -388,7 +388,7 @@ class OpenALAudioPlayer(AbstractAudioPlayer):
             al.alGetSourcei(self._al_source, al.AL_SOURCE_STATE, state)
             if state.value != al.AL_PLAYING:
                 if _debug:
-                    print 'underrun'
+                    print('underrun')
                 al.alSourcePlay(self._al_source)
             context.unlock()
 
@@ -555,5 +555,5 @@ def create_audio_driver(device_name=None):
     global context
     context = OpenALDriver(device_name)
     if _debug:
-        print 'OpenAL', context.get_version()
+        print('OpenAL', context.get_version())
     return context

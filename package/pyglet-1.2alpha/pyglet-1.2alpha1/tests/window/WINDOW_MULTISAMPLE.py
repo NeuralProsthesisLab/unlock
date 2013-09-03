@@ -39,12 +39,12 @@ class WINDOW_MULTISAMPLE(unittest.TestCase):
         oldwindow = self.win
         try:
             if self.multisample:
-                print 'Attempting samples=%d...' % self.samples,
+                print('Attempting samples=%d...' % self.samples, end=' ')
                 config = Config(sample_buffers=1, 
                                 samples=self.samples,
                                 double_buffer=True)
             else:
-                print 'Disabling multisample...',
+                print('Disabling multisample...', end=' ')
                 config = Config(double_buffer=True)
             self.win = window.Window(self.width, self.height, 
                                      vsync=True,
@@ -61,9 +61,9 @@ class WINDOW_MULTISAMPLE(unittest.TestCase):
             if oldwindow:
                 oldwindow.close()
 
-            print 'Success.'
+            print('Success.')
         except window.NoSuchConfigException:
-            print 'Failed.'
+            print('Failed.')
 
     def on_key_press(self, symbol, modifiers):
         mod = 1
@@ -83,10 +83,10 @@ class WINDOW_MULTISAMPLE(unittest.TestCase):
         if symbol == key.N:
             self.soft_multisample = not self.soft_multisample
             if self.soft_multisample:
-                print 'Enabling GL_MULTISAMPLE_ARB'
+                print('Enabling GL_MULTISAMPLE_ARB')
                 glEnable(GL_MULTISAMPLE_ARB)
             else:
-                print 'Disabling GL_MULTISAMPLE_ARB'
+                print('Disabling GL_MULTISAMPLE_ARB')
                 glDisable(GL_MULTISAMPLE_ARB)
 
     def render(self):

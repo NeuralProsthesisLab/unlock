@@ -87,7 +87,7 @@ class _filestruct(object):
         if len(data) < self.get_size():
             raise DDSException('Not a DDS file')
         items = struct.unpack(self.get_format(), data)
-        for field, value in izip_longest(self._fields, items, fillvalue=None):
+        for field, value in zip_longest(self._fields, items, fillvalue=None):
             setattr(self, field[0], value)
 
     def __repr__(self):
@@ -152,7 +152,7 @@ _compression_formats = {
 def _check_error():
     e = glGetError()
     if e != 0:
-        print 'GL error %d' % e
+        print('GL error %d' % e)
 
 class DDSImageDecoder(codecs.ImageDecoder):
     def get_file_extensions(self):

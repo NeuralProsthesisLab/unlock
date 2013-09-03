@@ -326,7 +326,7 @@ class AVbinSource(StreamingSource):
 
     def __del__(self):
         if _debug:
-            print 'del avbin source'
+            print('del avbin source')
         try:
             if self._video_stream:
                 av.avbin_close_stream(self._video_stream)
@@ -343,7 +343,7 @@ class AVbinSource(StreamingSource):
 
     def seek(self, timestamp):
         if _debug:
-            print 'AVbin seek', timestamp
+            print('AVbin seek', timestamp)
         av.avbin_seek_file(self._file, timestamp_to_avbin(timestamp))
 
         self._audio_packet_size = 0
@@ -384,8 +384,8 @@ class AVbinSource(StreamingSource):
             video_packet = VideoPacket(self._packet)
 
             if _debug:
-                print 'Created and queued frame %d (%f)' % \
-                    (video_packet.id, video_packet.timestamp)
+                print('Created and queued frame %d (%f)' % \
+                    (video_packet.id, video_packet.timestamp))
 
             self._video_timestamp = max(self._video_timestamp,
                                         video_packet.timestamp)
@@ -399,7 +399,7 @@ class AVbinSource(StreamingSource):
             audio_data = self._decode_audio_packet()
             if audio_data:
                 if _debug:
-                    print 'Got an audio packet at', audio_data.timestamp
+                    print('Got an audio packet at', audio_data.timestamp)
                 self._buffered_audio_data.append(audio_data)
                 return 'audio', audio_data
 
@@ -414,7 +414,7 @@ class AVbinSource(StreamingSource):
             audio_data_timeend = self._video_timestamp + 1
 
         if _debug:
-            print 'get_audio_data'
+            print('get_audio_data')
 
         have_video_work = False
 
@@ -432,7 +432,7 @@ class AVbinSource(StreamingSource):
             elif not audio_data and packet_type == 'audio':
                 audio_data = self._buffered_audio_data.pop(0)
                 if _debug:
-                    print 'Got requested audio packet at', audio_data.timestamp
+                    print('Got requested audio packet at', audio_data.timestamp)
                 audio_data_timeend = audio_data.timestamp + audio_data.duration
 
         if have_video_work:
@@ -442,7 +442,7 @@ class AVbinSource(StreamingSource):
 
         if not audio_data:
             if _debug:
-                print 'get_audio_data returning None'
+                print('get_audio_data returning None')
             return None
 
         while self._events and self._events[0].timestamp <= audio_data_timeend:
@@ -452,9 +452,9 @@ class AVbinSource(StreamingSource):
                 audio_data.events.append(event)
 
         if _debug:
-            print 'get_audio_data returning ts %f with events' % \
-                audio_data.timestamp, audio_data.events
-            print 'remaining events are', self._events
+            print('get_audio_data returning ts %f with events' % \
+                audio_data.timestamp, audio_data.events)
+            print('remaining events are', self._events)
         return audio_data
 
     def _decode_audio_packet(self):
@@ -519,7 +519,7 @@ class AVbinSource(StreamingSource):
         '''
         if not self._video_packets:
             if _debug:
-                print 'No video packets...'
+                print('No video packets...')
             # Read ahead until we have another video packet
             self._get_packet()
             packet_type, _ = self._process_packet()
@@ -530,7 +530,7 @@ class AVbinSource(StreamingSource):
                 return False
 
             if _debug:
-                print 'Queued packet', _
+                print('Queued packet', _)
         return True
 
     def get_next_video_timestamp(self):
@@ -539,7 +539,7 @@ class AVbinSource(StreamingSource):
 
         if self._ensure_video_packets():
             if _debug:
-                print 'Next video timestamp is', self._video_packets[0].timestamp
+                print('Next video timestamp is', self._video_packets[0].timestamp)
             return self._video_packets[0].timestamp
 
     def get_next_video_frame(self):
@@ -549,7 +549,7 @@ class AVbinSource(StreamingSource):
         if self._ensure_video_packets():
             packet = self._video_packets.pop(0)
             if _debug:
-                print 'Waiting for', packet
+                print('Waiting for', packet)
 
             # Block until decoding is complete
             self._condition.acquire()
@@ -558,7 +558,7 @@ class AVbinSource(StreamingSource):
             self._condition.release()
 
             if _debug:
-                print 'Returning', packet
+                print('Returning', packet)
             return packet.image
 
 av.avbin_init()

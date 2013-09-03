@@ -35,9 +35,9 @@ import platform
 from ctypes import *
 from ctypes import util
 
-from cocoatypes import *
+from .cocoatypes import *
 
-__LP64__ = (sys.maxint > 2**32)
+__LP64__ = (sys.maxsize > 2**32)
 __i386__ = (platform.machine() == 'i386')
 
 if sizeof(c_void_p) == 4:
@@ -445,7 +445,7 @@ def should_use_fpret(restype):
 # and argtypes should be a list of ctypes types for
 # the arguments of the message only.
 def send_message(receiver, selName, *args, **kwargs):
-    if isinstance(receiver, basestring):
+    if isinstance(receiver, str):
         receiver = get_class(receiver)
     selector = get_selector(selName)
     restype = kwargs.get('restype', c_void_p)
@@ -599,7 +599,7 @@ def cfunctype_for_encoding(encoding):
 # You can add new methods after the class is registered,
 # but you cannot add any new ivars.
 def create_subclass(superclass, name):
-    if isinstance(superclass, basestring):
+    if isinstance(superclass, str):
         superclass = get_class(superclass)
     return c_void_p(objc.objc_allocateClassPair(superclass, name, 0))
 
@@ -786,7 +786,7 @@ class ObjCClass(object):
         instance for the given Objective-C class.  The argument may be either
         the name of the class to retrieve, or a pointer to the class."""
         # Determine name and ptr values from passed in argument.
-        if isinstance(class_name_or_ptr, basestring):
+        if isinstance(class_name_or_ptr, str):
             name = class_name_or_ptr
             ptr = c_void_p(objc.objc_getClass(name))
         else:
@@ -945,7 +945,7 @@ class ObjCInstance(object):
     def __repr__(self):
         if self.objc_class.name == 'NSCFString':
             # Display contents of NSString objects
-            from cocoalibs import cfstring_to_string
+            from .cocoalibs import cfstring_to_string
             string = cfstring_to_string(self)
             return "<ObjCInstance %#x: %s (%s) at %s>" % (id(self), self.objc_class.name, string, str(self.ptr.value))
 
@@ -1083,7 +1083,7 @@ class ObjCSubclass(object):
         typecodes.insert(1, '@:')
         encoding = ''.join(typecodes)
         def decorator(f):
-            name = f.func_name.replace('_', ':')
+            name = f.__name__.replace('_', ':')
             self.add_method(f, name, encoding)
             return f
         return decorator
@@ -1105,7 +1105,7 @@ class ObjCSubclass(object):
                 elif isinstance(result, ObjCInstance):
                     result = result.ptr.value
                 return result
-            name = f.func_name.replace('_', ':')
+            name = f.__name__.replace('_', ':')
             self.add_method(objc_method, name, encoding)
             return objc_method
         return decorator
@@ -1127,7 +1127,7 @@ class ObjCSubclass(object):
                 elif isinstance(result, ObjCInstance):
                     result = result.ptr.value
                 return result
-            name = f.func_name.replace('_', ':')
+            name = f.__name__.replace('_', ':')
             self.add_class_method(objc_class_method, name, encoding)
             return objc_class_method
         return decorator

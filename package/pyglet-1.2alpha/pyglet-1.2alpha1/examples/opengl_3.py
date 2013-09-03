@@ -38,6 +38,6 @@ config = pyglet.gl.Config(major_version=3, minor_version=0)
 window = pyglet.window.Window(config=config, visible=False)
 
 # Print the version of the context created.
-print 'OpenGL version:', window.context.get_info().get_version()
+print('OpenGL version:', window.context.get_info().get_version())
 
 window.close()

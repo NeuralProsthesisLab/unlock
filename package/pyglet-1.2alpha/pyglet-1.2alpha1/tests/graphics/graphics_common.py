@@ -10,17 +10,18 @@ from operator import add
 import random
 
 from pyglet.gl import *
+from functools import reduce
 
 n_vertices = 42
 v3f_data = [v/float(n_vertices*3 + 10) for v in range(n_vertices * 3)]
-v2f_data = reduce(add, zip(v3f_data[::3], v3f_data[1::3]))
+v2f_data = reduce(add, list(zip(v3f_data[::3], v3f_data[1::3])))
 c4f_data = [v/float(n_vertices*4) for v in range(n_vertices * 4)]
-c3f_data = reduce(add, zip(c4f_data[::4], c4f_data[1::4], c4f_data[2::4]))
+c3f_data = reduce(add, list(zip(c4f_data[::4], c4f_data[1::4], c4f_data[2::4])))
 t4f_data = [v/float(n_vertices*4 + 5) for v in range(n_vertices * 4)]
-t3f_data = reduce(add, zip(t4f_data[::4], t4f_data[1::4], t4f_data[2::4]))
-t2f_data = reduce(add, zip(t3f_data[::3], t3f_data[1::3]))
+t3f_data = reduce(add, list(zip(t4f_data[::4], t4f_data[1::4], t4f_data[2::4])))
+t2f_data = reduce(add, list(zip(t3f_data[::3], t3f_data[1::3])))
 
-index_data = range(n_vertices)
+index_data = list(range(n_vertices))
 random.seed(1)
 random.shuffle(index_data)
 
@@ -60,6 +61,6 @@ def get_feedback(func):
     return vertices, colors, tex_coords
 
 import sys
-print >> sys.stderr, 'Note: Graphics tests fail with recent nvidia drivers'
-print >> sys.stderr, '      due to reordering and optimisation of vertices'
-print >> sys.stderr, '      before they are placed in the feedback queue.'
+print('Note: Graphics tests fail with recent nvidia drivers', file=sys.stderr)
+print('      due to reordering and optimisation of vertices', file=sys.stderr)
+print('      before they are placed in the feedback queue.', file=sys.stderr)

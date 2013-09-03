@@ -322,7 +322,7 @@ class TruetypeInfo:
             gmap = self.get_glyph_map()
             kerns = self.get_glyph_kernings()
             self._character_kernings = {}
-            for pair, value in kerns.items():
+            for pair, value in list(kerns.items()):
                 lglyph, rglyph = pair
                 lchar = lglyph in gmap and gmap[lglyph] or None
                 rchar = rglyph in gmap and gmap[rglyph] or None
@@ -376,7 +376,7 @@ class TruetypeInfo:
             return self._glyph_map
         cmap = self.get_character_map()
         self._glyph_map = {}
-        for ch, glyph in cmap.items():
+        for ch, glyph in list(cmap.items()):
             if not glyph in self._glyph_map:
                 self._glyph_map[glyph] = ch
         return self._glyph_map
@@ -432,12 +432,12 @@ class TruetypeInfo:
                         id_range_offset_address + 2*i
                     g = struct.unpack('>H', self._data[addr:addr+2])[0]
                     if g != 0:
-                        character_map[unichr(c)] = (g + id_delta[i]) % 65536
+                        character_map[chr(c)] = (g + id_delta[i]) % 65536
             else:
                 for c in range(start_count[i], end_count[i] + 1):
                     g = (c + id_delta[i]) % 65536
                     if g != 0:
-                        character_map[unichr(c)] = g
+                        character_map[chr(c)] = g
         return character_map
 
     def _read_array(self, format, offset):
@@ -468,7 +468,7 @@ def _read_table(*entries):
         size = struct.calcsize(fmt)
         def __init__(self, data, offset):
             items = struct.unpack(fmt, data[offset:offset+self.size])
-            self.pairs = zip(names, items)
+            self.pairs = list(zip(names, items))
             for name, value in self.pairs:
                 setattr(self, name, value)
 

@@ -9,7 +9,7 @@ __docformat__ = 'restructuredtext'
 __version__ = '$Id: $'
 
 import unittest
-import base_save
+from . import base_save
 
 from pyglet.image.codecs.png import PNGImageEncoder
 

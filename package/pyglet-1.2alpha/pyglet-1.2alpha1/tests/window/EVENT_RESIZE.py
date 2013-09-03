@@ -17,11 +17,11 @@ import unittest
 
 from pyglet import window
 
-import window_util
+from . import window_util
 
 class EVENT_RESIZE(unittest.TestCase):
     def on_resize(self, width, height):
-        print 'Window resized to %dx%d.' % (width, height)
+        print('Window resized to %dx%d.' % (width, height))
 
     def test_resize(self):
         w = window.Window(200, 200, resizable=True)

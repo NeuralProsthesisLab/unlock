@@ -733,7 +733,7 @@ class XlibWindow(BaseWindow):
         atom = xlib.XInternAtom(self._x_display, asbytes(name), False)
         if not atom:
             raise XlibException('Undefined atom "%s"' % name)
-        assert type(value) in (str, unicode)
+        assert type(value) in (str, str)
         property = xlib.XTextProperty()
         if _have_utf8 and allow_utf8:
             buf = create_string_buffer(value.encode('utf8'))
@@ -952,7 +952,7 @@ class XlibWindow(BaseWindow):
         if symbol and symbol not in key._key_names and ev.xkey.keycode:
             # Issue 353: Symbol is uppercase when shift key held down.
             try:
-                symbol = ord(unichr(symbol).lower())
+                symbol = ord(chr(symbol).lower())
             except ValueError:
                 # Not a valid unichr, use the keycode
                 symbol = key.user_key(ev.xkey.keycode) 

@@ -43,7 +43,7 @@ class TestStyleRuns(unittest.TestCase):
                         self.assertTrue(v == style, (start, end, s, e, style))
 
     def check_empty(self, runs, value):
-        start, end, style = iter(runs).next()
+        start, end, style = next(iter(runs))
         self.assertTrue(start == 0)
         self.assertTrue(end == 0)
         self.assertTrue(style == value)
@@ -52,24 +52,24 @@ class TestStyleRuns(unittest.TestCase):
         runs = runlist.RunList(0, 'x')
         it = iter(runs)
         
-        start, end, s = it.next()
+        start, end, s = next(it)
         self.assertTrue(start == 0)
         self.assertTrue(end == 0)
         self.assertTrue(s == 'x')
 
-        self.assertRaises(StopIteration, it.next)
+        self.assertRaises(StopIteration, it.__next__)
         self.check_optimal(runs)
 
     def test_initial(self):
         runs = runlist.RunList(10, 'x')
         it = iter(runs)
 
-        start, end, s = it.next()
+        start, end, s = next(it)
         self.assertTrue(start == 0)
         self.assertTrue(end == 10)
         self.assertTrue(s == 'x')
 
-        self.assertRaises(StopIteration, it.next)
+        self.assertRaises(StopIteration, it.__next__)
 
         self.check_value(runs, 'x' * 10)
 

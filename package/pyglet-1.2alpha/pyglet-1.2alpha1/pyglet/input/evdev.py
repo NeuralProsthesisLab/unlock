@@ -12,10 +12,10 @@ import os
 
 import pyglet
 from pyglet.app.xlib import XlibSelectDevice
-from base import Device, Control, RelativeAxis, AbsoluteAxis, Button, Joystick
-from base import DeviceOpenException
-from evdev_constants import *
-from evdev_constants import _rel_raw_names, _abs_raw_names, _key_raw_names
+from .base import Device, Control, RelativeAxis, AbsoluteAxis, Button, Joystick
+from .base import DeviceOpenException
+from .evdev_constants import *
+from .evdev_constants import _rel_raw_names, _abs_raw_names, _key_raw_names
 
 c = pyglet.lib.load_library('c')
 
@@ -261,7 +261,7 @@ class EvdevDevice(XlibSelectDevice, Device):
 
         try:
             self._fileno = os.open(self._filename, os.O_RDONLY | os.O_NONBLOCK)
-        except OSError, e:
+        except OSError as e:
             raise DeviceOpenException(e)
 
         pyglet.app.platform_event_loop._select_devices.add(self)
@@ -319,7 +319,7 @@ def get_devices(display=None):
             except OSError:
                 pass 
 
-    return _devices.values()
+    return list(_devices.values())
 
 def get_joysticks(display=None):
-    return filter(None, [_create_joystick(d) for d in get_devices(display)])
+    return [_f for _f in [_create_joystick(d) for d in get_devices(display)] if _f]

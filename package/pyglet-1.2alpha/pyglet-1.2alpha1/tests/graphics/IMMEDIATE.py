@@ -5,7 +5,7 @@ import unittest
 
 import pyglet
 
-from graphics_common import *
+from .graphics_common import *
 
 __noninteractive = True
 
