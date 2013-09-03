@@ -22,10 +22,10 @@ from pyglet import window
 
 class EVENT_SHOW_HIDE(unittest.TestCase):
     def on_show(self):
-        print 'Window shown.'
+        print('Window shown.')
 
     def on_hide(self):
-        print 'Window hidden.'
+        print('Window hidden.')
 
     def test_show_hide(self):
         w = window.Window(200, 200, visible=False)

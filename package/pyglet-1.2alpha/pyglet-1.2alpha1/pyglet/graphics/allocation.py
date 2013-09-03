@@ -231,9 +231,9 @@ class Allocator(object):
             if p >= 0 and size <= alloc_size - p:
                 break
         if not (p >= 0 and size <= alloc_size - p):
-            print zip(self.starts, self.sizes)
-            print start, size, new_size
-            print p, alloc_start, alloc_size
+            print(list(zip(self.starts, self.sizes)))
+            print(start, size, new_size)
+            print(p, alloc_start, alloc_size)
         assert p >= 0 and size <= alloc_size - p, 'Region not allocated'
 
         if size == alloc_size - p:
@@ -398,7 +398,7 @@ class Allocator(object):
         return not self.starts
 
     def __str__(self):
-        return 'allocs=' + repr(zip(self.starts, self.sizes))
+        return 'allocs=' + repr(list(zip(self.starts, self.sizes)))
 
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, str(self))

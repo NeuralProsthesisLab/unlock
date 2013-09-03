@@ -12,12 +12,12 @@ import unittest
 
 from pyglet import font
 
-import base_text
+from . import base_text
 
 class TEST_HALIGN(base_text.TextTestBase):
     font_name = ''
     font_size = 60
-    text = u'\u2022'*5
+    text = '\u2022'*5
 
 if __name__ == '__main__':
     unittest.main()

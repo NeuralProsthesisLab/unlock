@@ -199,4 +199,4 @@ def _create_joystick(device):
         return base.Joystick(device)
 
 def get_joysticks(display=None):
-    return filter(None, [_create_joystick(d) for d in get_devices(display)])
+    return [_f for _f in [_create_joystick(d) for d in get_devices(display)] if _f]

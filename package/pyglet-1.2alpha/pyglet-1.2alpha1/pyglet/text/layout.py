@@ -342,7 +342,7 @@ class _GlyphBox(_AbstractBox):
                 v2 += x1
                 v1 += y + baseline
                 v3 += y + baseline
-                vertices.extend(map(int, [v0, v1, v2, v1, v2, v3, v0, v3]))
+                vertices.extend(list(map(int, [v0, v1, v2, v1, v2, v3, v0, v3])))
                 t = glyph.tex_coords
                 tex_coords.extend(t)
                 x1 += glyph.advance
@@ -471,7 +471,7 @@ class _InlineElementBox(_AbstractBox):
 
 class _InvalidRange(object):
     def __init__(self):
-        self.start = sys.maxint
+        self.start = sys.maxsize
         self.end = 0
 
     def insert(self, start, length):
@@ -499,7 +499,7 @@ class _InvalidRange(object):
 
     def validate(self):
         start, end = self.start, self.end
-        self.start = sys.maxint
+        self.start = sys.maxsize
         self.end = 0
         return start, end
 
@@ -1079,7 +1079,7 @@ class TextLayout(object):
         line.align = align_iterator[start]
         line.margin_left = self._parse_distance(margin_left_iterator[start])
         line.margin_right = self._parse_distance(margin_right_iterator[start])
-        if start == 0 or self.document.text[start - 1] in u'\n\u2029':
+        if start == 0 or self.document.text[start - 1] in '\n\u2029':
             line.paragraph_begin = True
             line.margin_left += self._parse_distance(indent_iterator[start])
         wrap = wrap_iterator[start]
@@ -1130,7 +1130,7 @@ class TextLayout(object):
                 else:
                     kern = self._parse_distance(kerning_iterator[index])
 
-                if wrap != 'char' and text in u'\u0020\u200b\t':
+                if wrap != 'char' and text in '\u0020\u200b\t':
                     # Whitespace: commit pending runs to this line.
                     for run in run_accum:
                         line.add_box(run)
@@ -1169,8 +1169,8 @@ class TextLayout(object):
                     # breakpoint).
                     next_start = index
                 else:
-                    new_paragraph = text in u'\n\u2029'
-                    new_line = (text == u'\u2028') or new_paragraph
+                    new_paragraph = text in '\n\u2029'
+                    new_line = (text == '\u2028') or new_paragraph
                     if (wrap and self._wrap_lines and x + kern + glyph.advance >= width) or new_line:
                         # Either the pending runs have overflowed the allowed
                         # line width or a newline was encountered.  Either
@@ -1309,7 +1309,7 @@ class TextLayout(object):
                 gs = glyphs[kern_start:kern_end]
                 width += sum([g.advance for g in gs])
                 width += kern * (kern_end - kern_start)
-                owner_glyphs.extend(zip([kern] * (kern_end - kern_start), gs))
+                owner_glyphs.extend(list(zip([kern] * (kern_end - kern_start), gs)))
             if owner is None:
                 # Assume glyphs are already boxes.
                 for kern, glyph in owner_glyphs:
@@ -1411,7 +1411,7 @@ class TextLayout(object):
             l_dx = lambda x: int(x + dx)
             for vertex_list in self._vertex_lists:
                 vertices = vertex_list.vertices[:]
-                vertices[::2] = map(l_dx, vertices[::2])
+                vertices[::2] = list(map(l_dx, vertices[::2]))
                 vertex_list.vertices[:] = vertices
             self._x = x
 
@@ -1436,7 +1436,7 @@ class TextLayout(object):
             l_dy = lambda y: int(y + dy)
             for vertex_list in self._vertex_lists:
                 vertices = vertex_list.vertices[:]
-                vertices[1::2] = map(l_dy, vertices[1::2])
+                vertices[1::2] = list(map(l_dy, vertices[1::2]))
                 vertex_list.vertices[:] = vertices
             self._y = y
 
@@ -2002,7 +2002,7 @@ class IncrementalTextLayout(ScrollableTextLayout, event.EventDispatcher):
         self.invalid_vertex_lines.invalidate(invalid_start, invalid_end)
 
     def _update_visible_lines(self):
-        start = sys.maxint
+        start = sys.maxsize
         end = 0
         for i, line in enumerate(self.lines):
             if line.y + line.descent < self.view_y:

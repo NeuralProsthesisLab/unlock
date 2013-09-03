@@ -2,7 +2,7 @@
 # $Id:$
 
 from pyglet.canvas.win32 import Win32Canvas
-from base import Config, CanvasConfig, Context
+from .base import Config, CanvasConfig, Context
 
 from pyglet import gl
 from pyglet.gl import gl_info
@@ -159,8 +159,8 @@ class Win32CanvasConfigARB(CanvasConfig):
         super(Win32CanvasConfigARB, self).__init__(canvas, config)
         self._pf = pf
         
-        names = self.attribute_ids.keys()
-        attrs = self.attribute_ids.values()
+        names = list(self.attribute_ids.keys())
+        attrs = list(self.attribute_ids.values())
         attrs = (c_int * len(attrs))(*attrs)
         values = (c_int * len(attrs))()
         

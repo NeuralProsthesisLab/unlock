@@ -18,7 +18,7 @@ class MainWindow(pyglet.window.Window):
         # Look for the Apple Remote device.
         remote = pyglet.input.get_apple_remote()
         if not remote:
-            print 'Apple IR Remote not available.'
+            print('Apple IR Remote not available.')
             sys.exit(0)
 
         # Open the remote in exclusive mode so that pressing the remote
@@ -38,7 +38,7 @@ class MainWindow(pyglet.window.Window):
     # Event handler for Apple Remote button press events.
     # The button parameter is a string specifying the button that was pressed.
     def on_button_press(self, button):
-        print 'on_button_press', button
+        print('on_button_press', button)
 
         if button == 'up':
             self.carousel.scroll_up()
@@ -60,7 +60,7 @@ class MainWindow(pyglet.window.Window):
     # Event handler for Apple Remote button release events.
     # The button parameter is a string specifying the button that was released.
     def on_button_release(self, button):
-        print 'on_button_release', button
+        print('on_button_release', button)
 
         if button == 'left_hold':
             self.carousel.stop_rotating()

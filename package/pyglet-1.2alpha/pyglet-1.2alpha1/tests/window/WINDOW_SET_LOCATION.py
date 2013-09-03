@@ -31,7 +31,7 @@ class WINDOW_SET_SIZE(unittest.TestCase):
         if symbol == key.DOWN:
             y += 10
         self.w.set_location(x, y)
-        print 'Window location set to %dx%d.' % (x, y)
+        print('Window location set to %dx%d.' % (x, y))
 
     def test_set_size(self):
         self.w = w = window.Window(200, 200)

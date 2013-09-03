@@ -57,7 +57,7 @@ def convert(src, dest):
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        print __doc__
+        print(__doc__)
         sys.exit(1)
 
     src = sys.argv[1]

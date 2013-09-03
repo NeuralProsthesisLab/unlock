@@ -259,12 +259,12 @@ class _WindowMetaclass(type):
         for base in bases:
             if hasattr(base, '_platform_event_names'):
                 cls._platform_event_names.update(base._platform_event_names)
-        for name, func in dict.items():
+        for name, func in list(dict.items()):
             if hasattr(func, '_platform_event'):
                 cls._platform_event_names.add(name)
         super(_WindowMetaclass, cls).__init__(name, bases, dict)
 
-class BaseWindow(EventDispatcher):
+class BaseWindow(EventDispatcher, metaclass=_WindowMetaclass):
     '''Platform-independent application window.
 
     A window is a "heavyweight" object occupying operating system resources.
@@ -295,7 +295,6 @@ class BaseWindow(EventDispatcher):
                 used.
 
     '''
-    __metaclass__ = _WindowMetaclass
 
     # Filled in by metaclass with the names of all methods on this (sub)class
     # that are platform event handlers.

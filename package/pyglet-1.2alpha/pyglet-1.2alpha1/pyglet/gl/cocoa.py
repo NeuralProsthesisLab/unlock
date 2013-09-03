@@ -128,13 +128,13 @@ class CocoaCanvasConfig(CanvasConfig):
 
         # Query values for the attributes of the pixel format, and then set the
         # corresponding attributes of the canvas config.
-        for name, attr in _gl_attributes.items():
+        for name, attr in list(_gl_attributes.items()):
             vals = c_int()
             self._pixel_format.getValues_forAttribute_forVirtualScreen_(byref(vals), attr, 0)
             setattr(self, name, vals.value)
         
         # Set these attributes so that we can run pyglet.info.
-        for name, value in _fake_gl_attributes.items():
+        for name, value in list(_fake_gl_attributes.items()):
             setattr(self, name, value)
  
     def create_context(self, share):

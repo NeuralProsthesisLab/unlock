@@ -26,10 +26,10 @@ from pyglet.gl import *
 class WINDOW_SET_FULLSCREEN(unittest.TestCase):
     def on_key_press(self, symbol, modifiers):
         if symbol == key.F:
-            print 'Setting fullscreen.'
+            print('Setting fullscreen.')
             self.w.set_fullscreen(True)
         elif symbol == key.G:
-            print 'Leaving fullscreen.'
+            print('Leaving fullscreen.')
             self.w.set_fullscreen(False)
 
     def on_expose(self):

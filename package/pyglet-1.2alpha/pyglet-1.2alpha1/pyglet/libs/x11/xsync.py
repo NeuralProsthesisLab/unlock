@@ -71,7 +71,7 @@ class c_void(Structure):
 #   import pyglet.window.xlib.xlib
 # because Python has the lamest import semantics and can't handle that kind of
 # recursive import, even though it's the same as
-import xlib
+from . import xlib
 
 SYNC_MAJOR_VERSION = 3 	# /usr/include/X11/extensions/sync.h:4901
 SYNC_MINOR_VERSION = 0 	# /usr/include/X11/extensions/sync.h:4902

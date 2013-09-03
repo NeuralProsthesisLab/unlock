@@ -734,7 +734,7 @@ class Reader:
         while True:
             try:
                 tag, data = self.read_chunk()
-            except ValueError, e:
+            except ValueError as e:
                 raise Error('Chunk error: ' + e.args[0])
 
             # print >> sys.stderr, tag, len(data)

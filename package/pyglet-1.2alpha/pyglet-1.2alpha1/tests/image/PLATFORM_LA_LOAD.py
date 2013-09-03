@@ -8,7 +8,7 @@ __docformat__ = 'restructuredtext'
 __version__ = '$Id$'
 
 import unittest
-import base_load
+from . import base_load
 import sys
 
 if sys.platform.startswith('linux'):

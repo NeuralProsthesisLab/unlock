@@ -11,7 +11,7 @@ __docformat__ = 'restructuredtext'
 __version__ = '$Id$'
 
 import unittest
-import base_load
+from . import base_load
 import sys
 
 from pyglet.gl import gl_info
@@ -21,7 +21,7 @@ class TEST_MATRIX_RGBA(base_load.TestLoad):
     
     def load_image(self):
         if not gl_info.have_extension('GL_ARB_imaging'):
-            print 'GL_ARB_imaging is not present, skipping test.'
+            print('GL_ARB_imaging is not present, skipping test.')
             self.has_exit = True
         else:
             # Load image as usual then rearrange components

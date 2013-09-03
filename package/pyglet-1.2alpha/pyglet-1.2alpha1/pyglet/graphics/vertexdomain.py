@@ -244,7 +244,7 @@ class VertexDomain(object):
         '''Allocate vertices, resizing the buffers if necessary.'''
         try:
             return self.allocator.alloc(count)
-        except allocation.AllocatorMemoryException, e:
+        except allocation.AllocatorMemoryException as e:
             capacity = _nearest_pow2(e.requested_capacity)
             self._version += 1
             for buffer, _ in self.buffer_attributes:
@@ -256,7 +256,7 @@ class VertexDomain(object):
         '''Reallocate vertices, resizing the buffers if necessary.'''
         try:
             return self.allocator.realloc(start, count, new_count)
-        except allocation.AllocatorMemoryException, e:
+        except allocation.AllocatorMemoryException as e:
             capacity = _nearest_pow2(e.requested_capacity)
             self._version += 1
             for buffer, _ in self.buffer_attributes:
@@ -408,11 +408,11 @@ class VertexList(object):
                 Domain to migrate this vertex list to.
 
         '''
-        assert domain.attribute_names.keys() == \
-            self.domain.attribute_names.keys(), 'Domain attributes must match.'
+        assert list(domain.attribute_names.keys()) == \
+            list(self.domain.attribute_names.keys()), 'Domain attributes must match.'
 
         new_start = domain._safe_alloc(self.count)
-        for key, old_attribute in self.domain.attribute_names.items():
+        for key, old_attribute in list(self.domain.attribute_names.items()):
             old = old_attribute.get_region(old_attribute.buffer,
                                            self.start, self.count)
             new_attribute = domain.attribute_names[key]
@@ -620,7 +620,7 @@ class IndexedVertexDomain(VertexDomain):
         '''Allocate indices, resizing the buffers if necessary.'''
         try:
             return self.index_allocator.alloc(count)
-        except allocation.AllocatorMemoryException, e:
+        except allocation.AllocatorMemoryException as e:
             capacity = _nearest_pow2(e.requested_capacity)
             self._version += 1
             self.index_buffer.resize(capacity * self.index_element_size)
@@ -631,7 +631,7 @@ class IndexedVertexDomain(VertexDomain):
         '''Reallocate indices, resizing the buffers if necessary.'''
         try:
             return self.index_allocator.realloc(start, count, new_count)
-        except allocation.AllocatorMemoryException, e:
+        except allocation.AllocatorMemoryException as e:
             capacity = _nearest_pow2(e.requested_capacity)
             self._version += 1
             self.index_buffer.resize(capacity * self.index_element_size)
@@ -753,7 +753,7 @@ class IndexedVertexList(VertexList):
         # Change indices (because vertices moved)
         if old_start != self.start:
             diff = self.start - old_start
-            self.indices[:] = map(lambda i: i + diff, self.indices)
+            self.indices[:] = [i + diff for i in self.indices]
 
         # Resize indices
         new_start = self.domain._safe_index_realloc(

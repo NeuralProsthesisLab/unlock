@@ -49,13 +49,13 @@ import sys
 import pyglet
 
 if len(sys.argv) < 2:
-    print __doc__
+    print(__doc__)
     sys.exit(1)
 
 source = pyglet.media.load(sys.argv[1])
 format = source.video_format
 if not format:
-    print 'No video track in this source.'
+    print('No video track in this source.')
     sys.exit(1)
 
 player = pyglet.media.Player()

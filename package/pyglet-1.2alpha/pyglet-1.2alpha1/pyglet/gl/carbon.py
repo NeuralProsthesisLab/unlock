@@ -6,7 +6,7 @@
 __docformat__ = 'restructuredtext'
 __version__ = '$Id: $'
 
-from base import Config, CanvasConfig, Context
+from .base import Config, CanvasConfig, Context
 
 from pyglet.libs.darwin import *
 from pyglet.libs.darwin import _oscheck
@@ -118,7 +118,7 @@ class CarbonCanvasConfig(CanvasConfig):
         self._pformat = pformat
         self._attributes = {}
 
-        for name, attr in self._attribute_ids.items():
+        for name, attr in list(self._attribute_ids.items()):
             value = c_int()
             result = agl.aglDescribePixelFormat(pformat, attr, byref(value))
             if result:

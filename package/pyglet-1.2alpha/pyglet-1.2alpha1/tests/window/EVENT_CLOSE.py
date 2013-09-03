@@ -21,7 +21,7 @@ w = None
 
 class EVENT_CLOSE(unittest.TestCase):
     def on_close(self):
-        print 'Window close event.'
+        print('Window close event.')
         return event.EVENT_HANDLED
 
     def on_key_press(self, symbol, mods):

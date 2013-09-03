@@ -21,7 +21,7 @@ from pyglet import window
 
 class EVENT_EXPOSE(unittest.TestCase):
     def on_expose(self):
-        print 'Window exposed.'
+        print('Window exposed.')
 
     def test_expose(self):
         w = window.Window(200, 200)

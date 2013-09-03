@@ -24,7 +24,7 @@ import unittest
 from pyglet import window
 from pyglet.window import key
 
-import window_util
+from . import window_util
 
 class WINDOW_SET_SIZE(unittest.TestCase):
     def on_key_press(self, symbol, modifiers):
@@ -36,7 +36,7 @@ class WINDOW_SET_SIZE(unittest.TestCase):
         elif symbol == key.Y:
             self.height += delta
         self.w.set_size(self.width, self.height)
-        print 'Window size set to %dx%d.' % (self.width, self.height)
+        print('Window size set to %dx%d.' % (self.width, self.height))
 
     def test_set_size(self):
         self.width, self.height = 200, 200

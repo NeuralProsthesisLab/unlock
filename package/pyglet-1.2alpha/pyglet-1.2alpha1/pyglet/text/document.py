@@ -265,12 +265,12 @@ class AbstractDocument(event.EventDispatcher):
     terms of one of the supplied concrete classes `FormattedDocument` or
     `UnformattedDocument`. 
     '''
-    _previous_paragraph_re = re.compile(u'\n[^\n\u2029]*$')
-    _next_paragraph_re = re.compile(u'[\n\u2029]')
+    _previous_paragraph_re = re.compile('\n[^\n\u2029]*$')
+    _next_paragraph_re = re.compile('[\n\u2029]')
 
     def __init__(self, text=''):
         super(AbstractDocument, self).__init__()
-        self._text = u''
+        self._text = ''
         self._elements = []
         if text:
             self.insert_text(0, text)
@@ -305,7 +305,7 @@ class AbstractDocument(event.EventDispatcher):
         # Tricky special case where the $ in pattern matches before the \n at
         # the end of the string instead of the end of the string.
         if (self._text[:pos + 1].endswith('\n') or 
-            self._text[:pos + 1].endswith(u'\u2029')):
+            self._text[:pos + 1].endswith('\u2029')):
             return pos
 
         m = self._previous_paragraph_re.search(self._text, 0, pos + 1)
@@ -368,7 +368,7 @@ class AbstractDocument(event.EventDispatcher):
             `STYLE_INDETERMINATE` if more than one value is set.
         '''
         iter = self.get_style_runs(attribute)
-        _, value_end, value = iter.ranges(start, end).next()
+        _, value_end, value = next(iter.ranges(start, end))
         if value_end < end:
             return STYLE_INDETERMINATE
         else:
@@ -425,7 +425,7 @@ class AbstractDocument(event.EventDispatcher):
         self.dispatch_event('on_insert_text', start, text)
 
     def _insert_text(self, start, text, attributes):
-        self._text = u''.join((self._text[:start], text, self._text[start:]))
+        self._text = ''.join((self._text[:start], text, self._text[start:]))
         len_text = len(text)
         for element in self._elements:
             if element._position >= start:
@@ -641,7 +641,7 @@ class FormattedDocument(AbstractDocument):
             return None
 
     def _set_style(self, start, end, attributes):
-        for attribute, value in attributes.items():
+        for attribute, value in list(attributes.items()):
             try:
                 runs = self._style_runs[attribute]
             except KeyError:
@@ -668,11 +668,11 @@ class FormattedDocument(AbstractDocument):
         super(FormattedDocument, self)._insert_text(start, text, attributes)
 
         len_text = len(text)
-        for runs in self._style_runs.values():
+        for runs in list(self._style_runs.values()):
             runs.insert(start, len_text)
 
         if attributes is not None:
-            for attribute, value in attributes.items():
+            for attribute, value in list(attributes.items()):
                 try:
                     runs = self._style_runs[attribute]
                 except KeyError:
@@ -683,7 +683,7 @@ class FormattedDocument(AbstractDocument):
 
     def _delete_text(self, start, end):
         super(FormattedDocument, self)._delete_text(start, end)
-        for runs in self._style_runs.values():
+        for runs in list(self._style_runs.values()):
             runs.delete(start, end)
 
 def _iter_elements(elements, length):
@@ -698,7 +698,7 @@ def _iter_elements(elements, length):
 class _ElementIterator(runlist.RunIterator):
     def __init__(self, elements, length):
         self._run_list_iter = _iter_elements(elements, length)
-        self.start, self.end, self.value = self.next()
+        self.start, self.end, self.value = next(self)
 
 class _FontStyleRunsRangeIterator(object):
     # XXX subclass runlist

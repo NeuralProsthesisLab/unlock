@@ -69,7 +69,7 @@ class TEST_CASE(unittest.TestCase):
         i = y * buffer.pitch + x * 3
         r, g, b = data[i:i+3]
         if type(r) is str:
-            r, g, b = map(ord, (r, g, b))
+            r, g, b = list(map(ord, (r, g, b)))
         return r, g, b
 
 if __name__ == '__main__':

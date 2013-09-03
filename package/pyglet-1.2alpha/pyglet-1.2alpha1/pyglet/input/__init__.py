@@ -82,9 +82,9 @@ __version__ = '$Id: $'
 
 import sys
 
-from base import Device, Control, RelativeAxis, AbsoluteAxis, \
+from .base import Device, Control, RelativeAxis, AbsoluteAxis, \
                  Button, Joystick, AppleRemote, Tablet
-from base import DeviceException, DeviceOpenException, DeviceExclusiveException
+from .base import DeviceException, DeviceOpenException, DeviceExclusiveException
 
 _is_epydoc = hasattr(sys, 'is_epydoc') and sys.is_epydoc
 
@@ -152,23 +152,23 @@ else:
         return []
 
     if sys.platform.startswith('linux'):
-        from x11_xinput import get_devices as xinput_get_devices
-        from x11_xinput_tablet import get_tablets
-        from evdev import get_devices as evdev_get_devices
-        from evdev import get_joysticks
+        from .x11_xinput import get_devices as xinput_get_devices
+        from .x11_xinput_tablet import get_tablets
+        from .evdev import get_devices as evdev_get_devices
+        from .evdev import get_joysticks
         def get_devices(display=None):
             return (evdev_get_devices(display) +
                     xinput_get_devices(display))
     elif sys.platform in ('cygwin', 'win32'):
-        from directinput import get_devices, get_joysticks
+        from .directinput import get_devices, get_joysticks
         try:
-            from wintab import get_tablets
+            from .wintab import get_tablets
         except:
             pass
     elif sys.platform == 'darwin':
         from pyglet import options as pyglet_options
         if pyglet_options['darwin_cocoa']:
-            from darwin_hid import get_devices, get_joysticks, get_apple_remote
+            from .darwin_hid import get_devices, get_joysticks, get_apple_remote
         else:
-            from carbon_hid import get_devices, get_joysticks, get_apple_remote
-            from carbon_tablet import get_tablets
+            from .carbon_hid import get_devices, get_joysticks, get_apple_remote
+            from .carbon_tablet import get_tablets

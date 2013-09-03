@@ -9,7 +9,7 @@ __version__ = '$Id: $'
 from ctypes import *
 
 from pyglet.canvas.xlib import XlibCanvas
-from base import Config, CanvasConfig, Context
+from .base import Config, CanvasConfig, Context
 
 from pyglet import gl
 from pyglet.gl import glx
@@ -125,7 +125,7 @@ class XlibCanvasConfig10(BaseXlibCanvasConfig):
         if not self._visual_info:
             raise gl.ContextException('No conforming visual exists')
 
-        for name, attr in self.attribute_ids.items():
+        for name, attr in list(self.attribute_ids.items()):
             value = c_int()
             result = glx.glXGetConfig(
                 x_display, self._visual_info, attr, byref(value))
@@ -170,7 +170,7 @@ class XlibCanvasConfig13(BaseXlibCanvasConfig):
         x_display = canvas.display._display
 
         self._fbconfig = fbconfig
-        for name, attr in self.attribute_ids.items():
+        for name, attr in list(self.attribute_ids.items()):
             value = c_int()
             result = glx.glXGetFBConfigAttrib(
                x_display, self._fbconfig, attr, byref(value))

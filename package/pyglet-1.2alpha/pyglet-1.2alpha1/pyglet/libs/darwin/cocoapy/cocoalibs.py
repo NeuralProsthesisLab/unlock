@@ -1,8 +1,8 @@
 from ctypes import *
 from ctypes import util
 
-from runtime import send_message, ObjCInstance
-from cocoatypes import *
+from .runtime import send_message, ObjCInstance
+from .cocoatypes import *
 
 ######################################################################
 
@@ -57,7 +57,7 @@ def cfstring_to_string(cfstring):
     buffer = c_buffer(size + 1)
     result = cf.CFStringGetCString(cfstring, buffer, len(buffer), kCFStringEncodingUTF8)
     if result:
-        return unicode(buffer.value, 'utf-8')
+        return str(buffer.value, 'utf-8')
 
 cf.CFDataCreate.restype = c_void_p
 cf.CFDataCreate.argtypes = [c_void_p, c_void_p, CFIndex]
@@ -200,7 +200,7 @@ NSApplicationDidHideNotification = c_void_p.in_dll(appkit, 'NSApplicationDidHide
 NSApplicationDidUnhideNotification = c_void_p.in_dll(appkit, 'NSApplicationDidUnhideNotification')
 
 # /System/Library/Frameworks/AppKit.framework/Headers/NSEvent.h
-NSAnyEventMask = 0xFFFFFFFFL     # NSUIntegerMax
+NSAnyEventMask = 0xFFFFFFFF     # NSUIntegerMax
 
 NSKeyDown            = 10
 NSKeyUp              = 11

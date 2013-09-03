@@ -18,7 +18,7 @@ from pyglet import window
 
 class EVENT_MOVE(unittest.TestCase):
     def on_move(self, x, y):
-        print 'Window moved to %dx%d.' % (x, y)
+        print('Window moved to %dx%d.' % (x, y))
 
     def test_move(self):
         w = window.Window(200, 200)

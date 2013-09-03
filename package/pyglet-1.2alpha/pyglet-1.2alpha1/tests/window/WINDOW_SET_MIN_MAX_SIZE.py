@@ -23,20 +23,20 @@ import unittest
 from pyglet import window
 from pyglet.window import key
 
-import window_util
+from . import window_util
 
 class WINDOW_SET_MIN_MAX_SIZE(unittest.TestCase):
     def on_resize(self, width, height):
-        print 'Window size is %dx%d.' % (width, height)
+        print('Window size is %dx%d.' % (width, height))
         self.width, self.height = width, height
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.N:
             self.w.set_minimum_size(self.width, self.height)
-            print 'Minimum size set to %dx%d.' % (self.width, self.height)
+            print('Minimum size set to %dx%d.' % (self.width, self.height))
         elif symbol == key.X:
             self.w.set_maximum_size(self.width, self.height)
-            print 'Maximum size set to %dx%d.' % (self.width, self.height)
+            print('Maximum size set to %dx%d.' % (self.width, self.height))
 
     def test_min_max_size(self):
         self.width, self.height = 200, 200

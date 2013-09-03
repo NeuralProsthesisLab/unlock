@@ -170,7 +170,7 @@ class Win32Window(BaseWindow):
             white = _gdi32.GetStockObject(WHITE_BRUSH)
             black = _gdi32.GetStockObject(BLACK_BRUSH)
             self._window_class = WNDCLASS()
-            self._window_class.lpszClassName = u'GenericAppClass%d' % id(self)
+            self._window_class.lpszClassName = 'GenericAppClass%d' % id(self)
             self._window_class.lpfnWndProc = WNDPROC(self._wnd_proc)
             self._window_class.style = CS_VREDRAW | CS_HREDRAW
             self._window_class.hInstance = 0
@@ -183,7 +183,7 @@ class Win32Window(BaseWindow):
 
             self._view_window_class = WNDCLASS()
             self._view_window_class.lpszClassName = \
-                u'GenericViewClass%d' % id(self)
+                'GenericViewClass%d' % id(self)
             self._view_window_class.lpfnWndProc = WNDPROC(self._wnd_proc_view)
             self._view_window_class.style = 0
             self._view_window_class.hInstance = 0
@@ -198,7 +198,7 @@ class Win32Window(BaseWindow):
             self._hwnd = _user32.CreateWindowExW(
                 self._ex_ws_style,
                 self._window_class.lpszClassName,
-                u'',
+                '',
                 self._ws_style,
                 CW_USEDEFAULT,
                 CW_USEDEFAULT,
@@ -212,7 +212,7 @@ class Win32Window(BaseWindow):
             self._view_hwnd = _user32.CreateWindowExW(
                 0,
                 self._view_window_class.lpszClassName,
-                u'',
+                '',
                 WS_CHILD | WS_VISIBLE,
                 0, 0, 0, 0,
                 self._hwnd,
@@ -492,7 +492,7 @@ class Win32Window(BaseWindow):
         }
         if name not in names:
             raise RuntimeError('Unknown cursor name "%s"' % name)
-        cursor = _user32.LoadCursorW(None, unicode(names[name]))
+        cursor = _user32.LoadCursorW(None, str(names[name]))
         return Win32MouseCursor(cursor)
 
     def set_icon(self, *images):
@@ -711,7 +711,7 @@ class Win32Window(BaseWindow):
 
     @Win32EventHandler(WM_CHAR)
     def _event_char(self, msg, wParam, lParam):
-        text = unichr(wParam)
+        text = chr(wParam)
         if unicodedata.category(text) != 'Cc' or text == '\r':
             self.dispatch_event('on_text', text)
         return 0

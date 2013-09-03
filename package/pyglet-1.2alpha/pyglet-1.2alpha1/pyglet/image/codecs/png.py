@@ -54,7 +54,7 @@ class PNGImageDecoder(ImageDecoder):
         try:
             reader = pyglet.image.codecs.pypng.Reader(file=file)
             width, height, pixels, metadata = reader.read()
-        except Exception, e:
+        except Exception as e:
             raise ImageDecodeException(
                 'PyPNG cannot read %r: %s' % (filename or file, e))
 

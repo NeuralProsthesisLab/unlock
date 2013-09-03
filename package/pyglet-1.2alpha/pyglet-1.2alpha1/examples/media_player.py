@@ -310,7 +310,7 @@ class PlayerWindow(pyglet.window.Window):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print 'Usage: media_player.py <filename> [<filename> ...]'
+        print('Usage: media_player.py <filename> [<filename> ...]')
         sys.exit(1)
 
     have_video = False

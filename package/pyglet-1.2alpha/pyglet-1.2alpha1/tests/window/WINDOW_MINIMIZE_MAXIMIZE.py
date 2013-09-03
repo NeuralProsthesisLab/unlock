@@ -23,10 +23,10 @@ class WINDOW_MINIMIZE_MAXIMIZE(unittest.TestCase):
     def on_key_press(self, symbol, modifiers):
         if symbol == key.X:
             self.w.maximize()
-            print 'Window maximized.'
+            print('Window maximized.')
         elif symbol == key.N:
             self.w.minimize()
-            print 'Window minimized.'
+            print('Window minimized.')
 
     def test_minimize_maximize(self):
         self.width, self.height = 200, 200

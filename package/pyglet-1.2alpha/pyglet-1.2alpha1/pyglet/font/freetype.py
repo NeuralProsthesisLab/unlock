@@ -89,7 +89,7 @@ FT_STYLE_FLAG_BOLD = 2
  FT_RENDER_MODE_LIGHT,
  FT_RENDER_MODE_MONO,
  FT_RENDER_MODE_LCD,
- FT_RENDER_MODE_LCD_V) = range(5)
+ FT_RENDER_MODE_LCD_V) = list(range(5))
 
 def FT_LOAD_TARGET_(x):
     return (x & 15) << 16
@@ -106,7 +106,7 @@ FT_LOAD_TARGET_LCD_V = FT_LOAD_TARGET_(FT_RENDER_MODE_LCD_V)
  FT_PIXEL_MODE_GRAY2,
  FT_PIXEL_MODE_GRAY4,
  FT_PIXEL_MODE_LCD,
- FT_PIXEL_MODE_LCD_V) = range(7)
+ FT_PIXEL_MODE_LCD_V) = list(range(7))
 
 (FcTypeVoid,
  FcTypeInteger,
@@ -116,11 +116,11 @@ FT_LOAD_TARGET_LCD_V = FT_LOAD_TARGET_(FT_RENDER_MODE_LCD_V)
  FcTypeMatrix,
  FcTypeCharSet,
  FcTypeFTFace,
- FcTypeLangSet) = range(9)
+ FcTypeLangSet) = list(range(9))
 FcType = c_int
 
 (FcMatchPattern,
- FcMatchFont) = range(2)
+ FcMatchFont) = list(range(2))
 FcMatchKind = c_int
 
 class _FcValueUnion(Union):
@@ -329,7 +329,7 @@ class FreeTypeFont(base.Font):
 
         fontconfig.FcInit()
 
-        if isinstance(name, unicode):
+        if isinstance(name, str):
             name = name.encode('utf8')
 
         pattern = fontconfig.FcPatternCreate()
@@ -356,7 +356,7 @@ class FreeTypeFont(base.Font):
             return True
         else:
             name = name.lower()
-            for font in cls._memory_fonts.values():
+            for font in list(cls._memory_fonts.values()):
                 if font.name.lower() == name:
                     return True
         return False
