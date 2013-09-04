@@ -31,11 +31,11 @@ class DatagramSink(DatagramWrapper):
         value = None
         try:
             value = self.__recv__(buffer_size)
-        except socket.timeout, e:
+        except socket.timeout as e:
             error_handler_fn(e)
-        except socket.error, e:
+        except socket.error as e:
             error_handler_fn(e)
-        except ValueError, e:
+        except ValueError as e:
             error_handler_fn(e)
             
         return value
@@ -60,11 +60,11 @@ class DatagramSource(DatagramWrapper):
         bytes_sent = 0
         try:
             bytes_sent = self.__snd__(buf)
-        except socket.timeout, e:
+        except socket.timeout as e:
             error_handler_fn(e)
-        except socket.error, e:
+        except socket.error as e:
             error_handler_fn(e)
-        except ValueError, e:
+        except ValueError as e:
             error_handler_fn(e)
             
         return bytes_sent
