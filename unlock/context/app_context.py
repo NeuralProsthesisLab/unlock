@@ -6,6 +6,7 @@ from traceback import format_exc
 import logging
 
 import sys
+import collections
 
 PROTOTYPE = "scope.PROTOTYPE"
 SINGLETON = "scope.SINGLETON"
@@ -53,12 +54,12 @@ class PythonObjectFactory(object):
         self.wrapper = wrapper
 
     def create_object(self, constr, named_constr):
-        self.logger.debug("Creating an instance of %s" % self.method.func_name)
+        self.logger.debug("Creating an instance of %s" % self.method.__name__)
         
         # Setting wrapper's top_func can NOT be done earlier than this method call,
         # because it is tied to a wrapper decorator, which may not have yet been
         # generated.
-        self.wrapper.func_globals["top_func"] = self.method.func_name
+        self.wrapper.__globals__["top_func"] = self.method.__name__
         
         # Because @object-based objects use direct code to specify arguments, and NOT
         # external configuration data, this factory doesn't care about the incoming arguments.
@@ -122,7 +123,7 @@ class ObjectContainer(object):
                 
             return self.objects[name]
             
-        except KeyError, e:
+        except KeyError as e:
             self.logger.debug("Did NOT find object '%s' in the singleton storage." % name)
             try:
                 object_def = self.object_defs[name]
@@ -141,7 +142,7 @@ class ObjectContainer(object):
                     raise InvalidObjectScope("Don't know how to handle scope %s" % self.object_defs[name].scope)
                 
                 return comp
-            except KeyError, e:
+            except KeyError as e:
                 self.logger.error("Object '%s' has no definition!" % name)
                 raise e
             
@@ -173,7 +174,7 @@ class ObjectContainer(object):
         self.logger.debug("Creating an instance of %s" % object_def)
         
         [constr.prefetch(self) for constr in object_def.pos_constr if hasattr(constr, "prefetch")]
-        [constr.prefetch(self) for constr in object_def.named_constr.values() if hasattr(constr, "prefetch")]
+        [constr.prefetch(self) for constr in list(object_def.named_constr.values()) if hasattr(constr, "prefetch")]
         [prop.prefetch(self) for prop in object_def.props if hasattr(prop, "prefetch")]
         
         # Res up an instance of the object, with ONLY constructor-based properties set.
@@ -207,29 +208,29 @@ class ApplicationContext(ObjectContainer):
         self.logger = logging.getLogger(__name__)
         self.classnames_to_avoid = set(["PyroProxyFactory", "ProxyFactoryObject", "Pyro4ProxyFactory", "Pyro4FactoryObject"])
          
-        for object_def in self.object_defs.values():
+        for object_def in list(self.object_defs.values()):
             self._apply(object_def)
             
         for configuration in self.configs:
             self._apply(configuration)
             
-        for object_def in self.object_defs.values():
+        for object_def in list(self.object_defs.values()):
             if not object_def.lazy_init and object_def.id not in self.objects:
                 self.logger.debug("Eagerly fetching %s" % object_def.id)
                 self.get_object(object_def.id, ignore_abstract=True)
                 
-        post_processors = [object for object in self.objects.values() if isinstance(object, ObjectPostProcessor)]
+        post_processors = [object for object in list(self.objects.values()) if isinstance(object, ObjectPostProcessor)]
         
-        for obj_name, obj in self.objects.iteritems():
+        for obj_name, obj in self.objects.items():
             if not isinstance(obj, ObjectPostProcessor):
                 for post_processor in post_processors:
                     self.objects[obj_name] = post_processor.post_process_before_initialization(obj, obj_name)
                     
                     
-        for object in self.objects.values():
+        for object in list(self.objects.values()):
             self._apply(object)
             
-        for obj_name, obj in self.objects.iteritems():
+        for obj_name, obj in self.objects.items():
             if not isinstance(obj, ObjectPostProcessor):
                 for post_processor in post_processors:
                     self.objects[obj_name] = post_processor.post_process_after_initialization(obj, obj_name)
@@ -249,7 +250,7 @@ class ApplicationContext(ObjectContainer):
         will be returned.
         """
         result = {}
-        for obj_name, obj in self.objects.iteritems():
+        for obj_name, obj in self.objects.items():
             if isinstance(obj, type_):
                 if include_type == False and type(obj) is type_:
                     continue
@@ -260,7 +261,7 @@ class ApplicationContext(ObjectContainer):
     def shutdown_hook(self):
         self.logger.debug("Invoking the destroy_method on registered objects")
         
-        for obj_name, obj in self.objects.iteritems():
+        for obj_name, obj in self.objects.items():
             if isinstance(obj, DisposableObject):
                 try:
                     if hasattr(obj, "destroy_method"):
@@ -270,16 +271,16 @@ class ApplicationContext(ObjectContainer):
                         
                     destroy_method = getattr(obj, destroy_method_name)
                     
-                except Exception, e:
+                except Exception as e:
                     self.logger.error("Could not destroy object '%s', exception '%s'" % (obj_name, format_exc()))
                     
                 else:
-                    if callable(destroy_method):
+                    if isinstance(destroy_method, collections.Callable):
                         try:
                             self.logger.debug("About to destroy object '%s'" % obj_name)
                             destroy_method()
                             self.logger.debug("Successfully destroyed object '%s'" % obj_name)
-                        except Exception, e:
+                        except Exception as e:
                             self.logger.error("Could not destroy object '%s', exception '%s'" % (obj_name, format_exc()))
                     else:
                         self.logger.error("Could not destroy object '%s', " \
