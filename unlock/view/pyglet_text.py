@@ -1,4 +1,4 @@
-from view import UnlockView
+from .view import UnlockView
 
 import pyglet
 import inspect
@@ -69,7 +69,7 @@ class BellRingTextLabelDecorator(UnlockView):
     def __init__(self, text_label):
         self.text_label = text_label
         self.model = self.text_label.model
-        self.sound = pyglet.media.StaticSource(pyglet.media.load(os.path.join(os.path.dirname(inspect.getfile(BellRingTextLabelDecorator)), 'bell-ring-01.mp3')))
+        #self.sound = pyglet.media.StaticSource(pyglet.media.load(os.path.join(os.path.dirname(inspect.getfile(BellRingTextLabelDecorator)), 'bell-ring-01.mp3')))
         self.state = True
         self.logger = logging.getLogger(__name__)        
         
@@ -80,7 +80,8 @@ class BellRingTextLabelDecorator(UnlockView):
             
         if self.state:
             if self.last_state != self.state:
-                self.sound.play()
+                pass
+                #self.sound.play()
                 
             self.text_label.label.text = self.text_label.text
         else:
