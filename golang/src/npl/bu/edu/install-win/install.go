@@ -89,7 +89,7 @@ func installZippedPythonPackage(pythonPath string, baseUrl string, fileName stri
     os.Chdir(`..`)
 }
 
-func installPython(baseUrl string, pythonInstallerName string, pythonBasePath string, pythonPackageName string) {
+func installPython(baseUrl string, pythonPathEnvVar string, pythonInstallerName string, pythonBasePath string, pythonPackageName string) {
     cwd := getWorkingDirectoryAbsolutePath()
     log.Println(`Downloading `+pythonPackageName+`...`)
     downloadAndWriteFile(baseUrl+pythonInstallerName, pythonInstallerName)
@@ -98,8 +98,7 @@ func installPython(baseUrl string, pythonInstallerName string, pythonBasePath st
     if err := cmd.Run(); err != nil {
         log.Fatalln(`FATAL: failed to install python `, err)
     }
-    
-    if err := os.Setenv(`PYTHONPATH`, `C:\Python27;C:\Python27\Lib;C:\Python27\DLLs`); err != nil {
+    if err := os.Setenv(`PYTHONPATH`, pythonPathEnvVar); err != nil {
         log.Println(`Could not properly set the PYTHONPATH env variable; on some systems this can cause problems during virtual env creation`)
     }
     log.Println(`PYTHON PATH = `+os.Getenv(`PYTHONPATH`))
@@ -157,6 +156,10 @@ func installAvbin(baseUrl string, avbin string) {
     
 }
 
+func installScons(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
+    installZippedPythonPackage(pythonPath, baseUrl, fileName, packageName, packageDirectory);
+}
+
 func installUnlock(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
 /*
     post_processing_fn := func() {
@@ -192,16 +195,17 @@ var confFile = flag.String("conf", "", "Qualified file name of Unlock installati
 
 func createConf() UnlockInstallConf {
     if *confFile == `` {
-        return UnlockInstallConf {`C:\Unlock`, `http://jpercent.org/unlock/`, `python-2.7.5.msi`,
+        return UnlockInstallConf {`C:\Unlock`, `http://jpercent.org/unlock/`, `C:\Python27;C:\Python27\Lib;C:\Python27\DLLs`, `python-2.7.5.msi`,
             `Python-2.7.5`, `C:\Python27`, `C:\Python27\python.exe`, `numpy-MKL-1.7.1.win32-py2.7.exe`,
             `C:\Python27\Scripts\easy_install.exe`, `C:\Python27\Scripts\pip.exe`,
             `C:\Python27\Scripts\virtualenv.exe`, `python27`,
             `C:\Python27\Lib\site-packages\numpy`, `C:\Unlock\python27\Lib\site-packages`,
             `C:\Unlock\python27\Scripts\python.exe`, `C:\Unlock\python27\Scripts\pip.exe`,
-            `pyglet-1.2alpha.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`, `AVbin10-win32.exe`,
-            `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, `unlock-0.3.7-win32.zip`, `unlock`, `unlock-0.3.7`}
+            `pyglet-1.2alpha1-p3.3.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`, `AVbin10-win32.exe`, 
+            `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, `unlock-0.3.7-win32.zip`, `unlock`, `unlock-0.3.7`,
+            `scons-2.3.0.zip`, `scons`, `scons-2.3.0`}
     } else {
-        return ParseConf(`config.json`)
+        return ParseConf(*confFile)
     }    
 }
 
@@ -227,7 +231,7 @@ func main() {
     
     var conf = createConf()
     
-    installPython(conf.BaseUrl, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
+    installPython(conf.BaseUrl, conf.PythonPathEnvVar, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
     installNumPy(conf.BaseUrl, conf.NumpyPackageName)
     //installEasyInstall(conf.BaseUrl, conf.PythonPath)
     //installPip(conf.EasyInstallPath)
@@ -246,4 +250,5 @@ func main() {
     installPyglet12alpha(conf.PythonPath, conf.BaseUrl, conf.PygletZipName, conf.PygletPackageName, conf.PygletDirectory)
     installPySerial26(conf.PythonPath, conf.BaseUrl, conf.PyserialZipName, conf.PyserialPackageName, conf.PyserialDirectory)
     installUnlock(conf.PythonPath, conf.BaseUrl, conf.UnlockZipName, conf.UnlockPackageName, conf.UnlockPackageDirectory)
+    installScons(conf.PythonPath, conf.BaseUrl, conf.SconsZipName, conf.SconsPackageName, conf.SconsPackageDirectory)
 }
