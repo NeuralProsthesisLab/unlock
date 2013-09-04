@@ -17,14 +17,14 @@ class Tester(unittest.TestCase):
     def setUp(self):
         ts = []
         ss = []
-        for x in xrange(5000):
+        for x in range(5000):
             t = Test1()
             ts.append(t)
             s = safeRef(t.x, self._closure)
             ss.append(s)
         ts.append(dummy)
         ss.append(safeRef(dummy, self._closure))
-        for x in xrange(30):
+        for x in range(30):
             t = Test2()
             ts.append(t)
             s = safeRef(t, self._closure)
@@ -54,10 +54,10 @@ class Tester(unittest.TestCase):
             sd[s] = 1
         for t in self.ts:
             if hasattr(t, 'x'):
-                self.assert_(sd.has_key(safeRef(t.x)))
+                self.assert_(safeRef(t.x) in sd)
                 self.assert_(safeRef(t.x) in sd)
             else:
-                self.assert_(sd.has_key(safeRef(t)))
+                self.assert_(safeRef(t) in sd)
                 self.assert_(safeRef(t) in sd)
     
     def testRepresentation (self):

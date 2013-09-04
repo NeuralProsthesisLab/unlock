@@ -16,14 +16,14 @@ class SocketsTests(unittest.TestCase):
             
         def async_sendto():
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            print 'sending too...'
+            print('sending too...')
             s.sendto('42', ('', 31337))                
         t = threading.Thread(target = async_sendto, args = ())
         t.start()
         
         count = 0
         def error_fn(error):
-            print error
+            print(error)
             
         while val == None:
             val = socket_wrapper.receive(2, error_handler_fn = error_fn)
@@ -49,17 +49,17 @@ class SocketsTests(unittest.TestCase):
             
         def async_sendto():
             def send_error_fn(ex):
-                print 'send error ', ex
+                print('send error ', ex)
                 
             s = DatagramWrapper.create_source('', 31337)
-            print 'sending too...'
+            print('sending too...')
             s.send('42', send_error_fn)
         t = threading.Thread(target = async_sendto, args = ())
         t.start()
         
         count = 0
         def error_fn(error):
-            print error
+            print(error)
             
         while val == None:
             val = socket_wrapper.receive(2, error_handler_fn = error_fn)

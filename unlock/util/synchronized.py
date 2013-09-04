@@ -19,7 +19,7 @@ class synchronized(object):
                 self.logger.debug("Acquired lock [%s] thread [%s]" % (self.lock, currentThread()))
                 try:
                     return f(*args, **kwargs)
-                except Exception, e:
+                except Exception as e:
                     raise
             finally:
                 self.lock.release()
