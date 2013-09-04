@@ -4,8 +4,8 @@ from unlock.model import GridState, TimedStimuli, TimedStimulus
 from unlock.util import Trigger
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, GridView
 
-from controller import UnlockController, Canvas
-from command import RawInlineBCIReceiver
+from .controller import UnlockController, Canvas
+from .command import RawInlineBCIReceiver
 
 import logging
 
