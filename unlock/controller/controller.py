@@ -1,5 +1,5 @@
 
-from command import PygletKeyboardCommand
+from .command import PygletKeyboardCommand
 import pyglet
 import time
 

@@ -2,7 +2,7 @@
 from unlock.util import DatagramWrapper
 
 import socket
-import cPickle
+import pickle
 import json
 import logging
 import pyglet
@@ -23,7 +23,7 @@ class Command(object):
         if command.json:
             ret = json.dumps(command)
         else:
-            ret = cPickle.dumps(command)
+            ret = pickle.dumps(command)
         return ret
            
     @staticmethod
@@ -31,7 +31,7 @@ class Command(object):
         if json:
             ret = json.loads(serialized_command)
         else:
-            ret = cPickle.loads(serialized_command)
+            ret = pickle.loads(serialized_command)
         return ret
             
             
@@ -176,7 +176,7 @@ class RawInlineBCIReceiver(CommandReceiverInterface):
         while samples == None or samples < 1:
             samples = self.bci.acquire()
 
-        print 'samples, bci channels = ', samples, self.bci.channels()
+        print('samples, bci channels = ', samples, self.bci.channels())
         done = False
         while not done:
             try:

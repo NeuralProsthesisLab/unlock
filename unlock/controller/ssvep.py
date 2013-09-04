@@ -1,8 +1,8 @@
 
 from unlock.model import TimedStimulus, TimedStimuli
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer
-from controller import UnlockController, Canvas
-from command import DeltaCommandReceiver, RawInlineBCIReceiver
+from .controller import UnlockController, Canvas
+from .command import DeltaCommandReceiver, RawInlineBCIReceiver
 import inspect
 import os
 
