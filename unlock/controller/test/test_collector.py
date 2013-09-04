@@ -23,12 +23,12 @@ class CollectorTests(unittest.TestCase):
                 bci = Enobio()
                 bci.channels = 8
                 if not bci.open():
-                    print "enobio did not open"
+                    print("enobio did not open")
                     raise Exception('enobio did not open')
                 if not bci.start():
-                    print 'enobio device did not start streaming'                                 
+                    print('enobio device did not start streaming')                                 
                     raise Exception('enobio device did not start streaming')                       
-            except Exception, e:
+            except Exception as e:
                 raise e
                 fakebci = True
 

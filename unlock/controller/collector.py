@@ -3,8 +3,8 @@ from unlock.model import TimedStimuli, TimedStimulus, OfflineData, RandomCueStat
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator, DynamicPositionPygletTextLabel
 from unlock.util import TrialState, Trigger
 #from unlock.bci import FakeBCI
-from controller import Canvas, UnlockController
-from command import RawInlineBCIReceiver
+from .controller import Canvas, UnlockController
+from .command import RawInlineBCIReceiver
 
 import inspect
 import logging
@@ -66,7 +66,7 @@ class Collector(UnlockController):
         
     @staticmethod
     def create_emg_collector(window, bci, standalone=True, stimulation_duration=4.0, trials=25, cue_duration=1, rest_duration=1, indicate_duration=2, output_file='bci', seed=42, radius=1):
-        print "STANDALONE -================", standalone
+        print("STANDALONE -================", standalone)
         canvas = Canvas.create(window.width, window.height)
         
         cues = [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left]
@@ -93,7 +93,7 @@ class Collector(UnlockController):
         indicate_text = DynamicPositionPygletTextLabel(cue_state.indicate_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
 #        indicate = BellRingTextLabelDecorator(indicate_text)
         
-        print "Setting the indicate state height/width ", indicate_text.label.height, "/", indicate_text.label.width
+        print("Setting the indicate state height/width ", indicate_text.label.height, "/", indicate_text.label.width)
         indicate_state.height = 50#indicate_text.label.height
         indicate_state.width = 50#indicate_text.label.width
         

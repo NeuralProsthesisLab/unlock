@@ -54,7 +54,7 @@ class CommandTests(unittest.TestCase):
         sender = DatagramCommandSender.create()
         c = Command(-1, -2, -3, [-1])
         def async_sendto():
-            print 'c deltal = ', c.delta
+            print('c deltal = ', c.delta)
             sender.send(c)
         
         t = threading.Thread(target = async_sendto, args = ())
