@@ -112,10 +112,10 @@ class GtkGlDrawingArea(gtk.DrawingArea):
             'No standard config is available.')
 
       if not self.config.is_complete():
-        print 'not complete'
+        print('not complete')
         self.config = self.screen.get_best_config(self.config)
 
-      print self.config.get_gl_attributes()
+      print(self.config.get_gl_attributes())
 
       if not self.context:
         self.context = self.config.create_context(pyglet.gl.current_context)
@@ -166,7 +166,7 @@ font_size=14, font_name='DejaVu Sans Mono',
       self.upperlabel = pyglet.text.Label('Hello, world',
 font_size=14, font_name='DejaVu Sans Mono',
                                           x=20, y=20)
-    print 'end setup'
+    print('end setup')
 
   def switch_to(self):
     if sys.platform == 'darwin':
@@ -256,7 +256,7 @@ def timeout():
   return 1
 
 def click(b, what):
-  print '%s clicked' % what
+  print('%s clicked' % what)
 
 
 torus = Torus(1, 0.3, 50, 30)
