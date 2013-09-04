@@ -3,7 +3,7 @@ import pyglet
 import array
 import logging
 
-from view import UnlockView
+from .view import UnlockView
 from math import cos, sin, radians
 from unlock.util import switch
 

@@ -1,9 +1,9 @@
 
 from unlock.model import UnlockModel
 from unlock.model import GridStateChange
-from pyglet_sprite import PygletSprite
-from pyglet_text import PygletTextLabel
-from view import UnlockView
+from .pyglet_sprite import PygletSprite
+from .pyglet_text import PygletTextLabel
+from .view import UnlockView
 
 import inspect
 import os
