@@ -1,5 +1,5 @@
 
-from model import UnlockModel
+from .model import UnlockModel
 import numpy as np
 import logging
 import time
@@ -11,7 +11,7 @@ class OfflineData(UnlockModel):
         self.output_file_prefix = output_file_prefix
         self.file_handle = open("%s_%d.txt" % (output_file_prefix, time.time()), 'a')
         self.logger = logging.getLogger(__name__)
-        self.cache = range(cache_size)
+        self.cache = list(range(cache_size))
         self.cache_size = cache_size
         self.current = 0
         

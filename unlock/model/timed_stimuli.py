@@ -1,6 +1,6 @@
 
 from unlock.util import TrialState, TrialTimeState, RunState, Trigger, SequenceState
-from model import UnlockModel
+from .model import UnlockModel
 
 import logging
 

@@ -1,6 +1,6 @@
 
 from unlock.util import TrialTimeState, Trigger
-from model import UnlockModel
+from .model import UnlockModel
 from random import Random
     
 
