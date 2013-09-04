@@ -2,8 +2,8 @@
     "UnlockInstallConf" : {
         "UnlockDirectory" : "C:\\Unlock",
         "BaseUrl" : "http://jpercent.org/unlock",
-        "PythonInstallerName" : "python-2.7.5.msi",
-        "PythonPackageName" : "Python-2.7.5",
+        "PythonInstallerName" : "python-3.3.2.amd64.msi",
+        "PythonPackageName" : "Python-3.3",
         "PythonBasePath" : "C:\\Python27", 
         "PythonPath" : "C:\\Python27\\python.exe",
         "NumpyPackageName" : "numpy-MKL-1.7.1.win32-py2.7.exe",
