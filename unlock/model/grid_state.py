@@ -1,5 +1,5 @@
 
-from model import UnlockModel
+from .model import UnlockModel
 
 class GridStateChange(object):
     XChange = 0
