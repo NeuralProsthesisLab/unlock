@@ -9,6 +9,7 @@ import (
 type UnlockInstallConf struct {
     UnlockDirectory string
     BaseUrl string
+    PythonPathEnvVar string
     PythonInstallerName string
     PythonPackageName string
     PythonBasePath string
@@ -32,17 +33,20 @@ type UnlockInstallConf struct {
     UnlockZipName string
     UnlockPackageName string
     UnlockPackageDirectory string
+    SconsZipName string
+    SconsPackageName string 
+    SconsPackageDirectory string
 }
  
 func ParseConf(confFile string) UnlockInstallConf {
+    log.Printf("Confile = "+confFile)
     file, e := ioutil.ReadFile(confFile)
     if e != nil {
         log.Fatalf("File error: %v\n", e)
     }
-    log.Printf("%s\n", string(file))
- 
+    log.Printf("------------>%s<---------------\n", string(file))
     var conf UnlockInstallConf
     json.Unmarshal(file, &conf)
-    log.Printf("Results: %v\n", conf)
+    log.Printf("---------------->%v<----------------\n", conf)
     return conf
 }
