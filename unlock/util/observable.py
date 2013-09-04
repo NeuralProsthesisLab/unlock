@@ -1,5 +1,5 @@
 #from misc import DelegatorMixin
-import dispatcher
+from . import dispatcher
 import socket
 import inspect
 import time

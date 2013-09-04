@@ -1,12 +1,13 @@
 import weakref
 
-import saferef
+from . import saferef
+import collections
 
 WEAKREF_TYPES = (weakref.ReferenceType, saferef.BoundMethodWeakref)
 
 def _make_id(target):
     if hasattr(target, 'im_func'):
-        return (id(target.im_self), id(target.im_func))
+        return (id(target.__self__), id(target.__func__))
     return id(target)
 
 class Signal(object):
@@ -71,7 +72,7 @@ class Signal(object):
         # If debugging is on, check that we got a good receiver
         if self._debugging:
             import inspect
-            assert callable(receiver), "Signal receivers must be callable."
+            assert isinstance(receiver, collections.Callable), "Signal receivers must be callable."
 
             # Check for **kwargs
             # Not all callables are inspectable with getargspec, so we'll
@@ -130,7 +131,7 @@ class Signal(object):
         else:
             lookup_key = (_make_id(receiver), _make_id(sender))
 
-        for index in xrange(len(self.receivers)):
+        for index in range(len(self.receivers)):
             (r_key, _) = self.receivers[index]
             if r_key == lookup_key:
                 del self.receivers[index]
@@ -195,7 +196,7 @@ class Signal(object):
         for receiver in self._live_receivers(_make_id(sender)):
             try:
                 response = receiver(signal=self, sender=sender, **named)
-            except Exception, err:
+            except Exception as err:
                 responses.append((receiver, err))
             else:
                 responses.append((receiver, response))

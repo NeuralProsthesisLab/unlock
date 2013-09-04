@@ -25,14 +25,14 @@ class ObserableTests(unittest.TestCase):
         self.assertEqual(1, len(self.last_args))
         self.assertEqual(observable, self.last_args[0]['sender'])
         self.assertEqual(m, self.last_args[0]['model'])
-        print self.last_args 
+        print(self.last_args) 
         observable.register_observers(observer, observer, observer)
         observable.send_notification()
         self.assertEqual(2, len(self.last_args))
         self.assertEqual(observable, self.last_args[0]['sender'])
         self.assertEqual(m, self.last_args[0]['model'])
         self.assertEqual(observable, self.last_args[0]['sender'])
-        self.assertFalse(self.last_args[1].has_key('model'))
+        self.assertFalse('model' in self.last_args[1])
     
         
         new_observer1 = Observer(self.notify)
@@ -45,7 +45,7 @@ class ObserableTests(unittest.TestCase):
         self.assertEqual(observable, self.last_args[0]['sender'])
         self.assertEqual(m, self.last_args[0]['model'])
         self.assertEqual(observable, self.last_args[0]['sender'])
-        self.assertFalse(self.last_args[1].has_key('model'))
+        self.assertFalse('model' in self.last_args[1])
         self.assertEqual(m1, self.last_args[rand.randint(2,4)]['model'])
 
 def getSuite():
