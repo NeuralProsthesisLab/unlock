@@ -9,7 +9,7 @@ class OfflineData(UnlockModel):
     def __init__(self, output_file_prefix, cache_size=1):
         super(UnlockModel, self).__init__()
         self.output_file_prefix = output_file_prefix
-        self.file_handle = open("%s_%d.txt" % (output_file_prefix, time.time()), 'a')
+        self.file_handle = open("%s_%d.txt" % (output_file_prefix, time.time()), 'wb')
         self.logger = logging.getLogger(__name__)
         self.cache = list(range(cache_size))
         self.cache_size = cache_size
@@ -25,7 +25,7 @@ class OfflineData(UnlockModel):
 
     def start(self):
         if not self.file_handle:
-            self.file_handle = open("%s_%d.txt" % (self.output_file_prefix, time.time()), 'a')
+            self.file_handle = open("%s_%d.txt" % (self.output_file_prefix, time.time()), 'wb')
             
     def stop(self):
         self.file_handle.flush()

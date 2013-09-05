@@ -1,11 +1,16 @@
-import os
-import sys
-import platform
-import shutil
-import inspect
+#import os
+#import sys
+#import platform
+#import shutil
+#import inspect
 
-from acquire import *
-from classify import *
+#from .acquire import *
+from .classify import *
+from .fakebci import *
+
+def create_fake_signal():
+    return FakeSignal()
+
 
 #
 #def machine():
