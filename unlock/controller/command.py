@@ -176,7 +176,7 @@ class RawInlineBCIReceiver(CommandReceiverInterface):
         while samples == None or samples < 1:
             samples = self.bci.acquire()
 
-        print('samples, bci channels = ', samples, self.bci.channels())
+        print('samples, bci channels = ', str(samples), str(self.bci.channels()))
         done = False
         while not done:
             try:
