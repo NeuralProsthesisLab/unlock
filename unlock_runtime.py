@@ -24,17 +24,17 @@ class UnlockFactory(context.PythonConfig):
         signal = acquire.create_enobio_signal()
 #        signal.channels = 8
         if not signal.open():
-            print 'enobio did not open'
+            print('enobio did not open')
             raise RuntimeError('enobio did not open')
         if not signal.start():
-            print 'enobio device did not start streaming'                                 
+            print('enobio device did not start streaming')                                 
             raise RuntimeError('enobio device did not start streaming')                       
         return signal
     
     @context.Object(lazy_init=True)
     def fake(self):
-        from unlock.neural import acquire
-        signal = acquire.create_fake_signal()
+        import unlock
+        signal = unlock.create_fake_signal()
         signal.open()
         signal.start()
         return signal
@@ -116,8 +116,8 @@ class UnlockRuntime(object):
             self.__create_controllers__()
             
         except:
-            print 'UnlockRuntime: WARNING logging has not been setup yet'
-            print 'UnlockRuntime: FATAL failed to initialize correctly'
+            print('UnlockRuntime: WARNING logging has not been setup yet')
+            print('UnlockRuntime: FATAL failed to initialize correctly')
             if parser:
                 parser.print_help()
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -147,6 +147,8 @@ class UnlockRuntime(object):
         # System.  It follows the standard Python JSON logging config; see
         # http://docs.python.org/2/howto/logging-cookbook.html for more details.        
         if 'logging' in self.args:
+            import sys
+            print("Arages = ", self.args['logging'], file=sys.stderr)
             logging.config.dictConfig(self.args['logging'])
         else:
             logging.basicConfig(level=log_level)
