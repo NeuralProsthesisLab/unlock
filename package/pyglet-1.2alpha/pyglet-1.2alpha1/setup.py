@@ -281,7 +281,7 @@ else:
 
 
 if _have_setuptools:
-     Additional dict values for setuptools
+     #Additional dict values for setuptools
     setup_info.update(setuptools_info)
 
     install_requires = []
