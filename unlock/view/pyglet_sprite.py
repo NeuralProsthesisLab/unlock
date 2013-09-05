@@ -101,8 +101,8 @@ class PygletSprite(UnlockView):
         self.model = model
         self.canvas = canvas
         
-        image.anchor_x = image.width / 2
-        image.anchor_y = image.height / 2
+        image.anchor_x = int(image.width / 2)
+        image.anchor_y = int(image.height / 2)
         
         self.sprite = pyglet.sprite.Sprite(image, batch=self.canvas.batch)
         self.sprite.rotation = rotation
@@ -118,7 +118,7 @@ class PygletSprite(UnlockView):
     @staticmethod
     def create_image_sprite(model, canvas, filename, x=0, y=0, rotation=0):
         abstract_image = pyglet.image.load(filename)
-        return PygletSprite(model, canvas, abstract_image, x, y, rotation)
+        return PygletSprite(model, canvas, abstract_image, int(x), int(y), rotation)
            
     @staticmethod
     def create_checkered_box_texture_region(width=600, height=100, xfreq=6, yfreq=1,
