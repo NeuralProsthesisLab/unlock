@@ -46,7 +46,7 @@ func main() {
     }
     log.Println("Success: "+bootstrap_cmd)
 
-    b2_cmd :=  "/C "+build_dir+"\\"+"b2 install --prefix="+boost_dir+"\\win-x86  address-model=32  runtime-link=shared link=shared"
+    b2_cmd :=  "/C "+build_dir+"\\"+"b2 install --prefix="+boost_dir+"\\win-x86-msvc-10  address-model=32  runtime-link=shared link=shared"
     log.Println("Executing: "+b2_cmd)    
     cmd = exec.Command("cmd", b2_cmd)
     if err := cmd.Run(); err != nil {
