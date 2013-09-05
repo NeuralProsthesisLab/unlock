@@ -1,7 +1,7 @@
 {
     "main" : "Dashboard",
     "signal" : "fake",
-    "fullscreen" : false,
+    "fullscreen" : true,
     "fps" : true,
     "controllers" : [
         {
@@ -58,8 +58,8 @@
                 "class": "logging.handlers.RotatingFileHandler",
                 "formatter": "simple",
                 "filename": "unlock.log",
-                "maxBytes": "10485760",
-                "backupCount": "20",
+                "maxBytes": 10485760,
+                "backupCount": 20,
                 "encoding": "utf8"
             }
         },
