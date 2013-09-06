@@ -21,19 +21,19 @@ if sys.platform == 'darwin':
       shlibsuffix = '.so'
       
 elif sys.platform == 'win32':
-      boost_lib = os.path.join('boost', 'win-x86', 'lib')
+      boost_lib = os.path.join('boost', 'win-x86-msvc-10', 'lib')
       boost_lib_path = [ boost_lib ]
-      boost_lib_path.append('C:\Python27\libs')
-      boost_libs = ['boost_chrono-vc110-mt-1_54',
-                    'boost_python-vc110-mt-1_54',
-                    'boost_system-vc110-mt-1_54',     
-                    'boost_unit_test_framework-vc110-mt-1_54',
-#                    'libboost_test_exec_monitor-vc110-mt-1_54',
-#                    'boost_prg_exec_monitor-vc110-mt-1_54',
-                    'boost_thread-vc110-mt-1_54',
+      boost_lib_path.append('C:\Python33\libs')
+      boost_libs = ['boost_chrono-vc100-mt-1_54',
+                    'boost_python3-vc100-mt-1_54',
+                    'boost_system-vc100-mt-1_54',     
+                    'boost_unit_test_framework-vc100-mt-1_54',
+#                    'libboost_test_exec_monitor-vc100-mt-1_54',
+#                    'boost_prg_exec_monitor-vc100-mt-1_54',
+                    'boost_thread-vc100-mt-1_54',
                     'Enobio3GAPI',
                     ]
-      python_includes = ['C:\Python27\include']
+      python_includes = ['C:\Python33\include']
       libname = 'neuralsignal_win_x86'
       ccflags = ['/MD',  '/EHsc']
       includes.append(os.path.join('boost', 'include', 'enobio'))
