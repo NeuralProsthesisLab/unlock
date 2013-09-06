@@ -2,6 +2,8 @@
 #define PYNOBIO_HPP
 
 #include <Windows.h>
+//#include <boost/mutex.hpp>
+#include <boost/thread.hpp>
 
 #include "ISignal.hpp"
 #include "Enobio3G.h"
@@ -9,25 +11,27 @@
 #include "StatusData.h"
 #include "Portability.hpp"
 
-#define BUFFER_SAMPLES 32
+#define BUFFER_SAMPLES 32768
 #define CHANNELS 8
 
 class EnobioDataConsumer : public IDataConsumer {
 public:
-	int *buffer;
-	int nSamples;
-	unsigned long long timestamp;
+	uint32_t *buffer;
+	size_t nSamples;
+	uint64_t timestamp;
 	HANDLE hEvent;
-
-	EnobioDataConsumer();
-	~EnobioDataConsumer();
         
+public:
+	EnobioDataConsumer(boost::mutex* pMutex);
+	~EnobioDataConsumer(); 
 	void receiveData (const PData &data);
+        
+private:
+    boost::mutex* mpMutex;
 };
 
 class EnobioStatusConsumer : public IDataConsumer {
 public:
-    
 	void receiveData (const PData &data);
 };
 
@@ -57,6 +61,7 @@ private:
 	bool started;
 	size_t* samples;
 	size_t nChannels;
+        boost::mutex mutex;
 };
 
 
