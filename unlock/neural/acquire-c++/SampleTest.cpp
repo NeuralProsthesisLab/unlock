@@ -1,7 +1,8 @@
 #include <boost/test/unit_test.hpp>
-#include "Sample.hpp"
-
 #include <iostream>
+#include <cstdint>
+
+#include "Sample.hpp"
 
 using namespace std;
 
