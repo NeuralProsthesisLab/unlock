@@ -8,34 +8,42 @@
 PythonSignal::PythonSignal(ISignal* pSignal)
   : mpSignal(pSignal)
 {
+    BOOST_VERIFY(mpSignal != 0);
 }
 
 PythonSignal::~PythonSignal() {
+  BOOST_VERIFY(mpSignal != 0);  
   delete mpSignal;
 }
 
 bool PythonSignal::open(/* boost::python::list macAddress */) {
+  BOOST_VERIFY(mpSignal != 0);  
   uint8_t mac[6] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6 };
   return mpSignal->open(mac);
 }
 
 bool PythonSignal::init(size_t channels) {
+  BOOST_VERIFY(mpSignal != 0);  
   return mpSignal->init(channels);
 }
 
 size_t PythonSignal::channels() {
+  BOOST_VERIFY(mpSignal != 0);  
     return mpSignal->channels();  
 }
 
 bool PythonSignal::start() {
+  BOOST_VERIFY(mpSignal != 0);  
     return mpSignal->start();  
 }
 
 size_t PythonSignal::acquire() {
+  BOOST_VERIFY(mpSignal != 0);  
     return mpSignal->acquire();
 }
 
 std::vector<uint32_t> PythonSignal::getdata(size_t samples) {
+  BOOST_VERIFY(mpSignal != 0);
     std::vector<uint32_t> ret = std::vector<uint32_t>();
     if(samples == 0) {
       return ret;
@@ -58,14 +66,17 @@ std::vector<uint32_t> PythonSignal::getdata(size_t samples) {
 }
 
 uint64_t PythonSignal::timestamp() {
+  BOOST_VERIFY(mpSignal != 0);  
   return mpSignal->timestamp();
 }
 
 bool PythonSignal::stop() {
+  BOOST_VERIFY(mpSignal != 0);  
   return mpSignal->stop();
 }
 
 bool PythonSignal::close() {
+  BOOST_VERIFY(mpSignal != 0);  
   return mpSignal->close();
 }
 
