@@ -1,4 +1,5 @@
 #include <boost/random/uniform_int_distribution.hpp>
+#include <boost/assert.hpp>
 #include <limits>
 #include <iostream>
 
@@ -36,13 +37,19 @@ size_t PythonSignal::acquire() {
 
 std::vector<uint32_t> PythonSignal::getdata(size_t samples) {
     std::vector<uint32_t> ret = std::vector<uint32_t>();
+    if(samples == 0) {
+      return ret;
+    }
+    
     try {
       uint32_t* buffer = new uint32_t[samples];
+      BOOST_VERIFY(buffer != 0);
       mpSignal->getdata(buffer, samples);
       for (size_t i = 0; i < samples; i++) {
         ret.push_back(buffer[i]);
       }
       delete[] buffer;
+      buffer = 0;
       return ret;
   } catch(...) {
     std::cerr << "PythonSignal.getdata: ERROR: exception raised; returning empty samples vector " << std::endl;
