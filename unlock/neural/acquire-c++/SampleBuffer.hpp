@@ -33,13 +33,14 @@ class DllExport SampleBuffer
   }
     
   T* reserve(size_t samples) {
-    BOOST_VERIFY(mpBuffer != 0 && samples < RING_SIZE);
+    BOOST_VERIFY(mpBuffer != 0);
         
-    if (samples >= RING_SIZE) {
+    if (samples > maximumReservation()) {
+      cerr << "SampleBuffer.reserve: ERROR: a reservation larger than the maximum reservation; returning 0 " << endl;
       return 0;
     }
         
-    if ((mPosition + samples) > RING_SIZE) {
+    if ((mPosition + samples) == maximumReservation()) {
       mPosition = 0;
     }
         
