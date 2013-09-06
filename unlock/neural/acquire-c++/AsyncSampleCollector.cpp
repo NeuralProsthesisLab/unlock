@@ -7,8 +7,6 @@
 using namespace boost;
 using namespace std;
 
-static const size_t YIELD_THRESHOLD=13;
-
 AsyncSampleCollector::AsyncSampleCollector(ISignal* pSignal,
 					   lockfree::spsc_queue<Sample<uint32_t> >* pQueue,
 					   IWorkController* pWorkController, Sample<uint32_t>* pSamples, size_t samplesSize, SampleBuffer<uint32_t>* pRingBuffer) 
@@ -79,29 +77,25 @@ void AsyncSampleCollector::operator()() {
   BOOST_VERIFY(mpSignal != 0 && mpQueue != 0 && mpSamples != 0 && mpRingBuffer != 0 && mpWorkController != 0);
   size_t iterations = 0;
   while(mpWorkController->doWork()) {
+    try {
     BOOST_VERIFY(mpSignal != 0 && mpQueue != 0 && mpSamples != 0 && mpRingBuffer != 0 && mpWorkController != 0);      
-    iterations++;
-    if (iterations == YIELD_THRESHOLD) {
-      iterations = 0;
-      thread::yield();
-    }
+    
     size_t samples = mpSignal->acquire();
     if (samples > 0) {
-      size_t channels = mpSignal->channels();
-      if (samples*channels > SampleBuffer<uint32_t>::RING_SIZE) {
-        cerr << "AsyncSampleCollector.operator()(): WARNING: samples acquire == " << samples*channels << ", but the ring size == " << SampleBuffer<uint32_t>::RING_SIZE << " dropping extra requests " << endl;
-        samples = SampleBuffer<uint32_t>::RING_SIZE/channels;
+      if (samples > mpRingBuffer->maximumReservation()) {
+        cerr << "AsyncSampleCollector.operator()(): WARNING: samples acquire == " << samples << ", but the ring size == " << mpRingBuffer->maximumReservation() << " dropping extra requests " << endl;
+        samples = mpRingBuffer->maximumReservation();
       }
       
-      uint32_t* pBuffer = mpRingBuffer->reserve(samples*channels);
+      uint32_t* pBuffer = mpRingBuffer->reserve(samples);
       if (pBuffer == 0) {
 	cerr << "AsyncSampleCollector.operator()(): ERROR: mpRingBuffer failed to reserve buffer; dropping these samples " << endl;
 	continue;
       }
       
-      mpSignal->getdata(pBuffer, samples*channels);
-      BOOST_VERIFY(mCurrentSample < mSampleSize);
-      mpSamples[mCurrentSample].configure(pBuffer, samples*channels);
+      mpSignal->getdata(pBuffer, samples);
+      BOOST_VERIFY(mCurrentSample < mSamplesSize);
+      mpSamples[mCurrentSample].configure(pBuffer, samples);
       
       while (!mpQueue->push(mpSamples[mCurrentSample])) {
         if (!mpWorkController->doWork()) {
@@ -110,8 +104,10 @@ void AsyncSampleCollector::operator()() {
         }
       }
       incrementCurrentSample();
-    } else {
-      thread::yield();
+    }
+    boost::this_thread::sleep(boost::posix_time::microseconds(100));
+    } catch(...) {
+      cerr << "AsyncSampleCollector.operator()(): ERROR unhandled exception; ignoring " << endl;
     }
   }
 }
