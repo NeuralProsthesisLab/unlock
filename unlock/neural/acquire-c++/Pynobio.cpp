@@ -1,12 +1,14 @@
-#include "Pynobio.hpp"
 #include <stdio.h>
 #include <iostream>
+#include <boost/assert.hpp>
+
+#include "Pynobio.hpp"
 
 using namespace std;
 
 //// EnobioDataConsumer ///
-EnobioDataConsumer::EnobioDataConsumer() {
-	this->buffer = new int[BUFFER_SAMPLES*CHANNELS];
+EnobioDataConsumer::EnobioDataConsumer(boost::mutex* pMutex) :mpMutex(pMutex) {
+	this->buffer = new uint32_t[BUFFER_SAMPLES*CHANNELS];
 	this->nSamples = 0;
 	this->hEvent = CreateEvent(NULL, false, false, NULL);
 	if(this->hEvent == NULL) {
@@ -20,6 +22,7 @@ EnobioDataConsumer::~EnobioDataConsumer() {
 }
 
 void EnobioDataConsumer::receiveData(const PData &data) {
+	BOOST_VERIFY(this->nSamples < BUFFER_SAMPLES);
 	// we cannot ensure consistent polling, so we need to add
 	// a buffer and a sample counter in order to inform python
 	// how many samples we need to retrieve at a time.
@@ -28,16 +31,18 @@ void EnobioDataConsumer::receiveData(const PData &data) {
 	// if race collisions occur and are problematic, we could 
 	// try double buffering
 	ChannelData *pData = (ChannelData *)data.getData();
-	int *sample = pData->data();
-	memcpy(this->buffer + CHANNELS*this->nSamples, sample, CHANNELS*sizeof(int));
+	uint32_t *sample = reinterpret_cast<uint32_t*>(pData->data());
+	mpMutex->lock();
+	memcpy(this->buffer + CHANNELS*this->nSamples, sample, CHANNELS*sizeof(uint32_t));
 	//for(int i=0; i < 8; i++) {
 	//	this->buffer[nSamples*8+i] = pData->data()[i];
 	//}
 	this->timestamp = pData->timestamp();
 	this->nSamples++;
-	if(this->nSamples >= BUFFER_SAMPLES) {
+	if(this->nSamples == BUFFER_SAMPLES) {
 		this->nSamples = 0;
 	}
+	mpMutex->unlock();
 	if(!SetEvent(this->hEvent)) {
 		printf("SetEvent failed (%d)\n", GetLastError());
 	}
@@ -52,16 +57,16 @@ void EnobioStatusConsumer::receiveData(const PData &data) {
 
 
 /// Enobio ///
-Enobio::Enobio() {
+Enobio::Enobio() :mutex() {
 
-	this->enobioData = new EnobioDataConsumer();
+	this->enobioData = new EnobioDataConsumer(&mutex);
 	this->enobioStatus = new EnobioStatusConsumer();
 	this->enobio.registerConsumer(Enobio3G::ENOBIO_DATA, *this->enobioData);
 	this->enobio.registerConsumer(Enobio3G::STATUS, *this->enobioStatus);
 
 	this->opened = false;
 	this->started = false;
-	this->samples = new size_t[BUFFER_SAMPLES*CHANNELS];
+	this->samples = new uint32_t[BUFFER_SAMPLES*CHANNELS];
 }
 
 Enobio::~Enobio() {
@@ -110,9 +115,12 @@ size_t Enobio::acquire() {
 		cerr << "Pynobio: ERROR: waiting result = " << result << endl;
 		return 0;
 	} else {
+		mutex.lock();
+		// XXX - not thread safe
 		int nSamples = this->enobioData->nSamples;
 		memcpy(this->samples, this->enobioData->buffer, CHANNELS*nSamples*sizeof(uint32_t));
 		this->enobioData->nSamples = 0;
+		mutex.unlock();
 		return nSamples;
 	}	
 }
@@ -122,7 +130,7 @@ void Enobio::getdata(uint32_t* buffer, size_t samples) {
 		cout << "Enobio.getdata: WARNING: number of samples requested is bigger than the buffer" << endl;
 		samples = BUFFER_SAMPLES*CHANNELS;
 	}
-	memcpy(buffer, this->samples, samples*sizeof(size_t));
+	memcpy(buffer, this->samples, samples*sizeof(uint32_t));
 }
 
 uint64_t Enobio::timestamp() {
