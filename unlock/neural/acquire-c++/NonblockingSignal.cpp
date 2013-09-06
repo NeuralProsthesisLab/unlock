@@ -130,6 +130,12 @@ void NonblockingSignal::getdata(uint32_t* buffer, size_t samples)  {
          <<  samples << " when device not started; not copying any data" << endl; 
     return;
   }
+  
+  if (samples > NonblockingSignal::SAMPLE_BUFFER_SIZE) {
+    samples = NonblockingSignal::SAMPLE_BUFFER_SIZE;
+    cerr << "NonblockingSignal.getdata: WARNING requested more samples than can be held; returning " << NonblockingSignal::SAMPLE_BUFFER_SIZE << " samples " << endl;
+  }
+  
   for (int sample=0, pos=0; sample < samples; ) {
     uint32_t* pSample = mpConsumerSamples[pos].sample();
     size_t sample_count = mpConsumerSamples[pos].length();

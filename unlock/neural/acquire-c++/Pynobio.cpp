@@ -126,7 +126,7 @@ size_t Enobio::acquire() {
 }
 
 void Enobio::getdata(uint32_t* buffer, size_t samples) {
-	if(samples >= BUFFER_SAMPLES*CHANNELS) {
+	if(samples > BUFFER_SAMPLES*CHANNELS) {
 		cout << "Enobio.getdata: WARNING: number of samples requested is bigger than the buffer" << endl;
 		samples = BUFFER_SAMPLES*CHANNELS;
 	}

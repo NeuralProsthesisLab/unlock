@@ -43,7 +43,7 @@ size_t AsyncSampleCollector::currentSample() const {
 }
 
 void  AsyncSampleCollector::incrementCurrentSample() {
-  BOOST_VERIFY(mCurrentSample <= mSamplesSize);
+  BOOST_VERIFY(mCurrentSample < mSamplesSize);
   mCurrentSample++;
   if (mCurrentSample == mSamplesSize) {
     mCurrentSample = 0;
@@ -88,8 +88,19 @@ void AsyncSampleCollector::operator()() {
     size_t samples = mpSignal->acquire();
     if (samples > 0) {
       size_t channels = mpSignal->channels();
+      if (samples*channels > SampleBuffer<uint32_t>::RING_SIZE) {
+        cerr << "AsyncSampleCollector.operator()(): WARNING: samples acquire == " << samples*channels << ", but the ring size == " << SampleBuffer<uint32_t>::RING_SIZE << " dropping extra requests " << endl;
+        samples = SampleBuffer<uint32_t>::RING_SIZE/channels;
+      }
+      
       uint32_t* pBuffer = mpRingBuffer->reserve(samples*channels);
+      if (pBuffer == 0) {
+	cerr << "AsyncSampleCollector.operator()(): ERROR: mpRingBuffer failed to reserve buffer; dropping these samples " << endl;
+	continue;
+      }
+      
       mpSignal->getdata(pBuffer, samples*channels);
+      BOOST_VERIFY(mCurrentSample < mSampleSize);
       mpSamples[mCurrentSample].configure(pBuffer, samples*channels);
       
       while (!mpQueue->push(mpSamples[mCurrentSample])) {

@@ -13,7 +13,7 @@
 
 class DllExport NonblockingSignal : public ISignal
 {
- public:
+ public: 
   static const size_t SAMPLE_BUFFER_SIZE=8192;
     
  public:
