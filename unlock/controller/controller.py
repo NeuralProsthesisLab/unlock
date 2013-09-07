@@ -32,8 +32,9 @@ class Canvas(object):
 #        xs
    
 class PygletWindow(pyglet.window.Window):
-    def __init__(self, fullscreen=False, show_fps=True, vsync=False):
+    def __init__(self, signal, fullscreen=False, show_fps=True, vsync=False):
         super(PygletWindow, self).__init__(fullscreen=fullscreen, vsync=vsync)
+        self.signal = signal
         self.controller_stack = []
         self.views = []
         if show_fps:
@@ -68,26 +69,30 @@ class PygletWindow(pyglet.window.Window):
         if self.active_controller:
             stop = self.active_controller.deactivate()
             if stop:
+                self.signal.stop()
+                self.signal.close()
                 pyglet.app.exit()        
             return pyglet.event.EVENT_HANDLED
         else:
+            self.signal.stop()
+            self.signal.close()
             pyglet.app.exit()
             
             
     def activate_controller(self, controller):
         if self.active_controller:
             self.controller_stack.append(self.active_controller)
-            pyglet.clock.unschedule(self.active_controller.poll_bci)            
+            pyglet.clock.unschedule(self.active_controller.poll_signal)            
             
         self.views = controller.get_views()
         self.batch = controller.get_batch()
-        pyglet.clock.schedule_interval(controller.poll_bci, controller.get_bci_poll_freq())
+        pyglet.clock.schedule_interval(controller.poll_signal, controller.get_signal_poll_freq())
         self.active_controller = controller
         
     def deactivate_controller(self):
         if self.active_controller != None:
             self.views = []        
-            pyglet.clock.unschedule(self.active_controller.poll_bci)            
+            pyglet.clock.unschedule(self.active_controller.poll_signal)            
             self.active_controller = None
             
         if len(self.controller_stack) > 0:
@@ -100,12 +105,12 @@ class PygletWindow(pyglet.window.Window):
             
             
 class UnlockController(object):
-    def __init__(self, window, views, canvas, bci_poll_freq=1.0/512.0):
+    def __init__(self, window, views, canvas, signal_poll_freq=1.0/512.0):
         super(UnlockController, self).__init__()
         self.window = window
         self.views = views
         self.canvas = canvas
-        self.bci_poll_freq = bci_poll_freq
+        self.signal_poll_freq = signal_poll_freq
         
     def activate(self):
         self.window.activate_controller(self)
@@ -116,14 +121,14 @@ class UnlockController(object):
     def deactivate(self):
         return True
         
-    def poll_bci(self, delta):
+    def poll_signal(self, delta):
         pass
         
     def keyboard_input(self, command):
         pass
         
-    def get_bci_poll_freq(self):
-        return self.bci_poll_freq
+    def get_signal_poll_freq(self):
+        return self.signal_poll_freq
         
     def get_views(self):
         return self.views

@@ -56,9 +56,9 @@ class PygletKeyboardCommand(Command):
             self.decision = labels.index(symbol) + 1        
             
             
-class RawBCICommand(Command):
+class RawSignalCommand(Command):
     def __init__(self, delta, raw_data_vector, samples, channels):
-        super(RawBCICommand, self).__init__(delta)
+        super(RawSignalCommand, self).__init__(delta)
         self.raw_data_vector = raw_data_vector
         self.samples = samples
         self.channels = channels
@@ -167,20 +167,19 @@ class InlineCommandReceiver(CommandReceiverInterface):
         self.Q.append(command)
             
           
-class RawInlineBCIReceiver(CommandReceiverInterface):
-    def __init__(self, bci):
-        self.bci = bci
+class RawInlineSignalReceiver(CommandReceiverInterface):
+    def __init__(self, signal):
+        self.signal = signal
         
     def next_command(self, delta):
         samples = None
         while samples == None or samples < 1:
-            samples = self.bci.acquire()
+            samples = self.signal.acquire()
 
-#        print('samples = ', str(samples))
         done = False
         while not done:
             try:
-                c_data = self.bci.getdata(samples)
+                c_data = self.signal.getdata(samples)
                 raw_data_vector = np.array(c_data)
                 done = True
             except MemoryError:
@@ -188,12 +187,10 @@ class RawInlineBCIReceiver(CommandReceiverInterface):
                 continue
                 #raw_data_vector = c_data[len(c_data)/2:]
 
-        return RawBCICommand(delta, raw_data_vector, samples/self.bci.channels(), self.bci.channels())
+        return RawSignalCommand(delta, raw_data_vector, samples/self.signal.channels(), self.signal.channels())
         
     def stop(self):
-        self.bci.stop()
-        self.bci.close()
-
+        pass
 
 class DeltaCommandReceiver(CommandReceiverInterface):
     def next_command(self, delta):
