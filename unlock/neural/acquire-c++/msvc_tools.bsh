@@ -50,6 +50,10 @@ load_msvc_tools()
 
 #echo ${MSVC_COMMON_TOOLS}
 
+load_msvc_10() {
+	load_msvc_tools VS100COMNTOOLS "$@"
+}
+
 load_msvc_11() {
 
     load_msvc_tools VS110COMNTOOLS "$@"
