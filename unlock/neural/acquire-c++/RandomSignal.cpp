@@ -3,9 +3,9 @@
 
 #include "fakeSignal.hpp"
 
-FakeSignal::FakeSignal()
+RandomSignal::RandomSignal()
   : mOpenCount(0), mOpenRet(true), mInitCount(0), mLastChannels(4), mInitRet(true), mChannelsCount(0), mStartCount(0), mStartRet(true),
-    mAcquireCount(0), mAcquireRet(1), mGetDataCount(0), mpLastGetData(0), mLastSamples(0),
+    mAcquireCount(0), mAcquireRet(4), mGetDataCount(0), mpLastGetData(0), mLastSamples(0),
     mTimestampCount(0), mTimestampRet(-1), mStopCount(0), mStopRet(true), mCloseCount(0),
     mCloseRet(true)
 {
@@ -17,40 +17,39 @@ FakeSignal::FakeSignal()
   mLastMac[5] = 0xd;
 }
 
-FakeSignal::~FakeSignal() {
+RandomSignal::~RandomSignal() {
 }
 
-bool FakeSignal::open(uint8_t* pMacAddress) {
+bool RandomSignal::open(uint8_t* pMacAddress) {
   BOOST_VERIFY(pMacAddress != 0);	
   mOpenCount++;
   std::copy(pMacAddress, pMacAddress+MAC_ADDRESS_SIZE, mLastMac);
   return mOpenRet;
 }
 
-bool FakeSignal::init(size_t channels) {
+bool RandomSignal::init(size_t channels) {
   mInitCount++;
   mLastChannels = channels;
   return mInitRet;
 }
 
-size_t FakeSignal::channels() {
+size_t RandomSignal::channels() {
   mChannelsCount++;
   return mLastChannels;
 }
 
-bool FakeSignal::start() {
+bool RandomSignal::start() {
   mStartCount++;
   return mStartRet;
 }
 
-size_t FakeSignal::acquire() {
+size_t RandomSignal::acquire() {
   mAcquireCount++;
   return mAcquireRet;
 }
 
-void FakeSignal::getdata(uint32_t* buffer, size_t samples) {
+void RandomSignal::getdata(uint32_t* buffer, size_t samples) {
   BOOST_VERIFY(buffer != 0);
-  BOOST_VERIFY(mAcquireRet * mLastChannels == samples);
   mGetDataCount++;
   for(size_t i=0; i < samples; i++) {
     for (size_t j=0; j < mLastChannels; j++) {
@@ -62,17 +61,17 @@ void FakeSignal::getdata(uint32_t* buffer, size_t samples) {
   mLastSamples = samples;
 }
 
-uint64_t FakeSignal::timestamp() {
+uint64_t RandomSignal::timestamp() {
   mTimestampCount++;
   return mTimestampRet;
 }
 
-bool FakeSignal::stop() {
+bool RandomSignal::stop() {
   mStopCount++;
   return mStopRet;
 }
 
-bool FakeSignal::close() {
+bool RandomSignal::close() {
   mCloseCount++;
   return mCloseRet;
 }
