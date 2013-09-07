@@ -176,11 +176,11 @@ class RawInlineBCIReceiver(CommandReceiverInterface):
         while samples == None or samples < 1:
             samples = self.bci.acquire()
 
-        print('samples, bci channels = ', str(samples), str(self.bci.channels()))
+#        print('samples = ', str(samples))
         done = False
         while not done:
             try:
-                c_data = self.bci.getdata(samples * self.bci.channels())
+                c_data = self.bci.getdata(samples)
                 raw_data_vector = np.array(c_data)
                 done = True
             except MemoryError:
@@ -188,10 +188,11 @@ class RawInlineBCIReceiver(CommandReceiverInterface):
                 continue
                 #raw_data_vector = c_data[len(c_data)/2:]
 
-        return RawBCICommand(delta, raw_data_vector, samples, self.bci.channels())
+        return RawBCICommand(delta, raw_data_vector, samples/self.bci.channels(), self.bci.channels())
         
     def stop(self):
-        pass
+        self.bci.stop()
+        self.bci.close()
 
 
 class DeltaCommandReceiver(CommandReceiverInterface):
