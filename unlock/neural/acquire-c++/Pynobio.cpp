@@ -12,7 +12,7 @@ EnobioDataConsumer::EnobioDataConsumer(boost::mutex* pMutex) :mpMutex(pMutex) {
 	this->buffer = new uint32_t[BUFFER_SAMPLES*CHANNELS];
 	this->nSamples = 0;
 	this->hEvent = CreateEvent(NULL, false, false, NULL);
-	if(this->hEvent == NULL) {
+	if(this->hEvent == 0) {
 		printf("CreateEvent failed (%d)\n", GetLastError());
 	}
 }
@@ -24,9 +24,19 @@ EnobioDataConsumer::~EnobioDataConsumer() {
 }
 
 void EnobioDataConsumer::receiveData(const PData &data) {
+	BOOST_VERIFY(mpMutex != 0 && buffer != 0);
 	BOOST_VERIFY(this->nSamples < BUFFER_SAMPLES);
 	ChannelData *pData = (ChannelData *)data.getData();
+	if (pData == 0) {
+		cerr << "EnobioDataConsumer.receiveData: WARNING pData ==0 " << endl;
+		return;
+	}
 	uint32_t *sample = reinterpret_cast<uint32_t*>(pData->data());
+	if(sample == 0) {
+		cerr << "EnobioDataConsumer.receiveData: WARNING samples ==0 " << endl;		
+		return;
+	}
+	
 	mpMutex->lock();
 	memcpy(this->buffer + CHANNELS*this->nSamples, sample, CHANNELS*sizeof(uint32_t));
 	this->timestamp = pData->timestamp();
@@ -101,6 +111,7 @@ bool Enobio::start() {
 }
 
 size_t Enobio::acquire() {
+	BOOST_VERIFY(this->enobioData != 0 && this->enobioData->buffer != 0 && this->samples != 0);
 	size_t result=0;
 	result = WaitForSingleObject(this->enobioData->hEvent, 1000);
 	if (result != WAIT_OBJECT_0) {
@@ -117,6 +128,7 @@ size_t Enobio::acquire() {
 }
 
 void Enobio::getdata(uint32_t* buffer, size_t samples) {
+	BOOST_VERIFY(buffer != 0 && this->samples != 0);	
 	if(samples > BUFFER_SAMPLES*CHANNELS) {
 		cout << "Enobio.getdata: WARNING: number of samples requested is bigger than the buffer" << endl;
 		samples = BUFFER_SAMPLES*CHANNELS;
