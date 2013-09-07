@@ -8,9 +8,6 @@ template<class T>
 class DllExport SampleBuffer
 {
  public:
-  static const size_t RING_SIZE=1048576;
-    
- public:
   SampleBuffer() : mpBuffer(0), mPosition(0) {
     mpBuffer = new T[RING_SIZE];
   }
@@ -29,7 +26,7 @@ class DllExport SampleBuffer
   }
 
   size_t maximumReservation() {
-    return RING_SIZE-1;
+    return RING_SIZE;
   }
     
   T* reserve(size_t samples) {
@@ -40,7 +37,7 @@ class DllExport SampleBuffer
       return 0;
     }
         
-    if ((mPosition + samples) == maximumReservation()) {
+    if ((mPosition + samples) >= maximumReservation()) {
       mPosition = 0;
     }
         
@@ -50,6 +47,7 @@ class DllExport SampleBuffer
   }
     
  private:
+  static const size_t RING_SIZE=1048576;
   T* mpBuffer;
   size_t mPosition;
 };
