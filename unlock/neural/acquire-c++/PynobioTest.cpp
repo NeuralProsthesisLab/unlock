@@ -59,7 +59,6 @@ BOOST_AUTO_TEST_CASE(test_create_wrap_open_start_acquire_getdata_stop_close)
   size_t samples = 0;
   samples = signal->acquire();
   BOOST_CHECK(samples > 0);    
-  cout << "Acquire returns --->" << samples  << "<--- " << endl;
   uint32_t* buffer = new uint32_t[samples];
   for(int i=0; i < samples; i++)
     buffer[i] = 0;
