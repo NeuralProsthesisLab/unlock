@@ -38,8 +38,13 @@ bool PythonSignal::start() {
 }
 
 size_t PythonSignal::acquire() {
-  BOOST_VERIFY(mpSignal != 0);  
+  BOOST_VERIFY(mpSignal != 0);
+  try {
     return mpSignal->acquire();
+  } catch(...) {
+    std::cerr << "PythonSignal.acquire: ERROR exception raised; returning 0 samples" << std::endl;
+    return 0;
+  }
 }
 
 std::vector<uint32_t> PythonSignal::getdata(size_t samples) {
