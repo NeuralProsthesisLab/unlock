@@ -2,7 +2,7 @@
 from unlock.model import TimedStimulus, TimedStimuli
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer
 from .controller import UnlockController, Canvas
-from .command import DeltaCommandReceiver, RawInlineBCIReceiver
+from .command import DeltaCommandReceiver, RawInlineSignalReceiver
 import inspect
 import os
 
@@ -63,7 +63,7 @@ class SSVEP(UnlockController):
             reversal=False)
         stimuli = [stimulus1, stimulus2, stimulus3, stimulus4]
 #        command_receiver = DeltaCommandReceiver()
-        command_receiver = RawInlineBCIReceiver(signal)
+        command_receiver = RawInlineSignalReceiver(signal)
         return SSVEP(window, [fs1, fs2, fs3, fs4], canvas, command_receiver,
                      stimuli)
 
@@ -111,6 +111,6 @@ class SSVEP(UnlockController):
 
         stimuli = [stimulus1, stimulus2, stimulus3, stimulus4]
 #        command_receiver = DeltaCommandReceiver()
-        command_receiver = RawInlineBCIReceiver(signal)
+        command_receiver = RawInlineSignalReceiver(signal)
         return SSVEP(window, [fs1, fs2, fs3, fs4], canvas, command_receiver,
                          stimuli)
