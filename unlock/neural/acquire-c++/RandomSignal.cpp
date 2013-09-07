@@ -1,7 +1,7 @@
 #include <boost/random/uniform_int_distribution.hpp>
 #include <limits>
 
-#include "fakeSignal.hpp"
+#include "RandomSignal.hpp"
 
 RandomSignal::RandomSignal()
   : mOpenCount(0), mOpenRet(true), mInitCount(0), mLastChannels(4), mInitRet(true), mChannelsCount(0), mStartCount(0), mStartRet(true),
@@ -52,10 +52,8 @@ void RandomSignal::getdata(uint32_t* buffer, size_t samples) {
   BOOST_VERIFY(buffer != 0);
   mGetDataCount++;
   for(size_t i=0; i < samples; i++) {
-    for (size_t j=0; j < mLastChannels; j++) {
-      boost::random::uniform_int_distribution<> dist(1, std::numeric_limits<int32_t>::max());
-      buffer[i+j] = (uint32_t)dist(gen);
-    }
+    boost::random::uniform_int_distribution<> dist(1, std::numeric_limits<int32_t>::max());
+    buffer[i] = (uint32_t)dist(gen);
   }
   mpLastGetData = buffer;
   mLastSamples = samples;

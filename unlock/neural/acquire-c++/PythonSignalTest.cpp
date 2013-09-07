@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "PythonSignal.hpp"
-#include "FakeSignal.hpp"
+#include "RandomSignal.hpp"
 #include "Sample.hpp"
 
 using namespace std;
@@ -14,14 +14,14 @@ BOOST_AUTO_TEST_SUITE(PythonSignalTest)
 BOOST_AUTO_TEST_CASE(pythion_signal_test_create_delete)
 {
   cout << "PythonSignalTest.test_create_delete" << endl;
-  PythonSignal* signal = new PythonSignal(new FakeSignal());
+  PythonSignal* signal = new PythonSignal(new RandomSignal());
   delete signal;//blockless_signal;
 }
 
 BOOST_AUTO_TEST_CASE(python_signal_test_create_open_start_acquire_getdata_stop_close)
 {
   cout << "Pynobio.test_create_open_start_acquire_getdata_stop_close " << endl;
-  PythonSignal* signal = new PythonSignal(new FakeSignal());
+  PythonSignal* signal = new PythonSignal(new RandomSignal());
   cout << "Before mac addr " << endl;
 
   BOOST_VERIFY(signal->open(/*macAddress*/));

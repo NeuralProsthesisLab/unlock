@@ -32,16 +32,16 @@ class UnlockFactory(context.PythonConfig):
         return signal
     
     @context.Object(lazy_init=True)
-    def fake(self):
-        import unlock
-        signal = unlock.create_fake_signal()
+    def random(self):
+        from unlock.neural import acquire
+        signal = acquire.create_random_signal()
         signal.open()
         signal.start()
         return signal
         
     @context.Object(lazy_init=True)
     def PygletWindow(self):
-        return PygletWindow(self.args['fullscreen'], self.args['fps'])
+        return PygletWindow(self.signal, self.args['fullscreen'], self.args['fps'])
         
     @context.Object(lazy_init=True)
     def SingleMSequenceCollector(self):

@@ -1,7 +1,7 @@
 {
     "main" : "Dashboard",
-    "signal" : "fake",
-    "fullscreen" : true,
+    "signal" : "random",
+    "fullscreen" : false,
     "fps" : true,
     "controllers" : [
         {

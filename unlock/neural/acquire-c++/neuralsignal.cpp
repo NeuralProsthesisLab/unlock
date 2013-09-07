@@ -1,7 +1,6 @@
 
-
 #include "ISignal.hpp"
-#include "FakeSignal.hpp"
+#include "RandomSignal.hpp"
 #include "NonblockingSignal.hpp"
 #include "Portability.hpp"
 #include "PythonSignal.hpp"
@@ -66,12 +65,10 @@ class DllExport SignalPythonWrap : public ISignal, public wrapper<ISignal>
   ISignal* mpSignal;    
 };
 
-
-PythonSignal* create_fake_signal() {
-  FakeSignal* pFakeSignal = new FakeSignal();
-  //NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pFakeSignal);
-  PythonSignal* pPythonSignal = new PythonSignal(pFakeSignal);
-  return pPythonSignal;
+PythonSignal* create_random_signal() {
+  RandomSignal* pSignal = new RandomSignal();
+  PythonSignal* pPythonSignal = new PythonSignal(pSignal);
+  return pPythonSignal;  
 }
 
 PythonSignal* create_enobio_signal() {
@@ -86,7 +83,7 @@ BOOST_PYTHON_MODULE(neuralsignal)
   class_<std::vector<uint32_t> >("int32_vector")
         .def(vector_indexing_suite<std::vector<uint32_t> >() );
 
-  def("create_fake_signal", create_fake_signal, return_value_policy<manage_new_object>());
+  def("create_random_signal", create_random_signal, return_value_policy<manage_new_object>());
   def("create_enobio_signal", create_enobio_signal, return_value_policy<manage_new_object>());
 
   class_<SignalPythonWrap, boost::noncopyable>("ISignal", no_init)

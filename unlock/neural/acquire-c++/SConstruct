@@ -48,7 +48,7 @@ includes.extend(boost_includes)
 includes.extend(python_includes)
 frameworks = ["Python"]
 
-SOURCES=['neuralsignal.cpp', 'NonblockingSignal.cpp', 'FakeSignal.cpp', 'AsyncSampleCollector.cpp', 'ManagedWorkController.cpp', 'Pynobio.cpp', 'PythonSignal.cpp']
+SOURCES=['neuralsignal.cpp', 'NonblockingSignal.cpp', 'RandomSignal.cpp', 'AsyncSampleCollector.cpp', 'ManagedWorkController.cpp', 'Pynobio.cpp', 'PythonSignal.cpp']
 UNIT_TEST_SOURCES=['AsyncSampleCollectorTest.cpp', 'SignalTestRunner.cpp', 'NonblockingSignalTest.cpp',
                    'SampleTest.cpp', 'IntegralWorkController.cpp', 'ManagedWorkControllerTest.cpp', 'IntegralWorkControllerTest.cpp', 'PynobioTest.cpp', 'PythonSignalTest.cpp']
 
