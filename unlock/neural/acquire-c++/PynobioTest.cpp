@@ -4,12 +4,12 @@
 
 #include "NonblockingSignal.hpp"
 #include "Pynobio.hpp"
-#include "FakeSignal.hpp"
+#include "RandomSignal.hpp"
 #include "Sample.hpp"
 
 using namespace std;
 
-uint8_t mac1[FakeSignal::MAC_ADDRESS_SIZE] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6 };
+uint8_t mac1[RandomSignal::MAC_ADDRESS_SIZE] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6 };
 
 BOOST_AUTO_TEST_SUITE(PynobioTest)
 

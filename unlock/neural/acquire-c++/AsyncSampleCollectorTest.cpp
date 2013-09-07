@@ -5,7 +5,7 @@
 
 #include "AsyncSampleCollector.hpp"
 #include "IntegralWorkcontroller.hpp"
-#include "FakeSignal.hpp"
+#include "RandomSignal.hpp"
 #include "Sample.hpp"
 
 using namespace std;
@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_SUITE(AsyncSampleCollectorTest)
 BOOST_AUTO_TEST_CASE(test_create_destroy)
 {
   cout << "AsyncSampleCollector.test_create_destroy " << endl;        
-  FakeSignal fbci;
+  RandomSignal fbci;
   Sample<uint32_t>* pProducerSamples = new Sample<uint32_t>[42];
   SampleBuffer<uint32_t> sampleRingBuffer;
   spsc_queue<Sample<uint32_t>,  capacity<(42 - 1)> > queue;
@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(test_create_destroy)
 BOOST_AUTO_TEST_CASE(test_create_copy)
 {
   cout << "AsyncSampleCollector.test_create_copy " << endl;    
-  FakeSignal fbci;
+  RandomSignal fbci;
   Sample<uint32_t>* pProducerSamples = new Sample<uint32_t>[1339];
   SampleBuffer<uint32_t> sampleRingBuffer;
   spsc_queue<Sample<uint32_t>,  capacity<(1338)> > queue;
@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(test_create_copy)
 BOOST_AUTO_TEST_CASE(test_current_sample)
 {
   cout << "AsyncSampleCollector.test_current_sample " << endl;    
-  FakeSignal fbci;
+  RandomSignal fbci;
   Sample<uint32_t>* pProducerSamples = new Sample<uint32_t>[1339];
   SampleBuffer<uint32_t> sampleRingBuffer;
   spsc_queue<Sample<uint32_t>,  capacity<(1338)> > queue;
@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(test_current_sample)
 BOOST_AUTO_TEST_CASE(test_functor)
 {
   cout << "AsyncSampleCollector.test_functor " << endl;
-  FakeSignal fbci;
+  RandomSignal fbci;
   Sample<uint32_t>* pProducerSamples = new Sample<uint32_t>[4200];
   SampleBuffer<uint32_t> sampleRingBuffer;
   boost::lockfree::spsc_queue<Sample<uint32_t> > queue(4200);
@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE(test_functor)
 BOOST_AUTO_TEST_CASE(test_threaded_functor)
 {
   cout << "AsyncSampleCollector.test_functor " << endl;
-  FakeSignal fbci;
+  RandomSignal fbci;
   Sample<uint32_t>* pProducerSamples = new Sample<uint32_t>[4200];
   Sample<uint32_t>* pConsumerSamples = new Sample<uint32_t>[4200];  
   SampleBuffer<uint32_t> sampleRingBuffer;

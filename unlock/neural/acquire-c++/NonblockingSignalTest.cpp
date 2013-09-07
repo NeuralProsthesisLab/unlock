@@ -3,19 +3,19 @@
 #include <iostream>
 
 #include "NonblockingSignal.hpp"
-#include "FakeSignal.hpp"
+#include "RandomSignal.hpp"
 #include "Sample.hpp"
 
 using namespace std;
 
-uint8_t mac[FakeSignal::MAC_ADDRESS_SIZE] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6 };
+uint8_t mac[RandomSignal::MAC_ADDRESS_SIZE] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6 };
 
 BOOST_AUTO_TEST_SUITE(NonblockingSignalTest)
 
 BOOST_AUTO_TEST_CASE(test_create_delete)
 {
   cout << "NonblockingSignalTest.test_create_delete" << endl;
-  ISignal* fbci = new FakeSignal();
+  ISignal* fbci = new RandomSignal();
   NonblockingSignal* bci = new NonblockingSignal(fbci);
   delete bci;
 }
@@ -23,10 +23,10 @@ BOOST_AUTO_TEST_CASE(test_create_delete)
 BOOST_AUTO_TEST_CASE(test_create_open_delete)
 {
   cout << "NonblockingSignalTest.test_create_open_delete" << endl;    
-  FakeSignal* fbci = new FakeSignal();
+  RandomSignal* fbci = new RandomSignal();
   NonblockingSignal* bci = new NonblockingSignal(fbci);
   BOOST_CHECK(bci->open(mac));
-  for (int i=0; i < FakeSignal::MAC_ADDRESS_SIZE; i++)
+  for (int i=0; i < RandomSignal::MAC_ADDRESS_SIZE; i++)
     BOOST_CHECK_EQUAL(mac[i], fbci->mLastMac[i]);
         
   delete bci;
@@ -35,12 +35,12 @@ BOOST_AUTO_TEST_CASE(test_create_open_delete)
 BOOST_AUTO_TEST_CASE(test_create_open_fail_delete)
 {
   cout << "NonblockingSignalTest.test_create_open_fail_delete" << endl;        
-  FakeSignal* fbci = new FakeSignal();
+  RandomSignal* fbci = new RandomSignal();
   NonblockingSignal* bci = new NonblockingSignal(fbci);
   fbci->mOpenRet = false;
   mac[0] = 0xff;
   BOOST_CHECK(!bci->open(mac));
-  for (int i=0; i < FakeSignal::MAC_ADDRESS_SIZE; i++)
+  for (int i=0; i < RandomSignal::MAC_ADDRESS_SIZE; i++)
     BOOST_CHECK_EQUAL(mac[i], fbci->mLastMac[i]);
         
   delete bci;
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(test_create_open_fail_delete)
 BOOST_AUTO_TEST_CASE(test_open_start_stop)
 {
   cout << "NonblockingSignalTest.test_open_start_stop " << endl;        
-  FakeSignal* fbci = new FakeSignal();
+  RandomSignal* fbci = new RandomSignal();
   NonblockingSignal* bci = new NonblockingSignal(fbci);
   BOOST_CHECK(bci->open(mac));    
   BOOST_CHECK(bci->start());
@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(test_open_start_stop)
 BOOST_AUTO_TEST_CASE(test_start_stop)
 {
   cout << "NonblockingSignalTest.test_start_stop " << endl;            
-  FakeSignal* fbci = new FakeSignal();
+  RandomSignal* fbci = new RandomSignal();
   NonblockingSignal* bci = new NonblockingSignal(fbci);
   BOOST_CHECK(bci->start());
   BOOST_CHECK(bci->stop());
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(test_start_stop)
 BOOST_AUTO_TEST_CASE(test_start_acquire_stop)
 {
   cout << "NonblockingSignalTest.test_start_acquire_stop " << endl;            
-  FakeSignal* fbci = new FakeSignal();
+  RandomSignal* fbci = new RandomSignal();
   NonblockingSignal* bci = new NonblockingSignal(fbci);
   BOOST_CHECK(bci->start());
   boost::this_thread::sleep(boost::posix_time::seconds(1));
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(test_start_acquire_stop)
 BOOST_AUTO_TEST_CASE(test_start_3x_acquire_stop)
 {
   cout << "NonblockingSignalTest.test_start_3x_acquire_stop " << endl;            
-  FakeSignal* fbci = new FakeSignal();
+  RandomSignal* fbci = new RandomSignal();
   NonblockingSignal* bci = new NonblockingSignal(fbci);
   BOOST_CHECK(bci->start());
   boost::this_thread::sleep(boost::posix_time::seconds(1));
@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(test_start_3x_acquire_stop)
 BOOST_AUTO_TEST_CASE(test_start_3x_acquire_stop_stop)
 {
   cout << "NonblockingSignalTest.test_start_3x_acquire_stop " << endl;            
-  FakeSignal* fbci = new FakeSignal();
+  RandomSignal* fbci = new RandomSignal();
   NonblockingSignal* bci = new NonblockingSignal(fbci);
   BOOST_CHECK(bci->start());
   boost::this_thread::sleep(boost::posix_time::seconds(1));
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(test_start_3x_acquire_stop_stop)
 BOOST_AUTO_TEST_CASE(test_start_delete)
 {
   cout << "NonblockingSignalTest.test_start_delete " << endl;            
-  ISignal* fbci = new FakeSignal();
+  ISignal* fbci = new RandomSignal();
   NonblockingSignal* bci = new NonblockingSignal(fbci);
   BOOST_CHECK(bci->start());
   delete bci;
