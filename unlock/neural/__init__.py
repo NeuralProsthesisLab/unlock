@@ -4,13 +4,8 @@
 #import shutil
 #import inspect
 
-#from .acquire import *
+from .acquire import *
 from .classify import *
-from .fakebci import *
-
-def create_fake_signal():
-    return FakeSignal()
-
 
 #
 #def machine():

@@ -15,10 +15,10 @@ cp neuralsignal-unit-tests.* boost/win-x86-msvc-10/lib && \
 cp boost/win-x86-msvc-10/lib/boost_*.dll ../acquire/ && \
 cp neuralsignal_win_x86.dll neuralsignal-unit-tests.exe ../acquire/ && \
 cp neuralsignal_win_x86.dll ../acquire/neuralsignal.pyd && \
-cp boost/win-x86-msvc-10/lib/Enobio3GAPI.dll boost/win-x86-msvc-10/lib/QtCore4.dll boost/win-x86-msvc-10/lib/WinBlueToothAPI.dll ../acquire-c++/ && \
-cd boost/win-x86-msvc-10/lib && \
+cp boost/win-x86-msvc-10/lib/Enobio3GAPI.dll boost/win-x86-msvc-10/lib/QtCore4.dll boost/win-x86-msvc-10/lib/WinBlueToothAPI.dll ../acquire/ && \
+cd boost/win-x86-msvc-10/lib #&& \
 
-./neuralsignal-unit-tests.exe
+#./neuralsignal-unit-tests.exe
 
 
 

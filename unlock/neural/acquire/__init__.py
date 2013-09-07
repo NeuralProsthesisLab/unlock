@@ -1,2 +1,2 @@
-#from .neuralsignal import *
+from .neuralsignal import *
 
