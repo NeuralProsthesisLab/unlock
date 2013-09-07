@@ -8,6 +8,7 @@ using namespace std;
 
 //// EnobioDataConsumer ///
 EnobioDataConsumer::EnobioDataConsumer(boost::mutex* pMutex) :mpMutex(pMutex) {
+	BOOST_VERIFY(mpMutex != 0);
 	this->buffer = new uint32_t[BUFFER_SAMPLES*CHANNELS];
 	this->nSamples = 0;
 	this->hEvent = CreateEvent(NULL, false, false, NULL);
@@ -18,25 +19,16 @@ EnobioDataConsumer::EnobioDataConsumer(boost::mutex* pMutex) :mpMutex(pMutex) {
 
 EnobioDataConsumer::~EnobioDataConsumer() {
 	CloseHandle(this->hEvent);
+	BOOST_VERIFY(this->buffer != 0);
 	delete this->buffer;
 }
 
 void EnobioDataConsumer::receiveData(const PData &data) {
 	BOOST_VERIFY(this->nSamples < BUFFER_SAMPLES);
-	// we cannot ensure consistent polling, so we need to add
-	// a buffer and a sample counter in order to inform python
-	// how many samples we need to retrieve at a time.
-	// a first pass will be that acquire does a buffer copy
-	// based on the sample count, which then resets it.
-	// if race collisions occur and are problematic, we could 
-	// try double buffering
 	ChannelData *pData = (ChannelData *)data.getData();
 	uint32_t *sample = reinterpret_cast<uint32_t*>(pData->data());
 	mpMutex->lock();
 	memcpy(this->buffer + CHANNELS*this->nSamples, sample, CHANNELS*sizeof(uint32_t));
-	//for(int i=0; i < 8; i++) {
-	//	this->buffer[nSamples*8+i] = pData->data()[i];
-	//}
 	this->timestamp = pData->timestamp();
 	this->nSamples++;
 	if(this->nSamples == BUFFER_SAMPLES) {
@@ -116,12 +108,11 @@ size_t Enobio::acquire() {
 		return 0;
 	} else {
 		mutex.lock();
-		// XXX - not thread safe
 		int nSamples = this->enobioData->nSamples;
 		memcpy(this->samples, this->enobioData->buffer, CHANNELS*nSamples*sizeof(uint32_t));
 		this->enobioData->nSamples = 0;
 		mutex.unlock();
-		return nSamples;
+		return nSamples*CHANNELS;
 	}	
 }
 
