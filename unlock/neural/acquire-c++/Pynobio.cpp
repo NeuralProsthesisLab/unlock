@@ -28,12 +28,12 @@ void EnobioDataConsumer::receiveData(const PData &data) {
 	BOOST_VERIFY(this->nSamples < BUFFER_SAMPLES);
 	ChannelData *pData = (ChannelData *)data.getData();
 	if (pData == 0) {
-		cerr << "EnobioDataConsumer.receiveData: WARNING pData ==0 " << endl;
+		cerr << "EnobioDataConsumer.receiveData: WARNING pData == 0 " << endl;
 		return;
 	}
 	uint32_t *sample = reinterpret_cast<uint32_t*>(pData->data());
 	if(sample == 0) {
-		cerr << "EnobioDataConsumer.receiveData: WARNING samples ==0 " << endl;		
+		cerr << "EnobioDataConsumer.receiveData: WARNING samples == 0 " << endl;		
 		return;
 	}
 	
