@@ -2,13 +2,18 @@
     "main" : "Dashboard",
     "signal" : "random",
     "fullscreen" : false,
-    "fps" : true,
+    "fps" : false,
     "controllers" : [
         {
             "name" : "Ssvep",
             "args" : {
             }
-        },        
+        },
+         {
+            "name" : "MSequenceSsvep",
+            "args" : {
+            }
+        },      
         {
             "name" : "EmgCollector",
             "args" : {
@@ -32,7 +37,7 @@
         {
             "name" : "Dashboard",
             "args" : {
-                "controllers" : [ "Ssvep", "EmgCollector", "MultiMSequenceCollector"]
+                "controllers" : [ "Ssvep", "MSequenceSsvep", "EmgCollector", "MultiMSequenceCollector"]
             }
         }
     ],    
