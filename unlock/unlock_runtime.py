@@ -57,7 +57,12 @@ class UnlockFactory(context.PythonConfig):
     def Ssvep(self):
         window = self.PygletWindow()
         return SSVEP.create_ssvep(window, self.signal, **self.args['Ssvep'])
-    
+        
+    @context.Object(lazy_init=True)
+    def MSequenceSsvep(self):
+        window = self.PygletWindow()
+        return SSVEP.create_msequence(window, self.signal, **self.args['MSequenceSsvep'])
+        
     @context.Object(lazy_init=True)
     def EmgCollector(self):
         window = self.PygletWindow()        
@@ -102,7 +107,10 @@ class UnlockRuntime(object):
             parser.add_option('-s', '--signal', dest='signal', default=None, type=str, metavar='SIGNAL', help=signal_help)        
             valid_levels = { 'debug' : logging.DEBUG, 'info' : logging.INFO, 'warn' : logging.WARN, 'error' : logging.ERROR, 'critical' : logging.CRITICAL}
             (options, args) = parser.parse_args()
-            
+        except Exception as e:
+            raise e
+        
+        try:
             self.conf = options.conf
             self.args = self.__parse_conf__()
             if options.fullscreen != None:
@@ -147,8 +155,8 @@ class UnlockRuntime(object):
         # System.  It follows the standard Python JSON logging config; see
         # http://docs.python.org/2/howto/logging-cookbook.html for more details.        
         if 'logging' in self.args:
-            import sys
-            print("Arages = ", self.args['logging'], file=sys.stderr)
+            #import sys
+            #print("Arages = ", self.args['logging'], file=sys.stderr)
             logging.config.dictConfig(self.args['logging'])
         else:
             logging.basicConfig(level=log_level)

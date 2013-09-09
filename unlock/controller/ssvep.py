@@ -7,15 +7,15 @@ import inspect
 import os
 
 class SSVEP(UnlockController):
-    name = "SSVEP"
-    icon = "LazerToggleS.png"  
-    def __init__(self, window, views, canvas, command_receiver, timed_stimuli):
+    def __init__(self, window, views, canvas, command_receiver, timed_stimuli, icon="LazerToggleS.png", name="SSVEP"):
         super(SSVEP, self).__init__(window, views, canvas)
         self.command_receiver = command_receiver
         self.timed_stimuli = timed_stimuli
+        self.name = name
+        self.icon = icon
         self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(SSVEP)), 'resource', self.icon)        
 
-    def poll_bci(self, delta):
+    def poll_signal(self, delta):
         command = self.command_receiver.next_command(delta)
         for s in self.timed_stimuli:
             s.process_command(command)
@@ -113,4 +113,4 @@ class SSVEP(UnlockController):
 #        command_receiver = DeltaCommandReceiver()
         command_receiver = RawInlineSignalReceiver(signal)
         return SSVEP(window, [fs1, fs2, fs3, fs4], canvas, command_receiver,
-                         stimuli)
+                         stimuli, "emg-100x100.jpg")
