@@ -96,7 +96,7 @@ class UnlockRuntime(object):
             fullscreen_help = 'makes the app run in fullscreen; overrides the config file setting'
             fps_help = 'displays the frequency per second; overrides the config file setting'
             loglevel_help = 'sets the root logging level; valid values are debug, info, warn, error and critical; default value is warn; overrides the config file setting'
-            signal_help = 'selects the signaling system; valid values are: fake, mobilab, enobio; default value is fake; overrides the config file setting'
+            signal_help = 'selects the signaling system; valid values are: random, mobilab, enobio; default value is random; overrides the config file setting'
             
             conf = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'conf.json')
             
