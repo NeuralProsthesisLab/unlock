@@ -12,15 +12,15 @@ import os
 
 
 class Collector(UnlockController):
-    name = "Collector"
-    icon = "scope.png"  
-    def __init__(self, window, views, canvas, command_receiver, cue_state, offline_data, timed_stimuli=None, standalone=True, icon=None):
+    def __init__(self, window, views, canvas, command_receiver, cue_state, offline_data, timed_stimuli=None, standalone=True, icon="scope.png", name="Collector"):
         super(Collector, self).__init__(window, views, canvas)
         self.command_receiver = command_receiver
         self.cue_state = cue_state
         self.offline_data = offline_data
         self.timed_stimuli = timed_stimuli
         self.standalone = standalone
+        self.name = name
+        self.icon = icon
         self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(Collector)), 'resource', self.icon)
         self.logger = logging.getLogger(__name__)
         
@@ -65,7 +65,6 @@ class Collector(UnlockController):
         
     @staticmethod
     def create_emg_collector(window, signal, standalone=True, stimulation_duration=4.0, trials=25, cue_duration=1, rest_duration=1, indicate_duration=2, output_file='signal', seed=42, radius=1):
-        print("STANDALONE -================", standalone)
         canvas = Canvas.create(window.width, window.height)
         
         cues = [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left]
@@ -92,7 +91,7 @@ class Collector(UnlockController):
         indicate_text = DynamicPositionPygletTextLabel(cue_state.indicate_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
 #        indicate = BellRingTextLabelDecorator(indicate_text)
         
-        print("Setting the indicate state height/width ", indicate_text.label.height, "/", indicate_text.label.width)
+        #print("Setting the indicate state height/width ", indicate_text.label.height, "/", indicate_text.label.width)
         indicate_state.height = 50#indicate_text.label.height
         indicate_state.width = 50#indicate_text.label.width
         
@@ -173,7 +172,7 @@ class Collector(UnlockController):
         
            
     @staticmethod
-    def create_multi_centered_msequence_collector(window, signal, standalone=True, stimulation_duration=4.0, trials=9, repeat_count=20, rest_duration=2, output_file='signal', seed=42):
+    def create_multi_centered_msequence_collector(window, signal, standalone=True, stimulation_duration=4.0, trials=9, repeat_count=20, rest_duration=2, output_file='signal', seed=42, icon="rsz_analyzer.jpg"):
         canvas = Canvas.create(window.width, window.height)        
         # this should be a wrapper model that knows how to 
         north_stimulus = TimedStimulus.create(15.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0), repeat_count=repeat_count)
@@ -202,4 +201,4 @@ class Collector(UnlockController):
         
         offline_data = OfflineData(output_file)
         
-        return Collector(window, [fs, rest], canvas, command_receiver, cue_state, offline_data, None, standalone) 
+        return Collector(window, [fs, rest], canvas, command_receiver, cue_state, offline_data, None, standalone, icon, 'multi-single-msequence-collector') 
