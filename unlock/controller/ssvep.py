@@ -35,11 +35,15 @@ class SSVEP(UnlockController):
         return False
         
     @staticmethod
-    def create_ssvep(window, signal):
+    def create_ssvep(window, signal, color='bw'):
         canvas = Canvas.create(window.width, window.height)
 
-        color1 = (255, 0, 0)
-        color2 = (255, 255, 0)
+        if color == 'ry':
+            color1 = (255, 0, 0)
+            color2 = (255, 255, 0)
+        else:
+            color1 = (255, 255, 255)
+            color2 = (0, 0, 0)
 
         stimulus1 = TimedStimulus.create(12.0)
         fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
