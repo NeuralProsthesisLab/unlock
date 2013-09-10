@@ -3,6 +3,7 @@
     "signal" : "random",
     "fullscreen" : false,
     "fps" : false,
+    "vsync" : false,
     "controllers" : [
         {
             "name" : "Ssvep",
