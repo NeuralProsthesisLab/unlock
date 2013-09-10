@@ -41,7 +41,7 @@ class UnlockFactory(context.PythonConfig):
         
     @context.Object(lazy_init=True)
     def PygletWindow(self):
-        return PygletWindow(self.signal, self.args['fullscreen'], self.args['fps'])
+        return PygletWindow(self.signal, self.args['fullscreen'], self.args['fps'], self.args['vsync'])
         
     @context.Object(lazy_init=True)
     def SingleMSequenceCollector(self):
@@ -95,6 +95,7 @@ class UnlockRuntime(object):
             conf_help = 'path to the configuration; if not set the default is used'
             fullscreen_help = 'makes the app run in fullscreen; overrides the config file setting'
             fps_help = 'displays the frequency per second; overrides the config file setting'
+            vsync_help = 'turns vsync on; default is off'
             loglevel_help = 'sets the root logging level; valid values are debug, info, warn, error and critical; default value is warn; overrides the config file setting'
             signal_help = 'selects the signaling system; valid values are: random, mobilab, enobio; default value is random; overrides the config file setting'
             
@@ -103,6 +104,7 @@ class UnlockRuntime(object):
             parser.add_option('-c', '--conf', type=str, dest='conf', default=conf, metavar='CONF', help=conf_help)
             parser.add_option('-n', '--fullscreen', default=None, action='store_true', dest='fullscreen', metavar='FULLSCREEN', help=fullscreen_help)
             parser.add_option('-f', '--fps', default=None, action='store_true', dest='fps', metavar='FPS', help=fps_help)
+            parser.add_option('-v', '--vsync', default=None, action='store_true', dest='vsync', metavar='VSYNC', help=vsync_help)
             parser.add_option('-l', '--logging-level', type=str, dest='loglevel', metavar='LEVEL', help=loglevel_help)
             parser.add_option('-s', '--signal', dest='signal', default=None, type=str, metavar='SIGNAL', help=signal_help)        
             valid_levels = { 'debug' : logging.DEBUG, 'info' : logging.INFO, 'warn' : logging.WARN, 'error' : logging.ERROR, 'critical' : logging.CRITICAL}
@@ -118,7 +120,9 @@ class UnlockRuntime(object):
             if options.fps != None:    
                 self.args['fps'] = options.fps
             if options.signal != None:
-                self.args['signal'] = options.signal            
+                self.args['signal'] = options.signal
+            if options.vsync != None:
+                self.args['vsync'] = options.vsync
             
             self.__configure_logging__()
             self.__create_controllers__()
