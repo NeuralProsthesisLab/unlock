@@ -175,10 +175,10 @@ class Collector(UnlockController):
     def create_multi_centered_msequence_collector(window, signal, standalone=True, stimulation_duration=4.0, trials=9, repeat_count=20, rest_duration=2, output_file='signal', seed=42, icon="rsz_analyzer.jpg"):
         canvas = Canvas.create(window.width, window.height)        
         # this should be a wrapper model that knows how to 
-        north_stimulus = TimedStimulus.create(15.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0), repeat_count=repeat_count)
-        east_stimulus = TimedStimulus.create(15.0,  sequence=(0,1,0,0,0,1,0,1,0,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,0,1,0,0,1,1,0), repeat_count=repeat_count)
-        south_stimulus = TimedStimulus.create(15.0,  sequence=(0,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1), repeat_count=repeat_count)
-        west_stimulus = TimedStimulus.create(15.0,  sequence=(0,0,1,1,0,0,0,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0), repeat_count=repeat_count)        
+        north_stimulus = TimedStimulus.create(15.0,  sequence=(1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1), repeat_count=repeat_count)
+        east_stimulus = TimedStimulus.create(15.0,  sequence=(0,0,1,1,1,0,0,1,0,1,0,1,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1), repeat_count=repeat_count)
+        south_stimulus = TimedStimulus.create(15.0,  sequence=(0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0), repeat_count=repeat_count)
+        west_stimulus = TimedStimulus.create(15.0,  sequence=(0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,1,1,1,0,1,1,0,1,0,0,1,1,0), repeat_count=repeat_count)
 
         stimulated_cue = MultipleSequentialTimedStimuliCueState()
         stimulated_cue.add_stimulus(Trigger.Up, north_stimulus)
