@@ -119,7 +119,7 @@ class TimedStimulus(UnlockModel):
             
     @staticmethod
     def create(rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x), repeat_count=1):
-        flick_rate = 0.5/rate
+        flick_rate = 1.0/rate
         time_state = TrialTimeState(flick_rate, 0)
         seq_state = SequenceState(sequence, value_transformer_fn)
         return TimedStimulus(time_state, seq_state, repeat_count=repeat_count)
