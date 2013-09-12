@@ -175,23 +175,15 @@ class RawInlineSignalReceiver(CommandReceiverInterface):
         samples = None
         while samples == None or samples < 1:
             samples = self.signal.acquire()
-
-        done = False
-        while not done:
-            try:
-                c_data = self.signal.getdata(samples)
-                raw_data_vector = np.array(c_data)
-                done = True
-            except MemoryError:
-                time.sleep(.1)
-                continue
-                #raw_data_vector = c_data[len(c_data)/2:]
-
+            
+        c_data = self.signal.getdata(samples)
+        raw_data_vector = np.array(c_data)
+            
         return RawSignalCommand(delta, raw_data_vector, samples/self.signal.channels(), self.signal.channels())
         
     def stop(self):
         pass
-
+        
 class DeltaCommandReceiver(CommandReceiverInterface):
     def next_command(self, delta):
         return Command(delta)
