@@ -117,7 +117,7 @@ size_t NonblockingSignal::acquire()  {
   }
   
   if (samples > 0) {
-    //cout << "Nonblocking signal. acquire samples = " << samples << endl;      
+//    cout << "Nonblocking signal. acquire samples = " << samples << " index = " << count << endl;      
   }
   return samples;
 }
@@ -133,20 +133,19 @@ void NonblockingSignal::getdata(uint32_t* buffer, size_t samples)  {
   
   if (samples > NonblockingSignal::SAMPLE_BUFFER_SIZE) {
     samples = NonblockingSignal::SAMPLE_BUFFER_SIZE;
-    cerr << "NonblockingSignal.getdata: WARNING requested more samples than can be held; returning " << NonblockingSignal::SAMPLE_BUFFER_SIZE << " samples " << endl;
+    cerr << "NonblockingSignal.getdata: WARNING requested " << samples << ", which is more samples than can be held; returning " << NonblockingSignal::SAMPLE_BUFFER_SIZE << " samples " << endl;
   }
   
-  for (int sample=0, pos=0; ; ) {
+  for (int sample=0, pos=0; ; pos++) {
     uint32_t* pSample = mpConsumerSamples[pos].sample();
     size_t sample_count = mpConsumerSamples[pos].length();
     if (sample+sample_count > samples) {
-      cerr << "NonblockingSignal.getdata: WARNING more samples available than acquired; only returning available samples " << endl;
+      cerr << "NonblockingSignal.getdata: WARNING " << sample+sample_count << " available, but only " << samples << " requested; only returning available samples " << pos << endl;
       sample_count = samples - sample;
-
     }
     std::copy(pSample, pSample+sample_count, buffer);
     sample += sample_count;
-    if(sample < sample_count) {
+    if(sample < samples) {
       buffer += sample_count;
     } else {
       break;
