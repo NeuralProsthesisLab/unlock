@@ -107,19 +107,19 @@ class Collector(UnlockController):
         
         timed_stimuli = TimedStimuli.create(stimulation_duration)
         
-        north_stimulus = TimedStimulus.create(15.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0))
+        north_stimulus = TimedStimulus.create(30.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0))
         timed_stimuli.add_stimulus(north_stimulus)
         fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(north_stimulus, canvas, SpritePositionComputer.North, width=200, height=200, xfreq=4, yfreq=4)
         
-        east_stimulus = TimedStimulus.create(15.0, sequence=(0,1,0,0,0,1,0,1,0,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,0,1,0,0,1,1,0))
+        east_stimulus = TimedStimulus.create(30.0, sequence=(0,1,0,0,0,1,0,1,0,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,0,1,0,0,1,1,0))
         timed_stimuli.add_stimulus(east_stimulus)            
         fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(east_stimulus, canvas, SpritePositionComputer.East, 90, width=200, height=200, xfreq=4, yfreq=4)
         
-        south_stimulus = TimedStimulus.create(15.0, sequence=(0,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1))
+        south_stimulus = TimedStimulus.create(30.0, sequence=(0,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1))
         timed_stimuli.add_stimulus(south_stimulus)
         fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(south_stimulus, canvas, SpritePositionComputer.South, width=200, height=200, xfreq=4, yfreq=4)
         
-        west_stimulus = TimedStimulus.create(15.0, sequence=(0,0,1,1,0,0,0,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0))
+        west_stimulus = TimedStimulus.create(30.0, sequence=(0,0,1,1,0,0,0,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0))
         timed_stimuli.add_stimulus(west_stimulus)
         fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(west_stimulus, canvas, SpritePositionComputer.West, 90, width=200, height=200, xfreq=4, yfreq=4)
         
@@ -153,7 +153,7 @@ class Collector(UnlockController):
     def create_single_centered_msequence_collector(window, signal, standalone=True, stimulation_duration=4.0, trials=5, rest_duration=2, output_file='signal', seed=42):
         canvas = Canvas.create(window.width, window.height)        
         
-        stimulus = TimedStimulus.create(15.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0), repeat_count=20)
+        stimulus = TimedStimulus.create(30.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0), repeat_count=20)
         stimulated_cue = TimedStimulusCueState(stimulus)
         fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulated_cue, canvas, SpritePositionComputer.Center, width=200, height=200, xfreq=4, yfreq=4)
         
@@ -175,10 +175,10 @@ class Collector(UnlockController):
     def create_multi_centered_msequence_collector(window, signal, standalone=True, stimulation_duration=4.0, trials=9, repeat_count=20, rest_duration=2, output_file='signal', seed=42, icon="rsz_analyzer.jpg"):
         canvas = Canvas.create(window.width, window.height)        
         # this should be a wrapper model that knows how to 
-        north_stimulus = TimedStimulus.create(15.0,  sequence=(1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1), repeat_count=repeat_count)
-        east_stimulus = TimedStimulus.create(15.0,  sequence=(0,0,1,1,1,0,0,1,0,1,0,1,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1), repeat_count=repeat_count)
-        south_stimulus = TimedStimulus.create(15.0,  sequence=(0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0), repeat_count=repeat_count)
-        west_stimulus = TimedStimulus.create(15.0,  sequence=(0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,1,1,1,0,1,1,0,1,0,0,1,1,0), repeat_count=repeat_count)
+        north_stimulus = TimedStimulus.create(30.0,  sequence=(1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1), repeat_count=repeat_count)
+        east_stimulus = TimedStimulus.create(30.0,  sequence=(0,0,1,1,1,0,0,1,0,1,0,1,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1), repeat_count=repeat_count)
+        south_stimulus = TimedStimulus.create(30.0,  sequence=(0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0), repeat_count=repeat_count)
+        west_stimulus = TimedStimulus.create(30.0,  sequence=(0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,1,1,1,0,1,1,0,1,0,0,1,1,0), repeat_count=repeat_count)
 
         stimulated_cue = MultipleSequentialTimedStimuliCueState()
         stimulated_cue.add_stimulus(Trigger.Up, north_stimulus)
