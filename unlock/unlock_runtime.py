@@ -8,7 +8,7 @@ import logging
 import logging.config
 
 from unlock import context 
-from unlock.controller import PygletWindow, Collector, Dashboard, SSVEP
+from unlock.controller import PygletWindow, Collector, Dashboard, VEP
 from optparse import OptionParser
 
 
@@ -56,12 +56,12 @@ class UnlockFactory(context.PythonConfig):
     @context.Object(lazy_init=True)
     def Ssvep(self):
         window = self.PygletWindow()
-        return SSVEP.create_ssvep(window, self.signal, **self.args['Ssvep'])
+        return VEP.create_ssvep(window, self.signal, **self.args['Ssvep'])
         
     @context.Object(lazy_init=True)
     def MSequenceSsvep(self):
         window = self.PygletWindow()
-        return SSVEP.create_msequence(window, self.signal, **self.args['MSequenceSsvep'])
+        return VEP.create_msequence(window, self.signal, **self.args['MSequenceSsvep'])
         
     @context.Object(lazy_init=True)
     def EmgCollector(self):
