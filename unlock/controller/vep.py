@@ -6,14 +6,14 @@ from .command import DeltaCommandReceiver, RawInlineSignalReceiver
 import inspect
 import os
 
-class SSVEP(UnlockController):
+class VEP(UnlockController):
     def __init__(self, window, views, canvas, command_receiver, timed_stimuli, icon="LazerToggleS.png", name="SSVEP"):
-        super(SSVEP, self).__init__(window, views, canvas)
+        super(VEP, self).__init__(window, views, canvas)
         self.command_receiver = command_receiver
         self.timed_stimuli = timed_stimuli
         self.name = name
         self.icon = icon
-        self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(SSVEP)), 'resource', self.icon)        
+        self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(VEP)), 'resource', self.icon)
 
     def poll_signal(self, delta):
         command = self.command_receiver.next_command(delta)
@@ -25,7 +25,7 @@ class SSVEP(UnlockController):
     def activate(self):
         for s in self.timed_stimuli:
             s.start()
-        super(SSVEP, self).activate()
+        super(VEP, self).activate()
         
     def deactivate(self):
         self.command_receiver.stop()
@@ -68,7 +68,7 @@ class SSVEP(UnlockController):
         stimuli = [stimulus1, stimulus2, stimulus3, stimulus4]
 #        command_receiver = DeltaCommandReceiver()
         command_receiver = RawInlineSignalReceiver(signal)
-        return SSVEP(window, [fs1, fs2, fs3, fs4], canvas, command_receiver,
+        return VEP(window, [fs1, fs2, fs3, fs4], canvas, command_receiver,
                      stimuli)
 
     @staticmethod
@@ -116,5 +116,5 @@ class SSVEP(UnlockController):
         stimuli = [stimulus1, stimulus2, stimulus3, stimulus4]
 #        command_receiver = DeltaCommandReceiver()
         command_receiver = RawInlineSignalReceiver(signal)
-        return SSVEP(window, [fs1, fs2, fs3, fs4], canvas, command_receiver,
+        return VEP(window, [fs1, fs2, fs3, fs4], canvas, command_receiver,
                          stimuli, "emg-100x100.jpg")
