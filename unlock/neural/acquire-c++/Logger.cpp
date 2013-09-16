@@ -1,14 +1,22 @@
 #include "Logger.hpp"
 #include <iostream>
-#include <time.h>
+#include <ctime>
 
-static const std::string currentDateTime() {
+const std::string Logger::currentDateTime() {
     time_t     now = time(0);
     struct tm  tstruct;
     char       buf[80];
     tstruct = *localtime(&now);
     strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
     return buf;
+}
+
+double Logger::currentTimeMilliSecs() {
+    return 1000*Logger::currentTimeMicroSecs();
+}
+
+double Logger::currentTimeMicroSecs() {
+    return time(0);
 }
 
 Logger::Logger(const std::string& name) : mName(name), mMode(Logger::CONSOLE | Logger::FILE), mOpened(false) {
@@ -61,7 +69,7 @@ void Logger::logit(const std::string& prefix, const std::string& msg, std::ostre
         mMutex.lock();
     }
     
-    std::string date_time = currentDateTime();
+    std::string date_time = Logger::currentDateTime();
     if((mMode & Logger::CONSOLE) != 0) {
         out << date_time << ": " << prefix << " " << msg << std::endl;
     } 
@@ -84,3 +92,4 @@ void Logger::tryOpen() {
         error("failed to open logger file");
     }    
 }
+
