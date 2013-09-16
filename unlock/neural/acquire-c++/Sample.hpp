@@ -10,7 +10,7 @@ class DllExport Sample
  public:
   Sample() : mpSample(0), mLength(0) {}
     
-  Sample(const Sample &copy) : mpSample(copy.mpSample), mLength(copy.mLength) {
+  Sample(const Sample& copy) : mpSample(copy.mpSample), mLength(copy.mLength) {
   }
     
   ~Sample() {
