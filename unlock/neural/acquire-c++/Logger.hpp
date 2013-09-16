@@ -12,19 +12,23 @@ class DllExport Logger {
 public:
     static const int CONSOLE=0x1;
     static const int FILE=0x2;
-    static const int SYNC=0x4;   
+    static const int SYNC=0x4;
+    
+    static const std::string currentDateTime();
+    static double currentTimeMilliSecs();
+    static double currentTimeMicroSecs();
+    
 public:
     Logger(const std::string& name);
     virtual ~Logger();
     void setMode(uint8_t mode);
     
-public:
     void debug(const std::string& msg);
     void info(const std::string& msg);
     void warn(const std::string& msg);
     void error(const std::string& msg);
     void fatal(const std::string& msg);
-    
+
 private:
     void logit(const std::string& prefix, const std::string& msg, std::ostream& out, uint8_t mode);
     void tryOpen();
