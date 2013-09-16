@@ -1,8 +1,8 @@
 {
     "main" : "Dashboard",
-    "signal" : "random",
-    "fullscreen" : false,
-    "fps" : false,
+    "signal" : "enobio",
+    "fullscreen" : true,
+    "fps" : true,
     "vsync" : false,
     "controllers" : [
         {
@@ -29,9 +29,9 @@
             "name" : "MultiMSequenceCollector",
             "args" : {
                 "standalone" : false,
-                "trials" : 9,
+                "trials" : 4,
                 "rest_duration" : 2,
-                "output_file" : "C:\\Unlock\\collector_data",
+                "output_file" : "C:\\Unlock\\collector_data1",
                 "seed" : 31337                
             }
         },           
