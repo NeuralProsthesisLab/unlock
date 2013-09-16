@@ -122,20 +122,22 @@ PythonSignal* create_random_signal() {
 }
 
 PythonSignal* create_enobio_signal(ITimer* pTimer) {
+  if(pTimer == 0) {
+    ITimer* pTimer = create_timer();
+  }  
+
   Enobio3G* pEnobio3G = new Enobio3G();
-  EnobioSignalHandler* pEnobioSignalHandler = new EnobioSignalHandler(pEnobio3G);
+  EnobioSignalHandler* pEnobioSignalHandler = new EnobioSignalHandler(pEnobio3G, pTimer);
   
   EnobioDataReceiver* pDataReceiver = new EnobioDataReceiver(pEnobioSignalHandler);
   pEnobioSignalHandler->setEnobioDataReceiver(pDataReceiver);
   
   EnobioStatusReceiver* pStatusReceiver = new EnobioStatusReceiver(pEnobioSignalHandler);
   pEnobioSignalHandler->setEnobioStatusReceiver(pStatusReceiver);
-  
+
   NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pEnobioSignalHandler);
-  if(pTimer == 0) {
-    ITimer* pTimer = create_timer();
-  }
   PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal, pTimer);
+  
   return pPythonSignal;
 }
 
