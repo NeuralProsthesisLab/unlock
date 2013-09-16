@@ -1,10 +1,12 @@
-
+#include "Enobio3G.h"
 #include "ISignal.hpp"
 #include "RandomSignal.hpp"
 #include "NonblockingSignal.hpp"
 #include "Portability.hpp"
 #include "PythonSignal.hpp"
-#include "Pynobio.hpp"
+#include "EnobioSignalHandler.hpp"
+#include "EnobioDataReceiver.hpp"
+#include "EnobioStatusReceiver.hpp"
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -72,16 +74,24 @@ PythonSignal* create_random_signal() {
 }
 
 PythonSignal* create_enobio_signal() {
-  Enobio* pEnobioSignal = new Enobio();
-  NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pEnobioSignal);
+  Enobio3G* pEnobio3G = new Enobio3G();
+  EnobioSignalHandler* pEnobioSignalHandler = new EnobioSignalHandler(pEnobio3G);
+  
+  EnobioDataReceiver* pDataReceiver = new EnobioDataReceiver(pEnobioSignalHandler);
+  pEnobioSignalHandler->setEnobioDataReceiver(pDataReceiver);
+  
+  EnobioStatusReceiver* pStatusReceiver = new EnobioStatusReceiver(pEnobioSignalHandler);
+  pEnobioSignalHandler->setEnobioStatusReceiver(pStatusReceiver);
+  
+  NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pEnobioSignalHandler);
   PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal);
   return pPythonSignal;
 }
 
 BOOST_PYTHON_MODULE(neuralsignal)
 {
-  class_<std::vector<uint32_t> >("int32_vector")
-        .def(vector_indexing_suite<std::vector<uint32_t> >() );
+  class_<std::vector<int32_t> >("int32_vector")
+        .def(vector_indexing_suite<std::vector<int32_t> >() );
 
   def("create_random_signal", create_random_signal, return_value_policy<manage_new_object>());
   def("create_enobio_signal", create_enobio_signal, return_value_policy<manage_new_object>());
