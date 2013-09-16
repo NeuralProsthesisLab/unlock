@@ -6,10 +6,10 @@ using namespace std;
 
 #include "PythonSignal.hpp"
 
-PythonSignal::PythonSignal(ISignal* pSignal)
-  : mpSignal(pSignal)
+PythonSignal::PythonSignal(ISignal* pSignal, ITimer* pTimer)
+  : mpSignal(pSignal), mpTimer(pTimer)
 {
-    BOOST_VERIFY(mpSignal != 0);
+    BOOST_VERIFY(mpSignal != 0 && mpTimer != 0);
     mReturnedDataLog.open("PythonSignalLog.txt");
 }
 
@@ -76,6 +76,10 @@ std::vector<int32_t> PythonSignal::getdata(size_t samples) {
     std::cerr << "PythonSignal.getdata: ERROR: exception raised; returning empty samples vector " << std::endl;
   }
   return ret;
+}
+
+uint32_t PythonSignal::elapsedMicroSecs() {
+  return mpTimer->elapsedMicroSecs();
 }
 
 uint64_t PythonSignal::timestamp() {
