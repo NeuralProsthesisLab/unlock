@@ -107,6 +107,12 @@ class DllExport TimerPythonWrap : public ITimer, public wrapper<ITimer>
   ITimer* mpTimer;    
 };
 
+ITimer* create_timer() {
+  ITimer* pTimer = new WinTimer();
+  pTimer->start();
+  return pTimer;
+}
+
 PythonSignal* create_random_signal() {
   ISignal* pSignal = new RandomSignal();
   ITimer* pTimer = new WinTimer();
@@ -115,7 +121,7 @@ PythonSignal* create_random_signal() {
   return pPythonSignal;  
 }
 
-PythonSignal* create_enobio_signal() {
+PythonSignal* create_enobio_signal(ITimer* pTimer) {
   Enobio3G* pEnobio3G = new Enobio3G();
   EnobioSignalHandler* pEnobioSignalHandler = new EnobioSignalHandler(pEnobio3G);
   
@@ -126,8 +132,9 @@ PythonSignal* create_enobio_signal() {
   pEnobioSignalHandler->setEnobioStatusReceiver(pStatusReceiver);
   
   NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pEnobioSignalHandler);
-  ITimer* pTimer = new WinTimer();
-  pTimer->start();
+  if(pTimer == 0) {
+    ITimer* pTimer = create_timer();
+  }
   PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal, pTimer);
   return pPythonSignal;
 }
@@ -136,7 +143,8 @@ BOOST_PYTHON_MODULE(neuralsignal)
 {
   class_<std::vector<int32_t> >("int32_vector")
         .def(vector_indexing_suite<std::vector<int32_t> >() );
-
+        
+  def("create_timer", create_timer, return_value_policy<manage_new_object>());
   def("create_random_signal", create_random_signal, return_value_policy<manage_new_object>());
   def("create_enobio_signal", create_enobio_signal, return_value_policy<manage_new_object>());
 
