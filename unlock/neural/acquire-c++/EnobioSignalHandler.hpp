@@ -4,65 +4,53 @@
 #include <Windows.h>
 //#include <boost/mutex.hpp>
 #include <boost/thread.hpp>
+#include <fstream>
 
 #include "ISignal.hpp"
+#include "IEnobioSignalHandler.hpp"
+#include "EnobioDataReceiver.hpp"
+#include "EnobioStatusReceiver.hpp"
 #include "Enobio3G.h"
-#include "channeldata.h"
+#include "Channeldata.h"
 #include "StatusData.h"
 #include "Portability.hpp"
 
-#define BUFFER_SAMPLES 32768
-#define CHANNELS 8
-
-class EnobioDataConsumer : public IDataConsumer {
+class DllExport EnobioSignalHandler : public ISignal, public IEnobioSignalHandler {
 public:
-	uint32_t *buffer;
-	size_t nSamples;
-	uint64_t timestamp;
-	HANDLE hEvent;
-        
-public:
-	EnobioDataConsumer(boost::mutex* pMutex);
-	~EnobioDataConsumer(); 
-	void receiveData (const PData &data);
-        
-private:
-    boost::mutex* mpMutex;
-};
-
-class EnobioStatusConsumer : public IDataConsumer {
-public:
-	void receiveData (const PData &data);
-};
-
-class DllExport Enobio : public ISignal {
-public:
-	Enobio();
-	virtual ~Enobio();
-        
-public:
-	virtual bool open(uint8_t* mac);
-	virtual bool init(size_t channels);
-        virtual size_t channels();
-	virtual bool start();
-	virtual size_t acquire();
-	virtual void getdata(uint32_t* buffer, size_t samples);
-	virtual uint64_t timestamp();
-	bool stop();
-	bool close();
+    EnobioSignalHandler(Enobio3G* pEnobio3G);
+    virtual ~EnobioSignalHandler();
+    void setEnobioDataReceiver(EnobioDataReceiver* pDataReceiver);
+    void setEnobioStatusReceiver(EnobioStatusReceiver* pStatusReceiver);
+    
+public: // IEnobioSignalHandler
+    virtual void handleStatusData(StatusData* pStatusData);
+    virtual void handleChannelData(ChannelData* pChannelData);
+    
+public: //ISignal
+    virtual bool open(uint8_t* mac);
+    virtual bool init(size_t channels);
+    virtual size_t channels();
+    virtual bool start();
+    virtual size_t acquire();
+    virtual void getdata(uint32_t* buffer, size_t samples);
+    virtual uint64_t timestamp();
+    bool stop();
+    bool close();
 
 private:
-   
-	Enobio3G enobio;
-	EnobioDataConsumer *enobioData;
-	EnobioStatusConsumer *enobioStatus;
-
-	bool opened;
-	bool started;
-	size_t* samples;
-	size_t nChannels;
-        boost::mutex mutex;
+    Enobio3G* mpEnobio3G;
+    EnobioDataReceiver* mpDataReceiver;
+    EnobioStatusReceiver* mpStatusReceiver;
+    uint32_t* mpRawBuffer;
+    uint32_t* mpSamples;
+    size_t mNumSamples;
+    size_t mNumChannels;
+    uint64_t mTimeStamp;
+    HANDLE mhEvent;
+    boost::mutex mMutex;
+    bool mOpened;
+    bool mStarted;
+    std::ofstream mRawEnobioLog;
 };
-
 
 #endif
