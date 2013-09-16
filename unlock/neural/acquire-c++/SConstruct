@@ -50,10 +50,11 @@ frameworks = ["Python"]
 
 SOURCES=['neuralsignal.cpp', 'NonblockingSignal.cpp', 'RandomSignal.cpp', 'AsyncSampleCollector.cpp',
            'ManagedWorkController.cpp', 'EnobioSignalHandler.cpp', 'PythonSignal.cpp', 'Logger.cpp',
-           'EnobioDataReceiver.cpp', 'EnobioStatusReceiver.cpp']
+           'EnobioDataReceiver.cpp', 'EnobioStatusReceiver.cpp', 'WinTimer.cpp']
 UNIT_TEST_SOURCES=['AsyncSampleCollectorTest.cpp', 'SignalTestRunner.cpp', 'NonblockingSignalTest.cpp',
                    'SampleTest.cpp', 'IntegralWorkController.cpp', 'ManagedWorkControllerTest.cpp',
-                   'IntegralWorkControllerTest.cpp', 'EnobioSignalHandlerTest.cpp', 'PythonSignalTest.cpp', 'LoggerTest.cpp']
+                   'IntegralWorkControllerTest.cpp', 'EnobioSignalHandlerTest.cpp', 'PythonSignalTest.cpp',
+                   'LoggerTest.cpp', 'WinTimerTest.cpp']
 
 env = Environment(CPPPATH = includes, LIBS = libs, LIBPATH = lib_path,
                   FRAMEWORKS = frameworks, SHLIBPREFIX = '',
