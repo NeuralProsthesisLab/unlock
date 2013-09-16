@@ -27,14 +27,32 @@ void WinTimer::start() {
   }*/
 }
 
-uint32_t WinTimer::elapsedTime()
+uint32_t WinTimer::elapsedCycles()
+{
+  LARGE_INTEGER c;
+  QueryPerformanceCounter(&c);
+  return static_cast<uint32_t>((c.QuadPart - mCounterStart.QuadPart));
+}
+
+uint32_t WinTimer::elapsedMilliSecs()
 {
   if (mTimerFreq.QuadPart == 0) {
     return -1;
   } else {
     LARGE_INTEGER c;
     QueryPerformanceCounter(&c);
-    return static_cast<uint32_t>( (c.QuadPart - mCounterStart.QuadPart) / mTimerFreq.QuadPart );
+    return static_cast<uint32_t>(((c.QuadPart - mCounterStart.QuadPart)*1000)/ mTimerFreq.QuadPart);
+  }
+}
+
+uint32_t WinTimer::elapsedMicroSecs()
+{
+  if (mTimerFreq.QuadPart == 0) {
+    return -1;
+  } else {
+    LARGE_INTEGER c;
+    QueryPerformanceCounter(&c);
+    return static_cast<uint32_t>(((c.QuadPart - mCounterStart.QuadPart)*1000000)/mTimerFreq.QuadPart);
   }
 }
 

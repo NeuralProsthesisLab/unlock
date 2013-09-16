@@ -12,7 +12,9 @@ public:
     WinTimer();
     virtual ~WinTimer();
     virtual void start();
-    virtual uint32_t elapsedTime();
+    virtual uint32_t elapsedCycles();
+    virtual uint32_t elapsedMilliSecs();
+    virtual uint32_t elapsedMicroSecs();    
     virtual int64_t getFrequency();
     virtual int64_t getStartValue();
     
