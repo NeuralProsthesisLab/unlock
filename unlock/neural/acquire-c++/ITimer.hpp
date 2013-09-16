@@ -8,7 +8,9 @@ class DllExport ITimer {
 public:
     virtual ~ITimer() {}
     virtual void start()=0;
-    virtual uint32_t elapsedTime()=0;
+    virtual uint32_t elapsedCycles()=0;
+    virtual uint32_t elapsedMilliSecs()=0;
+    virtual uint32_t elapsedMicroSecs()=0;    
     virtual int64_t getFrequency()=0;
     virtual int64_t getStartValue()=0;
 };
