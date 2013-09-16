@@ -8,11 +8,11 @@
 using namespace std;
 
 static const size_t DATA_CHANNELS = 8;
-static const size_t TIME_CHANNELS = 3;
+static const size_t TIME_CHANNELS = 5;
 static const size_t BUFFER_SAMPLES = 32768;
 static const size_t CHANNELS = DATA_CHANNELS+TIME_CHANNELS;
 
-EnobioSignalHandler::EnobioSignalHandler(Enobio3G* pEnobio3G) : mpEnobio3G(pEnobio3G), mpDataReceiver(0), mpStatusReceiver(0),
+EnobioSignalHandler::EnobioSignalHandler(Enobio3G* pEnobio3G, ITimer* pTimer) : mpEnobio3G(pEnobio3G), mpTimer(pTimer), mpDataReceiver(0), mpStatusReceiver(0),
 	mpRawBuffer(0), mpSamples(0), mNumSamples(0), mNumChannels(CHANNELS), mTimeStamp(0), mhEvent(0),
 	mMutex(), mOpened(false), mStarted(false) {
 	mhEvent = CreateEvent(0, false, false, 0);
@@ -62,12 +62,16 @@ EnobioSignalHandler::~EnobioSignalHandler() {
 		mpStatusReceiver = 0;
 	}
 	
+	if(mpTimer != 0) {
+		delete mpTimer;
+		mpTimer = 0;
+	}
+	
 	if(mpEnobio3G != 0) {
 		delete mpEnobio3G;
 		mpEnobio3G = 0;
 	}
 }
-
 
 void EnobioSignalHandler::setEnobioDataReceiver(EnobioDataReceiver* pDataReceiver) {
 	BOOST_VERIFY(pDataReceiver != 0);
@@ -129,7 +133,10 @@ void EnobioSignalHandler::handleChannelData(ChannelData* pChannelData) {
 	offset++;
 	*(mpRawBuffer+offset) = (uint32_t)low32;
 	offset++;
-
+	*(mpRawBuffer+offset) = mpTimer->elapsedMicroSecs();
+	offset++;
+	*(mpRawBuffer+offset) = (uint32_t)0xdeadbeef;
+	
 	for(size_t i=0; i < CHANNELS; i++) {
 	  mRawEnobioLog << ((int32_t*)(mpRawBuffer+CHANNELS*mNumSamples))[i] << " ";
 	}
