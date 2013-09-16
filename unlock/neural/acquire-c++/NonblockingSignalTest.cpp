@@ -11,7 +11,7 @@ using namespace std;
 uint8_t mac[RandomSignal::MAC_ADDRESS_SIZE] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6 };
 
 BOOST_AUTO_TEST_SUITE(NonblockingSignalTest)
-
+#if 0
 BOOST_AUTO_TEST_CASE(test_create_delete)
 {
   cout << "NonblockingSignalTest.test_create_delete" << endl;
@@ -121,5 +121,5 @@ BOOST_AUTO_TEST_CASE(test_start_delete)
   BOOST_CHECK(bci->start());
   delete bci;
 }
-
+#endif
 BOOST_AUTO_TEST_SUITE_END()
