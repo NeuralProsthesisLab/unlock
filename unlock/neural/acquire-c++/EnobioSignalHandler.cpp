@@ -1,153 +1,220 @@
 #include <stdio.h>
 #include <iostream>
 #include <boost/assert.hpp>
+#include <climits>
 
-#include "Pynobio.hpp"
+#include "EnobioSignalHandler.hpp"
 
 using namespace std;
 
-//// EnobioDataConsumer ///
-EnobioDataConsumer::EnobioDataConsumer(boost::mutex* pMutex) :mpMutex(pMutex) {
-	BOOST_VERIFY(mpMutex != 0);
-	this->buffer = new uint32_t[BUFFER_SAMPLES*CHANNELS];
-	this->nSamples = 0;
-	this->hEvent = CreateEvent(NULL, false, false, NULL);
-	if(this->hEvent == 0) {
+static const size_t DATA_CHANNELS = 8;
+static const size_t TIME_CHANNELS = 3;
+static const size_t BUFFER_SAMPLES = 32768;
+static const size_t CHANNELS = DATA_CHANNELS+TIME_CHANNELS;
+
+EnobioSignalHandler::EnobioSignalHandler(Enobio3G* pEnobio3G) : mpEnobio3G(pEnobio3G), mpDataReceiver(0), mpStatusReceiver(0),
+	mpRawBuffer(0), mpSamples(0), mNumSamples(0), mNumChannels(CHANNELS), mTimeStamp(0), mhEvent(0),
+	mMutex(), mOpened(false), mStarted(false) {
+	mhEvent = CreateEvent(0, false, false, 0);
+	if(mhEvent == 0) {
 		printf("CreateEvent failed (%d)\n", GetLastError());
 	}
+
+	//this->enobioData = new EnobioDataConsumer(&mMutex);
+	//this->enobioStatus =  EnobioStatusConsumer();
+//      this->enobio.registerConsumer(Enobio3G::ENOBIO_DATA, *this->enobioData);
+//      this->enobio.registerConsumer(Enobio3G::STATUS, *this->enobioStatus);
+
+	mpSamples = new uint32_t[BUFFER_SAMPLES*CHANNELS];
+	mpRawBuffer = new uint32_t[BUFFER_SAMPLES*CHANNELS];
+	BOOST_VERIFY(mpSamples != 0 && mpRawBuffer != 0 && mpEnobio3G != 0);
+	mRawEnobioLog.open("raw-enobio-signal.log");
 }
 
-EnobioDataConsumer::~EnobioDataConsumer() {
-	CloseHandle(this->hEvent);
-	BOOST_VERIFY(this->buffer != 0);
-	delete this->buffer;
+EnobioSignalHandler::~EnobioSignalHandler() {
+	if(mStarted) {
+		stop();
+	}
+	
+	if(mOpened) {
+		close();
+	}
+
+	CloseHandle(mhEvent);
+	
+	if(mpRawBuffer != 0) {
+		delete mpRawBuffer;
+		mpRawBuffer = 0;
+	}
+	
+	if(mpSamples != 0) {
+		delete mpSamples;
+		mpSamples = 0;
+    }
+	
+	if(mpDataReceiver != 0) {
+		delete mpDataReceiver;
+		mpDataReceiver = 0;
+	}
+	
+	if(mpStatusReceiver != 0) {
+		delete mpStatusReceiver;
+		mpStatusReceiver = 0;
+	}
+	
+	if(mpEnobio3G != 0) {
+		delete mpEnobio3G;
+		mpEnobio3G = 0;
+	}
 }
 
-void EnobioDataConsumer::receiveData(const PData &data) {
-	BOOST_VERIFY(mpMutex != 0 && buffer != 0);
-	BOOST_VERIFY(this->nSamples < BUFFER_SAMPLES);
-	ChannelData *pData = (ChannelData *)data.getData();
-	if (pData == 0) {
-		cerr << "EnobioDataConsumer.receiveData: WARNING pData == 0 " << endl;
+
+void EnobioSignalHandler::setEnobioDataReceiver(EnobioDataReceiver* pDataReceiver) {
+	BOOST_VERIFY(pDataReceiver != 0);
+	mpDataReceiver = pDataReceiver;
+	mpDataReceiver->registerConsumer(mpEnobio3G);
+}
+
+void EnobioSignalHandler::setEnobioStatusReceiver(EnobioStatusReceiver* pStatusReceiver) {
+	BOOST_VERIFY(pStatusReceiver != 0);
+	mpStatusReceiver = pStatusReceiver;
+	mpStatusReceiver->registerConsumer(mpEnobio3G);	
+}
+
+void EnobioSignalHandler::handleStatusData(StatusData* pStatusData) {
+	if(pStatusData != 0) {
+		printf("%s\n", pStatusData->getString());
+	} else {
+		printf("STATUS DATA NULL");
+	}
+}
+
+void EnobioSignalHandler::handleChannelData(ChannelData* pChannelData) {
+	BOOST_VERIFY(mpRawBuffer != 0);
+	BOOST_VERIFY(mNumSamples < BUFFER_SAMPLES);
+
+	if (pChannelData == 0) {
+		cerr << "EnobioSignalHandler.receiveData: WARNING pData == 0 " << endl;
 		return;
 	}
-	uint32_t *sample = reinterpret_cast<uint32_t*>(pData->data());
+	uint32_t *sample = reinterpret_cast<uint32_t*>(pChannelData->data());
 	if(sample == 0) {
-		cerr << "EnobioDataConsumer.receiveData: WARNING samples == 0 " << endl;		
+		cerr << "EnobioSignalHandler.receiveData: WARNING samples == 0 " << endl;               
 		return;
 	}
 	
-	mpMutex->lock();
-	memcpy(this->buffer + CHANNELS*this->nSamples, sample, CHANNELS*sizeof(uint32_t));
-	this->timestamp = pData->timestamp();
-	this->nSamples++;
-	if(this->nSamples == BUFFER_SAMPLES) {
-		this->nSamples = 0;
+	mMutex.lock();
+	size_t offset = CHANNELS*mNumSamples;
+	memcpy(mpRawBuffer+offset, sample, DATA_CHANNELS*sizeof(uint32_t));
+	offset += DATA_CHANNELS;
+	
+	uint64_t sampleTimeStamp = pChannelData->timestamp();
+	if(sampleTimeStamp < mTimeStamp) {
+		cerr << "EnobioSignalHandler.handleChannelData: WARNING timestamps are decreasing " << endl;
+		sampleTimeStamp = mTimeStamp;
 	}
-	mpMutex->unlock();
-	if(!SetEvent(this->hEvent)) {
+	
+	uint64_t delta = sampleTimeStamp - mTimeStamp;
+	if(delta > (uint64_t)UINT_MAX) {
+		cerr << "EnobioSignalHandler.handleChannelData: WARNING delta = " << delta
+			 << ", which cannot be stored in a signed 32 bit integer; value will be truncated " << endl;
+	}
+	mTimeStamp = sampleTimeStamp;
+	uint32_t low32 = (uint32_t)mTimeStamp;
+    uint32_t high32 = (uint32_t)(mTimeStamp >> 32);
+	
+	*(mpRawBuffer+offset) = (uint32_t)delta;
+	offset++;
+	*(mpRawBuffer+offset) = (uint32_t)high32;
+	offset++;
+	*(mpRawBuffer+offset) = (uint32_t)low32;
+	offset++;
+
+	for(size_t i=0; i < CHANNELS; i++) {
+	  mRawEnobioLog << ((int32_t*)(mpRawBuffer+CHANNELS*mNumSamples))[i] << " ";
+	}
+	mRawEnobioLog << endl;
+
+	mNumSamples++;
+	if(mNumSamples == BUFFER_SAMPLES) {
+		mNumSamples = 0;
+	}
+	mMutex.unlock();
+	if(!SetEvent(mhEvent)) {
 		printf("SetEvent failed (%d)\n", GetLastError());
-	}
+	}       
 }
 
-
-//// EnobioStatusConsumer ///
-void EnobioStatusConsumer::receiveData(const PData &data) {
-	StatusData *status = (StatusData *)data.getData();
-	printf("%s\n", status->getString());
+bool EnobioSignalHandler::open(uint8_t* mac) {
+	BOOST_VERIFY(mpEnobio3G != 0);
+    // hardcoded MAC of our Enobio 8 device
+    // will not work with the StarStim. needs refactoring
+    unsigned char hardcodedMac[6] = {0x61, 0x9C, 0x58, 0x80, 0x07, 0x00};
+    int opened = mpEnobio3G->openDevice(hardcodedMac);
+    if(opened == 0) {
+        mOpened = false;
+    } else {
+        mOpened = true;
+    }
+    return mOpened;
 }
 
-
-/// Enobio ///
-Enobio::Enobio() :mutex() {
-
-	this->enobioData = new EnobioDataConsumer(&mutex);
-	this->enobioStatus = new EnobioStatusConsumer();
-	this->enobio.registerConsumer(Enobio3G::ENOBIO_DATA, *this->enobioData);
-	this->enobio.registerConsumer(Enobio3G::STATUS, *this->enobioStatus);
-
-	this->opened = false;
-	this->started = false;
-	this->samples = new uint32_t[BUFFER_SAMPLES*CHANNELS];
+bool EnobioSignalHandler::init(size_t channels) {
+    // it does not appear as if the Enobio has a way to only request a
+    // subset of channels, so we would use this to create a mask on the
+    // returned sample data.
+    return true;
 }
 
-Enobio::~Enobio() {
-	if(this->started) {
-		this->stop();
-	}
-	if(this->opened) {
-		this->close();
-	}
-
-	delete this->enobioStatus;
-	delete this->enobioData;
-	delete this->samples;
+size_t EnobioSignalHandler::channels() {
+    // XXX - fix me
+    return CHANNELS;
 }
 
-bool Enobio::open(uint8_t* mac) {
-	// hardcoded MAC of our Enobio 8 device
-	// will not work with the StarStim. needs refactoring
-	unsigned char hardcodedMac[6] = {0x61, 0x9C, 0x58, 0x80, 0x07, 0x00};
-	this->opened = (uint32_t)this->enobio.openDevice(hardcodedMac);
-	return this->opened;
+bool EnobioSignalHandler::start() {
+	BOOST_VERIFY(mpEnobio3G != 0);	
+    mpEnobio3G->startStreaming();
+    mStarted = true;
+    return mStarted;
 }
 
-bool Enobio::init(size_t channels) {
-	// it does not appear as if the Enobio has a way to only request a
-	// subset of channels, so we would use this to create a mask on the
-	// returned sample data.
-	return true;
-}
-
-size_t Enobio::channels() {
-	// XXX - fix me
-	return 8;
-}
-
-bool Enobio::start() {
-	this->enobio.startStreaming();
-	this->started = true;
-	return this->started;
-}
-
-size_t Enobio::acquire() {
-	BOOST_VERIFY(this->enobioData != 0 && this->enobioData->buffer != 0 && this->samples != 0);
-	size_t result=0;
-	result = WaitForSingleObject(this->enobioData->hEvent, 1000);
-	if (result != WAIT_OBJECT_0) {
-		cerr << "Pynobio: ERROR: waiting result = " << result << endl;
+size_t EnobioSignalHandler::acquire() {
+	BOOST_VERIFY(mpRawBuffer != 0 && mpSamples != 0);
+	size_t waitResult = WaitForSingleObject(mhEvent, 1000);
+	if (waitResult != WAIT_OBJECT_0) {
+		cerr << "Pynobio: ERROR: waiting result = " << waitResult << endl;
 		return 0;
 	} else {
-		mutex.lock();
-		int nSamples = this->enobioData->nSamples;
-		memcpy(this->samples, this->enobioData->buffer, CHANNELS*nSamples*sizeof(uint32_t));
-		this->enobioData->nSamples = 0;
-		mutex.unlock();
-		return nSamples*CHANNELS;
-	}	
+		mMutex.lock();
+		memcpy(mpSamples, mpRawBuffer, CHANNELS*mNumSamples*sizeof(uint32_t));
+		size_t ret = mNumSamples*CHANNELS;
+		mNumSamples = 0;
+		mMutex.unlock();
+		return ret;
+	}       
 }
 
-void Enobio::getdata(uint32_t* buffer, size_t samples) {
-	BOOST_VERIFY(buffer != 0 && this->samples != 0);	
+void EnobioSignalHandler::getdata(uint32_t* buffer, size_t samples) {
+	BOOST_VERIFY(buffer != 0 && mpSamples != 0);
 	if(samples > BUFFER_SAMPLES*CHANNELS) {
 		cout << "Enobio.getdata: WARNING: number of samples requested is bigger than the buffer" << endl;
 		samples = BUFFER_SAMPLES*CHANNELS;
 	}
-	memcpy(buffer, this->samples, samples*sizeof(uint32_t));
+	memcpy(buffer, mpSamples, samples*sizeof(uint32_t));
 }
 
-uint64_t Enobio::timestamp() {
-	return this->enobioData->timestamp;
+uint64_t EnobioSignalHandler::timestamp() {
+    return mTimeStamp;
 }
 
-bool Enobio::stop() {
-	this->enobio.stopStreaming();
-	this->started = false;
-	return true;
+bool EnobioSignalHandler::stop() {
+    mpEnobio3G->stopStreaming();
+    mStarted = false;
+    return true;
 }
 
-bool Enobio::close() {
-	this->enobio.closeDevice();
-	this->opened = false;
-	return true;
+bool EnobioSignalHandler::close() {
+    mpEnobio3G->closeDevice();
+    mOpened = false;
+    return true;
 }
