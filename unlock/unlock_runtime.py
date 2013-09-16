@@ -22,7 +22,6 @@ class UnlockFactory(context.PythonConfig):
     def enobio(self):
         from unlock.neural import acquire
         signal = acquire.create_enobio_signal()
-#        signal.channels = 8
         if not signal.open():
             print('enobio did not open')
             raise RuntimeError('enobio did not open')
