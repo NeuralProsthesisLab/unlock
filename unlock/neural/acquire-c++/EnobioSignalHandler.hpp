@@ -7,6 +7,7 @@
 #include <fstream>
 
 #include "ISignal.hpp"
+#include "ITimer.hpp"
 #include "IEnobioSignalHandler.hpp"
 #include "EnobioDataReceiver.hpp"
 #include "EnobioStatusReceiver.hpp"
@@ -17,7 +18,7 @@
 
 class DllExport EnobioSignalHandler : public ISignal, public IEnobioSignalHandler {
 public:
-    EnobioSignalHandler(Enobio3G* pEnobio3G);
+    EnobioSignalHandler(Enobio3G* pEnobio3G, ITimer* pTimer);
     virtual ~EnobioSignalHandler();
     void setEnobioDataReceiver(EnobioDataReceiver* pDataReceiver);
     void setEnobioStatusReceiver(EnobioStatusReceiver* pStatusReceiver);
@@ -39,6 +40,7 @@ public: //ISignal
 
 private:
     Enobio3G* mpEnobio3G;
+    ITimer* mpTimer;
     EnobioDataReceiver* mpDataReceiver;
     EnobioStatusReceiver* mpStatusReceiver;
     uint32_t* mpRawBuffer;
