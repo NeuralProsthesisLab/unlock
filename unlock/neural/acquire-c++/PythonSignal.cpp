@@ -1,7 +1,8 @@
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/assert.hpp>
 #include <limits>
-#include <iostream>
+
+using namespace std;
 
 #include "PythonSignal.hpp"
 
@@ -9,11 +10,13 @@ PythonSignal::PythonSignal(ISignal* pSignal)
   : mpSignal(pSignal)
 {
     BOOST_VERIFY(mpSignal != 0);
+    mReturnedDataLog.open("PythonSignalLog.txt");
 }
 
 PythonSignal::~PythonSignal() {
   BOOST_VERIFY(mpSignal != 0);  
   delete mpSignal;
+  mReturnedDataLog.close();
 }
 
 bool PythonSignal::open(/* boost::python::list macAddress */) {
@@ -28,7 +31,7 @@ bool PythonSignal::init(size_t channels) {
 }
 
 size_t PythonSignal::channels() {
-  BOOST_VERIFY(mpSignal != 0);  
+  BOOST_VERIFY(mpSignal != 0);
     return mpSignal->channels();  
 }
 
@@ -47,9 +50,9 @@ size_t PythonSignal::acquire() {
   }
 }
 
-std::vector<uint32_t> PythonSignal::getdata(size_t samples) {
+std::vector<int32_t> PythonSignal::getdata(size_t samples) {
   BOOST_VERIFY(mpSignal != 0);
-    std::vector<uint32_t> ret = std::vector<uint32_t>();
+    std::vector<int32_t> ret = std::vector<int32_t>();
     if(samples == 0) {
       return ret;
     }
@@ -59,7 +62,12 @@ std::vector<uint32_t> PythonSignal::getdata(size_t samples) {
       BOOST_VERIFY(buffer != 0);
       mpSignal->getdata(buffer, samples);
       for (size_t i = 0; i < samples; i++) {
-        ret.push_back(buffer[i]);
+        ret.push_back((int32_t)buffer[i]);
+        mReturnedDataLog << (int32_t) ret.back() << " ";
+        if((i+1) % mpSignal->channels() == 0) {
+          mReturnedDataLog << endl;
+        }
+
       }
       delete[] buffer;
       buffer = 0;

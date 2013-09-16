@@ -3,9 +3,11 @@
 
 #include <boost/python.hpp>
 #include <vector>
-
 #include <stdint.h>
 #include <cstddef>
+#include <iostream>
+#include <fstream>
+
 
 #include "Portability.hpp"
 #include "ISignal.hpp"
@@ -20,12 +22,13 @@ class DllExport PythonSignal
   size_t channels();
   bool start();
   size_t acquire();
-  std::vector<uint32_t> getdata(size_t samples);
+  std::vector<int32_t> getdata(size_t samples);
   uint64_t timestamp();
   bool stop();
   bool close();
 private:
     ISignal* mpSignal;
+    std::ofstream mReturnedDataLog;    
 };
 
 #endif
