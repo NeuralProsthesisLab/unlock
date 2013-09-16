@@ -7,6 +7,8 @@
 #include "EnobioSignalHandler.hpp"
 #include "EnobioDataReceiver.hpp"
 #include "EnobioStatusReceiver.hpp"
+#include "ITimer.hpp"
+#include "WinTimer.hpp"
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -67,9 +69,49 @@ class DllExport SignalPythonWrap : public ISignal, public wrapper<ISignal>
   ISignal* mpSignal;    
 };
 
+class DllExport TimerPythonWrap : public ITimer, public wrapper<ITimer>
+{
+ public:
+  TimerPythonWrap(ITimer* pTimer) : mpTimer(pTimer) {
+  }
+    
+  virtual ~TimerPythonWrap() {
+    delete mpTimer;
+  }
+  
+  void start() {
+    this->get_override("start")();
+  }
+
+  uint32_t elapsedCycles() {
+    return this->get_override("elapsedCycles")();    
+  }
+  
+  uint32_t elapsedMilliSecs() {
+    return this->get_override("elapsedMilliSecs")();    
+  }
+  
+  uint32_t elapsedMicroSecs() {
+    return this->get_override("elapsedMicroSecs")();    
+  }
+  
+  int64_t getFrequency() {
+    return this->get_override("getFrequency")();
+  }
+  
+  int64_t getStartValue() {
+    return this->get_override("getStartValue")();
+  }
+  
+ private:
+  ITimer* mpTimer;    
+};
+
 PythonSignal* create_random_signal() {
-  RandomSignal* pSignal = new RandomSignal();
-  PythonSignal* pPythonSignal = new PythonSignal(pSignal);
+  ISignal* pSignal = new RandomSignal();
+  ITimer* pTimer = new WinTimer();
+  pTimer->start();
+  PythonSignal* pPythonSignal = new PythonSignal(pSignal, pTimer);
   return pPythonSignal;  
 }
 
@@ -84,7 +126,9 @@ PythonSignal* create_enobio_signal() {
   pEnobioSignalHandler->setEnobioStatusReceiver(pStatusReceiver);
   
   NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pEnobioSignalHandler);
-  PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal);
+  ITimer* pTimer = new WinTimer();
+  pTimer->start();
+  PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal, pTimer);
   return pPythonSignal;
 }
 
@@ -108,6 +152,15 @@ BOOST_PYTHON_MODULE(neuralsignal)
     .def("close", pure_virtual(&ISignal::close))             
     ;
 
+  class_<TimerPythonWrap, boost::noncopyable>("ITimer", no_init)
+    .def("start", pure_virtual(&ITimer::start))
+    .def("elapsedCycles", pure_virtual(&ITimer::elapsedCycles))
+    .def("elapsedMilliSecs", pure_virtual(&ITimer::elapsedMilliSecs))
+    .def("elapsedMicroSecs", pure_virtual(&ITimer::elapsedMicroSecs))
+    .def("getFrequency", pure_virtual(&ITimer::getFrequency))
+    .def("getStartValue", pure_virtual(&ITimer::getStartValue))
+    ;
+    
   class_<NonblockingSignal, bases<ISignal> >("NonblockingSignal", init<ISignal*>())
     .def("open", &NonblockingSignal::open)
     .def("init", &NonblockingSignal::init)
@@ -120,13 +173,14 @@ BOOST_PYTHON_MODULE(neuralsignal)
     .def("close", &NonblockingSignal::close)             
     ;
     
-  class_<PythonSignal>("PythonSignal", init<ISignal*>())
+  class_<PythonSignal>("PythonSignal", init<ISignal*, ITimer*>())
     .def("open", &PythonSignal::open)
     .def("init", &PythonSignal::init)
     .def("channels", &PythonSignal::channels)        
     .def("start", &PythonSignal::start)    
     .def("acquire", &PythonSignal::acquire)
-    .def("getdata", &PythonSignal::getdata)    
+    .def("getdata", &PythonSignal::getdata)
+    .def("elapsedMicroSecs", &PythonSignal::elapsedMicroSecs)
     .def("timestamp", &PythonSignal::timestamp)
     .def("stop", &PythonSignal::stop)    
     .def("close", &PythonSignal::close)             
