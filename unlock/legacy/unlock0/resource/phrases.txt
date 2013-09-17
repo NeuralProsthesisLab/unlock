@@ -1,0 +1,25 @@
+﻿I would like to be alone	0	0	alone.wav
+I'm hungry	1	0	hungry.wav
+Down	2	4	down.wav
+I'm thirsty	3	0	thirsty.wav
+I'm bored	4	0	bored.wav
+Thank you	0	1	thanks.wav
+Who is that?	1	1	who.wav
+No	2	3	no.wav
+Where is it?	3	1	where.wav
+I'm sorry	4	1	sorry.wav
+Left	0	2	left.wav
+Hello	1	2	hello.wav
+MENU	2	2	help.wav
+Goodbye	3	2	goodbye.wav
+Right	4	2	right.wav
+Could you repeat that?	0	3	repeat.wav
+When is it?	1	3	when.wav
+Yes	2	1	yes.wav
+How are you?	3	3	howareyou.wav	
+I'm in pain	4	3	pain.wav
+Please wipe my nose	0	4	nose.wav
+Please move me	1	4	move.wav
+Up	2	0	up.wav
+Could you explain?	3	4	explain.wav
+Could you get that for me?	4	4	get.wav
