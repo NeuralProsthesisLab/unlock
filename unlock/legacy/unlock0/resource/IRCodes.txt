@@ -1,0 +1,21 @@
+﻿ENTER	0	0	E
+0	1	0	0
+REM POS	2	0	X
+7	0	1	7
+8	1	1	8
+9	2	1	9
+4	0	2	4
+5	1	2	5
+6	2	2	6
+1	0	3	1
+2	1	3	2
+3	2	3	3
+PREV CH	0	4	p
+VOL-	1	4	v	
+MUTE	2	4	M
+CH-	0	5	c
+FAV	1	5	F
+CH+	2	5	C
+PREV MENU	0	6	PREV MENU
+VOL +	1	6	V
+ON/OFF	2	6	P

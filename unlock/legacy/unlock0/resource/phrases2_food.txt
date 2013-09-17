@@ -1,0 +1,24 @@
+I'm hungry.
+I'm hungry. Will you bring me food?
+What is on the menu?
+I want that food.
+I'm thirsty. Will you bring me a drink?
+I want that drink.
+May I have some juice?
+May I have some milk?
+I want more.
+I'm full.
+This tastes good.
+This tastes bad.
+The food is too cold.
+The food is too hot.
+Can you make sure it's not too hot?
+Please make this drink thicker.
+This drink in too thick.
+Please add salt to this food.
+This food is too salty.
+Please add sugar to this.
+Please take this out of my mouth.
+That went down the wrong pipe.
+I don't want to eat yet.
+I don't want to eat anymore.
