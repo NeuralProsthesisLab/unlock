@@ -74,18 +74,25 @@ class HierarchyGridView(UnlockView):
         yoffset = ycenter - (ytiles * tile_height) / 2
         self.grid_lines = self.drawGrid(xoffset, yoffset, xtiles, ytiles,
                                         tile_width, tile_height, canvas.batch)
-        self.cursor = self.drawRect(xcenter - tile_width / 2,
-                                    ycenter - tile_height / 2,
-                                    tile_width - 1, tile_height - 1,
-                                    canvas.batch, color=(0,128,255),
-                                    fill=True)
         self.target = self.drawRect(xcenter - tile_width / 2 + 200,
                                     ycenter - tile_height / 2 - 100,
                                     tile_width - 1, tile_height - 1,
                                     canvas.batch, color=(0,255,128),
+                                    fill=True)
+        self.cursor = self.drawRect(xcenter - tile_width / 2,
+                                    ycenter - tile_height / 2,
+                                    tile_width - 1, tile_height - 1,
+                                    canvas.batch, color=(0,128,255),
                                     fill=True)
 
     def render(self):
         state = self.model.get_state()
         if not state:
             return
+
+        if state.change == GridStateChange.XChange:
+            self.cursor.vertices[::2] = [i + int(state.step_value)*self
+            .tile_width for i in self.cursor.vertices[::2]]
+        elif state.change == GridStateChange.YChange:
+            self.cursor.vertices[1::2] = [i + int(state.step_value)*self
+            .tile_height for i in self.cursor.vertices[1::2]]
