@@ -1,9 +1,11 @@
-from unlock.model import TimedStimulus
-from unlock.view import FlickeringPygletSprite, SpritePositionComputer
+from unlock.model import TimedStimulus, UnlockModel
+from unlock.view import FlickeringPygletSprite, SpritePositionComputer, HierarchyGridView
+from unlock.util import Trigger
 from .controller import UnlockController, Canvas
 from .command import RawInlineSignalReceiver
 import inspect
 import os
+
 
 class VEP(UnlockController):
     def __init__(self, window, views, canvas, command_receiver, timed_stimuli,
@@ -80,6 +82,10 @@ class VEP(UnlockController):
             xoffset=-250, reversal=False)
         stimuli.append(stimulus4)
         views.append(fs4)
+
+        static_model = UnlockModel(state=True)
+        grid = HierarchyGridView(static_model, canvas)
+        views.append(grid)
 
         command_receiver = RawInlineSignalReceiver(signal, timer)
         return VEP(window, views, canvas, command_receiver, stimuli,
