@@ -1,6 +1,5 @@
-from unlock.model import TimedStimulus, UnlockModel
+from unlock.model import TimedStimulus, HierarchyGridState
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, HierarchyGridView
-from unlock.util import Trigger
 from .controller import UnlockController, Canvas
 from .command import RawInlineSignalReceiver
 import inspect
@@ -9,20 +8,28 @@ import os
 
 class VEP(UnlockController):
     def __init__(self, window, views, canvas, command_receiver, timed_stimuli,
-                 icon="LazerToggleS.png", name="VEP"):
+                 grid_state, icon="LazerToggleS.png", name="VEP"):
         super(VEP, self).__init__(window, views, canvas)
         self.command_receiver = command_receiver
         self.timed_stimuli = timed_stimuli
+        self.grid_state = grid_state
         self.name = name
         self.icon = icon
         self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(VEP)),
                                       'resource', self.icon)
+
+    def __handle_command__(self, command):
+        self.grid_state.process_command(command)
+
+    def keyboard_input(self, command):
+        self.__handle_command__(command)
 
     def poll_signal(self, delta):
         command = self.command_receiver.next_command(delta)
         for s in self.timed_stimuli:
             s.process_command(command)
 
+        self.__handle_command__(command)
         self.render()
         
     def activate(self):
@@ -83,13 +90,13 @@ class VEP(UnlockController):
         stimuli.append(stimulus4)
         views.append(fs4)
 
-        static_model = UnlockModel(state=True)
-        grid = HierarchyGridView(static_model, canvas)
+        grid_model = HierarchyGridState()
+        grid = HierarchyGridView(grid_model, canvas)
         views.append(grid)
 
         command_receiver = RawInlineSignalReceiver(signal, timer)
         return VEP(window, views, canvas, command_receiver, stimuli,
-                   name='SSVEP')
+                   grid_model, name='SSVEP')
 
     @staticmethod
     def create_msequence(window, signal, timer, color='bw'):
