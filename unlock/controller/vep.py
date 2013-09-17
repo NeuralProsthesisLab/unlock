@@ -90,7 +90,7 @@ class VEP(UnlockController):
         stimuli.append(stimulus4)
         views.append(fs4)
 
-        grid_model = HierarchyGridState()
+        grid_model = HierarchyGridState(2)
         grid = HierarchyGridView(grid_model, canvas)
         views.append(grid)
 
