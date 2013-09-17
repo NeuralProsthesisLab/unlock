@@ -35,7 +35,7 @@ class UnlockFactory(context.PythonConfig):
     def random(self):
         from unlock.neural import acquire
         self.timer = acquire.create_timer()
-        signal = acquire.create_random_signal(timer)
+        signal = acquire.create_random_signal(self.timer)
         signal.open()
         signal.start()
         return signal

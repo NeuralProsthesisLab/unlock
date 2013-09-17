@@ -1,4 +1,3 @@
-
 from unlock.model import UnlockModel
 from unlock.model import GridStateChange
 from .pyglet_sprite import PygletSprite
@@ -59,4 +58,22 @@ class GridView(UnlockView):
             
         for icon_widget in self.icon_widgets:
             icon_widget.render()
-            
+
+
+class HierarchyGridView(UnlockView):
+    def __init__(self, model, canvas, xtiles=5, ytiles=5, tile_width=100,
+                 tile_height=100):
+        super(HierarchyGridView, self).__init__()
+
+        self.model = model
+        self.tile_width = tile_width
+        self.tile_height = tile_height
+        xoffset = canvas.width / 2 - (xtiles * tile_width) / 2
+        yoffset = canvas.height / 2 - (ytiles * tile_height) / 2
+        self.grid_lines = self.drawGrid(xoffset, yoffset, xtiles, ytiles,
+                                        tile_width, tile_height, canvas.batch)
+
+    def render(self):
+        state = self.model.get_state()
+        if not state:
+            return
