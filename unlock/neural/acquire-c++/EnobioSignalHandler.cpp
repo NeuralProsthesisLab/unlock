@@ -61,12 +61,13 @@ EnobioSignalHandler::~EnobioSignalHandler() {
 		delete mpStatusReceiver;
 		mpStatusReceiver = 0;
 	}
-	
+#if 0
 	if(mpTimer != 0) {
 		delete mpTimer;
 		mpTimer = 0;
 	}
-	
+#endif
+
 	if(mpEnobio3G != 0) {
 		delete mpEnobio3G;
 		mpEnobio3G = 0;
@@ -135,7 +136,7 @@ void EnobioSignalHandler::handleChannelData(ChannelData* pChannelData) {
 	offset++;
 	*(mpRawBuffer+offset) = mpTimer->elapsedMicroSecs();
 	offset++;
-	*(mpRawBuffer+offset) = (uint32_t)0xdeadbeef;
+	*(mpRawBuffer+offset) = (uint32_t)0;
 	
 	for(size_t i=0; i < CHANNELS; i++) {
 	  mRawEnobioLog << ((int32_t*)(mpRawBuffer+CHANNELS*mNumSamples))[i] << " ";
@@ -189,7 +190,7 @@ size_t EnobioSignalHandler::acquire() {
 	BOOST_VERIFY(mpRawBuffer != 0 && mpSamples != 0);
 	size_t waitResult = WaitForSingleObject(mhEvent, 1000);
 	if (waitResult != WAIT_OBJECT_0) {
-		cerr << "Pynobio: ERROR: waiting result = " << waitResult << endl;
+		cerr << "EnobioSignalHandler: ERROR: waiting result = " << waitResult << endl;
 		return 0;
 	} else {
 		mMutex.lock();
@@ -204,7 +205,7 @@ size_t EnobioSignalHandler::acquire() {
 void EnobioSignalHandler::getdata(uint32_t* buffer, size_t samples) {
 	BOOST_VERIFY(buffer != 0 && mpSamples != 0);
 	if(samples > BUFFER_SAMPLES*CHANNELS) {
-		cout << "Enobio.getdata: WARNING: number of samples requested is bigger than the buffer" << endl;
+		cout << "EnobioSignalHandler.getdata: WARNING: number of samples requested is bigger than the buffer" << endl;
 		samples = BUFFER_SAMPLES*CHANNELS;
 	}
 	memcpy(buffer, mpSamples, samples*sizeof(uint32_t));
@@ -215,12 +216,14 @@ uint64_t EnobioSignalHandler::timestamp() {
 }
 
 bool EnobioSignalHandler::stop() {
+	cout << "STop streaming called" << endl;
     mpEnobio3G->stopStreaming();
     mStarted = false;
     return true;
 }
 
 bool EnobioSignalHandler::close() {
+	cout << " Close called " << endl;
     mpEnobio3G->closeDevice();
     mOpened = false;
     return true;
