@@ -91,9 +91,10 @@ class HierarchyGridState(UnlockModel):
     DecrementXCursor = 3
     IncrementXCursor = 4
 
-    def __init__(self):
+    def __init__(self, radius):
         super(HierarchyGridState, self).__init__()
 
+        self.radius = radius
         self.state = (0, 0)
         self.state_change = None
 
@@ -106,8 +107,8 @@ class HierarchyGridState(UnlockModel):
 
     def process_decision(self, decision):
         current_x, current_y = self.state
-        new_state = ()
-        change = ()
+        new_state = None
+        change = None
 
         if decision == GridState.IncrementYCursor:
             new_state = (current_x, current_y+1)
@@ -125,8 +126,11 @@ class HierarchyGridState(UnlockModel):
             new_state = (current_x+1, current_y)
             change = (GridStateChange.XChange, 1)
 
-        self.state = new_state
-        self.state_change = GridStateChange(*change)
+        if new_state is not None and \
+           abs(new_state[0]) <= self.radius and \
+           abs(new_state[1]) <= self.radius:
+            self.state = new_state
+            self.state_change = GridStateChange(*change)
 
     def process_selection(self):
         """
