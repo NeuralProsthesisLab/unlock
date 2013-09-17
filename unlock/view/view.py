@@ -30,3 +30,22 @@ class UnlockView(object):
                      x_offset, y_offset + height)),
             ('c3B', color*4))
         return self.vertex_list
+
+    def drawGrid(self, x_offset, y_offset, width, height, rows, columns,
+                 batch, color=(255, 255, 255), group=None):
+        mode = pyglet.gl.GL_LINES
+        tile_width = width / (1.0*columns)
+        tile_height = height / (1.0*rows)
+
+        self.verticies = []
+        for i in range(rows+1):
+            self.verticies.append(batch.add(2, mode, group,
+                ('v2f', (x_offset, y_offset + i*tile_height,
+                         x_offset + width, y_offset + i*tile_height)),
+                ('c3B', color*2)))
+        for i in range(columns+1):
+            self.verticies.append(batch.add(2, mode, group,
+                ('v2f', (x_offset + i*tile_width, y_offset,
+                         x_offset + i*tile_width, y_offset + height)),
+                ('c3B', color*2)))
+        return self.verticies
