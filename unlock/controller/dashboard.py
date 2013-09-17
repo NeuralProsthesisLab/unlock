@@ -44,13 +44,13 @@ class Dashboard(UnlockController):
         self.__handle_command__(command)
         
     @staticmethod
-    def create(window, controllers, signal, stimulation_duration=4.0):
+    def create(window, controllers, signal, timer, stimulation_duration=4.0):
         if not controllers:
             raise ValueError
             
         canvas = Canvas.create(window.width, window.height)
         grid_state = GridState(controllers)
-        command_receiver = RawInlineSignalReceiver(signal)
+        command_receiver = RawInlineSignalReceiver(signal, timer)
         icons = []
         for controller in controllers:
             icons.append((controller.icon_path, controller.name))

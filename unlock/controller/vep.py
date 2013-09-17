@@ -36,7 +36,7 @@ class VEP(UnlockController):
         return False
         
     @staticmethod
-    def create_ssvep(window, signal, color='bw'):
+    def create_ssvep(window, signal, timer, color='bw'):
         canvas = Canvas.create(window.width, window.height)
 
         if color == 'ry':
@@ -81,12 +81,12 @@ class VEP(UnlockController):
         stimuli.append(stimulus4)
         views.append(fs4)
 
-        command_receiver = RawInlineSignalReceiver(signal)
+        command_receiver = RawInlineSignalReceiver(signal, timer)
         return VEP(window, views, canvas, command_receiver, stimuli,
                    name='SSVEP')
 
     @staticmethod
-    def create_msequence(window, signal, color='bw'):
+    def create_msequence(window, signal, timer, color='bw'):
         canvas = Canvas.create(window.width, window.height)
 
         rate = 30.0
@@ -142,6 +142,6 @@ class VEP(UnlockController):
         stimuli.append(stimulus4)
         views.append(fs4)
 
-        command_receiver = RawInlineSignalReceiver(signal)
+        command_receiver = RawInlineSignalReceiver(signal, timer)
         return VEP(window, views, canvas, command_receiver, stimuli,
                    "emg-100x100.jpg", name='cVEP')
