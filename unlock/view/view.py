@@ -31,11 +31,11 @@ class UnlockView(object):
             ('c3B', color*4))
         return self.vertex_list
 
-    def drawGrid(self, x_offset, y_offset, width, height, rows, columns,
-                 batch, color=(255, 255, 255), group=None):
+    def drawGrid(self, x_offset, y_offset, rows, columns, tile_width,
+                 tile_height, batch, color=(255, 255, 255), group=None):
         mode = pyglet.gl.GL_LINES
-        tile_width = width / (1.0*columns)
-        tile_height = height / (1.0*rows)
+        width = tile_width*columns
+        height = tile_height*rows
 
         self.verticies = []
         for i in range(rows+1):
