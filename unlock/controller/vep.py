@@ -1,18 +1,20 @@
 from unlock.model import TimedStimulus, HierarchyGridState
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, HierarchyGridView
-from .controller import UnlockController, Canvas
-from .command import RawInlineSignalReceiver
+from unlock.decoders import HarmonicSumDecision
+from unlock.controller import UnlockController, Canvas, RawInlineSignalReceiver
+
 import inspect
 import os
 
 
 class VEP(UnlockController):
     def __init__(self, window, views, canvas, command_receiver, timed_stimuli,
-                 grid_state, icon="LazerToggleS.png", name="VEP"):
+                 grid_state, decoder, icon="LazerToggleS.png", name="VEP"):
         super(VEP, self).__init__(window, views, canvas)
         self.command_receiver = command_receiver
         self.timed_stimuli = timed_stimuli
         self.grid_state = grid_state
+        self.decoder = decoder
         self.name = name
         self.icon = icon
         self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(VEP)),
@@ -28,7 +30,8 @@ class VEP(UnlockController):
         command = self.command_receiver.next_command(delta)
         for s in self.timed_stimuli:
             s.process_command(command)
-
+        command.make_matrix()
+        self.decoder.process_command(command)
         self.__handle_command__(command)
         self.render()
         
@@ -94,9 +97,11 @@ class VEP(UnlockController):
         grid = HierarchyGridView(grid_model, canvas)
         views.append(grid)
 
+        decoder = HarmonicSumDecision([12.0, 13.0, 14.0, 15.0], 4.0, 500, 3)
+
         command_receiver = RawInlineSignalReceiver(signal, timer)
         return VEP(window, views, canvas, command_receiver, stimuli,
-                   grid_model, name='SSVEP')
+                   grid_model, decoder, name='SSVEP')
 
     @staticmethod
     def create_msequence(window, signal, timer, color='bw'):
@@ -156,5 +161,5 @@ class VEP(UnlockController):
         views.append(fs4)
 
         command_receiver = RawInlineSignalReceiver(signal, timer)
-        return VEP(window, views, canvas, command_receiver, stimuli,
-                   "emg-100x100.jpg", name='cVEP')
+        return VEP(window, views, canvas, command_receiver, stimuli, None,
+                   None, "emg-100x100.jpg", name='cVEP')
