@@ -1,6 +1,5 @@
 import numpy as np
 from unlock.model import UnlockModel
-from unlock.controller import VEPCommand
 
 class HarmonicSumDecision(UnlockModel):
     """
