@@ -91,11 +91,10 @@ class HierarchyGridState(UnlockModel):
     DecrementXCursor = 3
     IncrementXCursor = 4
 
-    def __init__(self, tiles):
+    def __init__(self):
         super(HierarchyGridState, self).__init__()
 
-        self.state = (0, 0, 0)
-        self.tiles = tiles
+        self.state = (0, 0)
         self.state_change = None
 
     def process_command(self, command):
@@ -107,26 +106,27 @@ class HierarchyGridState(UnlockModel):
 
     def process_decision(self, decision):
         current_x, current_y = self.state
+        new_state = ()
+        change = ()
 
         if decision == GridState.IncrementYCursor:
             new_state = (current_x, current_y+1)
-            change = GridStateChange.YChange, 1
+            change = (GridStateChange.YChange, 1)
 
         elif decision == GridState.DecrementYCursor:
             new_state = (current_x, current_y-1)
-            change = GridStateChange.YChange, -1
+            change = (GridStateChange.YChange, -1)
 
         elif decision == GridState.DecrementXCursor:
             new_state = (current_x-1, current_y)
-            change = GridStateChange.XChange, -1
+            change = (GridStateChange.XChange, -1)
 
         elif decision == GridState.IncrementXCursor:
             new_state = (current_x+1, current_y)
-            change = GridStateChange.XChange, 1
+            change = (GridStateChange.XChange, 1)
 
-        if new_state in self.controllers:
-            self.state = new_state
-            self.state_change = GridStateChange(*change)
+        self.state = new_state
+        self.state_change = GridStateChange(*change)
 
     def process_selection(self):
         """
