@@ -113,18 +113,13 @@ ITimer* create_timer() {
   return pTimer;
 }
 
-PythonSignal* create_random_signal() {
+PythonSignal* create_random_signal(ITimer* pTimer) {
   ISignal* pSignal = new RandomSignal();
-  ITimer* pTimer = new WinTimer();
-  pTimer->start();
   PythonSignal* pPythonSignal = new PythonSignal(pSignal, pTimer);
   return pPythonSignal;  
 }
 
 PythonSignal* create_enobio_signal(ITimer* pTimer) {
-  if(pTimer == 0) {
-    ITimer* pTimer = create_timer();
-  }  
 
   Enobio3G* pEnobio3G = new Enobio3G();
   EnobioSignalHandler* pEnobioSignalHandler = new EnobioSignalHandler(pEnobio3G, pTimer);
