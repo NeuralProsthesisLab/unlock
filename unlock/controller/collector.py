@@ -33,7 +33,9 @@ class Collector(UnlockController):
                 command.set_sequence_trigger(sequence_trigger)
                 
         cue_trigger = self.cue_state.process_command(command)
-        command.set_cue_trigger(cue_trigger)        
+        if cue_trigger != Trigger.Null:
+            command.set_cue_trigger(cue_trigger)
+            
         command.make_matrix()
         self.offline_data.process_command(command)
         if cue_trigger == Trigger.Complete:
@@ -64,7 +66,7 @@ class Collector(UnlockController):
         pass
         
     @staticmethod
-    def create_emg_collector(window, signal, standalone=True, stimulation_duration=4.0, trials=25, cue_duration=1, rest_duration=1, indicate_duration=2, output_file='signal', seed=42, radius=1):
+    def create_emg_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=25, cue_duration=1, rest_duration=1, indicate_duration=2, output_file='signal', seed=42, radius=1):
         canvas = Canvas.create(window.width, window.height)
         
         cues = [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left]
@@ -95,14 +97,14 @@ class Collector(UnlockController):
         indicate_state.height = 50#indicate_text.label.height
         indicate_state.width = 50#indicate_text.label.width
         
-        command_receiver = RawInlineSignalReceiver(signal)
+        command_receiver = RawInlineSignalReceiver(signal, timer)
         
         offline_data = OfflineData(output_file)
         
         return Collector(window, [up, right, down, left, rest, indicate_text], canvas, command_receiver, cue_state, offline_data, standalone=standalone)
         
     @staticmethod
-    def create_msequence_collector(window, signal, standalone=True, stimulation_duration=4.0, trials=2, cue_duration=1, rest_duration=2, indicate_duration=4, output_file='signal', seed=42):
+    def create_msequence_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=2, cue_duration=1, rest_duration=2, indicate_duration=4, output_file='signal', seed=42):
         canvas = Canvas.create(window.width, window.height)        
         
         timed_stimuli = TimedStimuli.create(stimulation_duration)
@@ -143,14 +145,14 @@ class Collector(UnlockController):
         indicate_text = PygletTextLabel(cue_state.indicate_state, canvas, '', canvas.width / 2.0, canvas.height / 2.0)
         indicate = BellRingTextLabelDecorator(indicate_text)
         
-        command_receiver = RawInlineSignalReceiver(signal)
+        command_receiver = RawInlineSignalReceiver(signal, timer)
         
         offline_data = OfflineData(output_file)
         
         return Collector(window, [fs, fs1, fs2, fs3, up, right, down, left, rest, indicate], canvas, command_receiver, cue_state, offline_data, timed_stimuli, standalone)
         
     @staticmethod
-    def create_single_centered_msequence_collector(window, signal, standalone=True, stimulation_duration=4.0, trials=5, rest_duration=2, output_file='signal', seed=42):
+    def create_single_centered_msequence_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=5, rest_duration=2, output_file='signal', seed=42):
         canvas = Canvas.create(window.width, window.height)        
         
         stimulus = TimedStimulus.create(30.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0), repeat_count=20)
@@ -164,7 +166,7 @@ class Collector(UnlockController):
         rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
         rest = BellRingTextLabelDecorator(rest_text)
         
-        command_receiver = RawInlineSignalReceiver(signal)
+        command_receiver = RawInlineSignalReceiver(signal, timer)
         
         offline_data = OfflineData(output_file)
         
@@ -172,7 +174,7 @@ class Collector(UnlockController):
         
            
     @staticmethod
-    def create_multi_centered_msequence_collector(window, signal, standalone=True, stimulation_duration=4.0, trials=9, repeat_count=20, rest_duration=2, output_file='signal', seed=42, icon="rsz_analyzer.jpg"):
+    def create_multi_centered_msequence_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=9, repeat_count=20, rest_duration=2, output_file='signal', seed=42, icon="rsz_analyzer.jpg"):
         canvas = Canvas.create(window.width, window.height)        
         # this should be a wrapper model that knows how to 
         north_stimulus = TimedStimulus.create(30.0,  sequence=(1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1), repeat_count=repeat_count)
@@ -197,7 +199,7 @@ class Collector(UnlockController):
         rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
         rest = BellRingTextLabelDecorator(rest_text)
         
-        command_receiver = RawInlineSignalReceiver(signal)
+        command_receiver = RawInlineSignalReceiver(signal, timer)
         
         offline_data = OfflineData(output_file)
         

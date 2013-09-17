@@ -21,7 +21,8 @@ class UnlockFactory(context.PythonConfig):
     @context.Object(lazy_init=True)    
     def enobio(self):
         from unlock.neural import acquire
-        signal = acquire.create_enobio_signal()
+        self.timer = acquire.create_timer()
+        signal = acquire.create_enobio_signal(self.timer)
         if not signal.open():
             print('enobio did not open')
             raise RuntimeError('enobio did not open')
@@ -33,11 +34,12 @@ class UnlockFactory(context.PythonConfig):
     @context.Object(lazy_init=True)
     def random(self):
         from unlock.neural import acquire
-        signal = acquire.create_random_signal()
+        self.timer = acquire.create_timer()
+        signal = acquire.create_random_signal(timer)
         signal.open()
         signal.start()
         return signal
-        
+
     @context.Object(lazy_init=True)
     def PygletWindow(self):
         return PygletWindow(self.signal, self.args['fullscreen'], self.args['fps'], self.args['vsync'])
@@ -45,27 +47,27 @@ class UnlockFactory(context.PythonConfig):
     @context.Object(lazy_init=True)
     def SingleMSequenceCollector(self):
         window = self.PygletWindow()
-        return Collector.create_single_centered_msequence_collector(window, self.signal, **self.args['SingleMSequenceCollector'])
+        return Collector.create_single_centered_msequence_collector(window, self.signal, self.timer, **self.args['SingleMSequenceCollector'])
         
     @context.Object(lazy_init=True)
     def MultiMSequenceCollector(self):
         window = self.PygletWindow()
-        return Collector.create_multi_centered_msequence_collector(window, self.signal, **self.args['MultiMSequenceCollector'])
+        return Collector.create_multi_centered_msequence_collector(window, self.signal, self.timer, **self.args['MultiMSequenceCollector'])
     
     @context.Object(lazy_init=True)
     def Ssvep(self):
         window = self.PygletWindow()
-        return VEP.create_ssvep(window, self.signal, **self.args['Ssvep'])
+        return VEP.create_ssvep(window, self.signal, self.timer, **self.args['Ssvep'])
         
     @context.Object(lazy_init=True)
     def MSequenceSsvep(self):
         window = self.PygletWindow()
-        return VEP.create_msequence(window, self.signal, **self.args['MSequenceSsvep'])
+        return VEP.create_msequence(window, self.signal, self.timer, **self.args['MSequenceSsvep'])
         
     @context.Object(lazy_init=True)
     def EmgCollector(self):
         window = self.PygletWindow()        
-        return Collector.create_emg_collector(window, self.signal, **self.args['EmgCollector'])    
+        return Collector.create_emg_collector(window, self.signal, self.timer, **self.args['EmgCollector'])    
         
     @context.Object(lazy_init=True)
     def Dashboard(self):
@@ -76,7 +78,7 @@ class UnlockFactory(context.PythonConfig):
             controllers.append(controller())
         args.pop('controllers')
         window = self.PygletWindow()
-        return Dashboard.create(window, controllers, self.signal, **args)
+        return Dashboard.create(window, controllers, self.signal, self.timer, **args)
         
         
 class UnlockRuntime(object):

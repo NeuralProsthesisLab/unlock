@@ -57,28 +57,35 @@ class PygletKeyboardCommand(Command):
             
             
 class RawSignalCommand(Command):
-    def __init__(self, delta, raw_data_vector, samples, channels):
+    def __init__(self, delta, raw_data_vector, samples, channels, timer):
         super(RawSignalCommand, self).__init__(delta)
         self.raw_data_vector = raw_data_vector
         self.samples = samples
         self.channels = channels
-        self.sequence_trigger_vector = np.zeros((samples, 1))        
+        self.timer = timer
+        self.sequence_trigger_vector = np.zeros((samples, 1))
+        self.sequence_trigger_time_vector = np.zeros((samples, 1))
         self.cue_trigger_vector = np.zeros((samples, 1))
+        self.cue_trigger_time_vector = np.zeros((samples, 1))        
         self.logger = logging.getLogger(__name__)
         
     def __reset_trigger_vectors__(self):
         self.sequence_trigger_vector[-1] = 0
+        self.sequence_trigger_time_vector[-1] = 0        
         self.cue_trigger_vector[-1] = 0
+        self.cue_trigger_time_vector[-1] = 0
         
     def set_sequence_trigger(self, sequence_trigger_value):
         self.sequence_trigger_vector[-1] = sequence_trigger_value
+        self.sequence_trigger_time_vector[-1] = self.timer.elapsedMicroSecs()
         
     def set_cue_trigger(self, cue_trigger_value):
        self.cue_trigger_vector[-1] = cue_trigger_value
+       self.cue_trigger_time_vector[-1] = self.timer.elapsedMicroSecs()
         
     def make_matrix(self):
         data_matrix = self.raw_data_vector.reshape((self.samples, self.channels))
-        self.matrix = np.hstack((data_matrix, self.sequence_trigger_vector, self.cue_trigger_vector))
+        self.matrix = np.hstack((data_matrix, self.sequence_trigger_vector, self.sequence_trigger_time_vector, self.cue_trigger_vector, self.cue_trigger_time_vector))
         self.__reset_trigger_vectors__()
         self.logger.debug("Data = ", self.matrix)
         
@@ -168,8 +175,9 @@ class InlineCommandReceiver(CommandReceiverInterface):
             
           
 class RawInlineSignalReceiver(CommandReceiverInterface):
-    def __init__(self, signal):
+    def __init__(self, signal, timer):
         self.signal = signal
+        self.timer = timer
         
     def next_command(self, delta):
         samples = None
@@ -178,8 +186,10 @@ class RawInlineSignalReceiver(CommandReceiverInterface):
             
         c_data = self.signal.getdata(samples)
         raw_data_vector = np.array(c_data)
-            
-        return RawSignalCommand(delta, raw_data_vector, samples/self.signal.channels(), self.signal.channels())
+        assert raw_data_vector.size % self.signal.channels() == 0
+        assert raw_data_vector[-1] == 0                
+        raw_data_vector[-1] = self.timer.elapsedMicroSecs()
+        return RawSignalCommand(delta, raw_data_vector, samples/self.signal.channels(), self.signal.channels(), self.timer)
         
     def stop(self):
         pass
