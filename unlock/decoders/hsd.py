@@ -62,8 +62,10 @@ class HarmonicSumDecision(UnlockModel):
 
         if self.cursor >= self.nSamples:
             x = self.buffer[0:self.nSamples]
-            if self.filters is not None:
-                x = self.filters.apply(x)
+            #if self.filters is not None:
+            #    x = self.filters.apply(x)
+            x = x[:, 1:4] - x[:, 6].reshape((len(x), 1))
+            x -= np.mean(x, axis=0)
             y = np.abs(np.fft.rfft(self.window * x, n=self.nfft, axis=0))
             sums = np.zeros(len(self.targets))
             for i in range(len(self.targets)):
