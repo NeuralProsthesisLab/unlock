@@ -180,16 +180,21 @@ class RawInlineSignalReceiver(CommandReceiverInterface):
         self.timer = timer
         
     def next_command(self, delta):
-        samples = None
-        while samples == None or samples < 1:
-            samples = self.signal.acquire()
-            
-        c_data = self.signal.getdata(samples)
-        raw_data_vector = np.array(c_data)
-        assert raw_data_vector.size % self.signal.channels() == 0
-        assert raw_data_vector[-1] == 0                
-        raw_data_vector[-1] = self.timer.elapsedMicroSecs()
-        return RawSignalCommand(delta, raw_data_vector, samples/self.signal.channels(), self.signal.channels(), self.timer)
+        samples = self.signal.acquire()
+
+        # samples = None
+        # while samples == None or samples < 1:
+        #     samples = self.signal.acquire()
+
+        if samples is not None and samples > 0:
+            c_data = self.signal.getdata(samples)
+            raw_data_vector = np.array(c_data)
+            assert raw_data_vector.size % self.signal.channels() == 0
+            assert raw_data_vector[-1] == 0
+            raw_data_vector[-1] = self.timer.elapsedMicroSecs()
+            return RawSignalCommand(delta, raw_data_vector, samples/self.signal.channels(), self.signal.channels(), self.timer)
+        else:
+            return RawSignalCommand(delta, np.array([]), 1, self.signal.channels(), self.timer)
         
     def stop(self):
         pass
