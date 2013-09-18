@@ -1,8 +1,7 @@
-from unlock.model import TimedStimulus, HierarchyGridState
+from unlock.model import TimedStimulus, HierarchyGridState, TimedStimuli
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, HierarchyGridView
 from unlock.decoders import HarmonicSumDecision
 from unlock.controller import UnlockController, Canvas, RawInlineSignalReceiver
-
 import inspect
 import os
 
@@ -28,22 +27,26 @@ class VEP(UnlockController):
 
     def poll_signal(self, delta):
         command = self.command_receiver.next_command(delta)
-        for s in self.timed_stimuli:
-            s.process_command(command)
-        command.make_matrix()
-        self.decoder.process_command(command)
+        self.timed_stimuli.process_command(command)
+        # for s in self.timed_stimuli:
+        #     s.process_command(command)
+        if command.raw_data_vector.size > 0:
+            command.make_matrix()
+            self.decoder.process_command(command)
         self.__handle_command__(command)
         self.render()
         
     def activate(self):
-        for s in self.timed_stimuli:
-            s.start()
+        self.timed_stimuli.start()
+        # for s in self.timed_stimuli:
+        #     s.start()
         super(VEP, self).activate()
         
     def deactivate(self):
         self.command_receiver.stop()
-        for s in self.timed_stimuli:
-            s.stop()
+        self.timed_stimuli.stop()
+        # for s in self.timed_stimuli:
+        #     s.stop()
         self.window.deactivate_controller()
         return False
         
@@ -51,53 +54,59 @@ class VEP(UnlockController):
     def create_ssvep(window, signal, timer, color='bw'):
         canvas = Canvas.create(window.width, window.height)
 
-        if color == 'ry':
+        if color == 'bw':
             color1 = (255, 0, 0)
             color2 = (255, 255, 0)
         else:
             color1 = (0, 0, 0)
             color2 = (255, 255, 255)
 
-        stimuli = []
+        stimuli = TimedStimuli.create(4.0)
         views = []
 
-        stimulus1 = TimedStimulus.create(12.0 * 2)
+        freqs = [12.0, 13.0, 14.0, 15.0]
+
+        stimulus1 = TimedStimulus.create(freqs[0] * 2)
         fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
             stimulus1, canvas, SpritePositionComputer.North, width=500,
             height=100, xfreq=5, yfreq=1, color_on=color1, color_off=color2,
             reversal=False)
-        stimuli.append(stimulus1)
+        #stimuli.append(stimulus1)
+        stimuli.add_stimulus(stimulus1)
         views.append(fs1)
 
-        stimulus2 = TimedStimulus.create(13.0 * 2)
+        stimulus2 = TimedStimulus.create(freqs[1] * 2)
         fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
             stimulus2, canvas, SpritePositionComputer.South, width=500,
             height=100, xfreq=5, yfreq=1, color_on=color1, color_off=color2,
             reversal=False)
-        stimuli.append(stimulus2)
+        #stimuli.append(stimulus2)
+        stimuli.add_stimulus(stimulus2)
         views.append(fs2)
 
-        stimulus3 = TimedStimulus.create(14.0 * 2)
+        stimulus3 = TimedStimulus.create(freqs[2] * 2)
         fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
             stimulus3, canvas, SpritePositionComputer.West, width=100,
             height=500, xfreq=1, yfreq=5, color_on=color1, color_off=color2,
             xoffset=250, reversal=False)
-        stimuli.append(stimulus3)
+        #stimuli.append(stimulus3)
+        stimuli.add_stimulus(stimulus3)
         views.append(fs3)
 
-        stimulus4 = TimedStimulus.create(15.0 * 2)
+        stimulus4 = TimedStimulus.create(freqs[3] * 2)
         fs4 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
             stimulus4, canvas, SpritePositionComputer.East, width=100,
             height=500, xfreq=1, yfreq=5, color_on=color1, color_off=color2,
             xoffset=-250, reversal=False)
-        stimuli.append(stimulus4)
+        #stimuli.append(stimulus4)
+        stimuli.add_stimulus(stimulus4)
         views.append(fs4)
 
         grid_model = HierarchyGridState(2)
         grid = HierarchyGridView(grid_model, canvas)
         views.append(grid)
 
-        decoder = HarmonicSumDecision([12.0, 13.0, 14.0, 15.0], 4.0, 500, 3)
+        decoder = HarmonicSumDecision(freqs, 3.0, 500, 8)
 
         command_receiver = RawInlineSignalReceiver(signal, timer)
         return VEP(window, views, canvas, command_receiver, stimuli,
