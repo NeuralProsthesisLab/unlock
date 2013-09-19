@@ -1,4 +1,4 @@
-from unlock.model import TimedStimulus, HierarchyGridState, TimedStimuli
+from unlock.model import TimedStimulus, HierarchyGridState, TimedStimuli, OfflineData
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, HierarchyGridView
 from unlock.decoders import HarmonicSumDecision
 from unlock.controller import UnlockController, Canvas, RawInlineSignalReceiver
@@ -8,12 +8,14 @@ import os
 
 class VEP(UnlockController):
     def __init__(self, window, views, canvas, command_receiver, timed_stimuli,
-                 grid_state, decoder, icon="LazerToggleS.png", name="VEP"):
+                 grid_state, decoder, recorder, icon="LazerToggleS.png",
+                 name="VEP"):
         super(VEP, self).__init__(window, views, canvas)
         self.command_receiver = command_receiver
         self.timed_stimuli = timed_stimuli
         self.grid_state = grid_state
         self.decoder = decoder
+        self.recorder = recorder
         self.name = name
         self.icon = icon
         self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(VEP)),
@@ -33,6 +35,7 @@ class VEP(UnlockController):
         if command.raw_data_vector.size > 0:
             command.make_matrix()
             self.decoder.process_command(command)
+            self.recorder.process_command(command)
         self.__handle_command__(command)
         self.render()
         
@@ -40,6 +43,7 @@ class VEP(UnlockController):
         self.timed_stimuli.start()
         # for s in self.timed_stimuli:
         #     s.start()
+        self.recorder.start()
         super(VEP, self).activate()
         
     def deactivate(self):
@@ -47,6 +51,7 @@ class VEP(UnlockController):
         self.timed_stimuli.stop()
         # for s in self.timed_stimuli:
         #     s.stop()
+        self.recorder.stop()
         self.window.deactivate_controller()
         return False
         
@@ -67,18 +72,22 @@ class VEP(UnlockController):
         freqs = [12.0, 13.0, 14.0, 15.0]
 
         stimulus1 = TimedStimulus.create(freqs[0] * 2)
-        fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus1, canvas, SpritePositionComputer.North, width=500,
-            height=100, xfreq=5, yfreq=1, color_on=color1, color_off=color2,
-            reversal=False)
+        # fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+        #     stimulus1, canvas, SpritePositionComputer.North, width=500,
+        #     height=100, xfreq=5, yfreq=1, color_on=color1, color_off=color2,
+        #     reversal=False)
         #stimuli.append(stimulus1)
+        fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+            stimulus1, canvas, SpritePositionComputer.North, width=200,
+            height=200, xfreq=2, yfreq=2, color_on=color1, color_off=color2,
+            reversal=False)
         stimuli.add_stimulus(stimulus1)
         views.append(fs1)
 
         stimulus2 = TimedStimulus.create(freqs[1] * 2)
         fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus2, canvas, SpritePositionComputer.South, width=500,
-            height=100, xfreq=5, yfreq=1, color_on=color1, color_off=color2,
+            stimulus2, canvas, SpritePositionComputer.South, width=200,
+            height=200, xfreq=2, yfreq=2, color_on=color1, color_off=color2,
             reversal=False)
         #stimuli.append(stimulus2)
         stimuli.add_stimulus(stimulus2)
@@ -86,18 +95,18 @@ class VEP(UnlockController):
 
         stimulus3 = TimedStimulus.create(freqs[2] * 2)
         fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus3, canvas, SpritePositionComputer.West, width=100,
-            height=500, xfreq=1, yfreq=5, color_on=color1, color_off=color2,
-            xoffset=250, reversal=False)
+            stimulus3, canvas, SpritePositionComputer.West, width=200,
+            height=200, xfreq=2, yfreq=2, color_on=color1, color_off=color2,
+            xoffset=350, reversal=False)
         #stimuli.append(stimulus3)
         stimuli.add_stimulus(stimulus3)
         views.append(fs3)
 
         stimulus4 = TimedStimulus.create(freqs[3] * 2)
         fs4 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus4, canvas, SpritePositionComputer.East, width=100,
-            height=500, xfreq=1, yfreq=5, color_on=color1, color_off=color2,
-            xoffset=-250, reversal=False)
+            stimulus4, canvas, SpritePositionComputer.East, width=200,
+            height=200, xfreq=2, yfreq=2, color_on=color1, color_off=color2,
+            xoffset=-350, reversal=False)
         #stimuli.append(stimulus4)
         stimuli.add_stimulus(stimulus4)
         views.append(fs4)
@@ -107,10 +116,12 @@ class VEP(UnlockController):
         views.append(grid)
 
         decoder = HarmonicSumDecision(freqs, 3.0, 500, 8)
+        recorder = OfflineData('ssvep')
+
 
         command_receiver = RawInlineSignalReceiver(signal, timer)
         return VEP(window, views, canvas, command_receiver, stimuli,
-                   grid_model, decoder, name='SSVEP')
+                   grid_model, decoder, recorder, name='SSVEP')
 
     @staticmethod
     def create_msequence(window, signal, timer, color='bw'):
@@ -171,4 +182,4 @@ class VEP(UnlockController):
 
         command_receiver = RawInlineSignalReceiver(signal, timer)
         return VEP(window, views, canvas, command_receiver, stimuli, None,
-                   None, "emg-100x100.jpg", name='cVEP')
+                   None, None, "emg-100x100.jpg", name='cVEP')
