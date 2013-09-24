@@ -4,8 +4,8 @@
 #include "RandomSignal.hpp"
 
 RandomSignal::RandomSignal()
-  : mOpenCount(0), mOpenRet(true), mInitCount(0), mLastChannels(4), mInitRet(true), mChannelsCount(0), mStartCount(0), mStartRet(true),
-    mAcquireCount(0), mAcquireRet(4), mGetDataCount(0), mpLastGetData(0), mLastSamples(0),
+  : mOpenCount(0), mOpenRet(true), mInitCount(0), mLastChannels(5), mInitRet(true), mChannelsCount(0), mStartCount(0), mStartRet(true),
+    mAcquireCount(0), mAcquireRet(5), mGetDataCount(0), mpLastGetData(0), mLastSamples(0),
     mTimestampCount(0), mTimestampRet(-1), mStopCount(0), mStopRet(true), mCloseCount(0),
     mCloseRet(true)
 {
@@ -55,6 +55,7 @@ void RandomSignal::getdata(uint32_t* buffer, size_t samples) {
     boost::random::uniform_int_distribution<> dist(1, std::numeric_limits<int32_t>::max());
     buffer[i] = (uint32_t)dist(gen);
   }
+  buffer[samples - 1] = 0;
   mpLastGetData = buffer;
   mLastSamples = samples;
 }
