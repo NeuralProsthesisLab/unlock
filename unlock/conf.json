@@ -1,7 +1,7 @@
 {
     "main" : "Dashboard",
-    "signal" : "enobio",
-    "fullscreen" : true,
+    "signal" : "random",
+    "fullscreen" : false,
     "fps" : true,
     "vsync" : false,
     "controllers" : [
