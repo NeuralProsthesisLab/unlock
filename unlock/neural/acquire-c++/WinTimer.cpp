@@ -11,20 +11,6 @@ WinTimer::~WinTimer() {}
 void WinTimer::start() {
   QueryPerformanceFrequency(&mTimerFreq);
   QueryPerformanceCounter(&mCounterStart);
-  cout<<"timerFreq_ = "<<mTimerFreq.QuadPart<<endl;
-  cout<<"counterAtStart_ = "<<mCounterStart.QuadPart<<endl;
-/*  TIMECAPS ptc;
-  UINT cbtc = 8;
-  MMRESULT result = timeGetDevCaps(&ptc, cbtc);
-  if (result == TIMERR_NOERROR)
-  {
-    cout<<"Minimum resolution = "<<ptc.wPeriodMin<<endl;
-    cout<<"Maximum resolution = "<<ptc.wPeriodMax<<endl;
-  }
-  else
-  {
-    cout<<"result = TIMER ERROR"<<endl;
-  }*/
 }
 
 uint32_t WinTimer::elapsedCycles()
