@@ -17,6 +17,8 @@ func cwdAbs() string {
     return cwd
 }
 
+
+
 func main() {
     logf, err := os.OpenFile("boost-win.log", os.O_WRONLY|os.O_CREATE,0640)
     if err != nil {
@@ -45,6 +47,18 @@ func main() {
         log.Fatalln("Failed to execute boostrap command: "+bootstrap_cmd, err)
     }
     log.Println("Success: "+bootstrap_cmd)
+//.\b2 install --prefix="c:\Users\jpercent\unlock\unlock\neural\acquire-c++\boost\win-x86-msvc-10" address-model=32 --with-python --with-random --with-system --with-test --with-thread --with-chrono --with-date_time runtime-link=shared link=shared
+
+/*
+ost/boost_1_54_0/boost_1_54_0
+$ cat project-config.jam
+import option ;
+
+using msvc ;
+
+using python : 3.3 : C:\\Python33\\ ;
+option.set keep-going : false ;
+*/
 
     b2_cmd :=  "/C "+build_dir+"\\"+"b2 install --prefix="+boost_dir+"\\win-x86-msvc-10  address-model=32  runtime-link=shared link=shared"
     log.Println("Executing: "+b2_cmd)    

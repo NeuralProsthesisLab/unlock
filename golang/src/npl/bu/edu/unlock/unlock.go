@@ -42,7 +42,7 @@ func main() {
             `C:\Python33\Lib\site-packages\unlock\unlock_runtime.py`}
             
     var confFile = flag.String("conf", "", "path to the configuration; if not set the default is used")
-    var fullscreen = flag.Bool("fullscreen", false, "make unlock fullscreen; overrides conf file settings")
+    var fullscreen = flag.Bool("fullscreen", true, "make unlock fullscreen; overrides conf file settings")
     var fps = flag.Bool("fps", false, "displays the frequence per second; overrides the conf file setting")
     var signal = flag.String("signal", "", "selects the signaling system; valid values are: random, mobilab, enobio; default value is random; overrides the config file setting")
     
