@@ -17,13 +17,20 @@ class UnlockFactory(context.PythonConfig):
         super(UnlockFactory, self).__init__()
         self.logger = logging.getLogger(__name__)
         self.args = args
+        self.mac_addr = None
+        if 'mac_addr' in self.args.keys():
+            self.mac_addr = [int(value,0) for value in [x.strip() for x in self.args['mac_addr'].split(',')]]
         
     @context.Object(lazy_init=True)    
     def enobio(self):
         from unlock.neural import acquire
+        if self.mac_addr == None:
+            print ('enobio requires a mac address; none set')
+            raise RuntimeError('enobio requires a mac address; none set')
+        
         self.timer = acquire.create_timer()
         signal = acquire.create_enobio_signal(self.timer)
-        if not signal.open():
+        if not signal.open(self.mac_addr):
             print('enobio did not open')
             raise RuntimeError('enobio did not open')
         if not signal.start():
@@ -36,7 +43,7 @@ class UnlockFactory(context.PythonConfig):
         from unlock.neural import acquire
         self.timer = acquire.create_timer()
         signal = acquire.create_random_signal(self.timer)
-        signal.open()
+        signal.open([])
         signal.start()
         return signal
 
@@ -99,15 +106,15 @@ class UnlockRuntime(object):
             vsync_help = 'turns vsync on; default is off'
             loglevel_help = 'sets the root logging level; valid values are debug, info, warn, error and critical; default value is warn; overrides the config file setting'
             signal_help = 'selects the signaling system; valid values are: random, mobilab, enobio; default value is random; overrides the config file setting'
-            
+            mac_addr_help = 'a comma separated list of hexidecimal values that are required to connect to some signaling devices;for example -m "0x1,0x2,0x3,0x4,0x5,0x6"'
             conf = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'conf.json')
-            
             parser.add_option('-c', '--conf', type=str, dest='conf', default=conf, metavar='CONF', help=conf_help)
             parser.add_option('-n', '--fullscreen', default=None, action='store_true', dest='fullscreen', metavar='FULLSCREEN', help=fullscreen_help)
             parser.add_option('-f', '--fps', default=None, action='store_true', dest='fps', metavar='FPS', help=fps_help)
             parser.add_option('-v', '--vsync', default=None, action='store_true', dest='vsync', metavar='VSYNC', help=vsync_help)
             parser.add_option('-l', '--logging-level', type=str, dest='loglevel', metavar='LEVEL', help=loglevel_help)
-            parser.add_option('-s', '--signal', dest='signal', default=None, type=str, metavar='SIGNAL', help=signal_help)        
+            parser.add_option('-s', '--signal', dest='signal', default=None, type=str, metavar='SIGNAL', help=signal_help)
+            parser.add_option('-m', '--mac-addr', dest='mac_addr', default=None, type=str, metavar='MAC-ADDR', help=mac_addr_help)                    
             valid_levels = { 'debug' : logging.DEBUG, 'info' : logging.INFO, 'warn' : logging.WARN, 'error' : logging.ERROR, 'critical' : logging.CRITICAL}
             (options, args) = parser.parse_args()
         except Exception as e:
@@ -124,6 +131,8 @@ class UnlockRuntime(object):
                 self.args['signal'] = options.signal
             if options.vsync != None:
                 self.args['vsync'] = options.vsync
+            if options.mac_addr != None:
+                self.args['mac_addr'] = options.mac_addr
             
             self.__configure_logging__()
             self.__create_controllers__()
@@ -147,7 +156,10 @@ class UnlockRuntime(object):
     def __create_controllers__(self):
         for controller in self.args['controllers']:
             self.args[controller['name']] = controller['args']
-            
+        
+        #print ('mac addr = ', self.args['mac_addr'])
+        #sys.exit(0)
+        
         self.factory = UnlockFactory(self.args)
         self.app_ctx = context.ApplicationContext(self.factory)
             
