@@ -23,7 +23,7 @@ class UnlockFactory(context.PythonConfig):
         
     @context.Object(lazy_init=True)    
     def enobio(self):
-        from unlock.neural import acquire
+        from unlock.decode import acquire
         if self.mac_addr == None:
             print ('enobio requires a mac address; none set')
             raise RuntimeError('enobio requires a mac address; none set')
@@ -40,7 +40,7 @@ class UnlockFactory(context.PythonConfig):
     
     @context.Object(lazy_init=True)
     def random(self):
-        from unlock.neural import acquire
+        from unlock.decode import acquire
         self.timer = acquire.create_timer()
         signal = acquire.create_random_signal(self.timer)
         signal.open([])
