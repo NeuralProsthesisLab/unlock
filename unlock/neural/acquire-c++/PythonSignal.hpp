@@ -18,7 +18,7 @@ class DllExport PythonSignal
  public:
   PythonSignal(ISignal* pSignal, ITimer* pTimer);
   virtual ~PythonSignal();
-  bool open(/* boost::python::list mac */);
+  bool open(boost::python::list mac);
   bool init(size_t channels);
   size_t channels();
   bool start();

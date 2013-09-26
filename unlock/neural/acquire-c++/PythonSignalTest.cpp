@@ -1,5 +1,6 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/python/list.hpp>
 #include <iostream>
 
 #include "PythonSignal.hpp"
@@ -24,8 +25,6 @@ BOOST_AUTO_TEST_CASE(python_signal_test_create_open_start_acquire_getdata_stop_c
   cout << "Pynobio.test_create_open_start_acquire_getdata_stop_close " << endl;
   PythonSignal* signal = new PythonSignal(new RandomSignal(), new WinTimer());
   cout << "Before mac addr " << endl;
-
-  BOOST_VERIFY(signal->open(/*macAddress*/));
   BOOST_VERIFY(signal->start());
   cout << "After start " << endl;
   BOOST_VERIFY(signal->stop());
