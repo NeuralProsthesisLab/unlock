@@ -157,9 +157,6 @@ class UnlockRuntime(object):
         for controller in self.args['controllers']:
             self.args[controller['name']] = controller['args']
         
-        #print ('mac addr = ', self.args['mac_addr'])
-        #sys.exit(0)
-        
         self.factory = UnlockFactory(self.args)
         self.app_ctx = context.ApplicationContext(self.factory)
             
