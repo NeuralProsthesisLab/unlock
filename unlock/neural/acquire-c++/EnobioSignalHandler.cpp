@@ -154,11 +154,8 @@ void EnobioSignalHandler::handleChannelData(ChannelData* pChannelData) {
 }
 
 bool EnobioSignalHandler::open(uint8_t* mac) {
-	BOOST_VERIFY(mpEnobio3G != 0);
-    // hardcoded MAC of our Enobio 8 device
-    // will not work with the StarStim. needs refactoring
-    unsigned char hardcodedMac[6] = {0x61, 0x9C, 0x58, 0x80, 0x07, 0x00};
-    int opened = mpEnobio3G->openDevice(hardcodedMac);
+	BOOST_VERIFY(mpEnobio3G != 0 && mac != 0);
+    int opened = mpEnobio3G->openDevice(mac);
     if(opened == 0) {
         mOpened = false;
     } else {
