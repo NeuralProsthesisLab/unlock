@@ -2,8 +2,9 @@
 from unlock.model import TimedStimuli, TimedStimulus, OfflineData, RandomCueStateMachine, CueState, TimedStimulusCueState, MultipleSequentialTimedStimuliCueState, DynamicPositionCueState
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator, DynamicPositionPygletTextLabel
 from unlock.util import TrialState, Trigger
+from unlock.decode import RawInlineSignalReceiver
+
 from .controller import Canvas, UnlockController
-from .command import RawInlineSignalReceiver
 
 import inspect
 import logging

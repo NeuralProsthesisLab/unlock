@@ -1,20 +1,21 @@
 from unlock.model import TimedStimulus, HierarchyGridState, TimedStimuli, OfflineData
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, HierarchyGridView
-from unlock.decoders import HarmonicSumDecision
-from unlock.controller import UnlockController, Canvas, RawInlineSignalReceiver
+from unlock.decode import HarmonicSumDecision, RawInlineSignalReceiver, ClassifiedCommandReceiver
+from unlock.controller import UnlockController, Canvas
 import inspect
 import os
 
 
 class VEP(UnlockController):
     def __init__(self, window, views, canvas, command_receiver, timed_stimuli,
-                 grid_state, decoder, recorder, icon="LazerToggleS.png",
+                 grid_state, recorder, icon="LazerToggleS.png",
                  name="VEP"):
+        assert command_receiver != None and timed_stimuli != None and grid_state != None and recorder != None
         super(VEP, self).__init__(window, views, canvas)
         self.command_receiver = command_receiver
+        print('timed stimuli ', timed_stimuli, ' name = ', name)
         self.timed_stimuli = timed_stimuli
         self.grid_state = grid_state
-        self.decoder = decoder
         self.recorder = recorder
         self.name = name
         self.icon = icon
@@ -32,9 +33,10 @@ class VEP(UnlockController):
         self.timed_stimuli.process_command(command)
         # for s in self.timed_stimuli:
         #     s.process_command(command)
-        if command.raw_data_vector.size > 0:
-            command.make_matrix()
-            self.decoder.process_command(command)
+        #if command.raw_data_vector.size > 0:
+        #    command.make_matrix()
+        #    self.decoder.process_command(command)
+        if command.is_valid():
             self.recorder.process_command(command)
         self.__handle_command__(command)
         self.render()
@@ -114,14 +116,15 @@ class VEP(UnlockController):
         grid_model = HierarchyGridState(2)
         grid = HierarchyGridView(grid_model, canvas)
         views.append(grid)
-
-        decoder = HarmonicSumDecision(freqs, 3.0, 500, 8)
+    
         recorder = OfflineData('ssvep')
 
-
-        command_receiver = RawInlineSignalReceiver(signal, timer)
+        raw_command_receiver = RawInlineSignalReceiver(signal, timer)
+        classifier = HarmonicSumDecision(freqs, 3.0, 500, 8)
+        command_receiver = ClassifiedCommandReceiver(raw_command_receiver, classifier)
+        
         return VEP(window, views, canvas, command_receiver, stimuli,
-                   grid_model, decoder, recorder, name='SSVEP')
+                   grid_model, recorder, name='SSVEP')
 
     @staticmethod
     def create_msequence(window, signal, timer, color='bw'):
@@ -145,7 +148,7 @@ class VEP(UnlockController):
         seq3 = (0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0)
         seq4 = (0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,1,1,1,0,1,1,0,1,0,0,1,1,0)
 
-        stimuli = []
+        stimuli = TimedStimuli.create(4.0)
         views = []
 
         stimulus1 = TimedStimulus.create(rate, sequence=seq1)
@@ -153,7 +156,7 @@ class VEP(UnlockController):
             stimulus1, canvas, SpritePositionComputer.North, width=width,
             height=height, xfreq=fx, yfreq=fy, color_on=color1,
             color_off=color2)
-        stimuli.append(stimulus1)
+        stimuli.add_stimulus(stimulus1)
         views.append(fs1)
 
         stimulus2 = TimedStimulus.create(rate, sequence=seq2)
@@ -161,7 +164,7 @@ class VEP(UnlockController):
             stimulus2, canvas, SpritePositionComputer.South, width=width,
             height=height, xfreq=fx, yfreq=fy, color_on=color1,
             color_off=color2)
-        stimuli.append(stimulus2)
+        stimuli.add_stimulus(stimulus2)
         views.append(fs2)
 
         stimulus3 = TimedStimulus.create(rate, sequence=seq3)
@@ -169,7 +172,7 @@ class VEP(UnlockController):
             stimulus3, canvas, SpritePositionComputer.West, width=width,
             height=height, xfreq=fx, yfreq=fy, color_on=color1,
             color_off=color2)
-        stimuli.append(stimulus3)
+        stimuli.add_stimulus(stimulus3)
         views.append(fs3)
 
         stimulus4 = TimedStimulus.create(rate, sequence=seq4)
@@ -177,9 +180,15 @@ class VEP(UnlockController):
             stimulus4, canvas, SpritePositionComputer.East, width=width,
             height=height, xfreq=fx, yfreq=fy, color_on=color1,
             color_off=color2)
-        stimuli.append(stimulus4)
+        stimuli.add_stimulus(stimulus4)
         views.append(fs4)
-
+        
+        grid_model = HierarchyGridState(2)
+        grid = HierarchyGridView(grid_model, canvas)
+        views.append(grid)
+        
+        recorder = OfflineData('msequence')
+        
         command_receiver = RawInlineSignalReceiver(signal, timer)
-        return VEP(window, views, canvas, command_receiver, stimuli, None,
-                   None, None, "emg-100x100.jpg", name='cVEP')
+        return VEP(window, views, canvas, command_receiver, stimuli,
+                   grid_model, recorder, "emg-100x100.jpg", name='cVEP')

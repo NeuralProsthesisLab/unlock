@@ -1,5 +1,5 @@
 
-from .command import PygletKeyboardCommand
+from unlock.decode import PygletKeyboardCommand
 import pyglet
 import time
 
