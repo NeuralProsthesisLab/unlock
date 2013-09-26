@@ -19,9 +19,14 @@ PythonSignal::~PythonSignal() {
   mReturnedDataLog.close();
 }
 
-bool PythonSignal::open(/* boost::python::list macAddress */) {
-  BOOST_VERIFY(mpSignal != 0);  
-  uint8_t mac[6] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6 };
+bool PythonSignal::open(boost::python::list macAddress) {
+  BOOST_VERIFY(mpSignal != 0);
+  uint8_t mac[6] = {0,0,0,0,0,0};  
+  if(boost::python::extract<size_t>(macAddress.attr("__len__")()) >= 6) {
+    for (int i = 5; i >= 0; i--) {
+      mac[i] = boost::python::extract<uint8_t>(macAddress.pop());
+    }
+  }
   return mpSignal->open(mac);
 }
 
