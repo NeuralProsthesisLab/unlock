@@ -200,7 +200,7 @@ class RawInlineSignalReceiver(CommandReceiverInterface):
         
     def next_command(self, delta):
         samples = self.signal.acquire()
-
+        
         if samples is not None and samples > 0:
             c_data = self.signal.getdata(samples)
             raw_data_vector = np.array(c_data)
@@ -210,7 +210,7 @@ class RawInlineSignalReceiver(CommandReceiverInterface):
             raw_command = RawSignalCommand(delta, raw_data_vector, samples/self.signal.channels(), self.signal.channels(), self.timer)
         else:
             raw_command = RawSignalCommand(delta, np.array([]), 1, self.signal.channels(), self.timer)
-        
+            
         if raw_command.is_valid():
             raw_command.make_matrix()
             
@@ -222,3 +222,4 @@ class RawInlineSignalReceiver(CommandReceiverInterface):
 class DeltaCommandReceiver(CommandReceiverInterface):
     def next_command(self, delta):
         return Command(delta)
+        
