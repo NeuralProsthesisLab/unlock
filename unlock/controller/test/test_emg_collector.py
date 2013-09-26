@@ -1,6 +1,6 @@
 
 from unlock import PygletWindow, Collector, Canvas
-from unlock.neural import RandomSignal
+from unlock.decode import RandomSignal
 
 import unittest
 import pyglet
