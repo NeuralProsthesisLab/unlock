@@ -94,10 +94,16 @@ func installPython(baseUrl string, pythonPathEnvVar string, pythonInstallerName 
     log.Println(`Downloading `+pythonPackageName+`...`)
     downloadAndWriteFile(baseUrl+pythonInstallerName, pythonInstallerName)
     log.Println(`Installing `+pythonPackageName)
-    cmd := exec.Command("cmd", "/C", "msiexec /i ", cwd+"\\"+pythonInstallerName,`TARGETDIR=`+pythonBasePath,`/qb`, `ALLUSERS=0`)
-    if err := cmd.Run(); err != nil {
+//    output, err := exec.Command("cmd", "/C", "msiexec /i ", cwd+"\\"+pythonInstallerName,`TARGETDIR=`+pythonBasePath,`/qb`, `ALLUSERS=0`).CombinedOutput()
+    output, err := exec.Command("cmd", "/C", cwd+"\\"+pythonInstallerName).CombinedOutput()
+    if len(output) > 0 {
+        log.Printf("%s\n", output)
+    }
+    
+    if err != nil {
         log.Fatalln(`FATAL: failed to install python `, err)
     }
+    
     if err := os.Setenv(`PYTHONPATH`, pythonPathEnvVar); err != nil {
         log.Println(`Could not properly set the PYTHONPATH env variable; on some systems this can cause problems during virtual env creation`)
     }
@@ -161,49 +167,23 @@ func installScons(pythonPath string, baseUrl string, fileName string, packageNam
 }
 
 func installUnlock(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
-/*
-    post_processing_fn := func() {
-        if err := os.MkdirAll(`C:\Unlock`, 0755); err != nil {
-            log.Fatalln(`Failed to make unlock directory`, err)
-        }
-        if err := os.Rename(`collector.py`, `C:\Unlock\collector.py`); err != nil {
-            log.Fatalln(`Failed to install unlock collector`, err)
-        }
-
-        if err := os.Rename(`collector.bat`, `C:\Unlock\collector.bat`); err != nil {
-            log.Fatalln(`Failed to install unlock collector`, err)
-        }
-
-        if err := os.Rename(`pygtec.py`, `C:\Unlock\pygtec.py`); err != nil {
-            log.Fatalln(`Failed to install unlock collector`, err)
-        }
-
-        if err := os.Rename(`targets.png`, `C:\Unlock\targets.png`); err != nil {
-            log.Fatalln(`Failed to install unlock collector`, err)
-        }
-    }
-*/    
     installZippedPythonPackage(pythonPath, baseUrl, fileName, packageName, packageDirectory)
 }
 
-//var species = flag.String("species", "gopher", "the species we are studying")
-
-// Example 2: Two flags sharing a variable, so we can have a shorthand.
-// The order of initialization is undefined, so make sure both use the
-// same default value. They must be set up with an init function.
 var confFile = flag.String("conf", "", "Qualified file name of Unlock installation configuration file")
 
 func createConf() UnlockInstallConf {
     if *confFile == `` {
-        return UnlockInstallConf {`C:\Unlock`, `http://jpercent.org/unlock/`, `C:\Python27;C:\Python27\Lib;C:\Python27\DLLs`, `python-2.7.5.msi`,
-            `Python-2.7.5`, `C:\Python27`, `C:\Python27\python.exe`, `numpy-MKL-1.7.1.win32-py2.7.exe`,
-            `C:\Python27\Scripts\easy_install.exe`, `C:\Python27\Scripts\pip.exe`,
-            `C:\Python27\Scripts\virtualenv.exe`, `python27`,
-            `C:\Python27\Lib\site-packages\numpy`, `C:\Unlock\python27\Lib\site-packages`,
-            `C:\Unlock\python27\Scripts\python.exe`, `C:\Unlock\python27\Scripts\pip.exe`,
-            `pyglet-1.2alpha1-p3.3.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`, `AVbin10-win32.exe`, 
+        return UnlockInstallConf {`C:\Unlock`, `http://jpercent.org/unlock/`, `C:\Python33;C:\Python33\Lib;C:\Python33\DLLs`, `python-3.3.2.msi`,
+            `Python-3.3.2`, `C:\Python33`, `C:\Python33\python.exe`, `numpy-MKL-1.7.1.win32-py3.3.exe`,
+            `C:\Python33\Scripts\easy_install.exe`, `C:\Python33\Scripts\pip.exe`,
+            `C:\Python33\Scripts\virtualenv.exe`, `python33`,
+            `C:\Python33\Lib\site-packages\numpy`, `C:\Unlock\python33\Lib\site-packages`,
+            `C:\Unlock\python33\Scripts\python.exe`, `C:\Unlock\python33\Scripts\pip.exe`,
+            `pyglet-1.2alpha-p3.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`, `AVbin10-win32.exe`, 
             `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, `unlock-0.3.7-win32.zip`, `unlock`, `unlock-0.3.7`,
-            `scons-2.3.0.zip`, `scons`, `scons-2.3.0`}
+            `scons-2.3.0.zip`, `scons`, `scons-2.3.0`,
+            `unlock.exe`}
     } else {
         return ParseConf(*confFile)
     }    
@@ -218,10 +198,17 @@ func numpyHack(pythonPath string, from string, to string) {
     runCommand(command, "numpyHack Failed", false)
 }
 
+func installUnlockRunner(baseUrl string, unlockDirectory string, unlockexe string) {
+    var cwd = getWorkingDirectoryAbsolutePath()
+    chdirFailOnError(unlockDirectory, ` ERROR: Failed to install unlock.exe: couldn't change dir `)
+    downloadAndWriteFile(baseUrl+unlockexe, unlockexe)
+    os.Chdir(cwd)
+}
+
 func main() {
 
     flag.Parse()
-    logf, err := os.OpenFile(`unlock-install.log`, os.O_WRONLY|os.O_CREATE,0640)
+    logf, err := os.OpenFile(`unlock-install.log`, os.O_WRONLY|os.O_APPEND|os.O_CREATE,0640)
     if err != nil {
         log.Fatalln(err)
     }
@@ -250,5 +237,6 @@ func main() {
     installPyglet12alpha(conf.PythonPath, conf.BaseUrl, conf.PygletZipName, conf.PygletPackageName, conf.PygletDirectory)
     installPySerial26(conf.PythonPath, conf.BaseUrl, conf.PyserialZipName, conf.PyserialPackageName, conf.PyserialDirectory)
     installUnlock(conf.PythonPath, conf.BaseUrl, conf.UnlockZipName, conf.UnlockPackageName, conf.UnlockPackageDirectory)
-    installScons(conf.PythonPath, conf.BaseUrl, conf.SconsZipName, conf.SconsPackageName, conf.SconsPackageDirectory)
+    //installScons(conf.PythonPath, conf.BaseUrl, conf.SconsZipName, conf.SconsPackageName, conf.SconsPackageDirectory)
+    installUnlockRunner(conf.BaseUrl, conf.UnlockDirectory, conf.Unlockexe)
 }

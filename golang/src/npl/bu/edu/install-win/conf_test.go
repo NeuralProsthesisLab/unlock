@@ -19,7 +19,7 @@ func TestParseConf(t *testing.T) {
     envName := `envname` 
     unlockInstallConf := UnlockInstallConf{unlockDir, baseUrl, ``, pythonInstallerName, pythonPackageName,
                     pythonBasePath, pythonPath, easyInstallPath, pipPath, virtualenvPath,
-                             envName, ``, ``, ``, ``, ``, ``, ``, ``, `pyserail-2.6`, ``, ``, ``, ``,``,``, ``, ``, ``}
+                             envName, ``, ``, ``, ``, ``, ``, ``, ``, `pyserail-2.6`, ``, ``, ``, ``,``,``, ``, ``, ``, ``}
 
     unlockConfBinary, e := json.Marshal(unlockInstallConf)
     if e != nil {

@@ -36,6 +36,7 @@ type UnlockInstallConf struct {
     SconsZipName string
     SconsPackageName string 
     SconsPackageDirectory string
+    Unlockexe string
 }
  
 func ParseConf(confFile string) UnlockInstallConf {
