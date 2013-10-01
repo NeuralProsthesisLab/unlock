@@ -39,7 +39,6 @@ class VEP(UnlockController):
         assert command_receiver != None and timed_stimuli != None and grid_state != None and recorder != None
         super(VEP, self).__init__(window, views, canvas)
         self.command_receiver = command_receiver
-        print('timed stimuli ', timed_stimuli, ' name = ', name)
         self.timed_stimuli = timed_stimuli
         self.grid_state = grid_state
         self.recorder = recorder
