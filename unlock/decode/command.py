@@ -112,8 +112,8 @@ class RawSignalCommand(Command):
         self.sequence_trigger_time_vector[-1] = self.timer.elapsedMicroSecs()
         
     def set_cue_trigger(self, cue_trigger_value):
-       self.cue_trigger_vector[-1] = cue_trigger_value
-       self.cue_trigger_time_vector[-1] = self.timer.elapsedMicroSecs()
+        self.cue_trigger_vector[-1] = cue_trigger_value
+        self.cue_trigger_time_vector[-1] = self.timer.elapsedMicroSecs()
         
     def make_matrix(self):
         data_matrix = self.raw_data_vector.reshape((self.samples, self.channels))
