@@ -54,6 +54,13 @@ class Collector(UnlockController):
     def poll_signal(self, delta):  
         self.logger.debug('Collector.poll signal delta = ', delta, ' time = ', time.time())
         command = self.command_receiver.next_command(delta)
+        
+        # XXX - we just ignore this cycle if the there's not command, this is a hack because it leaves
+        #       with the timing resolution of the device.   We go through and adjust the timers,
+        #       with a zero command or some such, so that we can get the finest granularity.
+        if not command.is_valid():
+            return
+        
         if self.timed_stimuli:
             sequence_trigger = self.timed_stimuli.process_command(command)
             if sequence_trigger != Trigger.Null:
@@ -62,7 +69,7 @@ class Collector(UnlockController):
         cue_trigger = self.cue_state.process_command(command)
         if cue_trigger != Trigger.Null:
             command.set_cue_trigger(cue_trigger)
-            
+   
         command.make_matrix()
         self.offline_data.process_command(command)
         if cue_trigger == Trigger.Complete:
@@ -93,7 +100,7 @@ class Collector(UnlockController):
         pass
         
     @staticmethod
-    def create_emg_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=25, cue_duration=1, rest_duration=1, indicate_duration=2, output_file='signal', seed=42, radius=1):
+    def create_emg_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=25, cue_duration=.5, rest_duration=.5, indicate_duration=1, output_file='emg_signal', seed=42, radius=1):
         canvas = Canvas.create(window.width, window.height)
         
         cues = [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left]
@@ -131,7 +138,7 @@ class Collector(UnlockController):
         return Collector(window, [up, right, down, left, rest, indicate_text], canvas, command_receiver, cue_state, offline_data, standalone=standalone)
         
     @staticmethod
-    def create_msequence_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=2, cue_duration=1, rest_duration=2, indicate_duration=4, output_file='signal', seed=42):
+    def create_msequence_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=2, cue_duration=1, rest_duration=2, indicate_duration=4, output_file='msequence_signal', seed=42):
         canvas = Canvas.create(window.width, window.height)        
         
         timed_stimuli = TimedStimuli.create(stimulation_duration)
