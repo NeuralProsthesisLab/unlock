@@ -1,2 +1,0 @@
-from gridSweep import GridSweep
-from gridHierarchy import GridHierarchy
