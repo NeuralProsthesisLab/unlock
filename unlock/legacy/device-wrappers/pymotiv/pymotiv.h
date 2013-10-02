@@ -2,9 +2,9 @@
 #define PYPOC_H
 
 #include <Windows.h>
-#include "EmoStateDLL.h"
-#include "edk.h"
-#include "edkErrorCode.h"
+#include "EmoStateDLL.hpp"
+#include "edk.hpp"
+#include "edkErrorCode.hpp"
 
 class EPOC {
 private:
