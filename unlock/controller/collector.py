@@ -125,11 +125,10 @@ class Collector(UnlockController):
         rest = BellRingTextLabelDecorator(rest_text)        
         
         indicate_text = DynamicPositionPygletTextLabel(cue_state.indicate_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
-#        indicate = BellRingTextLabelDecorator(indicate_text)
         
         #print("Setting the indicate state height/width ", indicate_text.label.height, "/", indicate_text.label.width)
-        indicate_state.height = 50#indicate_text.label.height
-        indicate_state.width = 50#indicate_text.label.width
+        indicate_state.height = 50 
+        indicate_state.width = 50
         
         command_receiver = RawInlineSignalReceiver(signal, timer)
         
