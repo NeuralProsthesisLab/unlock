@@ -157,13 +157,12 @@ class CueIndicateRestSampleParser(object):
 									  data_start=0, data_end=3):
 		return CueIndicateRestSampleParser(file_path, EightChannelSchema(), cue_duration, rest_duration,
 									   indicate_duration, data_start, data_end)
-
+									
 
 if __name__ == '__main__':
 	
 	args = None
 	options = None
-	args_parser = None
 	usage = "usage: %prog [options]"
 	args_parser = OptionParser(version="%prog 1.0", usage=usage)
 	file_help = 'file to parse'
@@ -171,13 +170,13 @@ if __name__ == '__main__':
 					  help=file_help)
 	
 	(options, args) = args_parser.parse_args()
-	if options.file == None:
-		args_parser.print_help()
-		sys.exit(1)			
-
-	samples_parser = CueIndicateRestSampleParser.create_eight_channel_analyzer(options.file)
-	samples = samples_parser.parse_samples()
-	
-	#print('Trials = ',
-	samples_parser.completed_trials(print)
-	samples_parser.compute_samples_per_command(print)
+	#print args
+	#if options.file == None:
+	#	args_parser.print_help()
+	#	sys.exit(1)			
+	for file_ in args:
+		samples_parser = CueIndicateRestSampleParser.create_eight_channel_analyzer(file_)
+		samples = samples_parser.parse_samples()
+		samples_parser.completed_trials(print)
+		samples_parser.compute_samples_per_command(print)
+		print (80*'-')
