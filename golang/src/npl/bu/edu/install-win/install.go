@@ -185,7 +185,7 @@ func installAvbin(baseUrl string, avbin string) {
     }
     
     if err := ioutil.WriteFile(`C:\Windows\SysWOW64\avbin.dll`, data, 0744); err != nil {
-        log.Fatalln(err)
+        log.Println(err)
     }    
     
 }
@@ -199,6 +199,7 @@ func installUnlock(pythonPath string, baseUrl string, fileName string, packageNa
 }
 
 var confFile = flag.String("conf", "", "Qualified file name of Unlock installation configuration file")
+var devOption = flag.Bool("devOption", false, "Setup development env")
 
 func createConf() UnlockInstallConf {
     if *confFile == `` {
@@ -264,7 +265,9 @@ func main() {
 
     installPyglet12alpha(conf.PythonPath, conf.BaseUrl, conf.PygletZipName, conf.PygletPackageName, conf.PygletDirectory)
     installPySerial26(conf.PythonPath, conf.BaseUrl, conf.PyserialZipName, conf.PyserialPackageName, conf.PyserialDirectory)
-    installUnlock(conf.PythonPath, conf.BaseUrl, conf.UnlockZipName, conf.UnlockPackageName, conf.UnlockPackageDirectory)
-    //installScons(conf.PythonPath, conf.BaseUrl, conf.SconsZipName, conf.SconsPackageName, conf.SconsPackageDirectory)
-    installUnlockRunner(conf.BaseUrl, conf.UnlockDirectory, conf.Unlockexe)
+    if *devOption == false {
+        installUnlock(conf.PythonPath, conf.BaseUrl, conf.UnlockZipName, conf.UnlockPackageName, conf.UnlockPackageDirectory)
+        //installScons(conf.PythonPath, conf.BaseUrl, conf.SconsZipName, conf.SconsPackageName, conf.SconsPackageDirectory)
+        installUnlockRunner(conf.BaseUrl, conf.UnlockDirectory, conf.Unlockexe)
+	}
 }
