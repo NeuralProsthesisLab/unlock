@@ -26,4 +26,4 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from .neuralsignal import *
-
+from .audio_signal import *
