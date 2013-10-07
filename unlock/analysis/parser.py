@@ -26,8 +26,11 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from optparse import OptionParser
-import numpy as np
 from unlock.util import Trigger
+
+import numpy as np
+import sys
+
 
 def map_cue(cue):
 	if cue == Trigger.Up:
@@ -52,7 +55,15 @@ class EightChannelSchema(object):
 	SequenceTrigger = 13
 	SequenceTriggerTime = 14
 	CueTrigger = 15
-	CueTriggerTime = 1
+	CueTriggerTime = 16
+	
+class TwoChannelSchema(object):
+	DataStart = 0
+	DataEnd = 1
+	SequenceTrigger = 2
+	SequenceTriggerTime = 3
+	CueTrigger = 4
+	CueTriggerTime = 5	
 
 
 class CueIndicateRestSampleParser(object):
@@ -91,15 +102,18 @@ class CueIndicateRestSampleParser(object):
 			return True
 		else:
 			return False
-			
+	
 	def parse_samples(self):
 		done = False
 		mode = None
 		new_cue = []
 		new_indication = []
 		new_rest = []
-		
 		file_ = open(self.file_path, 'r')
+		
+		#data = np.genfromtxt(self.file_path, delimiter='\t')
+		#import pdb
+		#pdb.set_trace()
 		
 		while True:
 			samplestr = file_.readline()
@@ -125,6 +139,7 @@ class CueIndicateRestSampleParser(object):
 				if self.is_rest(sample):
 					mode = self.Rest
 					self.parsed_samples[trigger].append(new_indication)
+#					self.parsed_samples[trigger] = self.parsed_samples.vstack(np.asarray(new_indication))
 					new_indication = []
 				else:
 					new_indication.append(sample)
@@ -151,32 +166,81 @@ class CueIndicateRestSampleParser(object):
 		[handler("Sampes/Down = ", len(indicate)) for indicate in self.parsed_samples[Trigger.Down]]
 		[handler("Sampes/Left = ", len(indicate)) for indicate in self.parsed_samples[Trigger.Left]]		
 		[handler("Sampes/Rest = ", len(rest)) for rest in self.parsed_samples[Trigger.Rest]]				
+		
+	def rms(self, trials):
+		results = []
+		for trial in trials:
+			#Byron:  rms: np.sqrt(np.mean(a**2, axis=0))
+			#   zero mean: a -= np.mean(a, axis=0)
+			array = np.vstack(trial)
+			array = array**2
+			chan0 = array[:, :1].mean()**0.5
+			chan1 = array[:, 1:2].mean()**0.5
+			chan2 = array[:, 2:3].mean()**0.5
+			chan3 = array[:, 3:4].mean()**0.5			
+			results.append([chan0, chan1, chan2, chan3])		
+		return results
+
+	def compute_rms(self):
+		print ("Left = ")
+		left = self.parsed_samples[Trigger.Left]
+		print('-'*80)
+		for rms in self.rms(left):
+			print(rms)
+		
+		print ("Right = ")
+		right = self.parsed_samples[Trigger.Right]
+		print('-'*80)			
+		for rms in self.rms(right):
+			print(rms)
+			
+		print ("Rest = ")
+		rest = self.parsed_samples[Trigger.Rest]
+		for rms in self.rms(rest):
+			print(rms)					
+		print('-'*80)			
 
 	@staticmethod
-	def create_eight_channel_analyzer(file_path, cue_duration=.5, rest_duration=.5, indicate_duration=1.0,
+	def create_channel_analyzer(file_path, schema, cue_duration=.5, rest_duration=.5, indicate_duration=1.0,
 									  data_start=0, data_end=3):
-		return CueIndicateRestSampleParser(file_path, EightChannelSchema(), cue_duration, rest_duration,
+		return CueIndicateRestSampleParser(file_path, schema, cue_duration, rest_duration,
 									   indicate_duration, data_start, data_end)
-									
 
 if __name__ == '__main__':
 	
 	args = None
 	options = None
-	usage = "usage: %prog [options]"
+	usage = "usage: %prog [options] data-file [data-file ...]"
 	args_parser = OptionParser(version="%prog 1.0", usage=usage)
-	file_help = 'file to parse'
-	args_parser.add_option('-f', '--file', type=str, dest='file', default=None, metavar='FILE',
-					  help=file_help)
+	channels_help = 'The number of device channels; valid values are 2, 4 and 8; default is 8'
+	electrodes_help = 'The number of valid electrodes; must be <= device channels; valid values are 2, 4 and 8; default is the lesser of 4 and the number of channels'	
+	
+	args_parser.add_option('-c', '--channels', type=int, dest='channels', default=8,
+						   metavar='CHANNELS', help=channels_help)
+	args_parser.add_option('-e', '--electrodes', type=int, dest='electrodes', default=4,
+						   metavar='ELECTRODES', help=electrodes_help)	
 	
 	(options, args) = args_parser.parse_args()
-	#print args
-	#if options.file == None:
-	#	args_parser.print_help()
-	#	sys.exit(1)			
+	if not (options.electrodes <= options.channels):
+		options.electrodes = options.channels
+	if len(args) < 1:
+		print ("ERROR: requires at least 1 data file")
+		args_parser.print_help()
+		sys.exit(1)
+		
 	for file_ in args:
-		samples_parser = CueIndicateRestSampleParser.create_eight_channel_analyzer(file_)
+		if options.channels == 8:
+			samples_parser = CueIndicateRestSampleParser.create_channel_analyzer(file_, EightChannelSchema())
+		elif options.channels == 2:
+			samples_parser = CueIndicateRestSampleParser.create_channel_analyzer(file_, TwoChannelSchema(), data_end=1)
+		else:
+			print ("ERROR: unsupported number of channels")
+			args_parser.print_help()
+			sys.exit(1)			
+		
 		samples = samples_parser.parse_samples()
 		samples_parser.completed_trials(print)
 		samples_parser.compute_samples_per_command(print)
+		samples_parser.compute_rms()
 		print (80*'-')
+		
