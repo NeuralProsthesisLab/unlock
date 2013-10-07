@@ -10,20 +10,22 @@ from core import UnlockApplication
 import sys
 
 # Platform-specific imports
-if sys.platform.startswith("linux"):
-    try:
-        from espeak import espeak
-    except:
-        raise Exception("ERROR: Missing python-espeak module!")
-elif sys.platform.startswith("darwin"):
-    import subprocess
+#if sys.platform.startswith("linux"):
+#    try:
+#        from espeak import espeak
+#    except:
+#        raise Exception("ERROR: Missing python-espeak module!")
+#elif sys.platform.startswith("darwin"):
+#    import subprocess
 
-class FastButton():
+import subprocess
+
+class FastButton(object):
     """
     Class for a FastPad button.
     """
 
-    def __init__(this, screen, rect, labels, actions):
+    def __init__(self, screen, rect, labels, actions):
         """
         Initialize the internal data structures and
         graphical button layout.
@@ -43,7 +45,7 @@ class FastButton():
 
         # Draw the button border -- hack around Unlock's drawRect()
         #screen.drawRect(*rect) # This would be nicer...
-        this.rect = rect
+        self.rect = rect
         screen.drawLine(rect[0], rect[1],
                 rect[0], rect[1] + rect[3])
         screen.drawLine(rect[0], rect[1] + rect[3],
@@ -54,15 +56,15 @@ class FastButton():
                 rect[1], rect[0], rect[1])
 
         # Draw the labels
-        this.texts = []
-        this.rects = []
-        this.texts.append(screen.drawText(labels[0],
+        self.texts = []
+        self.rects = []
+        self.texts.append(screen.drawText(labels[0],
                 rect[0] + (.5 * rect[2]), rect[1] + (.75 * rect[3])))
-        this.rects.append((
-            rect[0] + (.5 * rect[2]) - this.texts[-1].content_width/2,
-            rect[1] + (.75 * rect[3]) - this.texts[-1].content_height * 0.35,
-            this.texts[-1].content_width,
-            this.texts[-1].content_height * .65))
+        self.rects.append((
+            rect[0] + (.5 * rect[2]) - self.texts[-1].content_width/2,
+            rect[1] + (.75 * rect[3]) - self.texts[-1].content_height * 0.35,
+            self.texts[-1].content_width,
+            self.texts[-1].content_height * .65))
         if len(labels) > 1:
 
             # Calculate the sub-label positions
@@ -71,29 +73,29 @@ class FastButton():
             # Draw the sub-labels
             left = rect[0] + (width / 2)
             for label in labels[1:]:
-                this.texts.append(screen.drawText(label,
+                self.texts.append(screen.drawText(label,
                     left, rect[1] + (.25 * rect[3]),
-                    size = int(.65 * this.texts[0].font_size)))
-                this.rects.append((
-                    left - this.texts[-1].content_width/2,
-                    rect[1] + (.25 * rect[3]) - this.texts[-1].content_height * 0.35,
-                    this.texts[-1].content_width,
-                    this.texts[-1].content_height * 0.65))
+                    size = int(.65 * self.texts[0].font_size)))
+                self.rects.append((
+                    left - self.texts[-1].content_width/2,
+                    rect[1] + (.25 * rect[3]) - self.texts[-1].content_height * 0.35,
+                    self.texts[-1].content_width,
+                    self.texts[-1].content_height * 0.65))
                 left += width
 
         # Store the labels and actions
-        this.labels = labels
-        this.actions = actions
-        while len(this.actions) < len(this.labels):
+        self.labels = labels
+        self.actions = actions
+        while len(self.actions) < len(self.labels):
 
             # Expand function pointers, if necessary
-            this.actions.append(this.actions[-1])
+            self.actions.append(self.actions[-1])
 
         # Initialize links to other buttons
-        this.up = None
-        this.down = None
-        this.left = None
-        this.right = None
+        self.up = None
+        self.down = None
+        self.left = None
+        self.right = None
 
 class FastPad(UnlockApplication):
     """
@@ -127,7 +129,7 @@ class FastPad(UnlockApplication):
     CURSOR_MARGIN = 2 # Margin around the cursor, in pixels
     SELECT_TIME = 2 # How many seconds before a selection activates?
 
-    def __init__(this, screen):
+    def __init__(self, screen):
         """
         Initialize internal data structures.
 
@@ -137,10 +139,10 @@ class FastPad(UnlockApplication):
         Raises an Exception if anything goes wrong.
         """
         # Call our parent's constructor
-        super(FastPad, this).__init__(screen)
+        super(FastPad, self).__init__(screen)
 
         # Get the GUI calculations
-        this.screen = screen
+        self.screen = screen
         textH = .2 * screen.height
         padW = .5 * screen.width
         padH = screen.height - textH
@@ -149,143 +151,143 @@ class FastPad(UnlockApplication):
         buttonH = (screen.height - textH) / 4
 
         # Create the text bar
-        this.textRect = screen.drawRect(0, padH, screen.width, textH)
-        this.text = screen.drawText("",
+        self.textRect = screen.drawRect(0, padH, screen.width, textH)
+        self.text = screen.drawText("",
                 screen.width / 2, screen.height - (textH / 2))
-        this.text.width = screen.width
+        self.text.width = screen.width
         
         # Create the buttons
-        this.buttonB = FastButton(
-                this.screen,
+        self.buttonB = FastButton(
+                self.screen,
                 (padL, 0, buttonW, buttonH),
                 ["<"],
-                [this.removeText],
+                [self.removeText],
                 )
-        this.button0 = FastButton(
-                this.screen,
+        self.button0 = FastButton(
+                self.screen,
                 (padL + buttonW, 0, buttonW, buttonH),
                 ["0", "_"],
-                [this.addText],
+                [self.addText],
                 )
-        this.buttonE = FastButton(
-                this.screen,
+        self.buttonE = FastButton(
+                self.screen,
                 (padL + (2 * buttonW), 0, buttonW, buttonH),
                 [">"],
-                [this.speakText],
+                [self.speakText],
                 )
-        this.button7 = FastButton(
-                this.screen,
+        self.button7 = FastButton(
+                self.screen,
                 (padL, buttonH, buttonW, buttonH),
                 ["7", "P", "Q", "R", "S"],
-                [this.addText],
+                [self.addText],
                 )
-        this.button8 = FastButton(
-                this.screen,
+        self.button8 = FastButton(
+                self.screen,
                 (padL + buttonW, buttonH, buttonW, buttonH),
                 ["8", "T", "U", "V"],
-                [this.addText],
+                [self.addText],
                 )
-        this.button9 = FastButton(
-                this.screen,
+        self.button9 = FastButton(
+                self.screen,
                 (padL + (2 * buttonW), buttonH, buttonW, buttonH),
                 ["9", "W", "X", "Y", "Z"],
-                [this.addText],
+                [self.addText],
                 )
-        this.button4 = FastButton(
-                this.screen,
+        self.button4 = FastButton(
+                self.screen,
                 (padL, buttonH * 2, buttonW, buttonH),
                 ["4", "G", "H", "I"],
-                [this.addText],
+                [self.addText],
                 )
-        this.button5 = FastButton(
-                this.screen,
+        self.button5 = FastButton(
+                self.screen,
                 (padL + buttonW, buttonH * 2, buttonW, buttonH),
                 ["5", "J", "K", "L"],
-                [this.addText],
+                [self.addText],
                 )
-        this.button6 = FastButton(
-                this.screen,
+        self.button6 = FastButton(
+                self.screen,
                 (padL + (2 * buttonW), buttonH * 2, buttonW, buttonH),
                 ["6", "M", "N", "O"],
-                [this.addText],
+                [self.addText],
                 )
-        this.button1 = FastButton(
-                this.screen,
+        self.button1 = FastButton(
+                self.screen,
                 (padL, buttonH * 3, buttonW, buttonH),
                 ["1"],
-                [this.addText],
+                [self.addText],
                 )
-        this.button2 = FastButton(
-                this.screen,
+        self.button2 = FastButton(
+                self.screen,
                 (padL + buttonW, buttonH * 3, buttonW, buttonH),
                 ["2", "A", "B", "C"],
-                [this.addText],
+                [self.addText],
                 )
-        this.button3 = FastButton(
-                this.screen,
+        self.button3 = FastButton(
+                self.screen,
                 (padL + (2 * buttonW), buttonH * 3, buttonW, buttonH),
                 ["3", "D", "E", "F"],
-                [this.addText],
+                [self.addText],
                 )
 
         # Link the buttons to each other
-        this.button1.up = this.buttonB
-        this.button1.down = this.button4
-        this.button1.left = this.button3
-        this.button1.right = this.button2
-        this.button2.up = this.button0
-        this.button2.down = this.button5
-        this.button2.left = this.button1
-        this.button2.right = this.button3
-        this.button3.up = this.buttonE
-        this.button3.down = this.button6
-        this.button3.left = this.button2
-        this.button3.right = this.button1
-        this.button4.up = this.button1
-        this.button4.down = this.button7
-        this.button4.left = this.button6
-        this.button4.right = this.button5
-        this.button5.up = this.button2
-        this.button5.down = this.button8
-        this.button5.left = this.button4
-        this.button5.right = this.button6
-        this.button6.up = this.button3
-        this.button6.down = this.button9
-        this.button6.left = this.button5
-        this.button6.right = this.button4
-        this.button7.up = this.button4
-        this.button7.down = this.buttonB
-        this.button7.left = this.button9
-        this.button7.right = this.button8
-        this.button8.up = this.button5
-        this.button8.down = this.button0
-        this.button8.left = this.button7
-        this.button8.right = this.button9
-        this.button9.up = this.button6
-        this.button9.down = this.buttonE
-        this.button9.left = this.button8
-        this.button9.right = this.button7
-        this.buttonB.up = this.button7
-        this.buttonB.down = this.button1
-        this.buttonB.left = this.buttonE
-        this.buttonB.right = this.button0
-        this.button0.up = this.button8
-        this.button0.down = this.button2
-        this.button0.left = this.buttonB
-        this.button0.right = this.buttonE
-        this.buttonE.up = this.button9
-        this.buttonE.down = this.button3
-        this.buttonE.left = this.button0
-        this.buttonE.right = this.buttonB
+        self.button1.up = self.buttonB
+        self.button1.down = self.button4
+        self.button1.left = self.button3
+        self.button1.right = self.button2
+        self.button2.up = self.button0
+        self.button2.down = self.button5
+        self.button2.left = self.button1
+        self.button2.right = self.button3
+        self.button3.up = self.buttonE
+        self.button3.down = self.button6
+        self.button3.left = self.button2
+        self.button3.right = self.button1
+        self.button4.up = self.button1
+        self.button4.down = self.button7
+        self.button4.left = self.button6
+        self.button4.right = self.button5
+        self.button5.up = self.button2
+        self.button5.down = self.button8
+        self.button5.left = self.button4
+        self.button5.right = self.button6
+        self.button6.up = self.button3
+        self.button6.down = self.button9
+        self.button6.left = self.button5
+        self.button6.right = self.button4
+        self.button7.up = self.button4
+        self.button7.down = self.buttonB
+        self.button7.left = self.button9
+        self.button7.right = self.button8
+        self.button8.up = self.button5
+        self.button8.down = self.button0
+        self.button8.left = self.button7
+        self.button8.right = self.button9
+        self.button9.up = self.button6
+        self.button9.down = self.buttonE
+        self.button9.left = self.button8
+        self.button9.right = self.button7
+        self.buttonB.up = self.button7
+        self.buttonB.down = self.button1
+        self.buttonB.left = self.buttonE
+        self.buttonB.right = self.button0
+        self.button0.up = self.button8
+        self.button0.down = self.button2
+        self.button0.left = self.buttonB
+        self.button0.right = self.buttonE
+        self.buttonE.up = self.button9
+        self.buttonE.down = self.button3
+        self.buttonE.left = self.button0
+        self.buttonE.right = self.buttonB
 
         # Initialize the state
-        this.mode = "CURSOR"
-        this.currButton = this.button5
-        this.currIndex = 0
-        this.selTime = 0
-        this.setMode(this.mode, this.currButton)
+        self.mode = "CURSOR"
+        self.currButton = self.button5
+        self.currIndex = 0
+        self.selTime = 0
+        self.setMode(self.mode, self.currButton)
 
-    def addText(this, label):
+    def addText(self, label):
         """
         Add the given label to the current text if
         there is enough space.
@@ -295,12 +297,12 @@ class FastPad(UnlockApplication):
 
         Raises an Exception if anything goes wrong.
         """
-        prev = this.text.text
-        this.text.text += label
-        if this.text.content_width > this.text.width:
-            this.text.text = prev
+        prev = self.text.text
+        self.text.text += label
+        if self.text.content_width > self.text.width:
+            self.text.text = prev
 
-    def removeText(this, label):
+    def removeText(self, label):
         """
         Removes 1 character from the end of the current
         text, if available.
@@ -310,10 +312,10 @@ class FastPad(UnlockApplication):
 
         Raises an Exception if anything goes wrong.
         """
-        if len(this.text.text) >= 1:
-            this.text.text = this.text.text[:-1]
+        if len(self.text.text) >= 1:
+            self.text.text = self.text.text[:-1]
 
-    def speakText(this, label):
+    def speakText(self, label):
         """
         Speaks the current text out via a TTS if we're
         on a supported platform.
@@ -323,15 +325,15 @@ class FastPad(UnlockApplication):
 
         Raises an Exception if anything goes wrong.
         """
-        text = this.text.text.replace("_", " ")
+        text = self.text.text.replace("_", " ")
         if sys.platform.startswith("linux"):
             espeak.synth(text)
         elif sys.platform.startswith("darwin"):
             subprocess.call(["say", text])
 
-        this.text.text = ""
+        self.text.text = ""
 
-    def setMode(this, mode, button):
+    def setMode(self, mode, button):
         """
         Set the FastPad into the given state/mode.
 
@@ -343,30 +345,30 @@ class FastPad(UnlockApplication):
         Raises an Exception if anything goes wrong.
         """
         # Clear the old rectangle
-        this.screen.drawRect(
-                this.currButton.rect[0] + FastPad.CURSOR_MARGIN,
-                this.currButton.rect[1] + FastPad.CURSOR_MARGIN,
-                this.currButton.rect[2] - (2 * FastPad.CURSOR_MARGIN),
-                this.currButton.rect[3] - (2 * FastPad.CURSOR_MARGIN),
+        self.screen.drawRect(
+                self.currButton.rect[0] + FastPad.CURSOR_MARGIN,
+                self.currButton.rect[1] + FastPad.CURSOR_MARGIN,
+                self.currButton.rect[2] - (2 * FastPad.CURSOR_MARGIN),
+                self.currButton.rect[3] - (2 * FastPad.CURSOR_MARGIN),
                 color = FastPad.BG_COLOR,
                 fill = True,
                 )
 
         # We're currently in CURSOR mode
-        if this.mode == "CURSOR":
+        if self.mode == "CURSOR":
 
             # And remaining in CURSOR mode
             if mode == "CURSOR":
 
                 # Set the new location
-                this.currButton = button
+                self.currButton = button
 
                 # Draw the new rectangle
-                this.screen.drawRect(
-                        this.currButton.rect[0] + FastPad.CURSOR_MARGIN,
-                        this.currButton.rect[1] + FastPad.CURSOR_MARGIN,
-                        this.currButton.rect[2] - (2 * FastPad.CURSOR_MARGIN),
-                        this.currButton.rect[3] - (2 * FastPad.CURSOR_MARGIN),
+                self.screen.drawRect(
+                        self.currButton.rect[0] + FastPad.CURSOR_MARGIN,
+                        self.currButton.rect[1] + FastPad.CURSOR_MARGIN,
+                        self.currButton.rect[2] - (2 * FastPad.CURSOR_MARGIN),
+                        self.currButton.rect[3] - (2 * FastPad.CURSOR_MARGIN),
                         color = FastPad.CURSOR_COLOR,
                         fill = True,
                         )
@@ -375,32 +377,32 @@ class FastPad(UnlockApplication):
             elif mode == "SELECT":
 
                 # Draw the new rectangle
-                this.screen.drawRect(
-                        this.currButton.rects[this.currIndex][0],
-                        this.currButton.rects[this.currIndex][1],
-                        this.currButton.rects[this.currIndex][2],
-                        this.currButton.rects[this.currIndex][3],
+                self.screen.drawRect(
+                        self.currButton.rects[self.currIndex][0],
+                        self.currButton.rects[self.currIndex][1],
+                        self.currButton.rects[self.currIndex][2],
+                        self.currButton.rects[self.currIndex][3],
                         color = FastPad.CURSOR_COLOR,
                         fill = True,
                         )
 
         # We're currently in SELECT mode
-        elif this.mode == "SELECT":
+        elif self.mode == "SELECT":
 
             # And remaining in SELECT mode
             if mode == "SELECT":
 
                 # Rotate the index
-                this.currIndex += 1
-                if this.currIndex >= len(this.currButton.rects):
-                    this.currIndex = 0
+                self.currIndex += 1
+                if self.currIndex >= len(self.currButton.rects):
+                    self.currIndex = 0
 
                 # Draw the new rectangle
-                this.screen.drawRect(
-                        this.currButton.rects[this.currIndex][0],
-                        this.currButton.rects[this.currIndex][1],
-                        this.currButton.rects[this.currIndex][2],
-                        this.currButton.rects[this.currIndex][3],
+                self.screen.drawRect(
+                        self.currButton.rects[self.currIndex][0],
+                        self.currButton.rects[self.currIndex][1],
+                        self.currButton.rects[self.currIndex][2],
+                        self.currButton.rects[self.currIndex][3],
                         color = FastPad.CURSOR_COLOR,
                         fill = True,
                         )
@@ -409,29 +411,29 @@ class FastPad(UnlockApplication):
             elif mode == "CURSOR":
 
                 # Call the selected item's action
-                this.currButton.actions[this.currIndex](
-                        this.currButton.labels[this.currIndex])
+                self.currButton.actions[self.currIndex](
+                        self.currButton.labels[self.currIndex])
 
                 # Reset the index
-                this.currIndex = 0
+                self.currIndex = 0
 
                 # Set the new location
-                this.currButton = button
+                self.currButton = button
 
                 # Draw the new rectangle
-                this.screen.drawRect(
-                        this.currButton.rect[0] + FastPad.CURSOR_MARGIN,
-                        this.currButton.rect[1] + FastPad.CURSOR_MARGIN,
-                        this.currButton.rect[2] - (2 * FastPad.CURSOR_MARGIN),
-                        this.currButton.rect[3] - (2 * FastPad.CURSOR_MARGIN),
+                self.screen.drawRect(
+                        self.currButton.rect[0] + FastPad.CURSOR_MARGIN,
+                        self.currButton.rect[1] + FastPad.CURSOR_MARGIN,
+                        self.currButton.rect[2] - (2 * FastPad.CURSOR_MARGIN),
+                        self.currButton.rect[3] - (2 * FastPad.CURSOR_MARGIN),
                         color = FastPad.CURSOR_COLOR,
                         fill = True,
                         )
 
         # Set the new mode
-        this.mode = mode
+        self.mode = mode
 
-    def update(this, timeDelta, decision, selection):
+    def update(self, timeDelta, decision, selection):
         """
         Update the screen; called periodically on refresh.
 
@@ -446,41 +448,41 @@ class FastPad(UnlockApplication):
         """
         if decision == FastPad.LEFT:
 
-            this.setMode("CURSOR", this.currButton.left)
+            self.setMode("CURSOR", self.currButton.left)
 
         elif decision == FastPad.RIGHT:
 
-            this.setMode("CURSOR", this.currButton.right)
+            self.setMode("CURSOR", self.currButton.right)
 
         elif decision == FastPad.UP:
 
-            this.setMode("CURSOR", this.currButton.up)
+            self.setMode("CURSOR", self.currButton.up)
 
         elif decision == FastPad.DOWN:
 
-            this.setMode("CURSOR", this.currButton.down)
+            self.setMode("CURSOR", self.currButton.down)
 
         elif selection:
 
-            this.setMode("SELECT", this.currButton)
+            self.setMode("SELECT", self.currButton)
 
             # We've changed our selection, so reset the timer
-            this.selTime = 0
+            self.selTime = 0
 
         else:
 
             # If we're in selection mode, track the time
-            if this.mode == "SELECT":
+            if self.mode == "SELECT":
 
                 # Add the time
-                this.selTime += timeDelta
+                self.selTime += timeDelta
 
-                # Should we select this item?
-                if this.selTime >= FastPad.SELECT_TIME:
+                # Should we select self item?
+                if self.selTime >= FastPad.SELECT_TIME:
 
-                    this.selTime = 0
-                    this.setMode("CURSOR", this.currButton)
+                    self.selTime = 0
+                    self.setMode("CURSOR", self.currButton)
 
             # If we're not in selection mode, reset the timer
             else:
-                this.selTime = 0
+                self.selTime = 0
