@@ -241,7 +241,7 @@ uint64_t EnobioSignalHandler::timestamp() {
 }
 
 bool EnobioSignalHandler::stop() {
-	cout << "STop streaming called" << endl;
+	cout << "Stop streaming called" << endl;
     mpEnobio3G->stopStreaming();
     mStarted = false;
     return true;
