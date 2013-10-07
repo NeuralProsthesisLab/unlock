@@ -47,7 +47,18 @@ class UnlockFactory(context.PythonConfig):
         self.mac_addr = None
         if 'mac_addr' in self.args.keys():
             self.mac_addr = [int(value,0) for value in [x.strip() for x in self.args['mac_addr'].split(',')]]
+            
+    @context.Object(lazy_init=True)        
+    def audio(self):
+        from unlock.decode import acquire
+        self.timer = acquire.create_timer()
+        signal = acquire.AudioSignal()
         
+        if not signal.start():
+            raise RuntimeError('failed to start audio signal')
+            
+        return signal        
+    
     @context.Object(lazy_init=True)    
     def enobio(self):
         from unlock.decode import acquire
@@ -100,8 +111,13 @@ class UnlockFactory(context.PythonConfig):
         
     @context.Object(lazy_init=True)
     def EmgCollector(self):
+        window = self.PygletWindow()
+        return Collector.create_emg_collector(window, self.signal, self.timer, **self.args['EmgCollector'])
+    
+    @context.Object(lazy_init=True)
+    def TwoStateEmgCollector(self):
         window = self.PygletWindow()        
-        return Collector.create_emg_collector(window, self.signal, self.timer, **self.args['EmgCollector'])    
+        return Collector.create_2state_emg_collector(window, self.signal, self.timer, **self.args['TwoStateEmgCollector'])    
         
     @context.Object(lazy_init=True)
     def Dashboard(self):
@@ -132,7 +148,7 @@ class UnlockRuntime(object):
             fps_help = 'displays the frequency per second; overrides the config file setting'
             vsync_help = 'turns vsync on; default is off'
             loglevel_help = 'sets the root logging level; valid values are debug, info, warn, error and critical; default value is warn; overrides the config file setting'
-            signal_help = 'selects the signaling system; valid values are: random, mobilab, enobio; default value is random; overrides the config file setting'
+            signal_help = 'selects the signaling system; valid values are: random, mobilab, enobio and audio; default value is random; overrides the config file setting'
             mac_addr_help = 'a comma separated list of hexidecimal values that are required to connect to some signaling devices;for example -m "0x1,0x2,0x3,0x4,0x5,0x6"'
             conf = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'conf.json')
             parser.add_option('-c', '--conf', type=str, dest='conf', default=conf, metavar='CONF', help=conf_help)
