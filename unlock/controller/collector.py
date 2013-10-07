@@ -98,7 +98,41 @@ class Collector(UnlockController):
     @staticmethod
     def create(mode, port, cue_duration, indicate_duration, rest_duration, channels, trials, seed, output):        
         pass
+     
+    @staticmethod
+    def create_2state_emg_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=25, cue_duration=.5, rest_duration=.5, indicate_duration=1, output_file='emg_signal', seed=42, radius=1):
+        canvas = Canvas.create(window.width, window.height)
         
+        cues = [Trigger.Right, Trigger.Left]
+        cue_states = []
+        for cue in cues:
+            cue_states.append(CueState.create(cue, cue_duration))
+        rest_state = CueState.create(Trigger.Rest, rest_duration)
+        
+ #       h = canvas.height * radius
+ #       w = canvas.width * radius
+#        print "Radious, ", h,":", w, " height width = ", canvas.height, ":", canvas.width
+        indicate_state = DynamicPositionCueState.create(Trigger.Indicate, indicate_duration, canvas.height, -1, canvas.width, -1, radius)
+        
+        cue_state = RandomCueStateMachine.create_cue_indicate_rest(cue_states, rest_state, indicate_state,seed=seed, trials=trials)
+        
+        right = PygletTextLabel(cue_state.cue_states[0], canvas, 'right', canvas.width / 2.0, canvas.height / 2.0)
+        left = PygletTextLabel(cue_state.cue_states[1], canvas, 'left', canvas.width / 2.0, canvas.height / 2.0)
+        
+        rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
+        rest = BellRingTextLabelDecorator(rest_text)        
+        
+        indicate_text = DynamicPositionPygletTextLabel(cue_state.indicate_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
+        
+        indicate_state.height = 50 
+        indicate_state.width = 50
+        
+        command_receiver = RawInlineSignalReceiver(signal, timer)
+        
+        offline_data = OfflineData(output_file)
+        
+        return Collector(window, [right, left, rest, indicate_text], canvas, command_receiver, cue_state, offline_data, standalone=standalone)
+
     @staticmethod
     def create_emg_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=25, cue_duration=.5, rest_duration=.5, indicate_duration=1, output_file='emg_signal', seed=42, radius=1):
         canvas = Canvas.create(window.width, window.height)
