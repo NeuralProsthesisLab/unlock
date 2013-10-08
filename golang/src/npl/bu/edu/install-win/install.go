@@ -80,6 +80,12 @@ func unzipExpand(fileName string) {
 }
 
 func downloadAndWriteFile(url string, fileName string) {
+	
+	// Skip download if install from repo
+	if *repoPath != `` {
+		return
+	}
+
     log.Println("Downloading file "+fileName+" from URL = "+url)
     resp, err := http.Get(url)
     if err != nil {
@@ -98,8 +104,16 @@ func downloadAndWriteFile(url string, fileName string) {
 }
 
 func getWorkingDirectoryAbsolutePath() string {
-    cwd, err := filepath.Abs(``)
-    log.Println(`Current working directory = `, cwd)
+	
+	path := ``
+	
+	// If repoPath is specified, take the repo's "package" dir
+	if *repoPath != `` {
+		path = filepath.Join(*repoPath, `package`)
+	}
+	
+	cwd, err := filepath.Abs(path)	    
+	log.Println(`Current working directory = `, cwd)
     if err != nil {
         log.Fatalln(err)
     }
@@ -109,6 +123,12 @@ func getWorkingDirectoryAbsolutePath() string {
 func installZippedPythonPackage(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
     log.Println(`Downloading `+packageName+`... `)
     downloadAndWriteFile(baseUrl+fileName, fileName)
+	
+	// Add repo path if install from repo
+	if *repoPath != `` {
+		fileName = filepath.Join(getWorkingDirectoryAbsolutePath(), fileName)
+	}
+	
     unzipExpand(fileName)
     chdirFailOnError(packageDirectory, `Failed to install `+packageName)
     log.Println("CWD = "+getWorkingDirectoryAbsolutePath())
@@ -199,7 +219,8 @@ func installUnlock(pythonPath string, baseUrl string, fileName string, packageNa
 }
 
 var confFile = flag.String("conf", "", "Qualified file name of Unlock installation configuration file")
-var devOption = flag.Bool("devOption", false, "Setup development env")
+var devOption = flag.Bool("dev", false, "Setup development env")
+var repoPath = flag.String("repo", "", "Path to project's git repo")
 
 func createConf() UnlockInstallConf {
     if *confFile == `` {
