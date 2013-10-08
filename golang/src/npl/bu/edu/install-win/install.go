@@ -219,7 +219,7 @@ func installUnlock(pythonPath string, baseUrl string, fileName string, packageNa
 }
 
 var confFile = flag.String("conf", "", "Qualified file name of Unlock installation configuration file")
-var devOption = flag.Bool("devOption", false, "Setup development env")
+var devOption = flag.Bool("dev", false, "Setup development env")
 var repoPath = flag.String("repo", "", "Path to project's git repo")
 
 func createConf() UnlockInstallConf {
