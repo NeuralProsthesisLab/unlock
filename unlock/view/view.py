@@ -71,7 +71,7 @@ class UnlockView(object):
             anchor_x='center', anchor_y='center', color=color,
             group=group, batch=batch)
             
-    def drawLine(self, x1, y1, x2, y2, batch, color=(255,255,255), group=None):
+    def drawLine(self, x1, y1, x2, y2, batch, color=(255,255,255), group=None, xoffset=0, yoffset=0):
         """
         Draws a line between two points on the screen
         
