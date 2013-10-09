@@ -1,9 +1,22 @@
+if sys.platform.startswith("linux"):
+    try:
+        from espeak import espeak
+    except:
+        raise Exception("ERROR: Missing python-espeak module")
+elif sys.platform.startswith("darwin"):
+    import subprocess
+elif sys.platform.startswith('win'):
+    try:
+        import pyttsx
+    except:
+        raise Exception("ERROR: Missing pyttsx module")
+        
+import subprocess
 
-class FastPadButton(object):
+class FastPadButton(UnlockView):
     """
     Class for a FastPad button.
     """
-
     def __init__(self, fast_pad_model, rect, labels, actions):
         """
         Initialize the internal data structures and
@@ -21,7 +34,7 @@ class FastPadButton(object):
         
         Raises an Exception if anything goes wrong.
         """
-        
+        super(FastPadButton, self).__init__()        
         # Draw the button border -- hack around Unlock's drawRect()
         #drawRect(*rect) # This would be nicer...
         self.rect = rect
@@ -79,8 +92,6 @@ class FastPadButton(object):
     
 class FastPadView(UnlockView):
     def __init__(self, model, canvas):
-        self.model = model
-        
         """
         Initialize internal data structures.
 
@@ -90,7 +101,8 @@ class FastPadView(UnlockView):
         Raises an Exception if anything goes wrong.
         """
         # Call our parent's constructor
-        super(FastPad, self).__init__()
+        super(UnlockView, self).__init__()
+        self.model = model
 
         # Get the GUI calculations
         self.canvas = canvas
@@ -168,7 +180,7 @@ class FastPadView(UnlockView):
                 ["3", "D", "E", "F"],
                 [self.addText],
                 )
-
+                
         # Link the buttons to each other
         self.button1.up = self.buttonB
         self.button1.down = self.button4
@@ -221,7 +233,9 @@ class FastPadView(UnlockView):
 
         # Initialize the state
 #        self.mode = "CURSOR"
+
         self.currButton = self.button5
+        self.model.currButton = self.button5
         self.currIndex = 0
  #       self.selTime = 0
 #        self.setMode(self.mode, self.currButton)
@@ -258,10 +272,10 @@ class FastPadView(UnlockView):
         """
         Speaks the current text out via a TTS if we're
         on a supported platform.
-
+            
         Input:
             label -- (str) Unused
-
+            
         Raises an Exception if anything goes wrong.
         """
         text = self.text.text.replace("_", " ")
@@ -269,7 +283,11 @@ class FastPadView(UnlockView):
             espeak.synth(text)
         elif sys.platform.startswith("darwin"):
             subprocess.call(["say", text])
-
+        elif sys.platform.startswith('win'):
+            engine = pyttsx.init()
+            engine.say(text)
+            engine.runAndWait()
+            
         self.text.text = ""
         
     def render(self):
