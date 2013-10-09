@@ -58,13 +58,15 @@ type UnlockInstallConf struct {
     PyserialZipName string
     PyserialPackageName string 
     PyserialDirectory string
-    UnlockZipName string
+	UnlockZipName string
     UnlockPackageName string
     UnlockPackageDirectory string
     SconsZipName string
     SconsPackageName string 
     SconsPackageDirectory string
     Unlockexe string
+	VCRedistPackageName string
+	PyAudioPackageName string    
 }
  
 func ParseConf(confFile string) UnlockInstallConf {
