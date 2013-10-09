@@ -185,9 +185,17 @@ func installPyglet12alpha(pythonPath string, baseUrl string, fileName string, pa
 }
 
 func installNumPy(baseUrl string, numpyPath string) {
-    downloadAndWriteFile(baseUrl+numpyPath, numpyPath)//numpy-MKL-1.7.1.win32-py2.7.exe)
+    /*downloadAndWriteFile(baseUrl+numpyPath, numpyPath)//numpy-MKL-1.7.1.win32-py2.7.exe)
     var cwd = getWorkingDirectoryAbsolutePath()
-    install(cwd+"\\"+numpyPath, `numpy`, true)
+    install(cwd+"\\"+numpyPath, `numpy`, true)*/
+    
+    installBinPackage(baseUrl, numpyPath, `numpy`)
+}
+
+func installBinPackage(baseUrl string, path string, name string) {
+    downloadAndWriteFile(baseUrl+path, path)
+    var cwd = getWorkingDirectoryAbsolutePath()
+    install(cwd+"\\"+path, name, true)
 }
 
 func installPySerial26(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
@@ -233,7 +241,7 @@ func createConf() UnlockInstallConf {
             `pyglet-1.2alpha-p3.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`, `AVbin10-win32.exe`, 
             `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, `unlock-0.3.7-win32.zip`, `unlock`, `unlock-0.3.7`,
             `scons-2.3.0.zip`, `scons`, `scons-2.3.0`,
-            `unlock.exe`}
+            `unlock.exe`, `vcredist_2010_x86.exe`, `pyaudio-0.2.7.py33.exe`}
     } else {
         return ParseConf(*confFile)
     }    
@@ -269,7 +277,8 @@ func main() {
     var conf = createConf()
     
     installPython(conf.BaseUrl, conf.PythonPathEnvVar, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
-    installNumPy(conf.BaseUrl, conf.NumpyPackageName)
+    installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
+	installNumPy(conf.BaseUrl, conf.NumpyPackageName)
     //installEasyInstall(conf.BaseUrl, conf.PythonPath)
     //installPip(conf.EasyInstallPath)
     //installVirtualenv(conf.PipPath)
@@ -286,7 +295,10 @@ func main() {
 
     installPyglet12alpha(conf.PythonPath, conf.BaseUrl, conf.PygletZipName, conf.PygletPackageName, conf.PygletDirectory)
     installPySerial26(conf.PythonPath, conf.BaseUrl, conf.PyserialZipName, conf.PyserialPackageName, conf.PyserialDirectory)
-    if *devOption == false {
+    installBinPackage(conf.BaseUrl, conf.PyAudioPackageName, `pyaudio`)
+	
+	// Skip install unlock software for development option
+	if *devOption == false {
         installUnlock(conf.PythonPath, conf.BaseUrl, conf.UnlockZipName, conf.UnlockPackageName, conf.UnlockPackageDirectory)
         //installScons(conf.PythonPath, conf.BaseUrl, conf.SconsZipName, conf.SconsPackageName, conf.SconsPackageDirectory)
         installUnlockRunner(conf.BaseUrl, conf.UnlockDirectory, conf.Unlockexe)
