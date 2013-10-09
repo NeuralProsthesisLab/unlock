@@ -7,10 +7,10 @@ class FastPadModel(UnlockModel):
     RIGHT = 4
     SELECT_TIME = 2 # How many secon
     
-    def __init__(self, button5):
+    def __init__(self):
        # Initialize the state
         self.previous_mode = "CURSOR"
-        self.currButton = self.button5
+        self.currButton = None
         self.button = None
         self.selTime = 0        
             
