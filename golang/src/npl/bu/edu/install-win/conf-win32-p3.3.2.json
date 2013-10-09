@@ -22,10 +22,12 @@
         "PyserialZipName" : "pyserial-2.6.zip",
         "PyserialPackageName" : "pyserial-2.6",
         "PyserialDirectory" : "pyserial-2.6",
-        "UnlockZipName" : "unlock-0.3.7-win32.zip",
+		"UnlockZipName" : "unlock-0.3.7-win32.zip",
         "UnlockPackageName" : "unlock",
         "UnlockPackageDirectory" : "unlock-0.3.7",
         "SconsZipName" : "scons-2.3.0.zip",
         "SconsPackageName" : "scons",
-        "SconsPackageDirectory" : "scons-2.3.0"
+        "SconsPackageDirectory" : "scons-2.3.0",
+		"VCRedistPackageName" : "vcredist_2010_x86.exe",
+		"PyAudioPackageName" : "pyaudio-0.2.7.py33.exe"
 }
