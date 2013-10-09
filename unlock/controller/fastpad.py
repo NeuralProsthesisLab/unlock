@@ -68,13 +68,10 @@ class FastPad(UnlockController):
     def create_ssvep(window, signal, timer, base=None, color='bw'):
         if base == None:
             base = VEP.create_ssvep(window, signal, timer, color)
-
+            
         fastpadmodel = FastPadModel()            
         fastpadview = FastPadView(fastpadmodel, canvas)
-
-        
         base.views.append(fastpadview)
-        
         return FastPad(window, base.views, base.canvas, fastpadmodel)
         
         
