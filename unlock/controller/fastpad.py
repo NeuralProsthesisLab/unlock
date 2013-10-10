@@ -33,15 +33,15 @@ import os
 
 
 class FastPad(UnlockControllerFragment):
-    def __init__(self, model, view, standalone=False):
-        super(FastPad, self).__init__(model, view)
-        self.standalone = standalone
+    def __init__(self, model, views, batch, standalone=False):
+        super(FastPad, self).__init__(model, views, batch, standalone)
         
     @staticmethod
     def create_fastpad_fragment(canvas):
         fastpad_model = FastPadModel()            
         fastpad_view = FastPadView(fastpad_model, canvas)
-        fastpad = FastPad(fastpad_model, fastpad_view)        
+        assert canvas != None
+        fastpad = FastPad(fastpad_model, [fastpad_view], canvas.batch)        
         return fastpad
         
     @staticmethod
@@ -50,9 +50,10 @@ class FastPad(UnlockControllerFragment):
         if base == None:
             base = EEGControllerFragment.create_ssvep(canvas, signal, timer, color)
             
+        assert base != None
         fastpad = FastPad.create_fastpad_fragment(canvas)
-        base.views.append(fastpad.view)
-        controller_chain = UnlockControllerChain(window, canvas, base.command_receiver,
+        base.views.extend(fastpad.views)
+        controller_chain = UnlockControllerChain(window, base.command_receiver,
                                                  [base, fastpad] , 'FastPad', 'LazerToggleS.png',
                                                  standalone=False)
         return controller_chain
