@@ -32,15 +32,16 @@ class UnlockModel(object):
     def __init__(self, state=None):
         super(UnlockModel, self).__init__()
         self.state = state
+        self.running = False
         
     def start(self):
-        pass
+        self.running = True
         
     def stop(self):
-        pass
+        self.running = False
         
     def is_stopped(self):
-        pass
+        return self.running
         
     def get_state(self):
         return self.state
