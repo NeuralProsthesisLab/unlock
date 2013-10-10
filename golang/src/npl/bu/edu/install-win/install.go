@@ -81,10 +81,11 @@ func unzipExpand(fileName string) {
 
 func downloadAndWriteFile(url string, fileName string) {
 	
-	// Skip download if install from repo
-	if *repoPath != `` {
-		return
-	}
+	// Skip download if file exists on disk
+    isFileExist,_ := fileExists(filepath.Join(getWorkingDirectoryAbsolutePath(), fileName))
+    if isFileExist {
+        return
+    }
 
     log.Println("Downloading file "+fileName+" from URL = "+url)
     resp, err := http.Get(url)
@@ -263,6 +264,13 @@ func installUnlockRunner(baseUrl string, unlockDirectory string, unlockexe strin
     os.Chdir(cwd)
 }
 
+func fileExists(path string) (bool, error) {
+    _, err := os.Stat(path)
+    if err == nil { return true, nil }
+    if os.IsNotExist(err) { return false, nil }
+    return false, err
+}
+
 func main() {
 
     flag.Parse()
@@ -301,6 +309,6 @@ func main() {
 	if *devOption == false {
         installUnlock(conf.PythonPath, conf.BaseUrl, conf.UnlockZipName, conf.UnlockPackageName, conf.UnlockPackageDirectory)
         //installScons(conf.PythonPath, conf.BaseUrl, conf.SconsZipName, conf.SconsPackageName, conf.SconsPackageDirectory)
-        installUnlockRunner(conf.BaseUrl, conf.UnlockDirectory, conf.Unlockexe)
+        //installUnlockRunner(conf.BaseUrl, conf.UnlockDirectory, conf.Unlockexe)
 	}
 }
