@@ -204,9 +204,12 @@ func installPySerial26(pythonPath string, baseUrl string, fileName string, packa
 }
 
 func installAvbin(baseUrl string, avbin string) {
-    downloadAndWriteFile(baseUrl+avbin, avbin)
+    /*downloadAndWriteFile(baseUrl+avbin, avbin)
     var cwd = getWorkingDirectoryAbsolutePath()
-    install(cwd+"\\"+avbin, `avbin`, true)
+    install(cwd+"\\"+avbin, `avbin`, true)*/
+    
+    installBinPackage(baseUrl, avbin, `avbin`)
+    
     // XXX - last minute hack
     data, err1 := ioutil.ReadFile(`C:\Windows\System32\avbin.dll`)
     if err1 != nil {
