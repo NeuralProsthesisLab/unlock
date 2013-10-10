@@ -35,7 +35,7 @@ import logging
 import logging.config
 
 from unlock import context 
-from unlock.controller import PygletWindow, Collector, Dashboard, VEP
+from unlock.controller import PygletWindow, Collector, Dashboard, VEP, FastPad, Canvas
 from optparse import OptionParser
 
 
@@ -47,7 +47,7 @@ class UnlockFactory(context.PythonConfig):
         self.mac_addr = None
         if 'mac_addr' in self.args.keys():
             self.mac_addr = [int(value,0) for value in [x.strip() for x in self.args['mac_addr'].split(',')]]
-            
+        
     @context.Object(lazy_init=True)        
     def audio(self):
         from unlock.decode import acquire
@@ -87,7 +87,7 @@ class UnlockFactory(context.PythonConfig):
 
     @context.Object(lazy_init=True)
     def PygletWindow(self):
-        return PygletWindow(self.signal, self.args['fullscreen'], self.args['fps'], self.args['vsync'])
+        return PygletWindow(self.signal, self.args['fullscreen'], self.args['fps'], self.args['vsync'])        
         
     @context.Object(lazy_init=True)
     def SingleMSequenceCollector(self):
@@ -98,6 +98,11 @@ class UnlockFactory(context.PythonConfig):
     def MultiMSequenceCollector(self):
         window = self.PygletWindow()
         return Collector.create_multi_centered_msequence_collector(window, self.signal, self.timer, **self.args['MultiMSequenceCollector'])
+    
+    @context.Object(lazy_init=True)
+    def FastPad(self):
+        window = self.PygletWindow()
+        return FastPad.create_fastpad(window, self.signal, self.timer, **self.args['FastPad'])
     
     @context.Object(lazy_init=True)
     def Ssvep(self):
@@ -127,8 +132,8 @@ class UnlockFactory(context.PythonConfig):
             controller = getattr(self, controller_attr)
             controllers.append(controller())
         args.pop('controllers')
-        window = self.PygletWindow()
-        return Dashboard.create(window, controllers, self.signal, self.timer, **args)
+        #window = self.PygletWindow()
+        return Dashboard.create_dashboard(controllers[0].window, controllers, self.signal, self.timer, **args)
         
         
 class UnlockRuntime(object):
