@@ -29,5 +29,6 @@
         "SconsPackageName" : "scons",
         "SconsPackageDirectory" : "scons-2.3.0",
 		"VCRedistPackageName" : "vcredist_2010_x86.exe",
-		"PyAudioPackageName" : "pyaudio-0.2.7.py33.exe"
+		"PyAudioPackageName" : "pyaudio-0.2.7.py33.exe",
+        "PyWinPackageName" : "pywin32-218.win32-py3.3.exe"
 }
