@@ -1,3 +1,7 @@
+from .view import UnlockView
+
+import sys
+
 if sys.platform.startswith("linux"):
     try:
         from espeak import espeak
@@ -7,17 +11,15 @@ elif sys.platform.startswith("darwin"):
     import subprocess
 elif sys.platform.startswith('win'):
     try:
-        import pyttsx
+        import win32com.client
     except:
-        raise Exception("ERROR: Missing pyttsx module")
+        raise Exception("ERROR: Missing pywin32")
         
-import subprocess
-
 class FastPadButton(UnlockView):
     """
     Class for a FastPad button.
     """
-    def __init__(self, fast_pad_model, rect, labels, actions):
+    def __init__(self, rect, labels, actions, batch):
         """
         Initialize the internal data structures and
         graphical button layout.
@@ -34,7 +36,8 @@ class FastPadButton(UnlockView):
         
         Raises an Exception if anything goes wrong.
         """
-        super(FastPadButton, self).__init__()        
+        super(FastPadButton, self).__init__()
+        self.batch = batch
         # Draw the button border -- hack around Unlock's drawRect()
         #drawRect(*rect) # This would be nicer...
         self.rect = rect
@@ -56,7 +59,7 @@ class FastPadButton(UnlockView):
             rect[0] + (.5 * rect[2]) - self.texts[-1].content_width/2,
             rect[1] + (.75 * rect[3]) - self.texts[-1].content_height * 0.35,
             self.texts[-1].content_width,
-            self.texts[-1].content_height * .65), self.batch)
+            self.texts[-1].content_height * .65))
         if len(labels) > 1:
             # Calculate the sub-label positions
             width = rect[2] / (len(labels) - 1)
@@ -65,8 +68,7 @@ class FastPadButton(UnlockView):
             left = rect[0] + (width / 2)
             for label in labels[1:]:
                 self.texts.append(self.drawText(label,
-                    left, rect[1] + (.25 * rect[3]),
-                    size = int(.65 * self.texts[0].font_size)))
+                    left, rect[1] + (.25 * rect[3]), self.batch, size=int(.65 * self.texts[0].font_size)))
                 self.rects.append((
                     left - self.texts[-1].content_width/2,
                     rect[1] + (.25 * rect[3]) - self.texts[-1].content_height * 0.35,
@@ -91,6 +93,9 @@ class FastPadButton(UnlockView):
         pass
     
 class FastPadView(UnlockView):
+    BG_COLOR = (0, 0, 0) # Color of the background
+    CURSOR_COLOR = (0, 0, 255) # Color of the cursor
+    CURSOR_MARGIN = 2 # Margin around the cursor, in pixels
     def __init__(self, model, canvas):
         """
         Initialize internal data structures.
@@ -112,73 +117,88 @@ class FastPadView(UnlockView):
         padL = (canvas.width - padW) / 2
         buttonW = padW / 3
         buttonH = (canvas.height - textH) / 4
+        self.batch = canvas.batch
 
         # Create the text bar
-        self.textRect = self.drawRect(0, padH, screen.width, textH)
+        self.textRect = self.drawRect(0, padH, canvas.width, textH, self.batch)
         self.text = self.drawText("",
-                canvas.width / 2, canvas.height - (textH / 2))
+                canvas.width / 2, canvas.height - (textH / 2), self.batch)
         self.text.width = canvas.width
         
         # Create the buttons
-        self.buttonB = FastButton(
+# fast_pad_model, rect, labels, actions):        
+        self.buttonB = FastPadButton(
+            
                 (padL, 0, buttonW, buttonH),
                 ["<"],
                 [self.removeText],
+                self.batch
                 )
-        self.button0 = FastButton(
+        self.button0 = FastPadButton(
                 (padL + buttonW, 0, buttonW, buttonH),
                 ["0", "_"],
                 [self.addText],
+                self.batch,                
                 )
-        self.buttonE = FastButton(
+        self.buttonE = FastPadButton(
                 (padL + (2 * buttonW), 0, buttonW, buttonH),
                 [">"],
                 [self.speakText],
+                self.batch,                                
                 )
-        self.button7 = FastButton(
+        self.button7 = FastPadButton(
                 (padL, buttonH, buttonW, buttonH),
                 ["7", "P", "Q", "R", "S"],
                 [self.addText],
+                self.batch,                                
                 )
-        self.button8 = FastButton(
+        self.button8 = FastPadButton(
                 (padL + buttonW, buttonH, buttonW, buttonH),
                 ["8", "T", "U", "V"],
                 [self.addText],
+                self.batch,                                
                 )
-        self.button9 = FastButton(
+        self.button9 = FastPadButton(
                 (padL + (2 * buttonW), buttonH, buttonW, buttonH),
                 ["9", "W", "X", "Y", "Z"],
                 [self.addText],
+                self.batch,                                
                 )
-        self.button4 = FastButton(
+        self.button4 = FastPadButton(
                 (padL, buttonH * 2, buttonW, buttonH),
                 ["4", "G", "H", "I"],
                 [self.addText],
+                self.batch,                                
                 )
-        self.button5 = FastButton(
+        self.button5 = FastPadButton(
                 (padL + buttonW, buttonH * 2, buttonW, buttonH),
                 ["5", "J", "K", "L"],
                 [self.addText],
+                self.batch,                                
                 )
-        self.button6 = FastButton(
+        self.button6 = FastPadButton(
                 (padL + (2 * buttonW), buttonH * 2, buttonW, buttonH),
                 ["6", "M", "N", "O"],
                 [self.addText],
+                self.batch,                                
                 )
-        self.button1 = FastButton(
+        self.button1 = FastPadButton(
                 (padL, buttonH * 3, buttonW, buttonH),
                 ["1"],
                 [self.addText],
+                self.batch,                                
                 )
-        self.button2 = FastButton(
+        self.button2 = FastPadButton(
                 (padL + buttonW, buttonH * 3, buttonW, buttonH),
                 ["2", "A", "B", "C"],
                 [self.addText],
+                self.batch,                                
                 )
-        self.button3 = FastButton(
+        self.button3 = FastPadButton(
                 (padL + (2 * buttonW), buttonH * 3, buttonW, buttonH),
                 ["3", "D", "E", "F"],
                 [self.addText],
+                self.batch,                                
                 )
                 
         # Link the buttons to each other
@@ -236,6 +256,7 @@ class FastPadView(UnlockView):
 
         self.currButton = self.button5
         self.model.currButton = self.button5
+        self.model.button = self.button5
         self.currIndex = 0
  #       self.selTime = 0
 #        self.setMode(self.mode, self.currButton)
@@ -284,9 +305,11 @@ class FastPadView(UnlockView):
         elif sys.platform.startswith("darwin"):
             subprocess.call(["say", text])
         elif sys.platform.startswith('win'):
-            engine = pyttsx.init()
-            engine.say(text)
-            engine.runAndWait()
+            speaker = win32com.client.Dispatch("SAPI.SpVoice")
+            speaker.Speak("Hello, it works!")            
+#            engine = pyttsx.init()
+#            engine.say(text)
+#            engine.runAndWait()
             
         self.text.text = ""
         
@@ -296,7 +319,7 @@ class FastPadView(UnlockView):
         
         Input:
             mode -- (str) One of "CURSOR" or "SELECT"
-            button -- (FastButton) Where is the cursor
+            button -- (FastPadButton) Where is the cursor
                 or selection marker?
                 
         Raises an Exception if anything goes wrong.
@@ -308,13 +331,13 @@ class FastPadView(UnlockView):
                 
         # Clear the old rectangle
         self.drawRect(
-                self.currButton.rect[0] + FastPad.CURSOR_MARGIN,
-                self.currButton.rect[1] + FastPad.CURSOR_MARGIN,
-                self.currButton.rect[2] - (2 * FastPad.CURSOR_MARGIN),
-                self.currButton.rect[3] - (2 * FastPad.CURSOR_MARGIN),
-                color = FastPad.BG_COLOR,
-                fill = True,
-                )
+                self.currButton.rect[0] + FastPadView.CURSOR_MARGIN,
+                self.currButton.rect[1] + FastPadView.CURSOR_MARGIN,
+                self.currButton.rect[2] - (2 * FastPadView.CURSOR_MARGIN),
+                self.currButton.rect[3] - (2 * FastPadView.CURSOR_MARGIN),
+                self.batch,
+                color = FastPadView.BG_COLOR,
+                fill = True)
                 
         # We're currently in CURSOR mode
         if self.model.previous_mode == "CURSOR":
@@ -323,16 +346,17 @@ class FastPadView(UnlockView):
             if self.model.mode == "CURSOR":
                 
                 # Set the new location
-                self.currButton = button
+                self.currButton = self.model.button
                 # XXX - what a tangled web we weave...
-                self.model.currButton = button                
+                self.model.currButton = self.model.button                
                 # Draw the new rectangle
                 self.drawRect(
-                        self.currButton.rect[0] + FastPad.CURSOR_MARGIN,
-                        self.currButton.rect[1] + FastPad.CURSOR_MARGIN,
-                        self.currButton.rect[2] - (2 * FastPad.CURSOR_MARGIN),
-                        self.currButton.rect[3] - (2 * FastPad.CURSOR_MARGIN),
-                        color = FastPad.CURSOR_COLOR,
+                        self.currButton.rect[0] + FastPadView.CURSOR_MARGIN,
+                        self.currButton.rect[1] + FastPadView.CURSOR_MARGIN,
+                        self.currButton.rect[2] - (2 * FastPadView.CURSOR_MARGIN),
+                        self.currButton.rect[3] - (2 * FastPadView.CURSOR_MARGIN),
+                        self.batch,                     
+                        color = FastPadView.CURSOR_COLOR,
                         fill = True,
                         )
                         
@@ -345,7 +369,8 @@ class FastPadView(UnlockView):
                         self.currButton.rects[self.currIndex][1],
                         self.currButton.rects[self.currIndex][2],
                         self.currButton.rects[self.currIndex][3],
-                        color = FastPad.CURSOR_COLOR,
+                        self.batch,                        
+                        color = FastPadView.CURSOR_COLOR,
                         fill = True,
                         )
                         
@@ -366,7 +391,8 @@ class FastPadView(UnlockView):
                         self.currButton.rects[self.currIndex][1],
                         self.currButton.rects[self.currIndex][2],
                         self.currButton.rects[self.currIndex][3],
-                        color = FastPad.CURSOR_COLOR,
+                        self.batch,                                                
+                        color = FastPadView.CURSOR_COLOR,
                         fill = True,
                         )
                         
@@ -381,17 +407,18 @@ class FastPadView(UnlockView):
                 self.currIndex = 0
                 
                 # Set the new location
-                self.currButton = button
+                self.currButton = self.model.button
                 #XXX - tangled up in buttons..
-                self.model.currButton = button
+                self.model.currButton = self.model.button
                 
                 # Draw the new rectangle
                 self.drawRect(
-                        self.currButton.rect[0] + FastPad.CURSOR_MARGIN,
-                        self.currButton.rect[1] + FastPad.CURSOR_MARGIN,
-                        self.currButton.rect[2] - (2 * FastPad.CURSOR_MARGIN),
-                        self.currButton.rect[3] - (2 * FastPad.CURSOR_MARGIN),
-                        color = FastPad.CURSOR_COLOR,
+                        self.currButton.rect[0] + FastPadView.CURSOR_MARGIN,
+                        self.currButton.rect[1] + FastPadView.CURSOR_MARGIN,
+                        self.currButton.rect[2] - (2 * FastPadView.CURSOR_MARGIN),
+                        self.currButton.rect[3] - (2 * FastPadView.CURSOR_MARGIN),
+                        self.batch,                                                
+                        color = FastPadView.CURSOR_COLOR,
                         fill = True,
                         )
                         
