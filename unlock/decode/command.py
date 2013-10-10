@@ -116,7 +116,7 @@ class RawSignalCommand(Command):
         self.cue_trigger_time_vector[-1] = self.timer.elapsedMicroSecs()
         
     def make_matrix(self):
-        data_matrix = self.raw_data_vector.reshape((self.samples, self.channels))
+        self.data_matrix = self.raw_data_vector.reshape((self.samples, self.channels))
         self.matrix = np.hstack((data_matrix, self.sequence_trigger_vector, self.sequence_trigger_time_vector, self.cue_trigger_vector, self.cue_trigger_time_vector))
         self.__reset_trigger_vectors__()
         self.logger.debug("Data = ", self.matrix)
