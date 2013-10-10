@@ -26,8 +26,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from .classify import UnlockClassifier
-
 import numpy as np
+
 
 class RootMeanSquare(UnlockClassifier):
 	Left = 0
