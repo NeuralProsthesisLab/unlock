@@ -44,6 +44,7 @@ def map_cue(cue):
 	else:
 		raise Exception('Unsupported value')
 
+
 class EightChannelSchema(object):
 	DataStart = 0
 	DataEnd = 7
@@ -56,6 +57,7 @@ class EightChannelSchema(object):
 	SequenceTriggerTime = 14
 	CueTrigger = 15
 	CueTriggerTime = 16
+	
 	
 class TwoChannelSchema(object):
 	DataStart = 0
