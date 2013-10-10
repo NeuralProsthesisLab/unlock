@@ -246,6 +246,24 @@ class UnlockControllerFragment(UnlockController):
         return self.standalone
         
         
+class sEMGContrllerFragment(UnlockControllerFragment):
+    def __init__(self, command_receiver):
+        super(sEMGControllerFragment, self).__init__(None, None, None)
+        self.command_receiver = command_receiver
+        
+    def update_state(self, command):
+        pass
+        
+    def keyboard_input(self, command):
+        pass
+        
+    def activate(self):
+        pass
+        
+    def deactivate(self):
+        pass
+        
+        
 class EEGControllerFragment(UnlockControllerFragment):
     def __init__(self, command_receiver, timed_stimuli, views, batch):
         assert timed_stimuli != None
@@ -310,7 +328,7 @@ class EEGControllerFragment(UnlockControllerFragment):
         command_receiver = ClassifiedCommandReceiver(raw_command_receiver, classifier)
         
         return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
-        
+    
     @staticmethod
     def create_msequence(canvas, signal, timer, color='bw'):
         
