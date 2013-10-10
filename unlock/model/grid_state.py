@@ -53,7 +53,6 @@ class GridState(UnlockModel):
         self.state = (0, 0)
         self.state_change = None
         self.controllers = {}
-        
         for slot in self.ordering:
             self.controllers[slot] = 'deadbeef'
         
