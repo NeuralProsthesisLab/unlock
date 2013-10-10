@@ -263,6 +263,13 @@ class sEMGContrllerFragment(UnlockControllerFragment):
     def deactivate(self):
         pass
         
+    @staticmethod
+    def create_semg(signal, timer, thresholds):
+        raw_command_receiver = RawInlineSignalReceiver(signal, timer)
+        classifier = RootMeanSquare(thresholds)
+        command_receiver = ClassifiedCommandReceiver(raw_command_receiver, classifier)        
+        return sEMGControllerFragment(command_receiver)
+        
         
 class EEGControllerFragment(UnlockControllerFragment):
     def __init__(self, command_receiver, timed_stimuli, views, batch):
