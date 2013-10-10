@@ -81,8 +81,10 @@ func unzipExpand(fileName string) {
 
 func downloadAndWriteFile(url string, fileName string) {
 	
+    filePath := filepath.Join(getWorkingDirectoryAbsolutePath(), fileName)
+    
 	// Skip download if file exists on disk
-    isFileExist,_ := fileExists(filepath.Join(getWorkingDirectoryAbsolutePath(), fileName))
+    isFileExist,_ := fileExists(filePath)
     if isFileExist {
         return
     }
@@ -99,7 +101,7 @@ func downloadAndWriteFile(url string, fileName string) {
         log.Fatalln(err)
     }
     
-    if err = ioutil.WriteFile(fileName, body, 0744); err != nil {
+    if err = ioutil.WriteFile(filePath, body, 0744); err != nil {
         log.Fatalln(err)
     }
 }
