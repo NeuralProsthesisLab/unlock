@@ -79,43 +79,56 @@ func unzipExpand(fileName string) {
     }    
 }
 
-func downloadAndWriteFile(url string, fileName string) {
+func downloadAndWriteFile(url string, fileName string) string {
 	
-    filePath := filepath.Join(getWorkingDirectoryAbsolutePath(), fileName)
+    filePath := filepath.Join(getDownloadDirectory(), fileName)
     
-	// Skip download if file exists on disk
-    isFileExist,_ := fileExists(filePath)
-    if isFileExist {
-        return
+	// Download if file not exists on disk
+    isFileExist,_ := checkFileExists(filePath)
+    if isFileExist == false {
+        
+        log.Println("Downloading file "+fileName+" from URL = "+url)
+        resp, err := http.Get(url)
+        if err != nil {
+            log.Fatalln(err)
+        }
+        
+        defer resp.Body.Close()
+        body, err1 := ioutil.ReadAll(resp.Body)
+        if err1 != nil {
+            log.Fatalln(err)
+        }
+        
+        if err = ioutil.WriteFile(filePath, body, 0744); err != nil {
+            log.Fatalln(err)
+        }
     }
+    
+    return filePath
+}
 
-    log.Println("Downloading file "+fileName+" from URL = "+url)
-    resp, err := http.Get(url)
-    if err != nil {
-        log.Fatalln(err)
-    }
+func checkFileExists(path string) (bool, error) {
+    _, err := os.Stat(path)
+    if err == nil { return true, nil }
+    if os.IsNotExist(err) { return false, nil }
+    return false, err
+}
+
+func getDownloadDirectory() string {
+    // Default is current working directory
+	path := getWorkingDirectoryAbsolutePath()
     
-    defer resp.Body.Close()
-    body, err1 := ioutil.ReadAll(resp.Body)
-    if err1 != nil {
-        log.Fatalln(err)
-    }
+    // If repoPath is specified, take the repo's "package" dir
+	if *repoPath != `` {
+		path = filepath.Join(*repoPath, `package`)
+	}
     
-    if err = ioutil.WriteFile(filePath, body, 0744); err != nil {
-        log.Fatalln(err)
-    }
+    return path
 }
 
 func getWorkingDirectoryAbsolutePath() string {
 	
-	path := ``
-	
-	// If repoPath is specified, take the repo's "package" dir
-	if *repoPath != `` {
-		path = filepath.Join(*repoPath, `package`)
-	}
-	
-	cwd, err := filepath.Abs(path)	    
+    cwd, err := filepath.Abs(``)	    
 	log.Println(`Current working directory = `, cwd)
     if err != nil {
         log.Fatalln(err)
@@ -124,15 +137,11 @@ func getWorkingDirectoryAbsolutePath() string {
 }
 
 func installZippedPythonPackage(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
+    
     log.Println(`Downloading `+packageName+`... `)
-    downloadAndWriteFile(baseUrl+fileName, fileName)
+    filePath := downloadAndWriteFile(baseUrl+fileName, fileName)
 	
-	// Add repo path if install from repo
-	if *repoPath != `` {
-		fileName = filepath.Join(getWorkingDirectoryAbsolutePath(), fileName)
-	}
-	
-    unzipExpand(fileName)
+	unzipExpand(filePath)
     chdirFailOnError(packageDirectory, `Failed to install `+packageName)
     log.Println("CWD = "+getWorkingDirectoryAbsolutePath())
     command := pythonPath+` setup.py install`
@@ -141,12 +150,13 @@ func installZippedPythonPackage(pythonPath string, baseUrl string, fileName stri
 }
 
 func installPython(baseUrl string, pythonPathEnvVar string, pythonInstallerName string, pythonBasePath string, pythonPackageName string) {
-    cwd := getWorkingDirectoryAbsolutePath()
+    //cwd := getWorkingDirectoryAbsolutePath()
     log.Println(`Downloading `+pythonPackageName+`...`)
-    downloadAndWriteFile(baseUrl+pythonInstallerName, pythonInstallerName)
+    filePath := downloadAndWriteFile(baseUrl+pythonInstallerName, pythonInstallerName)
     log.Println(`Installing `+pythonPackageName)
 //    output, err := exec.Command("cmd", "/C", "msiexec /i ", cwd+"\\"+pythonInstallerName,`TARGETDIR=`+pythonBasePath,`/qb`, `ALLUSERS=0`).CombinedOutput()
-    output, err := exec.Command("cmd", "/C", cwd+"\\"+pythonInstallerName).CombinedOutput()
+    //output, err := exec.Command("cmd", "/C", cwd+"\\"+pythonInstallerName).CombinedOutput()
+    output, err := exec.Command("cmd", "/C", filePath).CombinedOutput()
     if len(output) > 0 {
         log.Printf("%s\n", output)
     }
@@ -195,10 +205,9 @@ func installNumPy(baseUrl string, numpyPath string) {
     installBinPackage(baseUrl, numpyPath, `numpy`)
 }
 
-func installBinPackage(baseUrl string, path string, name string) {
-    downloadAndWriteFile(baseUrl+path, path)
-    var cwd = getWorkingDirectoryAbsolutePath()
-    install(cwd+"\\"+path, name, true)
+func installBinPackage(baseUrl string, fileName string, packageName string) {
+    filePath := downloadAndWriteFile(baseUrl+fileName, fileName)
+    install(filePath, packageName, true)
 }
 
 func installPySerial26(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
@@ -267,13 +276,6 @@ func installUnlockRunner(baseUrl string, unlockDirectory string, unlockexe strin
     chdirFailOnError(unlockDirectory, ` ERROR: Failed to install unlock.exe: couldn't change dir `)
     downloadAndWriteFile(baseUrl+unlockexe, unlockexe)
     os.Chdir(cwd)
-}
-
-func fileExists(path string) (bool, error) {
-    _, err := os.Stat(path)
-    if err == nil { return true, nil }
-    if os.IsNotExist(err) { return false, nil }
-    return false, err
 }
 
 func main() {
