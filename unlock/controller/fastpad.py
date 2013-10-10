@@ -1,8 +1,3 @@
-# Created By: Karl Wiegand (wiegand@ccs.neu.edu)
-# Date Created: Tue Mar  5 12:14:06 EST 2013
-# Description: Main program file for FastPad, a letter-based
-#   typing interface for the Unlock project
-
 # Copyright (c) James Percent, Byron Galbraith and Unlock contributors.
 # All rights reserved.
 # Redistribution and use in source and binary forms, with or without modification,
@@ -32,46 +27,34 @@
 #
 from unlock.model import FastPadModel
 from unlock.view import FastPadView
-#from unlock.decode import HarmonicSumDecision, RawInlineSignalReceiver, ClassifiedCommandReceiver
-from unlock.controller import UnlockController, Canvas, VEP
+from unlock.controller import UnlockControllerFragment, UnlockControllerChain, EEGControllerFragment, Canvas
 import inspect
 import os
 
 
-class FastPad(UnlockController):
-    def __init__(self, window, views, canvas, vep, fastpad_model, icon="LazerToggleS.png", name="FastPad"):
-        super(UnlockController, self).__init__(window, views, canvas)
-        self.vep = vep
-        self.fastpad_model = fastpad_model
-        self.name = name
-        self.icon = icon
-        self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(FastPad)),
-                                      'resource', self.icon)
-        
-    def keyboard_input(self, command):
-        self.fastpad_model.process_command(command)
-        
-    def poll_signal(self, delta):
-        command = self.command_receiver.next_command(delta)
-        self.fastpad_model.process_command(command)
-        self.vep.update_state(command)
-        
-    def activate(self):
-        self.fastpad_model.start()
-        return self.vep.start()
-        
-    def deactivate(self):
-        self.fastpad_model.stop()
-        return self.vep.stop()
+class FastPad(UnlockControllerFragment):
+    def __init__(self, model, view, standalone=False):
+        super(FastPad, self).__init__(model, view)
+        self.standalone = standalone
         
     @staticmethod
-    def create_ssvep(window, signal, timer, base=None, color='bw'):
+    def create_fastpad_fragment(canvas):
+        fastpad_model = FastPadModel()            
+        fastpad_view = FastPadView(fastpad_model, canvas)
+        fastpad = FastPad(fastpad_model, fastpad_view)        
+        return fastpad
+        
+    @staticmethod
+    def create_fastpad(window, signal, timer, base=None, color='bw'):
+        canvas = Canvas.create(window.width, window.height)
         if base == None:
-            base = VEP.create_ssvep(window, signal, timer, color)
+            base = EEGControllerFragment.create_ssvep(canvas, signal, timer, color)
             
-        fastpadmodel = FastPadModel()            
-        fastpadview = FastPadView(fastpadmodel, canvas)
-        base.views.append(fastpadview)
-        return FastPad(window, base.views, base.canvas, fastpadmodel)
-        
-        
+        fastpad = FastPad.create_fastpad_fragment(canvas)
+        base.views.append(fastpad.view)
+        controller_chain = UnlockControllerChain(window, canvas, base.command_receiver,
+                                                 [base, fastpad] , 'FastPad', 'LazerToggleS.png',
+                                                 standalone=False)
+        return controller_chain
+            
+            
