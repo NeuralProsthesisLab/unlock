@@ -1,18 +1,19 @@
-
+from .model import UnlockModel
 
 class FastPadModel(UnlockModel):
     UP = 1
     DOWN = 2
     LEFT = 3
     RIGHT = 4
-    SELECT_TIME = 2 # How many secon
-    
+    SELECT_TIME = 2
     def __init__(self):
        # Initialize the state
         self.previous_mode = "CURSOR"
+        self.mode = "CURSOR"
         self.currButton = None
         self.button = None
-        self.selTime = 0        
+        self.selTime = 0
+        self.noop = False
             
     def process_command(self, command):
         """
