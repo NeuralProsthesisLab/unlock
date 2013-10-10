@@ -6,7 +6,7 @@ packages = ['unlock',
             'unlock.context', 'unlock.context.test',
             'unlock.controller', 'unlock.controller.test', 
             'unlock.model', 'unlock.model.test',
-            'unlock.neural', 'unlock.neural.acquire', 'unlock.neural.classify', 
+            'unlock.decode', 'unlock.decode.acquire', 'unlock.decode.classify', 
             'unlock.util', 'unlock.util.test',
             'unlock.view', 'unlock.view.test']
 
@@ -19,7 +19,7 @@ package_data = {
                  'unlock.model' : [],
 
 # win-x86 libs find acquire-c++/boost/win-x86/lib | grep -v -e lib$  -e gd | sed s/^/\'/ | sed s/$/\',/
-                'unlock.neural' : ['acquire/boost_atomic-vc100-mt-1_54.dll', 'acquire/boost_chrono-vc100-mt-1_54.dll',
+                'unlock.decode' : ['acquire/boost_atomic-vc100-mt-1_54.dll', 'acquire/boost_chrono-vc100-mt-1_54.dll',
                                    'acquire/boost_date_time-vc100-mt-1_54.dll', 'acquire/boost_python3-vc100-mt-1_54.dll',
                                    'acquire/boost_random-vc100-mt-1_54.dll', 'acquire/boost_system-vc100-mt-1_54.dll',
                                    'acquire/boost_thread-vc100-mt-1_54.dll', 'acquire/boost_unit_test_framework-vc100-mt-1_54.dll',
