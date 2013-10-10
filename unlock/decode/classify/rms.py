@@ -36,9 +36,7 @@ class RootMeanSquare(UnlockClassifier):
 	Select = 3
 	def __init__(self, rms_thresholds, channels=4, window_size=22050, shift_size=512, filters=None):
 		super(RootMeanSquare, self).__init__()
-		self.left_thres = thresholds[RootMeanSquare.Left]
-		self.bottom_thres = thresholds[RootMeanSquare.Bottom]
-		self.right_thres = thresholds[RootMeanSquare.Right]		
+		self.set_thresholds(rms_thresholds)
 		self.channels = channels
 		self.window_size = window_size
 		self.shift_size = shift_size
@@ -46,7 +44,18 @@ class RootMeanSquare(UnlockClassifier):
 		self.window = np.zeros((channels, window_size))
 		self.shift = np.zeros((channels, shift_size))
 		self.current_size = 0
-	
+		
+	def set_thresholds(self, rms_thresholds):
+		if rms_threshodls == None:
+			self.left_thres = None
+			self.bottom_thres = None
+			self.right_thres = None
+		else:
+			self.left_thres = thresholds[RootMeanSquare.Left]
+			self.bottom_thres = thresholds[RootMeanSquare.Bottom]
+			self.right_thres = thresholds[RootMeanSquare.Right]		
+			
+		
 	def is_left(self, chan0, chan1, chan2):
 		if chan0 > self.left_thres and chan1 < self.bottom_thres and chan2 < self.right_thres:
 			return True
@@ -67,7 +76,19 @@ class RootMeanSquare(UnlockClassifier):
 			return True
 		else:
 			return False
-	
+		
+	def make_decision(self, chan0, chan1, chan2, chan3, command):
+		if self.is_left(chan0, chan1, chan2):
+			command.decision = 1
+		elif self.is_right(chan0, chan1, chan2):
+			command.decision = 2
+		elif self.is_back(chan0, chan1, chan2):
+			command.decision = 3
+		elif self.forward(chan0, chan1, chan2):
+			command.decision = 4
+			
+		return command
+		
 	def classify(self, command):
 		if not command.is_valid():
 			return command
@@ -80,14 +101,11 @@ class RootMeanSquare(UnlockClassifier):
 		chan0 = rms[:, :1].mean()**0.5
 		chan1 = rms[:, 1:2].mean()**0.5
 		chan2 = rms[:, 2:3].mean()**0.5
-		chan3 = rms[:, 3:4].mean()**0.5         
-		if self.is_left(chan0, chan1, chan2):
-			command.decision = 1
-		elif self.is_right(chan0, chan1, chan2):
-			command.decision = 2
-		elif self.is_back(chan0, chan1, chan2):
-			command.decision = 3
-		elif self.forward(chan0, chan1, chan2):
-			command.decision = 4
-			
+		chan3 = rms[:, 3:4].mean()**0.5
+		if self.left_thres == None:
+			assert self.right_thres == None and self.bottom_thres == None
+			self.calibrate(chan0, chan1, chan2, chan3)
+		else:
+			return self.make_decision(chan0, chan1, chan2, chan3)
+		
 		return command
