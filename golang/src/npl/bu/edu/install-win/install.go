@@ -242,7 +242,7 @@ func createConf() UnlockInstallConf {
             `pyglet-1.2alpha-p3.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`, `AVbin10-win32.exe`, 
             `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, `unlock-0.3.7-win32.zip`, `unlock`, `unlock-0.3.7`,
             `scons-2.3.0.zip`, `scons`, `scons-2.3.0`,
-            `unlock.exe`, `vcredist_2010_x86.exe`, `pyaudio-0.2.7.py33.exe`}
+            `unlock.exe`, `vcredist_2010_x86.exe`, `pyaudio-0.2.7.py33.exe`, `pywin32-218.win32-py3.3.exe`}
     } else {
         return ParseConf(*confFile)
     }    
@@ -304,6 +304,7 @@ func main() {
     installPyglet12alpha(conf.PythonPath, conf.BaseUrl, conf.PygletZipName, conf.PygletPackageName, conf.PygletDirectory)
     installPySerial26(conf.PythonPath, conf.BaseUrl, conf.PyserialZipName, conf.PyserialPackageName, conf.PyserialDirectory)
     installBinPackage(conf.BaseUrl, conf.PyAudioPackageName, `pyaudio`)
+    installBinPackage(conf.BaseUrl, conf.PyWinPackageName, `pywin`)
 	
 	// Skip install unlock software for development option
 	if *devOption == false {
