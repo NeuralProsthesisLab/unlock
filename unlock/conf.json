@@ -2,44 +2,25 @@
     "main" : "Dashboard",
     "signal" : "random",
     "mac_addr" : "0x61,0x9c,0x58,0x80,0x07,0x00",
-    "fullscreen" : false,
+    "fullscreen" : true,
     "fps" : true,
     "vsync" : false,
+    "stimulus" : "ssvep",
     "controllers" : [
         {
-            "name" : "Ssvep",
+            "name" : "FastPad",
             "args" : {
             }
         },
-         {
-            "name" : "MSequenceSsvep",
-            "args" : {
-            }
-        },      
         {
-            "name" : "EmgCollector",
+            "name" : "FastPad",
             "args" : {
-                "standalone" : false,
-                "trials" : 9,
-                "rest_duration" : 2,
-                "output_file" : "C:\\Unlock\\collector_data",
-                "seed" : 31337                
             }
-        },
-        {
-            "name" : "MultiMSequenceCollector",
-            "args" : {
-                "standalone" : false,
-                "trials" : 4,
-                "rest_duration" : 2,
-                "output_file" : "C:\\Unlock\\collector_data1",
-                "seed" : 31337                
-            }
-        },           
+        },              
         {
             "name" : "Dashboard",
             "args" : {
-                "controllers" : [ "Ssvep", "MSequenceSsvep", "EmgCollector", "MultiMSequenceCollector"]
+                "controllers" : [ "FastPad", "FastPad"]
             }
         }
     ],    

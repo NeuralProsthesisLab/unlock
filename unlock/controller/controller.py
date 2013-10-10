@@ -58,16 +58,13 @@ class Canvas(object):
         return Canvas(batch, width, height, xoffset, yoffset)
             
             
-#class Graphic(object):
-#    def __init__(self, x, y):
-#        xs
-   
 class PygletWindow(pyglet.window.Window):
     def __init__(self, signal, fullscreen=False, show_fps=True, vsync=False):
         super(PygletWindow, self).__init__(fullscreen=fullscreen, vsync=vsync)
         self.signal = signal
         self.controller_stack = []
         self.views = []
+        self.batches = set([])
         if show_fps:
             self.fps = pyglet.clock.ClockDisplay().draw
         else:
@@ -93,7 +90,8 @@ class PygletWindow(pyglet.window.Window):
         self.clear()
         for view in self.views:
             view.render()
-        self.batch.draw()
+        for batch in self.batches:
+            batch.draw()
         self.fps()
         
     def handle_stop_request(self):
@@ -116,13 +114,14 @@ class PygletWindow(pyglet.window.Window):
             pyglet.clock.unschedule(self.active_controller.poll_signal)            
             
         self.views = controller.views
-        self.batch = controller.batch
+        self.batches = controller.batches
         pyglet.clock.schedule_interval(controller.poll_signal, controller.poll_signal_frequency)
         self.active_controller = controller
         
     def deactivate_controller(self):
         if self.active_controller != None:
-            self.views = []        
+            self.views = []
+            self.batches = set([])
             pyglet.clock.unschedule(self.active_controller.poll_signal)            
             self.active_controller = None
             
@@ -136,13 +135,15 @@ class PygletWindow(pyglet.window.Window):
             
             
 class UnlockController(object):
-    def __init__(self, window, views, canvas, batch, command_receiver, poll_signal_frequency,
+    def __init__(self, window, views, batches, command_receiver, poll_signal_frequency,
                  standalone=False):
         super(UnlockController, self).__init__()
         self.window = window
         self.views = views
-        self.canvas = canvas
-        self.batch = batch
+        self.batches = set([])
+        if batches != None:
+            self.batches = self.batches.union(batches)
+            
         self.command_receiver = command_receiver
         self.standalone = standalone
         self.poll_signal_frequency = poll_signal_frequency
@@ -172,21 +173,20 @@ class UnlockController(object):
         
         
 class UnlockControllerChain(UnlockController):
-    def __init__(self, window, canvas, command_receiver, controllers, name, icon,
+    def __init__(self, window, command_receiver, controllers, name, icon,
                  poll_signal_frequency=1.0/512.0, standalone=False):
         assert controllers != None and len(controllers) > 0
         
         views = []
+        batches = set([])
         for controller in controllers:
             if controller.views != None:
-                views.extend(controller.views)
-            else:
-                try:
-                    views.append(controller.view)
-                except:
-                    pass
+                views.extend(controller.views)    
+                    
+            if controller.batches != None:
+                batches = batches.union(controller.batches)
                 
-        super(UnlockControllerChain, self).__init__(window, views, canvas, canvas.batch,
+        super(UnlockControllerChain, self).__init__(window, views, batches,
                                                     command_receiver, poll_signal_frequency,
                                                     standalone=standalone)
         self.controllers = controllers
@@ -213,7 +213,7 @@ class UnlockControllerChain(UnlockController):
     def deactivate(self):
         for controller in self.controllers:
             controller.deactivate()
-        #return super(UnlockControllerChain, self).deactivate()
+            
         self.window.deactivate_controller()            
         return self.standalone
         
@@ -222,11 +222,11 @@ class UnlockControllerChain(UnlockController):
             
         
 class UnlockControllerFragment(UnlockController):
-    def __init__(self, model, view, standalone=False):
-        super(UnlockControllerFragment, self).__init__(None, None, None, None, None,
-                                                       poll_signal_frequency=None)
+    def __init__(self, model, views, batch, standalone=False):
+        super(UnlockControllerFragment, self).__init__(None, None, None, None, None, None)
         self.model = model
-        self.view = view
+        self.views = views
+        self.batches.add(batch)
         self.standalone = standalone
         self.poll_signal = None
         self.render = None
@@ -234,9 +234,8 @@ class UnlockControllerFragment(UnlockController):
     def update_state(self, command):
         if command.is_valid():
             self.model.process_command(command)
-        
+            
     def keyboard_input(self, command):
-        print ("KEYBOAD INPUT... ")
         self.model.process_command(command)
     
     def activate(self):
@@ -248,11 +247,10 @@ class UnlockControllerFragment(UnlockController):
         
         
 class EEGControllerFragment(UnlockControllerFragment):
-    def __init__(self, command_receiver, timed_stimuli, views):
+    def __init__(self, command_receiver, timed_stimuli, views, batch):
         assert timed_stimuli != None
-        super(EEGControllerFragment, self).__init__(timed_stimuli, None)
+        super(EEGControllerFragment, self).__init__(timed_stimuli, views, batch)
         self.command_receiver = command_receiver
-        self.views = views
         
     def update_state(self, command):
         return self.model.process_command(command)
@@ -311,7 +309,7 @@ class EEGControllerFragment(UnlockControllerFragment):
         classifier = HarmonicSumDecision(freqs, 3.0, 500, 8)
         command_receiver = ClassifiedCommandReceiver(raw_command_receiver, classifier)
         
-        return EEGControllerFragment(command_receiver, stimuli, views)
+        return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
         
     @staticmethod
     def create_msequence(canvas, signal, timer, color='bw'):
@@ -371,6 +369,6 @@ class EEGControllerFragment(UnlockControllerFragment):
         
         command_receiver = RawInlineSignalReceiver(signal, timer)
         
-        return EEGControllerFragment(command_receiver, stimuli, views)
+        return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
         
         

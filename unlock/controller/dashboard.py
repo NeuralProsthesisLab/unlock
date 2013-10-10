@@ -36,8 +36,8 @@ import logging
 
 
 class Dashboard(UnlockControllerFragment):
-    def __init__(self, model, view):
-        super(Dashboard, self).__init__(model, view)
+    def __init__(self, model, views, batch):
+        super(Dashboard, self).__init__(model, views, batch)
         self.logger = logging.getLogger(__name__)
             
     @staticmethod
@@ -53,7 +53,7 @@ class Dashboard(UnlockControllerFragment):
         center_x, center_y = canvas.center()            
         grid_view = GridView(grid_state, canvas, icons, center_x, center_y)
         
-        return Dashboard(grid_state, grid_view)
+        return Dashboard(grid_state, [grid_view], canvas.batch)
         
     @staticmethod
     def create_dashboard(window, controllers, signal, timer, base=None, color='bw'):
@@ -62,7 +62,7 @@ class Dashboard(UnlockControllerFragment):
             base = EEGControllerFragment.create_ssvep(canvas, signal, timer, color)
         
         dashboard = Dashboard.create_dashboard_fragment(canvas, controllers)
-        dashboard_chain = UnlockControllerChain(window, canvas, base.command_receiver,
+        dashboard_chain = UnlockControllerChain(window, base.command_receiver,
                                                  [base, dashboard] , 'Dashboard', '',
                                                  standalone=True)
         return dashboard_chain
