@@ -136,7 +136,8 @@ class PygletWindow(pyglet.window.Window):
             
             
 class UnlockController(object):
-    def __init__(self, window, views, canvas, batch, command_receiver, poll_signal_frequency, standalone=False):
+    def __init__(self, window, views, canvas, batch, command_receiver, poll_signal_frequency,
+                 standalone=False):
         super(UnlockController, self).__init__()
         self.window = window
         self.views = views
@@ -148,9 +149,8 @@ class UnlockController(object):
         
     def poll_signal(self, delta):
         command = self.command_receiver.next_command(delta)
-        if command.is_valid():
-            self.update_state(command)
-            self.render()
+        self.update_state(command)
+        self.render()
 
     def update_state(self, command):
         ''' Subclass hook '''
@@ -186,8 +186,9 @@ class UnlockControllerChain(UnlockController):
                 except:
                     pass
                 
-        super(UnlockControllerChain, self).__init__(window, views, canvas, canvas.batch, command_receiver,
-                                               poll_signal_frequency, standalone=standalone)
+        super(UnlockControllerChain, self).__init__(window, views, canvas, canvas.batch,
+                                                    command_receiver, poll_signal_frequency,
+                                                    standalone=standalone)
         self.controllers = controllers
         self.name = name
         self.icon = icon
@@ -196,9 +197,6 @@ class UnlockControllerChain(UnlockController):
                                       'resource', self.icon)
         
     def update_state(self, command):
-        if not command.is_valid():
-            print ("XXX - add ofline data option...")
-            return
         for controller in self.controllers:
             controller.update_state(command)
             
@@ -225,7 +223,8 @@ class UnlockControllerChain(UnlockController):
         
 class UnlockControllerFragment(UnlockController):
     def __init__(self, model, view, standalone=False):
-        super(UnlockControllerFragment, self).__init__(None, None, None, None, None, poll_signal_frequency=None)
+        super(UnlockControllerFragment, self).__init__(None, None, None, None, None,
+                                                       poll_signal_frequency=None)
         self.model = model
         self.view = view
         self.standalone = standalone
@@ -233,7 +232,8 @@ class UnlockControllerFragment(UnlockController):
         self.render = None
         
     def update_state(self, command):
-        self.model.process_command(command)
+        if command.is_valid():
+            self.model.process_command(command)
         
     def keyboard_input(self, command):
         print ("KEYBOAD INPUT... ")
@@ -253,6 +253,9 @@ class EEGControllerFragment(UnlockControllerFragment):
         super(EEGControllerFragment, self).__init__(timed_stimuli, None)
         self.command_receiver = command_receiver
         self.views = views
+        
+    def update_state(self, command):
+        return self.model.process_command(command)
         
     def keyboard_input(self,command):
         pass
