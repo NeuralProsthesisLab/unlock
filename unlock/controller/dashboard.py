@@ -39,7 +39,6 @@ class Dashboard(UnlockControllerFragment):
         self.window = window
         self.controllers = controllers
         self.calibrator = calibrator
-        print (calibrator)
         if calibrator != None:
             self.initialized = False
         else:
@@ -81,9 +80,7 @@ class Dashboard(UnlockControllerFragment):
         canvas = Canvas.create(window.width, window.height)
         if base == None:
             base = EEGControllerFragment.create_ssvep(canvas, signal, timer, color)
-        
-        
-        
+            
         dashboard = Dashboard.create_dashboard_fragment(window, canvas, controllers, calibrator)
         dashboard_chain = UnlockControllerChain(window, base.command_receiver,
                                                  [base, dashboard] , 'Dashboard', '',
