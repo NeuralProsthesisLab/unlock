@@ -35,7 +35,7 @@ import logging
 import logging.config
 
 from unlock import context 
-from unlock.controller import PygletWindow, Dashboard, FastPad, Canvas #,Collector
+from unlock.controller import PygletWindow, Dashboard, FastPad, Canvas, Calibrate
 from optparse import OptionParser
 
 
@@ -46,6 +46,7 @@ class UnlockFactory(context.PythonConfig):
         self.args = args
         self.mac_addr = None
         self.window = None
+        self.calibrate = None
         self.stimuli = None
 
         if 'mac_addr' in self.args.keys():
@@ -57,6 +58,12 @@ class UnlockFactory(context.PythonConfig):
         from unlock.controller import EEGControllerFragment
         canvas = Canvas.create(self.window.width, self.window.height)
         stimuli = EEGControllerFragment(canvas, self.signal, self.timer)
+        return stimuli
+        
+    @context.Object(lazy_init=True)        
+    def semg(self):
+        from unlock.controller import sEMGControllerFragment
+        stimuli = sEMGControllerFragment.create_semg(self.signal, self.timer)
         return stimuli
         
     @context.Object(lazy_init=True)        
@@ -99,16 +106,12 @@ class UnlockFactory(context.PythonConfig):
     @context.Object(lazy_init=True)
     def PygletWindow(self):
         return PygletWindow(self.signal, self.args['fullscreen'], self.args['fps'], self.args['vsync'])        
-        
-    @context.Object(lazy_init=True)
-    def SingleMSequenceCollector(self):
-        return #Collector.create_single_centered_msequence_collector(window, self.signal, self.timer, **self.args['SingleMSequenceCollector'])
-        
-    @context.Object(lazy_init=True)
-    def MultiMSequenceCollector(self):
-#        window = self.PygletWindow()
-        return #Collector.create_multi_centered_msequence_collector(window, self.signal, self.timer, **self.args['MultiMSequenceCollector'])
     
+    @context.Object(lazy_init=True)
+    def CalibrateSEMG(self):
+        self.calibrator, collector = Calibrate.create_smg_calibrator(self.window, self.signal, self.timer, self.stimuli, **self.args['CalibrateSEMG'])
+        return collector
+        
     @context.Object(lazy_init=True)
     def FastPad(self):
         return FastPad.create_fastpad(self.window, self.signal, self.timer, self.stimuli, **self.args['FastPad'])
@@ -118,16 +121,6 @@ class UnlockFactory(context.PythonConfig):
         return GridSpeak.create_gridspeak(self.window, self.signal, self.timer, self.stimuli, **self.args['GridSpeak'])
             
     @context.Object(lazy_init=True)
-    def EmgCollector(self):
-        #window = self.PygletWindow()
-        return #Collector.create_emg_collector(window, self.signal, self.timer, **self.args['EmgCollector'])
-    
-    @context.Object(lazy_init=True)
-    def TwoStateEmgCollector(self):
-        #window = self.PygletWindow()        
-        return #Collector.create_2state_emg_collector(window, self.signal, self.timer, **self.args['TwoStateEmgCollector'])    
-        
-    @context.Object(lazy_init=True)
     def Dashboard(self):
         args = self.args['Dashboard']
         controllers = []
@@ -135,7 +128,7 @@ class UnlockFactory(context.PythonConfig):
             controller = getattr(self, controller_attr)
             controllers.append(controller())
         args.pop('controllers')
-        return Dashboard.create_dashboard(self.window, controllers, self.signal, self.timer, self.stimuli, **args)
+        return Dashboard.create_dashboard(self.window, controllers, self.signal, self.timer, self.stimuli, self.calibrator, **args)
         
         
 class UnlockRuntime(object):
@@ -158,7 +151,6 @@ class UnlockRuntime(object):
             signal_help = 'selects the signaling system; valid values are: random, mobilab, enobio and audio; default value is random; overrides the config file setting'
             stimuli_help = 'sets the system to use a shared stimuli; valid values are: ssvep, msequence and semg'
             mac_addr_help = 'a comma separated list of hexidecimal values that are required to connect to some signaling devices;for example -m "0x1,0x2,0x3,0x4,0x5,0x6"'
-            
             conf = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'conf.json')
             parser.add_option('-c', '--conf', type=str, dest='conf', default=conf, metavar='CONF', help=conf_help)
             parser.add_option('-n', '--fullscreen', default=None, action='store_true', dest='fullscreen', metavar='FULLSCREEN', help=fullscreen_help)
@@ -167,7 +159,7 @@ class UnlockRuntime(object):
             parser.add_option('-l', '--logging-level', type=str, dest='loglevel', metavar='LEVEL', help=loglevel_help)
             parser.add_option('-s', '--signal', dest='signal', default=None, type=str, metavar='SIGNAL', help=signal_help)
             parser.add_option('-t', '--stimuli', type=str, dest='stimuli', default=None, metavar='STIMULI', help=stimuli_help)
-            parser.add_option('-m', '--mac-addr', dest='mac_addr', default=None, type=str, metavar='MAC-ADDR', help=mac_addr_help)                    
+            parser.add_option('-m', '--mac-addr', dest='mac_addr', default=None, type=str, metavar='MAC-ADDR', help=mac_addr_help)
             valid_levels = { 'debug' : logging.DEBUG, 'info' : logging.INFO, 'warn' : logging.WARN, 'error' : logging.ERROR, 'critical' : logging.CRITICAL}
             (options, args) = parser.parse_args()
         except Exception as e:

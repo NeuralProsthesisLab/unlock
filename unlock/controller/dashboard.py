@@ -29,19 +29,40 @@ from unlock.model import GridState, TimedStimuli, TimedStimulus
 from unlock.util import Trigger
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, GridView
 from unlock.decode import RawInlineSignalReceiver
-
 from .controller import UnlockControllerChain, Canvas, UnlockControllerFragment, EEGControllerFragment
-
 import logging
 
 
 class Dashboard(UnlockControllerFragment):
-    def __init__(self, model, views, batch):
+    def __init__(self, window, model, views, batch, controllers, calibrator):
         super(Dashboard, self).__init__(model, views, batch)
+        self.window = window
+        self.controllers = controllers
+        self.calibrator = calibrator
+        print (calibrator)
+        if calibrator != None:
+            self.initialized = False
+        else:
+            self.initialized = True
+            
         self.logger = logging.getLogger(__name__)
+
+    def initialize(self):
+        for controller in self.controllers:
+            for fragment in controller.controllers:
+                if fragment == self.calibrator:
+                    controller.activate()
+                    
+        self.initialized = True
+        
+    def poll_signal_interceptor(self, delta):
+        if not self.initialized:
+            self.initialize()
+            return
+        self.poll_signal(delta)
             
     @staticmethod
-    def create_dashboard_fragment(canvas, controllers):
+    def create_dashboard_fragment(window, canvas, controllers, calibrator):
         if not controllers:
             raise ValueError
             
@@ -53,18 +74,22 @@ class Dashboard(UnlockControllerFragment):
         center_x, center_y = canvas.center()            
         grid_view = GridView(grid_state, canvas, icons, center_x, center_y)
         
-        return Dashboard(grid_state, [grid_view], canvas.batch)
+        return Dashboard(window, grid_state, [grid_view], canvas.batch, controllers, calibrator)
         
     @staticmethod
-    def create_dashboard(window, controllers, signal, timer, base=None, color='bw'):
+    def create_dashboard(window, controllers, signal, timer, base=None, calibrator=None, color='bw'):
         canvas = Canvas.create(window.width, window.height)
         if base == None:
             base = EEGControllerFragment.create_ssvep(canvas, signal, timer, color)
         
-        dashboard = Dashboard.create_dashboard_fragment(canvas, controllers)
+        
+        
+        dashboard = Dashboard.create_dashboard_fragment(window, canvas, controllers, calibrator)
         dashboard_chain = UnlockControllerChain(window, base.command_receiver,
                                                  [base, dashboard] , 'Dashboard', '',
                                                  standalone=True)
+        dashboard.poll_signal = dashboard_chain.poll_signal
+        dashboard_chain.poll_signal = dashboard.poll_signal_interceptor
         return dashboard_chain
         
         
