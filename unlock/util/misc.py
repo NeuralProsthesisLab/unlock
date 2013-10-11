@@ -63,9 +63,12 @@ class Trigger(object):
     Left=10
     Repeat=11
     Complete=12
-    UsageDefined=13
-    UsageDefined1=14
-    UsageDefined2=15
+    Forward=13
+    Back=14
+    Select=15
+    UsageDefined=16
+    UsageDefined1=17
+    UsageDefined2=18
         
         
 class switch(object):
