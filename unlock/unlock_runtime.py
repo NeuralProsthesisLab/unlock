@@ -35,7 +35,7 @@ import logging
 import logging.config
 
 from unlock import context 
-from unlock.controller import PygletWindow, Dashboard, FastPad, Canvas, Calibrate
+from unlock.controller import PygletWindow, Dashboard, FastPad, Canvas, Calibrate, GridSpeak
 from optparse import OptionParser
 
 

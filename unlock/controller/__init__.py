@@ -28,3 +28,4 @@ from .controller import *
 from .calibrate import *
 from .dashboard import *
 from .fastpad import *
+from .gridspeak import *
