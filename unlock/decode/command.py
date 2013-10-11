@@ -213,7 +213,10 @@ class ClassifiedCommandReceiver(CommandReceiverInterface):
         
     def next_command(self, delta):
         command = self.command_receiver.next_command(delta)
-        return self.classifier.classify(command)
+        assert command != None
+        classified_command = self.classifier.classify(command)
+        assert classified_command != None
+        return classified_command
         
     def stop(self):
         pass
@@ -242,6 +245,8 @@ class RawInlineSignalReceiver(CommandReceiverInterface):
         if raw_command.is_valid():
             raw_command.make_matrix()
             
+        assert raw_command != None
+        
         return raw_command
             
     def stop(self):
