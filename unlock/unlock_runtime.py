@@ -46,12 +46,12 @@ class UnlockFactory(context.PythonConfig):
         self.args = args
         self.mac_addr = None
         self.window = None
-        self.calibrate = None
+        self.calibrator = None
         self.stimuli = None
-
+        
         if 'mac_addr' in self.args.keys():
             self.mac_addr = [int(value,0) for value in [x.strip() for x in self.args['mac_addr'].split(',')]]
-
+            
         
     @context.Object(lazy_init=True)        
     def ssvep(self):
