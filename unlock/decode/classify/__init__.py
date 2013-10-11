@@ -26,3 +26,4 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from .hsd import *
+from .rms import *
