@@ -5,7 +5,7 @@
     "fullscreen" : true,
     "fps" : true,
     "vsync" : false,
-    "stimuli" : "semg",
+    "stimuli" : "ssvep",
     "controllers" : [
         {
             "name" : "FastPad",
@@ -17,15 +17,16 @@
             "args" : {
             }
         },
+
         {
-            "name" : "CalibrateSEMG",
+            "name" : "Collector",
             "args" : {
             }
-        },              
+        },
         {
             "name" : "Dashboard",
             "args" : {
-                "controllers" : ["FastPad", "GridSpeak", "CalibrateSEMG"]
+                "controllers" : ["FastPad", "GridSpeak", "CalibrateSEMG", "Collector"]
             }
         }
     ],    
