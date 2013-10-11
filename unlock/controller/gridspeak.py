@@ -28,18 +28,18 @@
 from unlock.model import TimedStimulus, HierarchyGridState, TimedStimuli, OfflineData
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, HierarchyGridView
 from unlock.decode import HarmonicSumDecision, RawInlineSignalReceiver, ClassifiedCommandReceiver
-from unlock.controller import UnlockController, Canvas
+from unlock.controller import UnlockController, Canvas, UnlockControllerFragment, UnlockControllerChain
 import inspect
 import os
 
 
 class GridSpeak(UnlockControllerFragment):
-    def __init__(self,model, views, batch, standalone=False):
+    def __init__(self,grid_state, views, batch, standalone=False):
         assert grid_state != None 
-        super(GridSpeak, self).__init__(model, views, batch, standalone)
+        super(GridSpeak, self).__init__(grid_state, views, batch, standalone)
 
     @staticmethod
-    def create_gridspeak_fragment(self, canvas):
+    def create_gridspeak_fragment(canvas):
         grid_model = HierarchyGridState(2)
         grid_view = HierarchyGridView(grid_model, canvas)
         assert canvas != None
@@ -47,13 +47,13 @@ class GridSpeak(UnlockControllerFragment):
         return gridspeak
         
     @staticmethod
-    def create_gridspeak(self, window, signal, timer, base=None, color='bw'):
+    def create_gridspeak(window, signal, timer, base=None, color='bw'):
         canvas = Canvas.create(window.width, window.height)        
         gridspeak = GridSpeak.create_gridspeak_fragment(canvas)
         if base == None:
             base = EEGControllerFragment.create_ssvep(canvas, signal, timer, color)
             
-        gridspeak = GridSpeak(grid_model, gridview)
         controller_chain = UnlockControllerChain(window, base.command_receiver,
                                                  [base, gridspeak] , 'GridSpeak', 'gridspeak.png',
                                                  standalone=False)
+        return controller_chain
