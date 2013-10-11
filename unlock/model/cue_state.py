@@ -59,8 +59,8 @@ class CueStateMachine(UnlockModel):
         if self.rand != None:
             next_ = self.__transition__(self.cue_states[self.rand.randint(0, len(self.cue_states)-1)])
         else:
-            next_ = self.__transition__(self.cue_states[next_cue_state])
-            next_state += 0
+            next_ = self.__transition__(self.cue_states[self.next_cue_state])
+            self.next_cue_state += 1
             if self.next_cue_state == len(self.cue_states):
                 self.next_cue_state = 0
         return next_
