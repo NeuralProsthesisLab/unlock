@@ -53,8 +53,7 @@ class GridSpeak(UnlockControllerFragment):
         if base == None:
             base = EEGControllerFragment.create_ssvep(canvas, signal, timer, color)
             
-        base.views.extend(gridview.view)
         gridspeak = GridSpeak(grid_model, gridview)
         controller_chain = UnlockControllerChain(window, base.command_receiver,
-                                                 [base, gridspeak] , 'GridSpeak', 'LazerToggleS.png',
+                                                 [base, gridspeak] , 'GridSpeak', 'gridspeak.png',
                                                  standalone=False)
