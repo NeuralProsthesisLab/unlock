@@ -25,47 +25,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model import TimedStimuli, TimedStimulus, OfflineData, RandomCueStateMachine, CueState, TimedStimulusCueState, MultipleSequentialTimedStimuliCueState, DynamicPositionCueState
-from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator, DynamicPositionPygletTextLabel
+from unlock.model import OfflineData, CueStateMachine, CueState
+from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator
 from unlock.util import TrialState, Trigger
 from unlock.decode import RawInlineSignalReceiver
 
-from .controller import Canvas, UnlockController
+from .controller import Canvas, UnlockControllerFragment, UnlockControllerChain
 
 import inspect
 import logging
 import time
 import os
 
-
-class Collector(UnlockController):
-    def __init__(self, window, views, canvas, command_receiver, cue_state, offline_data, timed_stimuli=None, standalone=True, icon="scope.png", name="Collector"):
-        super(Collector, self).__init__(window, views, canvas)
-        self.command_receiver = command_receiver
+class Collector(UnlockControllerFragment):
+    def __init__(self, window, cue_state, offline_data, views, batch, standalone=True):
+        super(Collector, self).__init__(None, views, batch, standalone=False)
         self.cue_state = cue_state
         self.offline_data = offline_data
-        self.timed_stimuli = timed_stimuli
-        self.standalone = standalone
-        self.name = name
-        self.icon = icon
-        self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(Collector)), 'resource', self.icon)
-        self.logger = logging.getLogger(__name__)
+        self.window = window
         
-    def poll_signal(self, delta):  
-        self.logger.debug('Collector.poll signal delta = ', delta, ' time = ', time.time())
-        command = self.command_receiver.next_command(delta)
-        
-        # XXX - we just ignore this cycle if the there's not command, this is a hack because it leaves
-        #       with the timing resolution of the device.   We go through and adjust the timers,
-        #       with a zero command or some such, so that we can get the finest granularity.
-        if not command.is_valid():
-            return
-        
-        if self.timed_stimuli:
-            sequence_trigger = self.timed_stimuli.process_command(command)
-            if sequence_trigger != Trigger.Null:
-                command.set_sequence_trigger(sequence_trigger)
-                
+    def update_state(self, command):  
         cue_trigger = self.cue_state.process_command(command)
         if cue_trigger != Trigger.Null:
             command.set_cue_trigger(cue_trigger)
@@ -73,201 +52,64 @@ class Collector(UnlockController):
         command.make_matrix()
         self.offline_data.process_command(command)
         if cue_trigger == Trigger.Complete:
-            self.window.handle_stop_request()
-        
-        self.render()  
-            
+            self.window.deactivate_controller()
+
+    def keyboard_input(self, command):
+        pass
+
     def activate(self):
         self.cue_state.start()
-        if self.timed_stimuli:
-            self.timed_stimuli.start()
-            
         self.offline_data.start()
-        super(Collector, self).activate()
         
     def deactivate(self):
-        self.command_receiver.stop()
-        if self.timed_stimuli:
-            self.timed_stimuli.stop()
-            
         self.cue_state.stop()
         self.offline_data.stop()
-        self.window.deactivate_controller()
         return self.standalone
       
     @staticmethod
-    def create(mode, port, cue_duration, indicate_duration, rest_duration, channels, trials, seed, output):        
-        pass
-     
-    @staticmethod
-    def create_2state_emg_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=25, cue_duration=.5, rest_duration=.5, indicate_duration=1, output_file='emg_signal', seed=42, radius=1):
+    def create_collector(window, signal, timer, stimuli=None, trials=10, cue_duration=.5,
+                         rest_duration=1, indicate_duration=1, output_file='collector', standalone=False):
         canvas = Canvas.create(window.width, window.height)
-        
-        cues = [Trigger.Right, Trigger.Left]
+        cues = [Trigger.Left, Trigger.Right, Trigger.Forward, Trigger.Back, Trigger.Select]
         cue_states = []
         for cue in cues:
             cue_states.append(CueState.create(cue, cue_duration))
         rest_state = CueState.create(Trigger.Rest, rest_duration)
-        
- #       h = canvas.height * radius
- #       w = canvas.width * radius
-#        print "Radious, ", h,":", w, " height width = ", canvas.height, ":", canvas.width
-        indicate_state = DynamicPositionCueState.create(Trigger.Indicate, indicate_duration, canvas.height, -1, canvas.width, -1, radius)
-        
-        cue_state = RandomCueStateMachine.create_cue_indicate_rest(cue_states, rest_state, indicate_state,seed=seed, trials=trials)
-        
-        right = PygletTextLabel(cue_state.cue_states[0], canvas, 'right', canvas.width / 2.0, canvas.height / 2.0)
-        left = PygletTextLabel(cue_state.cue_states[1], canvas, 'left', canvas.width / 2.0, canvas.height / 2.0)
-        
-        rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
-        rest = BellRingTextLabelDecorator(rest_text)        
-        
-        indicate_text = DynamicPositionPygletTextLabel(cue_state.indicate_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
-        
-        indicate_state.height = 50 
-        indicate_state.width = 50
-        
-        command_receiver = RawInlineSignalReceiver(signal, timer)
-        
-        offline_data = OfflineData(output_file)
-        
-        return Collector(window, [right, left, rest, indicate_text], canvas, command_receiver, cue_state, offline_data, standalone=standalone)
 
-    @staticmethod
-    def create_emg_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=25, cue_duration=.5, rest_duration=.5, indicate_duration=1, output_file='emg_signal', seed=42, radius=1):
-        canvas = Canvas.create(window.width, window.height)
+        indicate_state = CueState.create(Trigger.Indicate, indicate_duration)        
+        cue_state = CueStateMachine.create_sequential_cue_indicate_rest(cue_states, rest_state,
+                                                                        indicate_state,trials=trials)
         
-        cues = [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left]
-        cue_states = []
-        for cue in cues:
-            cue_states.append(CueState.create(cue, cue_duration))
-        rest_state = CueState.create(Trigger.Rest, rest_duration)
+        left = PygletTextLabel(cue_state.cue_states[0], canvas, 'left', canvas.width / 2.0,
+                               canvas.height / 2.0)
+        right = PygletTextLabel(cue_state.cue_states[1], canvas, 'right', canvas.width / 2.0,
+                                canvas.height / 2.0)
+        forward = PygletTextLabel(cue_state.cue_states[2], canvas, 'forward', canvas.width / 2.0,
+                                  canvas.height / 2.0)
+        back = PygletTextLabel(cue_state.cue_states[3], canvas, 'back', canvas.width / 2.0,
+                               canvas.height / 2.0)
+        select = PygletTextLabel(cue_state.cue_states[4], canvas, 'select', canvas.width / 2.0,
+                                 canvas.height / 2.0)
         
- #       h = canvas.height * radius
- #       w = canvas.width * radius
-#        print "Radious, ", h,":", w, " height width = ", canvas.height, ":", canvas.width
-        indicate_state = DynamicPositionCueState.create(Trigger.Indicate, indicate_duration, canvas.height, -1, canvas.width, -1, radius)
+        rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0,
+                                    canvas.height / 2.0)
         
-        cue_state = RandomCueStateMachine.create_cue_indicate_rest(cue_states, rest_state, indicate_state,seed=seed, trials=trials)
         
-        up = PygletTextLabel(cue_state.cue_states[0], canvas, 'up', canvas.width / 2.0, canvas.height / 2.0)
-        right = PygletTextLabel(cue_state.cue_states[1], canvas, 'right', canvas.width / 2.0, canvas.height / 2.0)
-        down = PygletTextLabel(cue_state.cue_states[2], canvas, 'down', canvas.width / 2.0, canvas.height / 2.0)
-        left = PygletTextLabel(cue_state.cue_states[3], canvas, 'left', canvas.width / 2.0, canvas.height / 2.0)
+        indicate_text = PygletTextLabel(cue_state.indicate_state, canvas, '',
+                                                       canvas.width / 2.0, canvas.height / 2.0)
+        indicate = BellRingTextLabelDecorator(indicate_text)        
         
-        rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
-        rest = BellRingTextLabelDecorator(rest_text)        
         
-        indicate_text = DynamicPositionPygletTextLabel(cue_state.indicate_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
-        
-        #print("Setting the indicate state height/width ", indicate_text.label.height, "/", indicate_text.label.width)
-        indicate_state.height = 50 
-        indicate_state.width = 50
+        offline_data = OfflineData(output_file)
+        collector = Collector(window, cue_state, offline_data, [left, right, forward, back, select, rest_text, indicate],
+                              canvas.batch, standalone=standalone)
+        view_chain = collector.views
         
         command_receiver = RawInlineSignalReceiver(signal, timer)
         
-        offline_data = OfflineData(output_file)
-        
-        return Collector(window, [up, right, down, left, rest, indicate_text], canvas, command_receiver, cue_state, offline_data, standalone=standalone)
-        
-    @staticmethod
-    def create_msequence_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=2, cue_duration=1, rest_duration=2, indicate_duration=4, output_file='msequence_signal', seed=42):
-        canvas = Canvas.create(window.width, window.height)        
-        
-        timed_stimuli = TimedStimuli.create(stimulation_duration)
-        
-        north_stimulus = TimedStimulus.create(30.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0))
-        timed_stimuli.add_stimulus(north_stimulus)
-        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(north_stimulus, canvas, SpritePositionComputer.North, width=200, height=200, xfreq=4, yfreq=4)
-        
-        east_stimulus = TimedStimulus.create(30.0, sequence=(0,1,0,0,0,1,0,1,0,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,0,1,0,0,1,1,0))
-        timed_stimuli.add_stimulus(east_stimulus)            
-        fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(east_stimulus, canvas, SpritePositionComputer.East, 90, width=200, height=200, xfreq=4, yfreq=4)
-        
-        south_stimulus = TimedStimulus.create(30.0, sequence=(0,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1))
-        timed_stimuli.add_stimulus(south_stimulus)
-        fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(south_stimulus, canvas, SpritePositionComputer.South, width=200, height=200, xfreq=4, yfreq=4)
-        
-        west_stimulus = TimedStimulus.create(30.0, sequence=(0,0,1,1,0,0,0,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0))
-        timed_stimuli.add_stimulus(west_stimulus)
-        fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(west_stimulus, canvas, SpritePositionComputer.West, 90, width=200, height=200, xfreq=4, yfreq=4)
-        
-        cues = [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left]
-        cue_states = []
-        for cue in cues:
-            cue_states.append(CueState.create(cue, cue_duration))
-        rest_state = CueState.create(Trigger.Rest, rest_duration)
-        indicate_state = CueState.create(Trigger.Indicate, indicate_duration)
-        
-        
-        cue_state = RandomCueStateMachine.create_cue_indicate_rest(cue_states, rest_state, indicate_state,seed=seed, trials=trials)
-        up = PygletTextLabel(cue_state.cue_states[0], canvas, 'up', canvas.width / 2.0, canvas.height / 2.0)
-        right = PygletTextLabel(cue_state.cue_states[1], canvas, 'right', canvas.width / 2.0, canvas.height / 2.0)
-        down = PygletTextLabel(cue_state.cue_states[2], canvas, 'down', canvas.width / 2.0, canvas.height / 2.0)
-        left = PygletTextLabel(cue_state.cue_states[3], canvas, 'left', canvas.width / 2.0, canvas.height / 2.0)
-        
-        rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
-        rest = BellRingTextLabelDecorator(rest_text)        
-        
-        indicate_text = PygletTextLabel(cue_state.indicate_state, canvas, '', canvas.width / 2.0, canvas.height / 2.0)
-        indicate = BellRingTextLabelDecorator(indicate_text)
-        
-        command_receiver = RawInlineSignalReceiver(signal, timer)
-        
-        offline_data = OfflineData(output_file)
-        
-        return Collector(window, [fs, fs1, fs2, fs3, up, right, down, left, rest, indicate], canvas, command_receiver, cue_state, offline_data, timed_stimuli, standalone)
-        
-    @staticmethod
-    def create_single_centered_msequence_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=5, rest_duration=2, output_file='signal', seed=42):
-        canvas = Canvas.create(window.width, window.height)        
-        
-        stimulus = TimedStimulus.create(30.0,  sequence=(1,1,1,0,1,0,1,0,0,0,0,1,0,0,1,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,0), repeat_count=20)
-        stimulated_cue = TimedStimulusCueState(stimulus)
-        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulated_cue, canvas, SpritePositionComputer.Center, width=200, height=200, xfreq=4, yfreq=4)
-        
-        cue_states = [stimulated_cue]
-        rest_state = CueState.create(Trigger.Rest, rest_duration)
-        
-        cue_state = RandomCueStateMachine.create_cue_rest(cue_states, rest_state, seed=seed, trials=trials)
-        rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
-        rest = BellRingTextLabelDecorator(rest_text)
-        
-        command_receiver = RawInlineSignalReceiver(signal, timer)
-        
-        offline_data = OfflineData(output_file)
-        
-        return Collector(window, [fs, rest], canvas, command_receiver, cue_state, offline_data, None, standalone)
-        
-           
-    @staticmethod
-    def create_multi_centered_msequence_collector(window, signal, timer, standalone=True, stimulation_duration=4.0, trials=9, repeat_count=20, rest_duration=2, output_file='signal', seed=42, icon="rsz_analyzer.jpg"):
-        canvas = Canvas.create(window.width, window.height)        
-        # this should be a wrapper model that knows how to 
-        north_stimulus = TimedStimulus.create(30.0,  sequence=(1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1), repeat_count=repeat_count)
-        east_stimulus = TimedStimulus.create(30.0,  sequence=(0,0,1,1,1,0,0,1,0,1,0,1,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1), repeat_count=repeat_count)
-        south_stimulus = TimedStimulus.create(30.0,  sequence=(0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0), repeat_count=repeat_count)
-        west_stimulus = TimedStimulus.create(30.0,  sequence=(0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,1,1,1,0,1,1,0,1,0,0,1,1,0), repeat_count=repeat_count)
-
-        stimulated_cue = MultipleSequentialTimedStimuliCueState()
-        stimulated_cue.add_stimulus(Trigger.Up, north_stimulus)
-        stimulated_cue.add_stimulus(Trigger.Right, east_stimulus)
-        stimulated_cue.add_stimulus(Trigger.Down, south_stimulus)
-        stimulated_cue.add_stimulus(Trigger.Left, west_stimulus)
-
-        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulated_cue, canvas, SpritePositionComputer.Center, width=200, height=200, xfreq=4, yfreq=4)
-        
-        #cues = [Trigger.Up, Trigger.Right, Trigger.Down, Trigger.Left]        
-        
-        cue_states = [stimulated_cue]
-        rest_state = CueState.create(Trigger.Rest, rest_duration)
-        
-        cue_state = RandomCueStateMachine.create_cue_rest(cue_states, rest_state, seed=seed, trials=trials)
-        rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0, canvas.height / 2.0)
-        rest = BellRingTextLabelDecorator(rest_text)
-        
-        command_receiver = RawInlineSignalReceiver(signal, timer)
-        
-        offline_data = OfflineData(output_file)
-        
-        return Collector(window, [fs, rest], canvas, command_receiver, cue_state, offline_data, None, standalone, icon, 'multi-single-msequence-collector') 
+        controller_chain = UnlockControllerChain(window, command_receiver,
+                                                 [collector] , 'Collector', 'collector.png',
+                                                 standalone=standalone)
+        return controller_chain
+            
+            
