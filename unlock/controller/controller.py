@@ -27,7 +27,7 @@
 
 from unlock.model import TimedStimulus, TimedStimuli
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer
-from unlock.decode import PygletKeyboardCommand, HarmonicSumDecision
+from unlock.decode import PygletKeyboardCommand, HarmonicSumDecision, RootMeanSquare
 from unlock.decode import RawInlineSignalReceiver,ClassifiedCommandReceiver
 import pyglet
 import inspect
@@ -78,7 +78,6 @@ class PygletWindow(pyglet.window.Window):
             command = PygletKeyboardCommand(symbol, modifiers)
             if command.stop:
                 return self.handle_stop_request()
-            print ("COMMAND = ", command.decision, command.selection)
             if self.active_controller and (command.decision or command.selection):
                 self.active_controller.keyboard_input(command)
                 
@@ -91,7 +90,8 @@ class PygletWindow(pyglet.window.Window):
         for view in self.views:
             view.render()
         for batch in self.batches:
-            batch.draw()
+            if batch != None:
+                batch.draw()
         self.fps()
         
     def handle_stop_request(self):
@@ -246,9 +246,9 @@ class UnlockControllerFragment(UnlockController):
         return self.standalone
         
         
-class sEMGContrllerFragment(UnlockControllerFragment):
+class sEMGControllerFragment(UnlockControllerFragment):
     def __init__(self, command_receiver):
-        super(sEMGControllerFragment, self).__init__(None, None, None)
+        super(sEMGControllerFragment, self).__init__(None, [], None)
         self.command_receiver = command_receiver
         
     def update_state(self, command):
@@ -264,7 +264,7 @@ class sEMGContrllerFragment(UnlockControllerFragment):
         pass
         
     @staticmethod
-    def create_semg(signal, timer, thresholds):
+    def create_semg(signal, timer, thresholds=None):
         raw_command_receiver = RawInlineSignalReceiver(signal, timer)
         classifier = RootMeanSquare(thresholds)
         command_receiver = ClassifiedCommandReceiver(raw_command_receiver, classifier)        
