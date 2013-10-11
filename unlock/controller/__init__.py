@@ -27,5 +27,6 @@
 from .controller import *
 from .calibrate import *
 from .dashboard import *
+from .collector import *
 from .fastpad import *
 from .gridspeak import *

@@ -25,10 +25,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model import TimedStimuli, TimedStimulus, OfflineData, CueStateMachine, CueState, TimedStimulusCueState, MultipleSequentialTimedStimuliCueState, DynamicPositionCueState
-from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator, DynamicPositionPygletTextLabel
+from unlock.model import CueStateMachine, CueState
+from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator
 from unlock.util import TrialState, Trigger
-from unlock.decode import RawInlineSignalReceiver
+#from unlock.decode import RawInlineSignalReceiver
 
 from .controller import Canvas, UnlockControllerFragment, UnlockControllerChain
 
@@ -45,28 +45,44 @@ class Calibrate(UnlockControllerFragment):
         self.stimuli = stimuli
         self.window = window
         self.controllers = []
+        self.last = None
+        self.thresholds = { Trigger.Left: [], Trigger.Right: [], Trigger.Forward: [],
+            Trigger.Back: [], Trigger.Select: []}
         
     def update_state(self, command):  
         if not command.is_valid():
             return
 
         cue_trigger = self.cue_state.process_command(command)
-        if cue_trigger != Trigger.Null:
-            command.set_cue_trigger(cue_trigger)
-        
+        if self.last != None and cue_trigger == Trigger.Indicate:
+            self.thresholds[self.last].append(command.rms_data)
+            
+        if cue_trigger == Trigger.Left:
+            self.last = Trigger.Left
+        elif cue_trigger == Trigger.Right:
+            self.last = Trigger.Right
+        elif cue_trigger == Trigger.Forward:
+            self.last = Trigger.Forward            
+        elif cue_trigger == Trigger.Back:
+            self.last = Trigger.Back            
+        elif cue_trigger == Trigger.Select:
+            self.last = Trigger.Select
+        elif cue_trigger == Trigger.Indicate:
+            self.last = None
+            
         if cue_trigger == Trigger.Complete:
             self.calibrate()
             self.window.deactivate_controller()
             
     def calibrate(self):
-    #    for controller in self.controllers:
-        print ("Calibrate called")
+        for k, v in self.thresholds.items():
+            print(Trigger.tostring(k), v)
             
     def keyboard_input(self, command):
         pass
     
     @staticmethod
-    def create_smg_calibrator(window, signal, timer, stimuli=None, trials=10, cue_duration=.5,
+    def create_smg_calibrator(window, signal, timer, stimuli=None, trials=4, cue_duration=.5,
                               rest_duration=1, indicate_duration=1, standalone=False):
         canvas = Canvas.create(window.width, window.height)
         cues = [Trigger.Left, Trigger.Right, Trigger.Forward, Trigger.Back, Trigger.Select]
