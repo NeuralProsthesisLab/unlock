@@ -79,14 +79,13 @@ func unzipExpand(fileName string) {
     }    
 }
 
-func downloadAndWriteFile(url string, fileName string) string {
-	
+func downloadAndWriteFile(url string, fileName string) string {	
+    // Get full path to file
     filePath := filepath.Join(getDownloadDirectory(), fileName)
     
 	// Download if file not exists on disk
     isFileExist,_ := checkFileExists(filePath)
-    if isFileExist == false {
-        
+    if isFileExist == false {        
         log.Println("Downloading file "+fileName+" from URL = "+url)
         resp, err := http.Get(url)
         if err != nil {
@@ -126,8 +125,7 @@ func getDownloadDirectory() string {
     return path
 }
 
-func getWorkingDirectoryAbsolutePath() string {
-	
+func getWorkingDirectoryAbsolutePath() string {	
     cwd, err := filepath.Abs(``)	    
 	log.Println(`Current working directory = `, cwd)
     if err != nil {
@@ -137,7 +135,6 @@ func getWorkingDirectoryAbsolutePath() string {
 }
 
 func installZippedPythonPackage(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
-    
     log.Println(`Downloading `+packageName+`... `)
     filePath := downloadAndWriteFile(baseUrl+fileName, fileName)
 	
