@@ -80,11 +80,10 @@ func unzipExpand(fileName string) {
 }
 
 func downloadAndWriteFile(url string, fileName string) string {	
-    // Get full path to file
-    filePath := filepath.Join(getDownloadDirectory(), fileName)
+    fullPath := filepath.Join(getDownloadDirectory(), fileName)
     
-	// Download if file not exists on disk
-    isFileExist,_ := checkFileExists(filePath)
+	isFileExist,_ := checkFileExists(fullPath)
+    
     if isFileExist == false {        
         log.Println("Downloading file "+fileName+" from URL = "+url)
         resp, err := http.Get(url)
@@ -98,12 +97,12 @@ func downloadAndWriteFile(url string, fileName string) string {
             log.Fatalln(err)
         }
         
-        if err = ioutil.WriteFile(filePath, body, 0744); err != nil {
+        if err = ioutil.WriteFile(fullPath, body, 0744); err != nil {
             log.Fatalln(err)
         }
     }
     
-    return filePath
+    return fullPath
 }
 
 func checkFileExists(path string) (bool, error) {
@@ -114,11 +113,9 @@ func checkFileExists(path string) (bool, error) {
 }
 
 func getDownloadDirectory() string {
-    // Default is current working directory
-	path := getWorkingDirectoryAbsolutePath()
+    path := getWorkingDirectoryAbsolutePath()
     
-    // If repoPath is specified, take the repo's "package" dir
-	if *repoPath != `` {
+    if *repoPath != `` {
 		path = filepath.Join(*repoPath, `package`)
 	}
     
@@ -136,9 +133,9 @@ func getWorkingDirectoryAbsolutePath() string {
 
 func installZippedPythonPackage(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
     log.Println(`Downloading `+packageName+`... `)
-    filePath := downloadAndWriteFile(baseUrl+fileName, fileName)
+    downloadedFile := downloadAndWriteFile(baseUrl+fileName, fileName)
 	
-	unzipExpand(filePath)
+	unzipExpand(downloadedFile)
     chdirFailOnError(packageDirectory, `Failed to install `+packageName)
     log.Println("CWD = "+getWorkingDirectoryAbsolutePath())
     command := pythonPath+` setup.py install`
@@ -149,11 +146,11 @@ func installZippedPythonPackage(pythonPath string, baseUrl string, fileName stri
 func installPython(baseUrl string, pythonPathEnvVar string, pythonInstallerName string, pythonBasePath string, pythonPackageName string) {
     //cwd := getWorkingDirectoryAbsolutePath()
     log.Println(`Downloading `+pythonPackageName+`...`)
-    filePath := downloadAndWriteFile(baseUrl+pythonInstallerName, pythonInstallerName)
+    downloadedFile := downloadAndWriteFile(baseUrl+pythonInstallerName, pythonInstallerName)
     log.Println(`Installing `+pythonPackageName)
 //    output, err := exec.Command("cmd", "/C", "msiexec /i ", cwd+"\\"+pythonInstallerName,`TARGETDIR=`+pythonBasePath,`/qb`, `ALLUSERS=0`).CombinedOutput()
     //output, err := exec.Command("cmd", "/C", cwd+"\\"+pythonInstallerName).CombinedOutput()
-    output, err := exec.Command("cmd", "/C", filePath).CombinedOutput()
+    output, err := exec.Command("cmd", "/C", downloadedFile).CombinedOutput()
     if len(output) > 0 {
         log.Printf("%s\n", output)
     }
@@ -199,12 +196,12 @@ func installNumPy(baseUrl string, numpyPath string) {
     var cwd = getWorkingDirectoryAbsolutePath()
     install(cwd+"\\"+numpyPath, `numpy`, true)*/
     
-    installBinPackage(baseUrl, numpyPath, `numpy`)
+    downloadAndInstallBinPackage(baseUrl, numpyPath, `numpy`)
 }
 
-func installBinPackage(baseUrl string, fileName string, packageName string) {
-    filePath := downloadAndWriteFile(baseUrl+fileName, fileName)
-    install(filePath, packageName, true)
+func downloadAndInstallBinPackage(baseUrl string, fileName string, packageName string) {
+    downloadedFile := downloadAndWriteFile(baseUrl + fileName, fileName)
+    install(downloadedFile, packageName, true)
 }
 
 func installPySerial26(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
@@ -216,7 +213,7 @@ func installAvbin(baseUrl string, avbin string) {
     var cwd = getWorkingDirectoryAbsolutePath()
     install(cwd+"\\"+avbin, `avbin`, true)*/
     
-    installBinPackage(baseUrl, avbin, `avbin`)
+    downloadAndInstallBinPackage(baseUrl, avbin, `avbin`)
     
     // XXX - last minute hack
     data, err1 := ioutil.ReadFile(`C:\Windows\System32\avbin.dll`)
@@ -289,7 +286,7 @@ func main() {
     var conf = createConf()
     
     installPython(conf.BaseUrl, conf.PythonPathEnvVar, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
-    installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
+    downloadAndInstallBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
 	installNumPy(conf.BaseUrl, conf.NumpyPackageName)
     //installEasyInstall(conf.BaseUrl, conf.PythonPath)
     //installPip(conf.EasyInstallPath)
@@ -307,8 +304,8 @@ func main() {
 
     installPyglet12alpha(conf.PythonPath, conf.BaseUrl, conf.PygletZipName, conf.PygletPackageName, conf.PygletDirectory)
     installPySerial26(conf.PythonPath, conf.BaseUrl, conf.PyserialZipName, conf.PyserialPackageName, conf.PyserialDirectory)
-    installBinPackage(conf.BaseUrl, conf.PyAudioPackageName, `pyaudio`)
-    installBinPackage(conf.BaseUrl, conf.PyWinPackageName, `pywin`)
+    downloadAndInstallBinPackage(conf.BaseUrl, conf.PyAudioPackageName, `pyaudio`)
+    downloadAndInstallBinPackage(conf.BaseUrl, conf.PyWinPackageName, `pywin`)
 	
 	// Skip install unlock software for development option
 	if *devOption == false {
