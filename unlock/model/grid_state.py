@@ -73,7 +73,7 @@ class GridState(UnlockModel):
                 
     def process_decision(self, decision):
         current_x, current_y = self.state
-
+        new_state = None
         if decision == GridState.IncrementYCursor:
             new_state = (current_x, current_y+1)
             change = GridStateChange.YChange, 1
