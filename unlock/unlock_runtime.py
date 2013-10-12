@@ -35,7 +35,7 @@ import logging
 import logging.config
 
 from unlock import context 
-from unlock.controller import PygletWindow, Dashboard, FastPad, Canvas, Calibrate, GridSpeak
+from unlock.controller import PygletWindow, Dashboard, FastPad, Canvas, Calibrate, GridSpeak, Collector
 from optparse import OptionParser
 
 
@@ -46,18 +46,18 @@ class UnlockFactory(context.PythonConfig):
         self.args = args
         self.mac_addr = None
         self.window = None
-        self.calibrate = None
+        self.calibrator = None
         self.stimuli = None
-
+        
         if 'mac_addr' in self.args.keys():
             self.mac_addr = [int(value,0) for value in [x.strip() for x in self.args['mac_addr'].split(',')]]
-
+            
         
     @context.Object(lazy_init=True)        
     def ssvep(self):
         from unlock.controller import EEGControllerFragment
         canvas = Canvas.create(self.window.width, self.window.height)
-        stimuli = EEGControllerFragment(canvas, self.signal, self.timer)
+        stimuli = EEGControllerFragment.create_ssvep(canvas, self.signal, self.timer)
         return stimuli
         
     @context.Object(lazy_init=True)        
@@ -109,9 +109,13 @@ class UnlockFactory(context.PythonConfig):
     
     @context.Object(lazy_init=True)
     def CalibrateSEMG(self):
-        self.calibrator, collector = Calibrate.create_smg_calibrator(self.window, self.signal, self.timer, self.stimuli, **self.args['CalibrateSEMG'])
-        return collector
-        
+        self.calibrator, calibrator = Calibrate.create_smg_calibrator(self.window, self.signal, self.timer, self.stimuli, **self.args['CalibrateSEMG'])
+        return calibrator
+    
+    @context.Object(lazy_init=True)
+    def Collector(self):
+        return Collector.create_collector(self.window, self.signal, self.timer, **self.args['Collector'])
+       
     @context.Object(lazy_init=True)
     def FastPad(self):
         return FastPad.create_fastpad(self.window, self.signal, self.timer, self.stimuli, **self.args['FastPad'])

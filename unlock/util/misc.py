@@ -69,7 +69,39 @@ class Trigger(object):
     UsageDefined=16
     UsageDefined1=17
     UsageDefined2=18
-        
+    
+    @staticmethod
+    def tostring(trigger):
+        if Trigger.Null == trigger:
+            return 'Null'
+        elif Trigger.Start == trigger:
+            return 'Start'
+        elif Trigger.Stop == trigger:
+            return 'Stop'
+        elif Trigger.Pause == trigger:
+            return 'Pause'
+        elif Trigger.Cue == trigger:
+            return 'Cue'
+        elif Trigger.Indicate == trigger:
+            return 'Indicate'
+        elif Trigger.Rest == trigger:
+            return 'Rest'
+        elif Trigger.Up == trigger:
+            return 'Up'
+        elif Trigger.Right == trigger:
+            return 'Right'
+        elif Trigger.Left == trigger:
+            return 'Left'
+        elif Trigger.Repeat == trigger:
+            return 'Repeat'
+        elif Trigger.Complete == trigger:
+            return 'Complete'
+        elif Trigger.Forward == trigger:
+            return 'Forward'
+        elif Trigger.Back == trigger:
+            return 'Back'        
+        else:
+            return 'Unknown'
         
 class switch(object):
     def __init__(self, value):
