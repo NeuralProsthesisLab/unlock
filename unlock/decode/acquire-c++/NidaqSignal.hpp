@@ -37,8 +37,9 @@
 class DllExport NidaqSignal : public ISignal
 {
  public:
+	
   NidaqSignal();
-  virtual ~NidaqSignal() {}
+  virtual ~NidaqSignal();
   virtual bool open(uint8_t* mac);
   virtual bool init(size_t channels);
   virtual size_t channels();
@@ -48,8 +49,8 @@ class DllExport NidaqSignal : public ISignal
   virtual uint64_t timestamp();
   virtual bool stop();
   virtual bool close();
-  
   private:
+	
 	TaskHandle  mTaskHandle;
 	float64* mpDataBuffer;
 	int32_t mChannels;
