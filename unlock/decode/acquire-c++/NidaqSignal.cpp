@@ -57,32 +57,33 @@ size_t NidaqSignal::channels() {
 bool NidaqSignal::start() {
 	int32 error=0;
 	char  errorBuffer[2048]={'\0'};
+	std::string prefix = "NidaqSignal.start: ERROR: ";
 	
 	error = DAQmxCreateTask("",&mTaskHandle));
 	if (DAQmxFailed(error)) {
     	DAQmxGetExtendedErrorInfo(errorBuffer,2048);
-		std::cerr << "NidaqSignal.start: ERROR: " << errorBuffer << std::endl;
+		std::cerr << prefix << errorBuffer << std::endl;
 		return false;
 	}
 	
 	error = DAQmxCreateAIVoltageChan(mTaskHandle,"Dev1/ai0","",DAQmx_Val_Cfg_Default,-10.0,10.0,DAQmx_Val_Volts,NULL);
 	if (DAQmxFailed(error)) {
     	DAQmxGetExtendedErrorInfo(errorBuffer,2048);
-		std::cerr << "NidaqSignal.start: ERROR: " << errorBuffer << std::endl;
+		std::cerr << prefix << errorBuffer << std::endl;
 		return false;
 	}
 
 	error = DAQmxCfgSampClkTiming(mTaskHandle,"",1000.0,DAQmx_Val_Rising,DAQmx_Val_ContSamps,mSamplesPerChannel);
 	if (DAQmxFailed(error)) {
     	DAQmxGetExtendedErrorInfo(errorBuffer,2048);
-		std::cerr << "NidaqSignal.start: ERROR: " << errorBuffer << std::endl;
+		std::cerr << prefix << errorBuffer << std::endl;
 		return false;
 	}	
 	
 	error = DAQmxStartTask(taskHandle);
 	if (DAQmxFailed(error)) {
     	DAQmxGetExtendedErrorInfo(errorBuffer,2048);
-		std::cerr << "NidaqSignal.start: ERROR: " << errorBuffer << std::endl;
+		std::cerr << prefix << errorBuffer << std::endl;
 		return false;
 	}
 	return true;
@@ -100,8 +101,8 @@ size_t acquire() {
 	return &read;
 }
 
-
 void getdata(uint32_t* buffer, size_t samples) {
+	// XXX - these values need to be scaled to integer representations.
 //	uint32_t* scaled = scale(mpDataBuffer);
 	for(int i = 0; i < samples; i++) {
 		buffer[i] = (uint32_t)mpDataBuffer[i];
