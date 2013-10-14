@@ -27,3 +27,7 @@
 
 from .neuralsignal import *
 from .audio_signal import *
+#try:
+#    from .nidaq import *
+#except:
+#    print ("unlock.acquire NOTICE: NI DAQ software not installed.. ")
