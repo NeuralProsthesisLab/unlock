@@ -25,15 +25,16 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <stdio.h>
-#include <NIDAQmx.h>
+#include <string>
+#include <iostream>
+#include "NidaqSignal.hpp"
 
-NidaqSignal::NidaqSignal() mTaskHandle(0), mpDataBuffer(0), mSamplesPerChunk(500) {
-	channels(4);
+NidaqSignal::NidaqSignal() : mTaskHandle(0), mpDataBuffer(0), mSamplesPerChannelPerBatch(500) {
+	init(4);
 }
 
 NidaqSignal::~NidaqSignal() {
-	if(mpData != 0) {
+	if(mpDataBuffer != 0) {
 		delete [] mpDataBuffer;
 	}	
 }
@@ -47,7 +48,8 @@ bool NidaqSignal::init(size_t channels) {
 		delete [] mpDataBuffer;
 	}
 	mChannels = channels;
-	mpDataBuffer = new float64[mSamplesPerChunk*mChannels]
+	mpDataBuffer = new float64[mSamplesPerChannelPerBatch*mChannels];
+	return true;
 }
 
 size_t NidaqSignal::channels() {
@@ -59,28 +61,28 @@ bool NidaqSignal::start() {
 	char  errorBuffer[2048]={'\0'};
 	std::string prefix = "NidaqSignal.start: ERROR: ";
 	
-	error = DAQmxCreateTask("",&mTaskHandle));
-	if (DAQmxFailed(error)) {
-    	DAQmxGetExtendedErrorInfo(errorBuffer,2048);
-		std::cerr << prefix << errorBuffer << std::endl;
-		return false;
-	}
-	
-	error = DAQmxCreateAIVoltageChan(mTaskHandle,"Dev1/ai0","",DAQmx_Val_Cfg_Default,-10.0,10.0,DAQmx_Val_Volts,NULL);
+	error = DAQmxCreateTask("",&mTaskHandle);
 	if (DAQmxFailed(error)) {
     	DAQmxGetExtendedErrorInfo(errorBuffer,2048);
 		std::cerr << prefix << errorBuffer << std::endl;
 		return false;
 	}
 
-	error = DAQmxCfgSampClkTiming(mTaskHandle,"",1000.0,DAQmx_Val_Rising,DAQmx_Val_ContSamps,mSamplesPerChannel);
+	error = DAQmxCreateAIVoltageChan(mTaskHandle,"Dev1/ai0:3","", DAQmx_Val_Cfg_Default,-10.0,10.0,DAQmx_Val_Volts,NULL);
+	if (DAQmxFailed(error)) {
+    	DAQmxGetExtendedErrorInfo(errorBuffer,2048);
+		std::cerr << prefix << errorBuffer << std::endl;
+		return false;
+	}
+
+	error = DAQmxCfgSampClkTiming(mTaskHandle,"",1000.0,DAQmx_Val_Rising,DAQmx_Val_ContSamps,mSamplesPerChannelPerBatch);
 	if (DAQmxFailed(error)) {
     	DAQmxGetExtendedErrorInfo(errorBuffer,2048);
 		std::cerr << prefix << errorBuffer << std::endl;
 		return false;
 	}	
 	
-	error = DAQmxStartTask(taskHandle);
+	error = DAQmxStartTask(mTaskHandle);
 	if (DAQmxFailed(error)) {
     	DAQmxGetExtendedErrorInfo(errorBuffer,2048);
 		std::cerr << prefix << errorBuffer << std::endl;
@@ -89,19 +91,22 @@ bool NidaqSignal::start() {
 	return true;
 }
 
-size_t acquire() {
+size_t NidaqSignal::acquire() {
 	int32 error=0;
+	int32 read=0;
 	char  errorBuffer[2048]={'\0'};
-	error = DAQmxReadAnalogF64(mTaskHandle,500, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByChannel, mpDataBuffer, mChannels*mSampelsPerChannel, &read, NULL);
+	error = DAQmxReadAnalogF64(mTaskHandle, mSamplesPerChannelPerBatch, DAQmx_Val_WaitInfinitely,
+							   DAQmx_Val_GroupByChannel, mpDataBuffer, mChannels*mSamplesPerChannelPerBatch,
+							   &read, NULL);
 	if (DAQmxFailed(error)) {
     	DAQmxGetExtendedErrorInfo(errorBuffer,2048);
 		std::cerr << "NidaqSignal.acquire: ERROR: " << errorBuffer << std::endl;
 		return 0;
 	}
-	return &read;
+	return (size_t)read*mChannels;
 }
 
-void getdata(uint32_t* buffer, size_t samples) {
+void NidaqSignal::getdata(uint32_t* buffer, size_t samples) {
 	// XXX - these values need to be scaled to integer representations.
 //	uint32_t* scaled = scale(mpDataBuffer);
 	for(int i = 0; i < samples; i++) {
@@ -109,13 +114,16 @@ void getdata(uint32_t* buffer, size_t samples) {
 	}
 }
 
-uint64_t timestamp() {	
+uint64_t NidaqSignal::timestamp() {
+	return -1;
 }
 
-bool stop() {
+bool NidaqSignal::stop() {
 	DAQmxStopTask(mTaskHandle);
 	DAQmxClearTask(mTaskHandle);
+	return true;
 }
 
-bool close() {
+bool NidaqSignal::close() {
+	return true;
 }

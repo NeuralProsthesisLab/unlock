@@ -31,7 +31,7 @@
 #include <stdint.h>
 #include <cstddef>
 #include <NIDAQmx.h>
-
+#include "ISignal.hpp"
 #include "Portability.hpp"
 
 class DllExport NidaqSignal : public ISignal
@@ -49,12 +49,12 @@ class DllExport NidaqSignal : public ISignal
   virtual uint64_t timestamp();
   virtual bool stop();
   virtual bool close();
-  private:
-	
+
+  private:	
 	TaskHandle  mTaskHandle;
 	float64* mpDataBuffer;
 	int32_t mChannels;
-	int32_t mSamplesPerChunk;
+	int32_t mSamplesPerChannelPerBatch;
 };
 
 #endif
