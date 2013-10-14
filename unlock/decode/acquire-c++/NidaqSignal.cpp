@@ -95,8 +95,11 @@ size_t NidaqSignal::acquire() {
 	int32 error=0;
 	int32 read=0;
 	char  errorBuffer[2048]={'\0'};
-	error = DAQmxReadAnalogF64(mTaskHandle, mSamplesPerChannelPerBatch, DAQmx_Val_WaitInfinitely,
+/*	error = DAQmxReadAnalogF64(mTaskHandle, mSamplesPerChannelPerBatch, DAQmx_Val_WaitInfinitely,
 							   DAQmx_Val_GroupByChannel, mpDataBuffer, mChannels*mSamplesPerChannelPerBatch,
+							   &read, NULL);*/
+	error = DAQmxReadAnalogF64(mTaskHandle, mSamplesPerChannelPerBatch, DAQmx_Val_WaitInfinitely,
+							   DAQmx_Val_GroupByScanNumber, mpDataBuffer, mChannels*mSamplesPerChannelPerBatch,
 							   &read, NULL);
 	if (DAQmxFailed(error)) {
     	DAQmxGetExtendedErrorInfo(errorBuffer,2048);
@@ -107,10 +110,8 @@ size_t NidaqSignal::acquire() {
 }
 
 void NidaqSignal::getdata(uint32_t* buffer, size_t samples) {
-	// XXX - these values need to be scaled to integer representations.
-//	uint32_t* scaled = scale(mpDataBuffer);
 	for(int i = 0; i < samples; i++) {
-		buffer[i] = (uint32_t)mpDataBuffer[i];
+		buffer[i] = (uint32_t)(mpDataBuffer[i] * 32768 / 10);
 	}
 }
 
