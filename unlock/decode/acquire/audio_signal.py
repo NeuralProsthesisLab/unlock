@@ -31,8 +31,9 @@ import struct
 import pyaudio
 import time
 
-class AudioSignal:
-	def __init__(self,channels=2,sampling_rate=11025,batch_size=512,window_size=5):
+class AudioSignal(object):
+	def __init__(self,channels=2,sampling_rate=22050,batch_size=512,window_size=5):
+		super(AudioSignal, self).__init__()
 		self.sampling_rate = sampling_rate
 		self.batch_size = batch_size 
 		self.chans = channels
@@ -78,12 +79,12 @@ class AudioSignal:
 	def acquire(self):
 		audio_data = self.audio_stream.read(self.batch_size)
 		self.next_sample_batch = struct.unpack('<%dh' % (self.batch_size*self.chans), audio_data)#).reshape(self.batch_size, self.channels)
-		print(type(self.next_sample_batch))
+		#print(type(self.next_sample_batch))
 		assert self.batch_size*self.chans == len(self.next_sample_batch)
 		return len(self.next_sample_batch)
 		
 	def getdata(self, samples):
-		print("size of samples = ", samples)
+		#print("size of samples = ", samples)
 		assert samples == len(self.next_sample_batch)
 		return self.next_sample_batch
 		
