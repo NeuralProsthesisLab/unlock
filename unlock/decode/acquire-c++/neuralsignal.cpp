@@ -9,6 +9,7 @@
 #include "EnobioStatusReceiver.hpp"
 #include "ITimer.hpp"
 #include "WinTimer.hpp"
+#include "NidaqSignal.hpp"
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -119,6 +120,12 @@ PythonSignal* create_random_signal(ITimer* pTimer) {
   return pPythonSignal;  
 }
 
+PythonSignal* create_nidaq_signal(ITimer* pTimer) {
+  ISignal* pSignal = new NidaqSignal();
+  PythonSignal* pPythonSignal = new PythonSignal(pSignal, pTimer);
+  return pPythonSignal;  
+}
+
 PythonSignal* create_enobio_signal(ITimer* pTimer) {
 
   Enobio3G* pEnobio3G = new Enobio3G();
@@ -143,6 +150,7 @@ BOOST_PYTHON_MODULE(neuralsignal)
         
   def("create_timer", create_timer, return_value_policy<manage_new_object>());
   def("create_random_signal", create_random_signal, return_value_policy<manage_new_object>());
+  def("create_nidaq_signal", create_nidaq_signal, return_value_policy<manage_new_object>());  
   def("create_enobio_signal", create_enobio_signal, return_value_policy<manage_new_object>());
 
   class_<SignalPythonWrap, boost::noncopyable>("ISignal", no_init)
