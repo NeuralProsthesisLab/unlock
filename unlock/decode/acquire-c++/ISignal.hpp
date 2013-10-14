@@ -1,4 +1,3 @@
-
 // Copyright (c) James Percent and Unlock contributors.
 // All rights reserved.
 // Redistribution and use in source and binary forms, with or without modification,
