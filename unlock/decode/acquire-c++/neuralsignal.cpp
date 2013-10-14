@@ -126,8 +126,7 @@ PythonSignal* create_nidaq_signal(ITimer* pTimer) {
   return pPythonSignal;  
 }
 
-PythonSignal* create_enobio_signal(ITimer* pTimer) {
-
+ISignal* create_enobio_signal(ITimer* pTimer) {
   Enobio3G* pEnobio3G = new Enobio3G();
   EnobioSignalHandler* pEnobioSignalHandler = new EnobioSignalHandler(pEnobio3G, pTimer);
   
@@ -136,10 +135,19 @@ PythonSignal* create_enobio_signal(ITimer* pTimer) {
   
   EnobioStatusReceiver* pStatusReceiver = new EnobioStatusReceiver(pEnobioSignalHandler);
   pEnobioSignalHandler->setEnobioStatusReceiver(pStatusReceiver);
+  return pEnobioSignalHandler;
+}
 
+PythonSignal* create_blocking_enobio_signal(ITimer* pTimer) {
+  ISignal* pEnobioSignalHandler = create_enobio_signal(pTimer);
+  PythonSignal* pPythonSignal = new PythonSignal(pEnobioSignalHandler, pTimer);
+  return pPythonSignal;
+}
+
+PythonSignal* create_nonblocking_enobio_signal(ITimer* pTimer) {
+  ISignal* pEnobioSignalHandler = create_enobio_signal(pTimer);
   NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pEnobioSignalHandler);
   PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal, pTimer);
-  
   return pPythonSignal;
 }
 
@@ -151,8 +159,10 @@ BOOST_PYTHON_MODULE(neuralsignal)
   def("create_timer", create_timer, return_value_policy<manage_new_object>());
   def("create_random_signal", create_random_signal, return_value_policy<manage_new_object>());
   def("create_nidaq_signal", create_nidaq_signal, return_value_policy<manage_new_object>());  
-  def("create_enobio_signal", create_enobio_signal, return_value_policy<manage_new_object>());
+  def("create_blocking_enobio_signal", create_blocking_enobio_signal, return_value_policy<manage_new_object>());
+  def("create_nonblocking_enobio_signal", create_nonblocking_enobio_signal, return_value_policy<manage_new_object>());
 
+  
   class_<SignalPythonWrap, boost::noncopyable>("ISignal", no_init)
     .def("open", pure_virtual(&ISignal::open))
     .def("init", pure_virtual(&ISignal::init))
