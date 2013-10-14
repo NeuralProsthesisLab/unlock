@@ -78,7 +78,7 @@ size_t PythonSignal::acquire() {
   try {
     return mpSignal->acquire();
   } catch(...) {
-    std::cerr << "PythonSignal.acquire: ERROR exception raised; returning 0 samples" << std::endl;
+    std::cerr << "PythonSignal.acquire ERROR: exception raised; returning 0 samples" << std::endl;
     return 0;
   }
 }
@@ -106,7 +106,7 @@ std::vector<int32_t> PythonSignal::getdata(size_t samples) {
       buffer = 0;
       return ret;
   } catch(...) {
-    std::cerr << "PythonSignal.getdata: ERROR: exception raised; returning empty samples vector " << std::endl;
+    std::cerr << "PythonSignal.getdata ERROR: exception raised; returning empty samples vector " << std::endl;
   }
   return ret;
 }
