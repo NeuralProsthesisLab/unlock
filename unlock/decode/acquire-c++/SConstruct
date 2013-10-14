@@ -61,13 +61,15 @@ elif sys.platform == 'win32':
 #                    'boost_prg_exec_monitor-vc100-mt-1_54',
                     'boost_thread-vc100-mt-1_54',
                     'Enobio3GAPI',
-                    'NIDAQmx'
+                    'NIDAQmx',
+                    'gMOBIlabplus'
                     ]
       python_includes = ['C:\Python33\include']
       ni_includes = ['C:\Program Files (x86)\National Instruments\NI-DAQ\DAQmx ANSI C Dev\include']
       libname = 'neuralsignal_win_x86'
       ccflags = ['/MD',  '/EHsc']
       includes.append(os.path.join('boost', 'include', 'enobio'))
+      includes.append(os.path.join('boost', 'include', 'gtec'))      
       includes.append(ni_includes)
       cppdefines = ['BOOST_ALL_DYN_LINK', 'MSVC', 'DLL_LINK', 'NPL_DEBUG']
       target_arch = 'x86'
@@ -82,7 +84,7 @@ frameworks = ["Python"]
 
 SOURCES=['neuralsignal.cpp', 'NonblockingSignal.cpp', 'RandomSignal.cpp', 'AsyncSampleCollector.cpp',
            'ManagedWorkController.cpp', 'EnobioSignalHandler.cpp', 'PythonSignal.cpp', 'Logger.cpp',
-           'EnobioDataReceiver.cpp', 'EnobioStatusReceiver.cpp', 'WinTimer.cpp', 'NidaqSignal.cpp']
+           'EnobioDataReceiver.cpp', 'EnobioStatusReceiver.cpp', 'WinTimer.cpp', 'NidaqSignal.cpp', 'MobilabSignal.cpp']
 UNIT_TEST_SOURCES=['AsyncSampleCollectorTest.cpp', 'SignalTestRunner.cpp', 'NonblockingSignalTest.cpp',
                    'SampleTest.cpp', 'IntegralWorkController.cpp', 'ManagedWorkControllerTest.cpp',
                    'IntegralWorkControllerTest.cpp', 'EnobioSignalHandlerTest.cpp', 'PythonSignalTest.cpp',
