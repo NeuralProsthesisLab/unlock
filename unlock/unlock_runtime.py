@@ -85,7 +85,7 @@ class UnlockFactory(context.PythonConfig):
             raise RuntimeError('enobio requires a mac address; none set')
         
         self.timer = acquire.create_timer()
-        signal = acquire.create_enobio_signal(self.timer)
+        signal = acquire.create_nonblocking_enobio_signal(self.timer)
         if not signal.open(self.mac_addr):
             print('enobio did not open')
             raise RuntimeError('enobio did not open')
