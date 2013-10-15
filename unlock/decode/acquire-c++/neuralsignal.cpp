@@ -10,6 +10,7 @@
 #include "ITimer.hpp"
 #include "WinTimer.hpp"
 #include "NidaqSignal.hpp"
+#include "MobilabSignal.hpp"
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -151,6 +152,27 @@ PythonSignal* create_nonblocking_enobio_signal(ITimer* pTimer) {
   return pPythonSignal;
 }
 
+// ain = 120, dio = 0, comPort = "/dev/rfcomm0" (on mouth)
+ISignal* create_mobilab_signal(int32_t ain, int32_t dio, std::string comPort) {
+  MobilabSignal* pMobilabSignal = new MobilabSignal(ain, dio, comPort);
+  return pMobilabSignal;
+}
+
+
+PythonSignal* create_blocking_mobilab_signal(ITimer* pTimer, int32_t ain, int32_t dio, std::string comPort) {
+  ISignal* pMobilabSignal = create_mobilab_signal(ain, dio, comPort);
+  PythonSignal* pPythonSignal = new PythonSignal(pMobilabSignal, pTimer);
+  return pPythonSignal;
+}
+
+PythonSignal* create_nonblocking_mobilab_signal(ITimer* pTimer, int32_t ain, int32_t dio, std::string comPort) {
+  ISignal* pMobilabSignal = create_mobilab_signal(ain, dio, comPort);  
+  NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pMobilabSignal);
+  PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal, pTimer);
+  return pPythonSignal;
+}
+
+
 BOOST_PYTHON_MODULE(neuralsignal)
 {
   class_<std::vector<int32_t> >("int32_vector")
@@ -161,6 +183,8 @@ BOOST_PYTHON_MODULE(neuralsignal)
   def("create_nidaq_signal", create_nidaq_signal, return_value_policy<manage_new_object>());  
   def("create_blocking_enobio_signal", create_blocking_enobio_signal, return_value_policy<manage_new_object>());
   def("create_nonblocking_enobio_signal", create_nonblocking_enobio_signal, return_value_policy<manage_new_object>());
+  def("create_blocking_mobilab_signal", create_blocking_mobilab_signal, return_value_policy<manage_new_object>());
+  def("create_nonblocking_mobilab_signal", create_nonblocking_mobilab_signal, return_value_policy<manage_new_object>());  
 
   
   class_<SignalPythonWrap, boost::noncopyable>("ISignal", no_init)
