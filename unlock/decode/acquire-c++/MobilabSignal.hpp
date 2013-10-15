@@ -39,6 +39,7 @@ public:
 	~MobilabSignal();
 	virtual bool open(uint8_t*);
 	virtual bool init(size_t channels);
+    virtual size_t channels();
 	virtual bool start();
 	virtual size_t acquire();
 	virtual void getdata(uint32_t* data, size_t samples);

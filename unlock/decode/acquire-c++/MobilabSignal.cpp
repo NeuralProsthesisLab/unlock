@@ -47,6 +47,10 @@ bool MobilabSignal::init(size_t channels) {
 	return true;
 }
 
+size_t MobilabSignal::channels() {
+	return mChannels;
+}
+
 bool MobilabSignal::start() {
 	mpGtec = GT_OpenDevice((LPSTR)mPort.c_str());	
 	// activate analog and digital channels
