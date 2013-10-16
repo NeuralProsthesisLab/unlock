@@ -35,7 +35,7 @@ import logging
 import logging.config
 
 from unlock import context
-from unlock.decode import CommandReceiverFactory, InlineDecoder
+from unlock.decode import CommandReceiverFactory, InlineDecoder, MultiProcessDecoder
 from unlock.controller import PygletWindow, Dashboard, FastPad, Canvas, Calibrate, GridSpeak, Collector
 from optparse import OptionParser
 
@@ -75,7 +75,7 @@ class UnlockFactory(context.PythonConfig):
         return self.decoder
     
     @context.Object(lazy_init=True)
-    def MultiprocessDecoder(self):
+    def multiprocess(self):
         self.decoder = MultiProcessDecoder(self.args)
         return self.decoder
     
