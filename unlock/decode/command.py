@@ -303,21 +303,34 @@ class CommandReceiverFactory(object):
         else:
             raise LookupError('CommandReceiver does not support the factory method identified by '+str(factory_method))
         
+def command_receiver_fn(Q, classifier, classifier_args, args):
+    from unlock import unlock_runtime
+    import unlock.context
+    
+    print('queue, classifier, classifer_args, args ', classifier, classifier_args, args)
+    
+    factory = unlock_runtime.UnlockFactory(args)
+    app_ctx = unlock.context.ApplicationContext(factory)
+    assert args['decoder'] == 'inline'
+    factory.signal = app_ctx.get_object(args['signal'])
+    factory.decoder = app_ctx.get_object(args['decoder'])
+    command_receiver = factory.decoder.create_receiver(classifier_args, classifier)
+    import time
+    start = time.time()
+    while True:
+        command = command_receiver.next_command(time.time() - start)
+        # can't pickle the C++ object
+        command.timer = None
+        Q.put(command)
+        
         
 class MultiProcessCommandReceiver(CommandReceiver):
-    def __init__(self, args):
-        super(MultiprocessCommandReceiver, self).__init__()        
+    def __init__(self, classifier, classifier_args, args):
+        super(MultiProcessCommandReceiver, self).__init__()        
         self.Q = Queue()
-        
-        def command_receiver_fn(q, args):
-            from unlock import unlock_runtime
-            unlock_runtime.UnlockFactory()
-#            has to create shit
-            while True:
-                command = command_reciever_obj.next_command()
-                self.Q.put(command)
-                
-        self.process = Process(target=command_receiver_fn, args=(self.Q, command_receiver))
+        self.args = args
+        self.args['decoder'] = 'inline'
+        self.process = Process(target=command_receiver_fn, args=(self.Q, classifier, classifier_args, self.args))
         self.process.start()
         
     def next_command(self, delta):
@@ -344,10 +357,27 @@ class InlineDecoder(object):
         
     def create_receiver(self, args, classifier_type=None):
         classifier_obj = UnlockClassifier.create(classifier_type, args)
-        return CommandReceiverFactory.create(factory_method=self.factory_method, signal=self.signal, timer=self.timer, classifier=classifier_obj)
-
+        return CommandReceiverFactory.create(factory_method=self.factory_method, signal=self.signal,
+                                             timer=self.timer, classifier=classifier_obj)
+        
         
 class MultiProcessDecoder(object):
     def __init__(self, args):
         super(MultiProcessDecoder, self).__init__()
-        self.args
+        self.args = args
+        self.mp_cmd_receiver = None
+        
+    def shutdown(self):
+        if self.mp_cmd_receiver != None:
+            self.mp_cmd_receiver.stop()
+        
+    def stop(self):
+        pass    
+        
+    def create_receiver(self, args, classifier_type=None):
+        self.mp_cmd_receiver = MultiProcessCommandReceiver(classifier_type, args, self.args)
+        return self.mp_cmd_receiver
+#        classifier_obj = UnlockClassifier.create(classifier_type, args)
+ #       return CommandReceiverFactory.create(factory_method=self.factory_method, signal=self.signal, timer=self.timer, classifier=classifier_obj)
+        
+        
