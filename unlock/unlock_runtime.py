@@ -57,18 +57,18 @@ class UnlockFactory(context.PythonConfig):
         if 'mac_addr' in self.args.keys():
             self.mac_addr = [int(value,0) for value in [x.strip() for x in self.args['mac_addr'].split(',')]]
             
-        
+            
     @context.Object(lazy_init=True)        
     def ssvep(self):
         from unlock.controller import EEGControllerFragment
         canvas = Canvas.create(self.window.width, self.window.height)
-        stimuli = EEGControllerFragment.create_ssvep(canvas, self.signal, self.timer)
+        stimuli = EEGControllerFragment.create_ssvep(canvas, self.signal, self.timer, receiver_type=self.receiver)
         return stimuli
         
     @context.Object(lazy_init=True)        
     def semg(self):
         from unlock.controller import sEMGControllerFragment
-        stimuli = sEMGControllerFragment.create_semg(self.signal, self.timer)
+        stimuli = sEMGControllerFragment.create_semg(self.signal, self.timer, receiver_type=self.receiver)
         return stimuli
         
     @context.Object(lazy_init=True)        
@@ -81,14 +81,14 @@ class UnlockFactory(context.PythonConfig):
             raise RuntimeError('failed to start audio signal')
             
         return signal        
-    
+        
     @context.Object(lazy_init=True)    
     def enobio(self):
         from unlock.decode import acquire
         if self.mac_addr == None:
             print ('enobio requires a mac address; none set')
             raise RuntimeError('enobio requires a mac address; none set')
-        
+            
         self.timer = acquire.create_timer()
         signal = acquire.create_nonblocking_enobio_signal(self.timer)
         if not signal.open(self.mac_addr):
@@ -98,14 +98,14 @@ class UnlockFactory(context.PythonConfig):
             print('enobio device did not start streaming')                                 
             raise RuntimeError('enobio device did not start streaming')                       
         return signal
-
+        
     @context.Object(lazy_init=True)    
     def mobilab(self, comport='COM5', analog_channels_bitmask=120):
         from unlock.decode import acquire
         
         self.timer = acquire.create_timer()
         signal = acquire.create_nonblocking_mobilab_signal(self.timer, analog_channels_bitmask, 0, comport)
-
+        
         if not signal.start():
             print('mobilab device did not start streaming') 
             raise RuntimeError('mobilab device did not start streaming')                       
@@ -119,27 +119,32 @@ class UnlockFactory(context.PythonConfig):
         signal.open([])
         signal.start()
         return signal
-
+        
     @context.Object(lazy_init=True)
     def PygletWindow(self):
         return PygletWindow(self.signal, self.args['fullscreen'], self.args['fps'], self.args['vsync'])        
-    
+        
     @context.Object(lazy_init=True)
     def CalibrateSEMG(self):
-        self.calibrator, calibrator = Calibrate.create_smg_calibrator(self.window, self.signal, self.timer, self.stimuli, **self.args['CalibrateSEMG'])
+        self.calibrator, calibrator = Calibrate.create_smg_calibrator(self.window, self.signal,
+                                                                      self.timer, self.stimuli,
+                                                                      receiver_type=self.receiver,
+                                                                      **self.args['CalibrateSEMG'])
         return calibrator
-    
+        
     @context.Object(lazy_init=True)
     def Collector(self):
-        return Collector.create_collector(self.window, self.signal, self.timer, **self.args['Collector'])
+        return Collector.create_collector(self.window, self.signal, self.timer, self.stimuli, **self.args['Collector'])
        
     @context.Object(lazy_init=True)
     def FastPad(self):
-        return FastPad.create_fastpad(self.window, self.signal, self.timer, self.stimuli, **self.args['FastPad'])
-
+        return FastPad.create_fastpad(self.window, self.signal, self.timer, self.stimuli,
+                                     receiver_type=self.receiver, **self.args['FastPad'])
+            
     @context.Object(lazy_init=True)
     def GridSpeak(self):
-        return GridSpeak.create_gridspeak(self.window, self.signal, self.timer, self.stimuli, **self.args['GridSpeak'])
+        return GridSpeak.create_gridspeak(self.window, self.signal, self.timer, self.stimuli,
+                                          receiver_type=self.receiver, **self.args['GridSpeak'])
             
     @context.Object(lazy_init=True)
     def Dashboard(self):
@@ -149,7 +154,9 @@ class UnlockFactory(context.PythonConfig):
             controller = getattr(self, controller_attr)
             controllers.append(controller())
         args.pop('controllers')
-        return Dashboard.create_dashboard(self.window, controllers, self.signal, self.timer, self.stimuli, self.calibrator, **args)
+        return Dashboard.create_dashboard(self.window, controllers, self.signal, self.timer,
+                                          self.stimuli,  self.calibrator,
+                                          receiver_type=self.receiver, **args)
         
         
 class UnlockRuntime(object):
@@ -233,10 +240,10 @@ class UnlockRuntime(object):
         self.app_ctx = context.ApplicationContext(self.factory)
     
         # XXX - need to integrate the json config into the context.
-        if self.args['receiver'] == 'delta':
-            self.factory.signal = self.app_ctx.get_object('random')
-        else:    
-            self.factory.signal = self.app_ctx.get_object(self.args['signal'])
+        #if self.args['receiver'] == 'delta':
+        #    self.factory.signal = self.app_ctx.get_object('random')
+        #else:    
+        self.factory.signal = self.app_ctx.get_object(self.args['signal'])
             
         self.factory.window = self.app_ctx.get_object('PygletWindow')
         if 'stimuli' in self.args.keys():

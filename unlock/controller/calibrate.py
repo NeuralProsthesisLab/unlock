@@ -82,7 +82,7 @@ class Calibrate(UnlockControllerFragment):
         pass
     
     @staticmethod
-    def create_smg_calibrator(window, signal, timer, stimuli=None, trials=4, cue_duration=.5,
+    def create_smg_calibrator(window, signal, timer, stimuli, trials=4, cue_duration=.5,
                               rest_duration=1, indicate_duration=1, standalone=False):
         canvas = Canvas.create(window.width, window.height)
         cues = [Trigger.Left, Trigger.Right, Trigger.Forward, Trigger.Back, Trigger.Select]
