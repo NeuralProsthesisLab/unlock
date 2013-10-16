@@ -25,9 +25,20 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import decode #HarmonicSumDecision # XXX - circular dep badness
 
 class UnlockClassifier(object):
+    HarmonicSumDecision=0    
     def __init__(self):
-        pass
+        super(UnlockClassifier, self).__init__()
+        
     def classify(self, command):
-        pass    
+        pass
+        
+    @staticmethod
+    def create(classifier, args):
+        if classifier == UnlockClassifier.HarmonicSumDecision or classifier == None:
+            return decode.HarmonicSumDecision(**args)
+        else:
+            raise Exception("FML")
+    

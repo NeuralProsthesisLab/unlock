@@ -46,10 +46,10 @@ class FastPad(UnlockControllerFragment):
         return fastpad
         
     @staticmethod
-    def create_fastpad(window, signal, timer, base=None, color='bw', receiver_type=CommandReceiverFactory.Classified):
+    def create_fastpad(window, decoder, base=None, color='bw'):
         canvas = Canvas.create(window.width, window.height)
         if base == None:
-            base = EEGControllerFragment.create_ssvep(canvas, signal, timer, color, receiver_type)
+            base = EEGControllerFragment.create_ssvep(canvas, decoder, color)
             
         assert base != None
         fastpad = FastPad.create_fastpad_fragment(canvas)

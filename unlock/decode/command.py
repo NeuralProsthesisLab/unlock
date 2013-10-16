@@ -25,7 +25,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from unlock.util import DatagramWrapper
-
+from .classify import UnlockClassifier
+from multiprocessing import Process, Queue
 import socket
 import pickle
 import json
@@ -37,6 +38,7 @@ import numpy as np
 
 class Command(object):
     def __init__(self, delta=None, decision=None, selection=None, data=None, json=False):
+        super(Command, self).__init__()        
         self.delta = delta
         self.decision = decision
         self.selection = selection
@@ -65,8 +67,8 @@ class Command(object):
             
 class PygletKeyboardCommand(Command):
     def __init__(self, symbol, modifiers):
-        self.stop = False
         super(PygletKeyboardCommand, self).__init__()
+        self.stop = False
         labels = [ord(c) for c in 'abcdefghijklmnopqrstuvwxyz_12345']
         if symbol == pyglet.window.key.UP:
             self.decision = 1
@@ -122,6 +124,9 @@ class RawSignalCommand(Command):
         
         
 class CommandReceiver(object):
+    def __init__(self):
+        super(CommandReceiver, self).__init__()        
+    
     def next_command(self, *args, **kwargs):
         raise NotImplementedError("Every CommandReceiver must implement the next_command method")
         
@@ -136,6 +141,7 @@ class CommandSenderInterface(object):
         
 class DatagramCommandReceiver(CommandReceiver):
     def __init__(self, source):
+        super(DatagramCommandReceiver, self).__init__()                
         self.source = source
         self.log = logging.getLogger(__name__)
         
@@ -163,6 +169,7 @@ class DatagramCommandReceiver(CommandReceiver):
             
 class DatagramCommandSender(object):
     def __init__(self, source):
+        super(DatagramCommandSender, self).__init__()        
         self.source = source
         self.log = logging.getLogger(__name__)
             
@@ -187,6 +194,7 @@ class DatagramCommandSender(object):
             
 class InlineCommandReceiver(CommandReceiver):
     def __init__(self):
+        super(InlineCommandReceiver, self).__init__()
         self.Q = []
         self.pos = 0
             
@@ -207,6 +215,7 @@ class InlineCommandReceiver(CommandReceiver):
             
 class ClassifiedCommandReceiver(CommandReceiver):
     def __init__(self, command_receiver, classifier):
+        super(ClassifiedCommandReceiver, self).__init__()
         self.command_receiver = command_receiver
         self.classifier = classifier
         
@@ -223,6 +232,7 @@ class ClassifiedCommandReceiver(CommandReceiver):
           
 class RawInlineSignalReceiver(CommandReceiver):
     def __init__(self, signal, timer):
+        super(RawInlineSignalReceiver, self).__init__()        
         self.signal = signal
         self.timer = timer
         
@@ -250,8 +260,12 @@ class RawInlineSignalReceiver(CommandReceiver):
             
     def stop(self):
         pass
-
+        
+        
 class DeltaCommandReceiver(CommandReceiver):
+    def __init__(self):
+        super(DeltaCommandReceiver, self).__init__()
+            
     def next_command(self, delta):
         return Command(delta)
         
@@ -262,17 +276,18 @@ class CommandReceiverFactory(object):
     Classified=2
     Datagram=3
     Inline=4
-
+    Multiprocess=5
     @staticmethod
     def map_factory_method(string):
         map_ = { 'delta': CommandReceiverFactory.Delta, 'raw' : CommandReceiverFactory.Raw,
                 'classified': CommandReceiverFactory.Classified, 'datagram': CommandReceiverFactory.Datagram,
-                'inline': CommandReceiverFactory.Inline}
+                'inline': CommandReceiverFactory.Inline, 'multiprocess': CommandReceiverFactory.Multiprocess}
         return map_[string]
                 
-    
+                
     @staticmethod
     def create(factory_method=None, signal=None, timer=None, classifier=None, source=None):
+        print ("RECATE command ", signal)
         if factory_method == CommandReceiverFactory.Delta or factory_method == None:
             return DeltaCommandReceiver()
         elif factory_method == CommandReceiverFactory.Raw:
@@ -283,6 +298,56 @@ class CommandReceiverFactory(object):
             return DatagramCommandReceiver(source)
         elif factory_method == CommandReceiverFactory.Inline:
             return InlineCommandReceiver()
+        elif factory_method == CommandReceiverFactory.Multiprocess:
+            return MultiProcessCommandReceiver(ClassifiedCommandReceiver(RawInlineSignalReceiver(signal, timer), classifier))
         else:
             raise LookupError('CommandReceiver does not support the factory method identified by '+str(factory_method))
         
+        
+class MultiProcessCommandReceiver(CommandReceiver):
+    def __init__(self, args):
+        super(MultiprocessCommandReceiver, self).__init__()        
+        self.Q = Queue()
+        
+        def command_receiver_fn(q, args):
+            from unlock import unlock_runtime
+            unlock_runtime.UnlockFactory()
+#            has to create shit
+            while True:
+                command = command_reciever_obj.next_command()
+                self.Q.put(command)
+                
+        self.process = Process(target=command_receiver_fn, args=(self.Q, command_receiver))
+        self.process.start()
+        
+    def next_command(self, delta):
+        return self.Q.get()
+        
+    def stop(self):
+        self.process.terminate()
+        self.process.join()
+        
+        
+class InlineDecoder(object):
+    def __init__(self, factory_method, signal, timer):
+        super(InlineDecoder, self).__init__()
+        self.factory_method = factory_method
+        self.signal = signal
+        self.timer = timer
+        
+    def shutdown(self):
+        self.signal.stop()
+        self.signal.close()
+        
+    def stop(self):
+        raise Exception("WTF")
+        
+    def create_receiver(self, args, classifier_type=None):
+        classifier_obj = UnlockClassifier.create(classifier_type, args)
+        return CommandReceiverFactory.create(factory_method=self.factory_method, signal=self.signal, timer=self.timer, classifier=classifier_obj)
+
+        
+class MultiProcessDecoder(object):
+    def __init__(self, args):
+        super(MultiProcessDecoder, self).__init__()
+        self.args
