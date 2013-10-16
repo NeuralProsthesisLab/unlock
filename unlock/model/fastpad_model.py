@@ -31,23 +31,23 @@ class FastPadModel(UnlockModel):
         self.noop = False
         if command.decision == FastPadModel.LEFT:
             
-            self.cursor = "CURSOR"
+            self.mode = "CURSOR"
             self.button = self.currButton.left
-            
+                    
         elif command.decision == FastPadModel.RIGHT:
-            self.cursor = "CURSOR"
+            self.mode = "CURSOR"
             self.button = self.currButton.right
             
         elif command.decision == FastPadModel.UP:
-            self.cursor = "CURSOR"
+            self.mode = "CURSOR"
             self.button = self.currButton.up
             
         elif command.decision == FastPadModel.DOWN:
-            self.cursor = "CURSOR"
+            self.mode = "CURSOR"
             self.button = self.currButton.down
             
         elif command.selection:
-            self.cursor = "SELECT"
+            self.mode = "SELECT"
             self.button = self.currButton
             # We've changed our selection, so reset the timer
             self.selTime = 0
@@ -63,7 +63,7 @@ class FastPadModel(UnlockModel):
                 if self.selTime >= FastPadModel.SELECT_TIME:
                     
                     self.selTime = 0
-                    self.cursor = "CURSOR"
+                    self.mode = "CURSOR"
                     self.button = self.currButton
                 else:
                     self.noop = True
