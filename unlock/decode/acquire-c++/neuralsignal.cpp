@@ -179,7 +179,7 @@ PythonSignal* create_nonblocking_enobio_signal(ITimer* pTimer) {
   return pPythonSignal;
 }
 
-// ain = 120, dio = 0, comPort = "/dev/rfcomm0" (on mouth)
+// ain = 120, dio = 0, comPort = "COM5"
 ISignal* create_mobilab_signal(int32_t ain, int32_t dio, std::string comPort) {
   MobilabSignal* pMobilabSignal = new MobilabSignal(ain, dio, comPort);
   return pMobilabSignal;
@@ -192,7 +192,7 @@ PythonSignal* create_blocking_mobilab_signal(ITimer* pTimer, int32_t ain, int32_
 }
 
 PythonSignal* create_nonblocking_mobilab_signal(ITimer* pTimer, int32_t ain, int32_t dio, std::string comPort) {
-  ISignal* pMobilabSignal = create_mobilab_signal(ain, dio, comPort);  
+  ISignal* pMobilabSignal = create_mobilab_signal(ain, dio, comPort);
   NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pMobilabSignal);
   PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal, pTimer);
   return pPythonSignal;

@@ -29,7 +29,7 @@
 #include "MobilabSignal.hpp"
 
 MobilabSignal::MobilabSignal(int32_t ain, int32_t dio, std::string port)
-	: mAin(ain), mDio(dio), mPort(port), mpGtec(0), mChannels(0) {
+	: mAin(ain), mDio(dio), mPort(port), mpGtec(0), mChannels(0), mpBuffer(0) {
 	mEventHandler.hEvent = CreateEvent(0,FALSE,FALSE,0);
 	mEventHandler.Offset = 0;
 	mEventHandler.OffsetHigh = 0;
