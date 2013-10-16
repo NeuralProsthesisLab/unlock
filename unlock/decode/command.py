@@ -24,7 +24,6 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 from unlock.util import DatagramWrapper
 
 import socket
@@ -122,20 +121,46 @@ class RawSignalCommand(Command):
         self.logger.debug("Data = ", self.matrix)
         
         
-class CommandReceiverInterface(object):
+class CommandReceiver(object):
+    Delta=0
+    Raw=1
+    Classified=2
+    Datagram=3
+    Inline=4
     def next_command(self, *args, **kwargs):
-        raise NotImplementedError("Every CommandReceiverInterface must implement the next_command method")
+        raise NotImplementedError("Every CommandReceiver must implement the next_command method")
         
     def stop(self):
-        raise NotImplementedError("Every CommandReceiverInterface must implement the stop method")
+        raise NotImplementedError("Every CommandReceiver must implement the stop method")
         
+    @staticmethod
+    def map_factory_method(self, string):
+        map_ = { 'delta': CommandReceiver.Delta, 'raw' : CommandReceiver.Raw,
+                'classified': CommandReceiver.Classified, 'datagram': CommandReceiver.Datagram,
+                'inline': Inline}
+        return map_[string]
         
+    @staticmethod
+    def create(self, factory_method=CommandReceiver.Delta, signal=None, timer=None, classifier=None, source=None):
+        if factory_method == CommandReceiver.Delta:
+            return DeltaCommandReceiver()
+        elif factory_method == CommandReceiver.Raw:
+            return RawCommandReceiver(signal, timer)
+        elif factory_method == CommandReceiver.Classifier:
+            return ClassifiedCommandReceiver(RawCommandReceiver(signal, timer), classifier)
+        elif factory_method == CommandReceiver.Datagram:
+            return DatagramCommandReceiver(source)
+        elif factory_method == CommandReceiver.Inline:
+            return InlineCommandReceiver()
+        else:
+            raise LookupError('CommandReceiver does not support the factory method identified by '+str(factory_method))
+            
 class CommandSenderInterface(object):
     def send(self, command):
         raise NotImplementedError("Every CommandSenderInterface must implement the send method")        
         
         
-class DatagramCommandReceiver(CommandReceiverInterface):
+class DatagramCommandReceiver(CommandReceiver):
     def __init__(self, source):
         self.source = source
         self.log = logging.getLogger(__name__)
@@ -186,7 +211,7 @@ class DatagramCommandSender(object):
         return DatagramCommandSender(DatagramWrapper.create_source(address, port))
             
             
-class InlineCommandReceiver(CommandReceiverInterface):
+class InlineCommandReceiver(CommandReceiver):
     def __init__(self):
         self.Q = []
         self.pos = 0
@@ -206,7 +231,7 @@ class InlineCommandReceiver(CommandReceiverInterface):
         self.Q.append(command)
             
             
-class ClassifiedCommandReceiver(CommandReceiverInterface):
+class ClassifiedCommandReceiver(CommandReceiver):
     def __init__(self, command_receiver, classifier):
         self.command_receiver = command_receiver
         self.classifier = classifier
@@ -222,7 +247,7 @@ class ClassifiedCommandReceiver(CommandReceiverInterface):
         pass
             
           
-class RawInlineSignalReceiver(CommandReceiverInterface):
+class RawInlineSignalReceiver(CommandReceiver):
     def __init__(self, signal, timer):
         self.signal = signal
         self.timer = timer
@@ -252,7 +277,7 @@ class RawInlineSignalReceiver(CommandReceiverInterface):
     def stop(self):
         pass
 
-class DeltaCommandReceiver(CommandReceiverInterface):
+class DeltaCommandReceiver(CommandReceiver):
     def next_command(self, delta):
         return Command(delta)
         
