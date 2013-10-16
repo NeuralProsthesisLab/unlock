@@ -28,7 +28,7 @@
 from unlock.model import GridState, TimedStimuli, TimedStimulus
 from unlock.util import Trigger
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, GridView
-from unlock.decode import RawInlineSignalReceiver
+from unlock.decode import RawInlineSignalReceiver, CommandReceiverFactory
 from .controller import UnlockControllerChain, Canvas, UnlockControllerFragment, EEGControllerFragment
 import logging
 
@@ -76,10 +76,10 @@ class Dashboard(UnlockControllerFragment):
         return Dashboard(window, grid_state, [grid_view], canvas.batch, controllers, calibrator)
         
     @staticmethod
-    def create_dashboard(window, controllers, signal, timer, base=None, calibrator=None, color='bw'):
+    def create_dashboard(window, controllers, signal, timer, base=None, calibrator=None, color='bw', receiver_type=CommandReceiverFactory.Classified):
         canvas = Canvas.create(window.width, window.height)
         if base == None:
-            base = EEGControllerFragment.create_ssvep(canvas, signal, timer, color)
+            base = EEGControllerFragment.create_ssvep(canvas, signal, timer, color, receiver_type=receiver_type)
             
         dashboard = Dashboard.create_dashboard_fragment(window, canvas, controllers, calibrator)
         dashboard_chain = UnlockControllerChain(window, base.command_receiver,

@@ -174,7 +174,7 @@ class UnlockController(object):
         
 class UnlockControllerChain(UnlockController):
     def __init__(self, window, command_receiver, controllers, name, icon,
-                 poll_signal_frequency=1.0/512.0, standalone=False):
+                 poll_signal_frequency=1.0/256.0, standalone=False):
         assert controllers != None and len(controllers) > 0
         
         views = []
