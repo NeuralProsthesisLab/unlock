@@ -28,7 +28,7 @@
 from unlock.model import TimedStimulus, TimedStimuli
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer
 from unlock.decode import PygletKeyboardCommand, HarmonicSumDecision, RootMeanSquare
-from unlock.decode import RawInlineSignalReceiver,ClassifiedCommandReceiver
+from unlock.decode import CommandReceiverFactory, RawInlineSignalReceiver,ClassifiedCommandReceiver
 import pyglet
 import inspect
 import time
@@ -244,8 +244,8 @@ class UnlockControllerFragment(UnlockController):
     def deactivate(self):
         self.model.stop()
         return self.standalone
-        
-        
+            
+          
 class sEMGControllerFragment(UnlockControllerFragment):
     def __init__(self, command_receiver):
         super(sEMGControllerFragment, self).__init__(None, [], None)
@@ -264,10 +264,12 @@ class sEMGControllerFragment(UnlockControllerFragment):
         pass
         
     @staticmethod
-    def create_semg(signal, timer, thresholds=None):
-        raw_command_receiver = RawInlineSignalReceiver(signal, timer)
+    def create_semg(signal, timer, thresholds=None, receiver_type=CommandReceiverFactory.Classified):
         classifier = RootMeanSquare(thresholds)
-        command_receiver = ClassifiedCommandReceiver(raw_command_receiver, classifier)        
+        command_receiver = CommandReceiverFactory.create(factory_method=receiver_type, signal=signal,
+                                                  timer=timer, classifier=classifier)
+   
+#        command_receiver = ClassifiedCommandReceiver(raw_command_receiver, classifier)        
         return sEMGControllerFragment(command_receiver)
         
         
@@ -284,7 +286,7 @@ class EEGControllerFragment(UnlockControllerFragment):
         pass
         
     @staticmethod
-    def create_ssvep(canvas, signal, timer, color='bw'):
+    def create_ssvep(canvas, signal, timer, color='bw', receiver_type=CommandReceiverFactory.Classified):
         
         if color == 'bw':
             color1 = (255, 0, 0)
@@ -330,12 +332,15 @@ class EEGControllerFragment(UnlockControllerFragment):
         stimuli.add_stimulus(stimulus4)
         views.append(fs4)
         
-        raw_command_receiver = RawInlineSignalReceiver(signal, timer)
-        classifier = HarmonicSumDecision(freqs, 3.0, 500, 8)
-        command_receiver = ClassifiedCommandReceiver(raw_command_receiver, classifier)
-        
+        classifier = HarmonicSumDecision(freqs, 3.0, 500, 8)        
+        command_receiver = CommandReceiverFactory.create(factory_method=receiver_type, signal=signal,
+                                                  timer=timer, classifier=classifier)
+        #raw_command_receiver = RawInlineSignalReceiver(signal, timer)
+        #classifier = HarmonicSumDecision(freqs, 3.0, 500, 8)
+        #command_receiver = ClassifiedCommandReceiver(raw_command_receiver, classifier)
         return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
-    
+        
+        
     @staticmethod
     def create_msequence(canvas, signal, timer, color='bw'):
         

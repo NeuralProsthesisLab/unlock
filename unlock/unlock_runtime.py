@@ -34,7 +34,8 @@ import inspect
 import logging
 import logging.config
 
-from unlock import context 
+from unlock import context
+from unlock.decode import CommandReceiverFactory
 from unlock.controller import PygletWindow, Dashboard, FastPad, Canvas, Calibrate, GridSpeak, Collector
 from optparse import OptionParser
 
@@ -48,7 +49,11 @@ class UnlockFactory(context.PythonConfig):
         self.window = None
         self.calibrator = None
         self.stimuli = None
-        
+        if 'receiver' in self.args.keys():
+            self.receiver = CommandReceiverFactory.map_factory_method(self.args['receiver'])
+        else:
+            self.receiver = CommandReceiverFactory.Classified
+            
         if 'mac_addr' in self.args.keys():
             self.mac_addr = [int(value,0) for value in [x.strip() for x in self.args['mac_addr'].split(',')]]
             
@@ -85,13 +90,25 @@ class UnlockFactory(context.PythonConfig):
             raise RuntimeError('enobio requires a mac address; none set')
         
         self.timer = acquire.create_timer()
-        signal = acquire.create_blocking_enobio_signal(self.timer)
+        signal = acquire.create_nonblocking_enobio_signal(self.timer)
         if not signal.open(self.mac_addr):
             print('enobio did not open')
             raise RuntimeError('enobio did not open')
         if not signal.start():
             print('enobio device did not start streaming')                                 
             raise RuntimeError('enobio device did not start streaming')                       
+        return signal
+
+    @context.Object(lazy_init=True)    
+    def mobilab(self, comport='COM5', analog_channels_bitmask=120):
+        from unlock.decode import acquire
+        
+        self.timer = acquire.create_timer()
+        signal = acquire.create_nonblocking_mobilab_signal(self.timer, analog_channels_bitmask, 0, comport)
+
+        if not signal.start():
+            print('mobilab device did not start streaming') 
+            raise RuntimeError('mobilab device did not start streaming')                       
         return signal
     
     @context.Object(lazy_init=True)
@@ -155,6 +172,7 @@ class UnlockRuntime(object):
             signal_help = 'selects the signaling system; valid values are: random, mobilab, enobio and audio; default value is random; overrides the config file setting'
             stimuli_help = 'sets the system to use a shared stimuli; valid values are: ssvep, msequence and semg'
             mac_addr_help = 'a comma separated list of hexidecimal values that are required to connect to some signaling devices;for example -m "0x1,0x2,0x3,0x4,0x5,0x6"'
+            receiver_help = 'sets the type of receiver; valid values = delta, raw, classified, datagram and multiprocess'
             conf = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'conf.json')
             parser.add_option('-c', '--conf', type=str, dest='conf', default=conf, metavar='CONF', help=conf_help)
             parser.add_option('-n', '--fullscreen', default=None, action='store_true', dest='fullscreen', metavar='FULLSCREEN', help=fullscreen_help)
@@ -164,6 +182,7 @@ class UnlockRuntime(object):
             parser.add_option('-s', '--signal', dest='signal', default=None, type=str, metavar='SIGNAL', help=signal_help)
             parser.add_option('-t', '--stimuli', type=str, dest='stimuli', default=None, metavar='STIMULI', help=stimuli_help)
             parser.add_option('-m', '--mac-addr', dest='mac_addr', default=None, type=str, metavar='MAC-ADDR', help=mac_addr_help)
+            parser.add_option('-r', '--receiver', dest='receiver', default=None, type=str, metavar='RECEIVER', help=receiver_help)
             valid_levels = { 'debug' : logging.DEBUG, 'info' : logging.INFO, 'warn' : logging.WARN, 'error' : logging.ERROR, 'critical' : logging.CRITICAL}
             (options, args) = parser.parse_args()
         except Exception as e:
@@ -184,6 +203,8 @@ class UnlockRuntime(object):
                 self.args['mac_addr'] = options.mac_addr
             if options.stimuli != None:
                 self.args['stimuli'] = options.stimuli
+            if options.receiver != None:
+                self.args['receiver'] = options.receiver
                 
             self.__configure_logging__()
             self.__create_controllers__()
@@ -212,7 +233,11 @@ class UnlockRuntime(object):
         self.app_ctx = context.ApplicationContext(self.factory)
     
         # XXX - need to integrate the json config into the context.
-        self.factory.signal = self.app_ctx.get_object(self.args['signal'])
+        if self.args['receiver'] == 'delta':
+            self.factory.signal = self.app_ctx.get_object('random')
+        else:    
+            self.factory.signal = self.app_ctx.get_object(self.args['signal'])
+            
         self.factory.window = self.app_ctx.get_object('PygletWindow')
         if 'stimuli' in self.args.keys():
             self.factory.stimuli = self.app_ctx.get_object(self.args['stimuli'])

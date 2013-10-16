@@ -122,38 +122,12 @@ class RawSignalCommand(Command):
         
         
 class CommandReceiver(object):
-    Delta=0
-    Raw=1
-    Classified=2
-    Datagram=3
-    Inline=4
     def next_command(self, *args, **kwargs):
         raise NotImplementedError("Every CommandReceiver must implement the next_command method")
         
     def stop(self):
         raise NotImplementedError("Every CommandReceiver must implement the stop method")
         
-    @staticmethod
-    def map_factory_method(self, string):
-        map_ = { 'delta': CommandReceiver.Delta, 'raw' : CommandReceiver.Raw,
-                'classified': CommandReceiver.Classified, 'datagram': CommandReceiver.Datagram,
-                'inline': Inline}
-        return map_[string]
-        
-    @staticmethod
-    def create(self, factory_method=CommandReceiver.Delta, signal=None, timer=None, classifier=None, source=None):
-        if factory_method == CommandReceiver.Delta:
-            return DeltaCommandReceiver()
-        elif factory_method == CommandReceiver.Raw:
-            return RawCommandReceiver(signal, timer)
-        elif factory_method == CommandReceiver.Classifier:
-            return ClassifiedCommandReceiver(RawCommandReceiver(signal, timer), classifier)
-        elif factory_method == CommandReceiver.Datagram:
-            return DatagramCommandReceiver(source)
-        elif factory_method == CommandReceiver.Inline:
-            return InlineCommandReceiver()
-        else:
-            raise LookupError('CommandReceiver does not support the factory method identified by '+str(factory_method))
             
 class CommandSenderInterface(object):
     def send(self, command):
@@ -280,4 +254,35 @@ class RawInlineSignalReceiver(CommandReceiver):
 class DeltaCommandReceiver(CommandReceiver):
     def next_command(self, delta):
         return Command(delta)
+        
+        
+class CommandReceiverFactory(object):
+    Delta=0
+    Raw=1
+    Classified=2
+    Datagram=3
+    Inline=4
+
+    @staticmethod
+    def map_factory_method(string):
+        map_ = { 'delta': CommandReceiverFactory.Delta, 'raw' : CommandReceiverFactory.Raw,
+                'classified': CommandReceiverFactory.Classified, 'datagram': CommandReceiverFactory.Datagram,
+                'inline': CommandReceiverFactory.Inline}
+        return map_[string]
+                
+    
+    @staticmethod
+    def create(factory_method=None, signal=None, timer=None, classifier=None, source=None):
+        if factory_method == CommandReceiverFactory.Delta or factory_method == None:
+            return DeltaCommandReceiver()
+        elif factory_method == CommandReceiverFactory.Raw:
+            return RawInlineSignalReceiver(signal, timer)
+        elif factory_method == CommandReceiverFactory.Classified:
+            return ClassifiedCommandReceiver(RawInlineSignalReceiver(signal, timer), classifier)
+        elif factory_method == CommandReceiverFactory.Datagram:
+            return DatagramCommandReceiver(source)
+        elif factory_method == CommandReceiverFactory.Inline:
+            return InlineCommandReceiver()
+        else:
+            raise LookupError('CommandReceiver does not support the factory method identified by '+str(factory_method))
         
