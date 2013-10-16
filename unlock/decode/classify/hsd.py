@@ -37,7 +37,7 @@ class HarmonicSumDecision(UnlockClassifier):
     frequencies and their harmonics. The target with the highest sum is chosen
     as the attended frequency.
     """
-    def __init__(self, targets, duration, fs, electrodes, filters=None):
+    def __init__(self, targets=[12.0, 13.0, 14.0, 15.0], duration=3, fs=500, electrodes=8, filters=None):
         super(HarmonicSumDecision, self).__init__()
         self.targets = targets
         self.target_window = 0.1

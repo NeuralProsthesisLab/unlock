@@ -27,7 +27,7 @@
 
 from unlock.model import TimedStimulus, TimedStimuli
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer
-from unlock.decode import PygletKeyboardCommand, HarmonicSumDecision, RootMeanSquare
+from unlock.decode import UnlockClassifier, PygletKeyboardCommand, HarmonicSumDecision, RootMeanSquare
 from unlock.decode import CommandReceiverFactory, RawInlineSignalReceiver,ClassifiedCommandReceiver
 import pyglet
 import inspect
@@ -59,9 +59,9 @@ class Canvas(object):
             
             
 class PygletWindow(pyglet.window.Window):
-    def __init__(self, signal, fullscreen=False, show_fps=True, vsync=False):
+    def __init__(self, decoder, fullscreen=False, show_fps=True, vsync=False):
         super(PygletWindow, self).__init__(fullscreen=fullscreen, vsync=vsync)
-        self.signal = signal
+        self.decoder = decoder
         self.controller_stack = []
         self.views = []
         self.batches = set([])
@@ -98,13 +98,11 @@ class PygletWindow(pyglet.window.Window):
         if self.active_controller:
             stop = self.active_controller.deactivate()
             if stop:
-                self.signal.stop()
-                self.signal.close()
+                self.decoder.shutdown()
                 pyglet.app.exit()        
             return pyglet.event.EVENT_HANDLED
         else:
-            self.signal.stop()
-            self.signal.close()
+            self.decoder.shutdown()
             pyglet.app.exit()
             
             
@@ -152,7 +150,7 @@ class UnlockController(object):
         command = self.command_receiver.next_command(delta)
         self.update_state(command)
         self.render()
-
+        
     def update_state(self, command):
         ''' Subclass hook '''
         pass
@@ -160,12 +158,11 @@ class UnlockController(object):
     def keyboard_input(self, command):
         self.update_state(command)
         self.render()
-
+        
     def activate(self):
         self.window.activate_controller(self)
         
     def deactivate(self):
-        self.command_receiver.stop()        
         return self.standalone
         
     def render(self):
@@ -199,7 +196,7 @@ class UnlockControllerChain(UnlockController):
     def update_state(self, command):
         for controller in self.controllers:
             controller.update_state(command)
-            
+        
     def keyboard_input(self, command):
         for controller in self.controllers:
             controller.keyboard_input(command)
@@ -209,7 +206,7 @@ class UnlockControllerChain(UnlockController):
         for controller in self.controllers:
             controller.activate()
         super(UnlockControllerChain, self).activate()
-            
+        
     def deactivate(self):
         for controller in self.controllers:
             controller.deactivate()
@@ -219,7 +216,7 @@ class UnlockControllerChain(UnlockController):
         
     def render(self):
         super(UnlockControllerChain, self).render()
-            
+       
         
 class UnlockControllerFragment(UnlockController):
     def __init__(self, model, views, batch, standalone=False):
@@ -264,12 +261,11 @@ class sEMGControllerFragment(UnlockControllerFragment):
         pass
         
     @staticmethod
-    def create_semg(signal, timer, thresholds=None, receiver_type=CommandReceiverFactory.Classified):
-        classifier = RootMeanSquare(thresholds)
-        command_receiver = CommandReceiverFactory.create(factory_method=receiver_type, signal=signal,
-                                                  timer=timer, classifier=classifier)
-   
-#        command_receiver = ClassifiedCommandReceiver(raw_command_receiver, classifier)        
+    def create_semg(decoder, thresholds):
+#        classifier = RootMeanSquare(thresholds)
+        raise Exception("FML")
+        command_receiver = decoder.create_receiver(classifier=UnlockClassifierFactory.FacialEMGDetector,
+                                                   **{'thresholds' : thresholds })
         return sEMGControllerFragment(command_receiver)
         
         
@@ -286,7 +282,7 @@ class EEGControllerFragment(UnlockControllerFragment):
         pass
         
     @staticmethod
-    def create_ssvep(canvas, signal, timer, color='bw', receiver_type=CommandReceiverFactory.Classified):
+    def create_ssvep(canvas, decoder, color='bw'):
         
         if color == 'bw':
             color1 = (255, 0, 0)
@@ -331,19 +327,15 @@ class EEGControllerFragment(UnlockControllerFragment):
              reversal=False)
         stimuli.add_stimulus(stimulus4)
         views.append(fs4)
-        
-        classifier = HarmonicSumDecision(freqs, 3.0, 500, 8)        
-        command_receiver = CommandReceiverFactory.create(factory_method=receiver_type, signal=signal,
-                                                  timer=timer, classifier=classifier)
-        #raw_command_receiver = RawInlineSignalReceiver(signal, timer)
-        #classifier = HarmonicSumDecision(freqs, 3.0, 500, 8)
-        #command_receiver = ClassifiedCommandReceiver(raw_command_receiver, classifier)
+        args = {'targets' : freqs , 'duration': 3, 'fs': 500, 'electrodes': 8 }
+        command_receiver = decoder.create_receiver(args, classifier_type=UnlockClassifier.HarmonicSumDecision)
+               
         return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
         
         
     @staticmethod
     def create_msequence(canvas, signal, timer, color='bw'):
-        
+        raise Exception("This was not maintained through changes and needs some love before it is ready to run again..")
         rate = 30.0
         width = 300
         height = 300
@@ -398,7 +390,6 @@ class EEGControllerFragment(UnlockControllerFragment):
         views.append(fs4)
         
         command_receiver = RawInlineSignalReceiver(signal, timer)
-        
         return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
         
         

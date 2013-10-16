@@ -27,3 +27,4 @@
 
 from .hsd import *
 from .rms import *
+from .classify import *

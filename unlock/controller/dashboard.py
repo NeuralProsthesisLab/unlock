@@ -76,10 +76,10 @@ class Dashboard(UnlockControllerFragment):
         return Dashboard(window, grid_state, [grid_view], canvas.batch, controllers, calibrator)
         
     @staticmethod
-    def create_dashboard(window, controllers, signal, timer, base=None, calibrator=None, color='bw', receiver_type=CommandReceiverFactory.Classified):
+    def create_dashboard(window, controllers, decoder, base=None, calibrator=None, color='bw'):
         canvas = Canvas.create(window.width, window.height)
         if base == None:
-            base = EEGControllerFragment.create_ssvep(canvas, signal, timer, color, receiver_type=receiver_type)
+            base = EEGControllerFragment.create_ssvep(canvas, decoders, color)
             
         dashboard = Dashboard.create_dashboard_fragment(window, canvas, controllers, calibrator)
         dashboard_chain = UnlockControllerChain(window, base.command_receiver,
