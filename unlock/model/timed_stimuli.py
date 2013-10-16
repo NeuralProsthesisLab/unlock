@@ -140,7 +140,7 @@ class TimedStimulus(UnlockModel):
                     
             self.time_state.begin_trial()
             self.seq_state.step()
-            self.logger.debug("TimedStimulus trial complete; next state = ", self.state)
+            #self.logger.debug("TimedStimulus trial complete; next state = ", self.state)
         return trigger_value
             
     @staticmethod
