@@ -37,7 +37,7 @@ class GridSpeak(UnlockControllerFragment):
     def __init__(self,grid_state, views, batch, standalone=False):
         assert grid_state != None 
         super(GridSpeak, self).__init__(grid_state, views, batch, standalone)
-
+        
     @staticmethod
     def create_gridspeak_fragment(canvas):
         grid_model = HierarchyGridState(2)
@@ -47,13 +47,15 @@ class GridSpeak(UnlockControllerFragment):
         return gridspeak
         
     @staticmethod
-    def create_gridspeak(window, signal, timer, base=None, color='bw', receiver_type=CommandReceiverFactory.Classified):
+    def create_gridspeak(window, decoder, base=None, color='bw'):
         canvas = Canvas.create(window.width, window.height)        
         gridspeak = GridSpeak.create_gridspeak_fragment(canvas)
         if base == None:
-            base = EEGControllerFragment.create_ssvep(canvas, signal, timer, color, receiver_type=receiver)
+            base = EEGControllerFragment.create_ssvep(canvas, decoder, color)
             
         controller_chain = UnlockControllerChain(window, base.command_receiver,
                                                  [base, gridspeak] , 'GridSpeak', 'gridspeak.png',
                                                  standalone=False)
         return controller_chain
+        
+        
