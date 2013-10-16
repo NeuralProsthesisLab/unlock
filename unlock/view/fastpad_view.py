@@ -271,6 +271,7 @@ class FastPadView(UnlockView):
 
         Raises an Exception if anything goes wrong.
         """
+#        print ("ADDing text = ", label)
         prev = self.text.text
         self.text.text += label
         if self.text.content_width > self.text.width:
@@ -398,7 +399,7 @@ class FastPadView(UnlockView):
                         
             # And switching to CURSOR mode
             elif self.model.mode == "CURSOR":
-                
+
                 # Call the selected item's action
                 self.currButton.actions[self.currIndex](
                         self.currButton.labels[self.currIndex])
@@ -422,6 +423,8 @@ class FastPadView(UnlockView):
                         fill = True,
                         )
                         
+#        print ("Prev Mode = ", self.model.previous_mode)
+#        print ("New Mode = ", self.model.mode)        
         # Set the new self.model.mode
         self.model.previous_mode = self.model.mode
     
