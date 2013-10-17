@@ -113,14 +113,14 @@ class PygletWindow(pyglet.window.Window):
             
         self.views = controller.views
         self.batches = controller.batches
-        pyglet.clock.schedule(controller.poll_signal) #, controller.poll_signal_frequency)
+        pyglet.clock.schedule(controller.poll_signal)#, controller.poll_signal_frequency)
         self.active_controller = controller
         
     def deactivate_controller(self):
         if self.active_controller != None:
             self.views = []
             self.batches = set([])
-            pyglet.clock.unschedule(self.active_controller.poll_signal)            
+            pyglet.clock.unschedule(self.active_controller.poll_signal)
             self.active_controller = None
             
         if len(self.controller_stack) > 0:
@@ -283,13 +283,18 @@ class EEGControllerFragment(UnlockControllerFragment):
         
     @staticmethod
     def create_ssvep(canvas, decoder, color='bw'):
-        
+
         if color == 'ry':
             color1 = (255, 0, 0)
             color2 = (255, 255, 0)
         else:
             color1 = (0, 0, 0)
             color2 = (255, 255, 255)
+
+        width = 600
+        height = 100
+        xf = 6
+        yf = 1
         
         stimuli = TimedStimuli.create(4.0)
         views = []
@@ -298,36 +303,41 @@ class EEGControllerFragment(UnlockControllerFragment):
         
         stimulus1 = TimedStimulus.create(freqs[0] * 2)
         fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus1, canvas, SpritePositionComputer.North, width=600,
-            height=100, xfreq=6, yfreq=1, color_on=color1, color_off=color2,
+            stimulus1, canvas, SpritePositionComputer.North, width=width,
+            height=height, xfreq=xf, yfreq=yf, color_on=color1,
+            color_off=color2,
             reversal=False)
         stimuli.add_stimulus(stimulus1)
         views.append(fs1)
         
         stimulus2 = TimedStimulus.create(freqs[1] * 2)
         fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus2, canvas, SpritePositionComputer.South, width=600,
-            height=100, xfreq=6, yfreq=1, color_on=color1, color_off=color2,
+            stimulus2, canvas, SpritePositionComputer.South, width=width,
+            height=height, xfreq=xf, yfreq=yf, color_on=color1,
+            color_off=color2,
             reversal=False)
         stimuli.add_stimulus(stimulus2)
         views.append(fs2)
         
         stimulus3 = TimedStimulus.create(freqs[2] * 2)
         fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus3, canvas, SpritePositionComputer.West, width=100,
-            height=600, xfreq=1, yfreq=6, color_on=color1, color_off=color2,
-            reversal=False)
+            stimulus3, canvas, SpritePositionComputer.West, width=width,
+            height=height, xfreq=xf, yfreq=yf, color_on=color1,
+            color_off=color2,
+            reversal=False, rotation=90)
         stimuli.add_stimulus(stimulus3)
         views.append(fs3)
         
         stimulus4 = TimedStimulus.create(freqs[3] * 2)
         fs4 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus4, canvas, SpritePositionComputer.East, width=100,
-            height=600, xfreq=1, yfreq=6, color_on=color1, color_off=color2,
-             reversal=False)
+            stimulus4, canvas, SpritePositionComputer.East, width=width,
+            height=height, xfreq=xf, yfreq=yf, color_on=color1,
+            color_off=color2,
+             reversal=False, rotation=90)
         stimuli.add_stimulus(stimulus4)
         views.append(fs4)
-        args = {'targets' : freqs , 'duration': 4, 'fs': 256, 'electrodes': 4 }
+        args = {'targets' : freqs , 'duration': 3, 'fs': 256, 'electrodes':
+            4 }
         command_receiver = decoder.create_receiver(args, classifier_type=UnlockClassifier.HarmonicSumDecision)
                
         return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
