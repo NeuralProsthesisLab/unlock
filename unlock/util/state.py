@@ -59,24 +59,28 @@ class TrialTimeState(object):
         self.trial_duration = float(trial_duration)
         self.rest_duration = float(rest_duration)
         self.__set_period_duration__()
+        self.trail_end = self.trial_duration
+        self.period_end = self.period_duration
         self.trial_time = 0      
         self.last_time = -1
 
     def __set_period_duration__(self):
         self.period_duration = self.trial_duration + self.rest_duration
         
-    def begin_trial(self):
-        self.trial_time -= self.trial_duration
+    def begin_trial(self, delta):
+        #self.trial_time += self.trial_duration
+        self.trial_end = self.trial_time + self.trial_duration
+        self.period_end = self.trial_time + self.period_duration
         self.last_time = time.time()
         
     def update_trial_time(self, delta):
         self.trial_time += delta
         
     def is_trial_complete(self):
-        return True if self.trial_time >= self.trial_duration else False
+        return True if self.trial_time >= self.trial_end else False
         
     def is_rest_complete(self):
-        return True if self.trial_time >= self.period_duration else False
+        return True if self.trial_time >= self.period_end else False
         
     def set_trial_duration(self, duration):
         self.trial_duration = float(duration)
