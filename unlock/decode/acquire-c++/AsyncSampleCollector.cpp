@@ -133,7 +133,7 @@ void AsyncSampleCollector::operator()() {
       }
       incrementCurrentSample();
     }
-    boost::this_thread::sleep(boost::posix_time::microseconds(100));
+    boost::this_thread::sleep(boost::posix_time::microseconds(500));
     } catch(...) {
       cerr << "AsyncSampleCollector.operator()(): ERROR unhandled exception; ignoring " << endl;
     }
