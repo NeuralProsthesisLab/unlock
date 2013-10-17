@@ -113,7 +113,7 @@ class PygletWindow(pyglet.window.Window):
             
         self.views = controller.views
         self.batches = controller.batches
-        pyglet.clock.schedule_interval(controller.poll_signal, controller.poll_signal_frequency)
+        pyglet.clock.schedule(controller.poll_signal) #, controller.poll_signal_frequency)
         self.active_controller = controller
         
     def deactivate_controller(self):
