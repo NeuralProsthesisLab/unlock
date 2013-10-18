@@ -282,7 +282,7 @@ class EEGControllerFragment(UnlockControllerFragment):
         pass
         
     @staticmethod
-    def create_ssvep(canvas, decoder, color='bw'):
+    def create_ssvep(canvas, decoder, color='ry'):
 
         if color == 'ry':
             color1 = (255, 0, 0)
@@ -291,10 +291,10 @@ class EEGControllerFragment(UnlockControllerFragment):
             color1 = (0, 0, 0)
             color2 = (255, 255, 255)
 
-        width = 600
-        height = 100
-        xf = 6
-        yf = 1
+        width = 200
+        height = 200
+        xf = 2
+        yf = 2
         
         stimuli = TimedStimuli.create(4.0)
         views = []
@@ -336,7 +336,7 @@ class EEGControllerFragment(UnlockControllerFragment):
              reversal=False, rotation=90)
         stimuli.add_stimulus(stimulus4)
         views.append(fs4)
-        args = {'targets' : freqs , 'duration': 3, 'fs': 256, 'electrodes':
+        args = {'targets' : freqs , 'duration': 4, 'fs': 256, 'electrodes':
             4 }
         command_receiver = decoder.create_receiver(args, classifier_type=UnlockClassifier.HarmonicSumDecision)
                
