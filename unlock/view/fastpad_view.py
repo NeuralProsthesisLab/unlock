@@ -307,10 +307,7 @@ class FastPadView(UnlockView):
             subprocess.call(["say", text])
         elif sys.platform.startswith('win'):
             speaker = win32com.client.Dispatch("SAPI.SpVoice")
-            speaker.Speak("Hello, it works!")            
-#            engine = pyttsx.init()
-#            engine.say(text)
-#            engine.runAndWait()
+            speaker.Speak(text)
             
         self.text.text = ""
         
