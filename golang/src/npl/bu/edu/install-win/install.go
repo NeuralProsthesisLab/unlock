@@ -39,6 +39,8 @@ import (
     "log"
     "path/filepath"
     "io"
+    "bytes"
+    "crypto/sha1"
 )
 
 func runCommand(command string, errorMsg string, failOnError bool) bool {
@@ -79,14 +81,22 @@ func unzipExpand(fileName string) {
     }    
 }
 
-func downloadAndWriteFile(url string, fileName string) string {	
+func downloadAndWriteFile(fileUrl string, fileName string) string {
+    return downloadAndWriteFileWithChecksum(fileUrl, fileName, true)
+}
+
+func downloadAndWriteFileWithChecksum(fileUrl string, fileName string, shouldCheckSum bool) string {	
     fullPath := filepath.Join(getDownloadDirectory(), fileName)
     
-	isFileExist,_ := checkFileExists(fullPath)
+	//isFileExist,_ := checkFileExists(fullPath)
+    isFileGood := false
+    if (shouldCheckSum) {
+        isFileGood = !checkSum(fullPath, fileUrl+".sha1")
+    }
     
-    if isFileExist == false {        
-        log.Println("Downloading file "+fileName+" from URL = "+url)
-        resp, err := http.Get(url)
+    if /*!isFileExist ||*/ !isFileGood {        
+        log.Println("Downloading file "+fileName+" from URL = "+fileUrl)
+        resp, err := http.Get(fileUrl)
         if err != nil {
             log.Fatalln(err)
         }
@@ -103,6 +113,37 @@ func downloadAndWriteFile(url string, fileName string) string {
     }
     
     return fullPath
+}
+
+func checkSum(filePath string, checksumFileUrl string) bool {
+    computedHash := computeChecksum(filePath)
+    downloadedHash := downloadChecksum(checksumFileUrl)
+    
+    return bytes.Compare(computedHash, downloadedHash) == 0
+}
+
+func computeChecksum(filePath string) []byte {
+    content,err := ioutil.ReadFile(filePath)
+    if err != nil { panic(err) }
+    
+    s1 := sha1.New()
+    s1.Write([]byte(content))
+    hashed := s1.Sum(nil)
+    
+    log.Println(`Computed checksum: `, hashed)
+    
+    return hashed
+}
+
+func downloadChecksum(checksumFileUrl string) []byte {
+    checksumFile := downloadAndWriteFileWithChecksum(checksumFileUrl, `checksum`, false)  
+    
+    content,err := ioutil.ReadFile(checksumFile)
+    if err != nil { panic(err) }
+    
+    log.Println(`Downloaded checksum: `, content)
+    
+    return content
 }
 
 func checkFileExists(path string) (bool, error) {
