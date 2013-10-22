@@ -1,2 +1,2 @@
 #!/bin/bash
-python setup.py sdist --formats zip,gztar
+/c/Python33/python setup.py sdist --formats zip,gztar
