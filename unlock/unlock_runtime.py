@@ -304,9 +304,9 @@ class UnlockRuntime(object):
         
         
 if __name__ == '__main__':
-    import psutil
-    import os
-    p = psutil.Process(os.getpid())
-    p.set_nice(psutil.HIGH_PRIORITY_CLASS)
+    #import psutil
+    #import os
+    #p = psutil.Process(os.getpid())
+    #p.set_nice(psutil.HIGH_PRIORITY_CLASS)
     unlock = UnlockRuntime()
     unlock.start()
