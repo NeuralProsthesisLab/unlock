@@ -121,7 +121,7 @@ class UnlockFactory(context.PythonConfig):
         return signal
     
     @context.Object(lazy_init=True)    
-    def mobilab(self, comport='COM5', analog_channels_bitmask=120):
+    def mobilab(self, comport='COM3', analog_channels_bitmask=120):
         from unlock.decode import acquire
         
         self.timer = acquire.create_timer()
@@ -299,5 +299,9 @@ class UnlockRuntime(object):
         
         
 if __name__ == '__main__':
+    import psutil
+    import os
+    p = psutil.Process(os.getpid())
+    p.set_nice(psutil.HIGH_PRIORITY_CLASS)
     unlock = UnlockRuntime()
     unlock.start()
