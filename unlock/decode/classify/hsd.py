@@ -44,7 +44,7 @@ class HarmonicSumDecision(UnlockClassifier):
         self.fs = fs
         self.electrodes = electrodes
         self.nSamples = int(duration * fs)
-        self.overflow = 16
+        self.overflow = 256
         self.buffer = np.zeros((self.nSamples + self.overflow, electrodes))
         self.cursor = 0
         self.filters = filters
@@ -96,7 +96,7 @@ class HarmonicSumDecision(UnlockClassifier):
             x = self.buffer[0:self.nSamples]
             #if self.filters is not None:
             #    x = self.filters.apply(x)
-            x = x[:, 1:4] - x[:, 6].reshape((len(x), 1))
+            x = x[:, 1:4]# - x[:, 6].reshape((len(x), 1))
             x -= np.mean(x, axis=0)
             y = np.abs(np.fft.rfft(self.window * x, n=self.nfft, axis=0))
             sums = np.zeros(len(self.targets))
