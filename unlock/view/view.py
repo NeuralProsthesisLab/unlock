@@ -85,4 +85,25 @@ class UnlockView(object):
         return batch.add(2, pyglet.gl.GL_LINES, group,
             ('v2f', (xoffset + x1, yoffset + y1, xoffset + x2, yoffset + y2)),
             ('c3B', color*2))
-            
+
+    def drawLinePlot(self, vertices, color=(255,255,255), group=None):
+        """
+        Given a set of vertices, will plot lines between each vertices in the
+        list
+
+        :param vertices: list of vertices to be plotted.
+        :param color: Color of Line plot. Tuple of length three
+        :param group: batch group
+        """
+        points = len(vertices) / 2
+        #vertices[::2] = [i + self.x for i in vertices[::2]]
+        #vertices[1::2] = [i + self.y for i in vertices[1::2]]
+        lines = vertices[0:4]
+        for i in range(1,points-1):
+            lines.extend([vertices[i*2],vertices[i*2+1],
+                          vertices[(i+1)*2],vertices[(i+1)*2+1]])
+        points = len(lines) / 2
+
+        return self.batch.add(points, pyglet.gl.GL_LINES, group,
+            ('v2f', lines),
+            ('c3B', color*points))
