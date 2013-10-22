@@ -25,13 +25,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
 from unlock.model import TimeScopeState
 from unlock.view import TimeScopeView
 from unlock.decode import CommandReceiverFactory
 from unlock.controller import Canvas, UnlockControllerFragment, UnlockControllerChain
-import inspect
-import os
 
 
 class TimeScope(UnlockControllerFragment):
