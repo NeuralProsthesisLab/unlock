@@ -47,7 +47,7 @@ class TimeScopeView(UnlockView):
 
     def render(self):
         cursor_pos, traces = self.model.get_state()
-        self.cursor.vertices[::2] = self.xlim + cursor_pos
+        self.cursor.vertices[::2] = (self.xlim[0] + cursor_pos,)*2
 
 
 class LinePlotView(UnlockView):
