@@ -36,7 +36,8 @@ import logging.config
 
 from unlock import context
 from unlock.decode import CommandReceiverFactory, InlineDecoder, MultiProcessDecoder
-from unlock.controller import PygletWindow, Dashboard, FastPad, Canvas, Calibrate, GridSpeak, Collector
+from unlock.controller import PygletWindow, Dashboard, FastPad, Canvas, \
+    Calibrate, GridSpeak, Collector, TimeScope
 from optparse import OptionParser
 
 
@@ -163,7 +164,11 @@ class UnlockFactory(context.PythonConfig):
     def GridSpeak(self):
         return GridSpeak.create_gridspeak(self.window, self.decoder, self.stimuli,
                                           **self.args['GridSpeak'])
-            
+    @context.Object(lazy_init=True)
+    def TimeScope(self):
+        return TimeScope.create_timescope(self.window, self.decoder,
+                                          **self.args['TimeScope'])
+
     @context.Object(lazy_init=True)
     def Dashboard(self):
         args = self.args['Dashboard']
