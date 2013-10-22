@@ -111,19 +111,25 @@ class FastPadView(UnlockView):
 
         # Get the GUI calculations
         self.canvas = canvas
-        textH = .1 * canvas.height
+        textH = .08 * canvas.height
         padW = .25 * canvas.width
         padH = canvas.height - textH
         padL = (canvas.width - padW) / 2
         buttonW = padW / 3
-        buttonH = (canvas.height - textH) / 8
+        buttonH = (canvas.height - textH) / 10
         self.batch = canvas.batch
 
+#      def drawRect(self, x_offset, y_offset, width, height, batch, color=(255,255,255), fill=False,
         # Create the text bar
-        self.textRect = self.drawRect(0, padH, canvas.width, textH, self.batch)
+        
+        self.textRect = self.drawRect(canvas.width / 4, canvas.height * .65 , canvas.width / 2, textH, self.batch)
+        
+#    def drawText(self, text, x, y, batch, font='Helvetica', size=48,
+#                 color=(255,255,255,255), group=None, xoffset=0, yoffset=0):
+        
         self.text = self.drawText("",
-                canvas.width / 2, canvas.height - (textH / 2), self.batch)
-        self.text.width = canvas.width
+                canvas.width / 4 + canvas.width/2/2, canvas.height * .65 + textH/2, self.batch)
+        self.text.width = canvas.width / 4
         startH = canvas.height / 4
         # Create the buttons
 # fast_pad_model, rect, labels, actions):        
