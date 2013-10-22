@@ -5,7 +5,7 @@
 #
 #    1. Redistributions of source code must retain the above copyright notice,
 #       this list of conditions and the following disclaimer.
-#    
+#
 #    2. Redistributions in binary form must reproduce the above copyright
 #       notice, this list of conditions and the following disclaimer in the
 #       documentation and/or other materials provided with the distribution.
@@ -25,10 +25,41 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .model import *
-from .cue_state import *
-from .timed_stimuli import *
-from .offline_data import *
-from .grid_state import *
-from .fastpad_model import *
-from .scope_state import *
+from .view import UnlockView
+
+
+class TimeScopeView(UnlockView):
+    def __init__(self, model, canvas, labels=None):
+        """
+        the scope view has n_channel traces w/ labels and a single cursor bar
+        additionally having range indicators would be good
+        """
+        super(TimeScopeView, self).__init__()
+
+        self.model = model
+
+        self.xlim = (canvas.width*0.05, canvas.width*0.95)
+        self.ylim = (canvas.height*0.05, canvas.height*0.95)
+
+        self.cursor = self.drawLine(self.xlim[0], self.ylim[0],
+                                    self.xlim[0], self.ylim[1],
+                                    canvas.batch, color=(255, 0, 0))
+
+    def render(self):
+        cursor_pos, traces = self.model.get_state()
+        self.cursor.vertices[::2] = self.xlim + cursor_pos
+
+
+class LinePlotView(UnlockView):
+    def __init__(self, model, canvas):
+        super(LinePlotView, self).__init__()
+        self.model = model
+
+    def render(self):
+        state = self.model.get_state()
+        if not state:
+            return
+        #self.line.vertices[1::2] = [i + self.y for i in lines]
+
+
+

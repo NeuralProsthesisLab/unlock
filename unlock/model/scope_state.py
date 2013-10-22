@@ -5,7 +5,7 @@
 #
 #    1. Redistributions of source code must retain the above copyright notice,
 #       this list of conditions and the following disclaimer.
-#    
+#
 #    2. Redistributions in binary form must reproduce the above copyright
 #       notice, this list of conditions and the following disclaimer in the
 #       documentation and/or other materials provided with the distribution.
@@ -25,10 +25,47 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .model import *
-from .cue_state import *
-from .timed_stimuli import *
-from .offline_data import *
-from .grid_state import *
-from .fastpad_model import *
-from .scope_state import *
+import numpy as np
+from .model import UnlockModel
+
+
+class TimeScopeState(UnlockModel):
+    def __init__(self, n_channels, fs, duration=2):
+        super(TimeScopeState, self).__init__()
+        self.n_channels = n_channels
+        self.fs = fs
+        self.duration = duration
+        self.n_samples = self.duration * self.fs
+
+        self.cursor = 0
+        self.traces = np.zeros((self.n_samples, self.n_channels))
+
+    def get_state(self):
+        return self.cursor, self.traces
+
+    def process_command(self, command):
+        if not command.is_valid():
+            return
+
+        samples = command.matrix[:, 0:self.n_channels]
+        s = samples.shape[0]
+        idx = np.arange(self.cursor, self.cursor+s) % self.n_samples
+        self.traces[idx] = samples
+        self.cursor += s
+        self.cursor %= self.n_samples
+
+
+class LinePlotState(UnlockModel):
+    def __init__(self):
+        super(LinePlotState, self).__init__()
+
+
+    def updateData(self, y_data, offset=0):
+        points = len(y_data)
+        lines = y_data[0:2]
+        for i in range(1,points-1):
+            lines.extend([y_data[i],y_data[i+1]])
+        self.line.vertices[1::2] = [i + self.y for i in lines]
+#        self.line.vertices[1] = y_data[0] + self.y
+#        self.line.vertices[3:-2:2] = [i + self.y for i in y_data]
+#        self.line.vertices[-1] = y_data[-1] + self.y_data
