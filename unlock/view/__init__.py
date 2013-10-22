@@ -3,3 +3,4 @@ from .pyglet_text import *
 from .view import *
 from .grid import *
 from .fastpad_view import *
+from .scope_view import *
