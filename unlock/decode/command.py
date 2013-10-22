@@ -277,6 +277,7 @@ class CommandReceiverFactory(object):
     Datagram=3
     Inline=4
     Multiprocess=5
+    
     @staticmethod
     def map_factory_method(string):
         map_ = { 'delta': CommandReceiverFactory.Delta, 'raw' : CommandReceiverFactory.Raw,
@@ -287,7 +288,7 @@ class CommandReceiverFactory(object):
                 
     @staticmethod
     def create(factory_method=None, signal=None, timer=None, classifier=None, source=None):
-        print ("RECATE command ", signal)
+        #print ("RECATE command ", signal)
         if factory_method == CommandReceiverFactory.Delta or factory_method == None:
             return DeltaCommandReceiver()
         elif factory_method == CommandReceiverFactory.Raw:
@@ -307,7 +308,7 @@ def command_receiver_fn(Q, classifier, classifier_args, args):
     from unlock import unlock_runtime
     import unlock.context
     
-    print('queue, classifier, classifer_args, args ', classifier, classifier_args, args)
+   # print('queue, classifier, classifer_args, args ', classifier, classifier_args, args)
     
     factory = unlock_runtime.UnlockFactory(args)
     app_ctx = unlock.context.ApplicationContext(factory)
