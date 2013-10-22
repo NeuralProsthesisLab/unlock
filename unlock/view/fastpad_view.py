@@ -111,12 +111,12 @@ class FastPadView(UnlockView):
 
         # Get the GUI calculations
         self.canvas = canvas
-        textH = .2 * canvas.height
-        padW = .5 * canvas.width
+        textH = .1 * canvas.height
+        padW = .25 * canvas.width
         padH = canvas.height - textH
         padL = (canvas.width - padW) / 2
         buttonW = padW / 3
-        buttonH = (canvas.height - textH) / 4
+        buttonH = (canvas.height - textH) / 8
         self.batch = canvas.batch
 
         # Create the text bar
@@ -124,78 +124,78 @@ class FastPadView(UnlockView):
         self.text = self.drawText("",
                 canvas.width / 2, canvas.height - (textH / 2), self.batch)
         self.text.width = canvas.width
-        
+        startH = canvas.height / 4
         # Create the buttons
 # fast_pad_model, rect, labels, actions):        
         self.buttonB = FastPadButton(
             
-                (padL, 0, buttonW, buttonH),
+                (padL, startH, buttonW, buttonH),
                 ["<"],
                 [self.removeText],
                 self.batch
                 )
         self.button0 = FastPadButton(
-                (padL + buttonW, 0, buttonW, buttonH),
+                (padL + buttonW, startH, buttonW, buttonH),
                 ["0", "_"],
                 [self.addText],
                 self.batch,                
                 )
         self.buttonE = FastPadButton(
-                (padL + (2 * buttonW), 0, buttonW, buttonH),
+                (padL + (2 * buttonW), startH, buttonW, buttonH),
                 [">"],
                 [self.speakText],
                 self.batch,                                
                 )
         self.button7 = FastPadButton(
-                (padL, buttonH, buttonW, buttonH),
+                (padL, startH+buttonH, buttonW, buttonH),
                 ["7", "P", "Q", "R", "S"],
                 [self.addText],
                 self.batch,                                
                 )
         self.button8 = FastPadButton(
-                (padL + buttonW, buttonH, buttonW, buttonH),
+                (padL + buttonW, startH+buttonH, buttonW, buttonH),
                 ["8", "T", "U", "V"],
                 [self.addText],
                 self.batch,                                
                 )
         self.button9 = FastPadButton(
-                (padL + (2 * buttonW), buttonH, buttonW, buttonH),
+                (padL + (2 * buttonW), startH+buttonH, buttonW, buttonH),
                 ["9", "W", "X", "Y", "Z"],
                 [self.addText],
                 self.batch,                                
                 )
         self.button4 = FastPadButton(
-                (padL, buttonH * 2, buttonW, buttonH),
+                (padL, startH+buttonH * 2, buttonW, buttonH),
                 ["4", "G", "H", "I"],
                 [self.addText],
                 self.batch,                                
                 )
         self.button5 = FastPadButton(
-                (padL + buttonW, buttonH * 2, buttonW, buttonH),
+                (padL + buttonW, startH+buttonH * 2, buttonW, buttonH),
                 ["5", "J", "K", "L"],
                 [self.addText],
                 self.batch,                                
                 )
         self.button6 = FastPadButton(
-                (padL + (2 * buttonW), buttonH * 2, buttonW, buttonH),
+                (padL + (2 * buttonW), startH+buttonH * 2, buttonW, buttonH),
                 ["6", "M", "N", "O"],
                 [self.addText],
                 self.batch,                                
                 )
         self.button1 = FastPadButton(
-                (padL, buttonH * 3, buttonW, buttonH),
+                (padL, startH+buttonH * 3, buttonW, buttonH),
                 ["1"],
                 [self.addText],
                 self.batch,                                
                 )
         self.button2 = FastPadButton(
-                (padL + buttonW, buttonH * 3, buttonW, buttonH),
+                (padL + buttonW, startH+buttonH * 3, buttonW, buttonH),
                 ["2", "A", "B", "C"],
                 [self.addText],
                 self.batch,                                
                 )
         self.button3 = FastPadButton(
-                (padL + (2 * buttonW), buttonH * 3, buttonW, buttonH),
+                (padL + (2 * buttonW), startH+buttonH * 3, buttonW, buttonH),
                 ["3", "D", "E", "F"],
                 [self.addText],
                 self.batch,                                
