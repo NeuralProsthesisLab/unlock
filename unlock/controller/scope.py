@@ -38,7 +38,7 @@ class TimeScope(UnlockControllerFragment):
         
     @staticmethod
     def create_timescope_fragment(canvas):
-        scope_model = TimeScopeState()
+        scope_model = TimeScopeState(4, 250)
         scope_view = TimeScopeView(scope_model, canvas)
         assert canvas is not None
         timescope = TimeScope(scope_model, [scope_view], canvas.batch)
