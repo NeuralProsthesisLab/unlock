@@ -53,7 +53,6 @@ class FastPad(UnlockControllerFragment):
             
         assert base != None
         fastpad = FastPad.create_fastpad_fragment(canvas)
-#        base.views.extend(fastpad.views)
         controller_chain = UnlockControllerChain(window, base.command_receiver,
                                                  [base, fastpad] , 'FastPad', 'fastpad.png',
                                                  standalone=False)
