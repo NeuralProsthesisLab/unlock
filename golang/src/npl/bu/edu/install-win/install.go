@@ -82,44 +82,67 @@ func unzipExpand(fileName string) {
 }
 
 func downloadAndWriteFile(fileUrl string, fileName string) string {
-    return downloadAndWriteFileWithChecksum(fileUrl, fileName, true)
+    return downloadAndWriteFileWithIntegrityCheck(fileUrl, fileName, false)
 }
 
-func downloadAndWriteFileWithChecksum(fileUrl string, fileName string, shouldCheckSum bool) string {	
+func downloadAndWriteFileWithIntegrityCheck(fileUrl string, fileName string, skipCheck bool) string {	
     fullPath := filepath.Join(getDownloadDirectory(), fileName)
     
-	//isFileExist,_ := checkFileExists(fullPath)
-    isFileGood := false
-    if (shouldCheckSum) {
-        isFileGood = !checkSum(fullPath, fileUrl+".sha1")
-    }
+    if !skipCheck {    
+        log.Println("Check integrity for file", fileName)
     
-    if /*!isFileExist ||*/ !isFileGood {        
-        log.Println("Downloading file "+fileName+" from URL = "+fileUrl)
-        resp, err := http.Get(fileUrl)
-        if err != nil {
-            log.Fatalln(err)
-        }
+        isFileExist,_ := checkFileExists(fullPath)    
+        if !isFileExist {        
+            downloadAndWrite(fileUrl, fileName, fullPath)
+        }   
+
+        isFileGood := false        
+        isFileGood = checkSum(fullPath, fileUrl+".sha1")
+                
+        for !isFileGood {            
+            log.Println("File corrupted or outdated. Downloading new file")
+            
+            // ADDITION: Check n retry times
+              
+            downloadAndWrite(fileUrl, fileName, fullPath)
+                    
+            isFileGood = checkSum(fullPath, fileUrl+".sha1")
+        }     
+
+        log.Println("File is good")
         
-        defer resp.Body.Close()
-        body, err1 := ioutil.ReadAll(resp.Body)
-        if err1 != nil {
-            log.Fatalln(err)
-        }
+    } else {
+        log.Println("Skip file integrity check for", fileName)
         
-        if err = ioutil.WriteFile(fullPath, body, 0744); err != nil {
-            log.Fatalln(err)
-        }
+        downloadAndWrite(fileUrl, fileName, fullPath)
     }
     
     return fullPath
+}
+
+func downloadAndWrite(fileUrl string, fileName string, fullPath string) {
+    log.Println("Downloading file "+fileName+" from URL = "+fileUrl)
+    resp, err := http.Get(fileUrl)
+    if err != nil {
+        log.Fatalln(err)
+    }
+        
+    defer resp.Body.Close()
+    body, err1 := ioutil.ReadAll(resp.Body)
+    if err1 != nil {
+        log.Fatalln(err)
+    }
+        
+    if err = ioutil.WriteFile(fullPath, body, 0744); err != nil {
+        log.Fatalln(err)
+    }
 }
 
 func checkSum(filePath string, checksumFileUrl string) bool {
     computedHash := computeChecksum(filePath)
     downloadedHash := downloadChecksum(checksumFileUrl)
     
-    return bytes.Compare(computedHash, downloadedHash) == 0
+    return bytes.Compare(computedHash, downloadedHash) == 0 
 }
 
 func computeChecksum(filePath string) []byte {
@@ -136,7 +159,7 @@ func computeChecksum(filePath string) []byte {
 }
 
 func downloadChecksum(checksumFileUrl string) []byte {
-    checksumFile := downloadAndWriteFileWithChecksum(checksumFileUrl, `checksum`, false)  
+    checksumFile := downloadAndWriteFileWithIntegrityCheck(checksumFileUrl, `checksum`, true)  
     
     content,err := ioutil.ReadFile(checksumFile)
     if err != nil { panic(err) }
@@ -237,10 +260,10 @@ func installNumPy(baseUrl string, numpyPath string) {
     var cwd = getWorkingDirectoryAbsolutePath()
     install(cwd+"\\"+numpyPath, `numpy`, true)*/
     
-    downloadAndInstallBinPackage(baseUrl, numpyPath, `numpy`)
+    installBinPackage(baseUrl, numpyPath, `numpy`)
 }
 
-func downloadAndInstallBinPackage(baseUrl string, fileName string, packageName string) {
+func installBinPackage(baseUrl string, fileName string, packageName string) {
     downloadedFile := downloadAndWriteFile(baseUrl + fileName, fileName)
     install(downloadedFile, packageName, true)
 }
@@ -254,7 +277,7 @@ func installAvbin(baseUrl string, avbin string) {
     var cwd = getWorkingDirectoryAbsolutePath()
     install(cwd+"\\"+avbin, `avbin`, true)*/
     
-    downloadAndInstallBinPackage(baseUrl, avbin, `avbin`)
+    installBinPackage(baseUrl, avbin, `avbin`)
     
     // XXX - last minute hack
     data, err1 := ioutil.ReadFile(`C:\Windows\System32\avbin.dll`)
@@ -327,7 +350,7 @@ func main() {
     var conf = createConf()
     
     installPython(conf.BaseUrl, conf.PythonPathEnvVar, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
-    downloadAndInstallBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
+    installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
 	installNumPy(conf.BaseUrl, conf.NumpyPackageName)
     //installEasyInstall(conf.BaseUrl, conf.PythonPath)
     //installPip(conf.EasyInstallPath)
@@ -345,8 +368,8 @@ func main() {
 
     installPyglet12alpha(conf.PythonPath, conf.BaseUrl, conf.PygletZipName, conf.PygletPackageName, conf.PygletDirectory)
     installPySerial26(conf.PythonPath, conf.BaseUrl, conf.PyserialZipName, conf.PyserialPackageName, conf.PyserialDirectory)
-    downloadAndInstallBinPackage(conf.BaseUrl, conf.PyAudioPackageName, `pyaudio`)
-    downloadAndInstallBinPackage(conf.BaseUrl, conf.PyWinPackageName, `pywin`)
+    installBinPackage(conf.BaseUrl, conf.PyAudioPackageName, `pyaudio`)
+    installBinPackage(conf.BaseUrl, conf.PyWinPackageName, `pywin`)
 	
 	// Skip install unlock software for development option
 	if *devOption == false {
