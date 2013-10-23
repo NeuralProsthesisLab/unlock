@@ -4,7 +4,9 @@ from .pyglet_sprite import PygletSprite
 from .pyglet_text import PygletTextLabel
 from .view import UnlockView
 
+from random import Random
 import inspect
+import time
 import os
 
 
@@ -66,30 +68,47 @@ class HierarchyGridView(UnlockView):
         super(HierarchyGridView, self).__init__()
 
         self.model = model
+        self.canvas = canvas
         self.tile_width = tile_width
         self.tile_height = tile_height
-        xcenter = canvas.width / 2
-        ycenter = canvas.height / 2
-        xoffset = xcenter - (xtiles * tile_width) / 2
-        yoffset = ycenter - (ytiles * tile_height) / 2
+        self.xcenter = canvas.width / 2
+        self.ycenter = canvas.height / 2
+        xoffset = self.xcenter - (xtiles * tile_width) / 2
+        yoffset = self.ycenter - (ytiles * tile_height) / 2
         self.grid_lines = self.drawGrid(xoffset, yoffset, xtiles, ytiles,
                                         tile_width, tile_height, canvas.batch)
-        self.target = self.drawRect(xcenter - tile_width / 2 + 200,
-                                    ycenter - tile_height / 2 - 100,
-                                    tile_width - 1, tile_height - 1,
-                                    canvas.batch, color=(0,255,128),
-                                    fill=True)
-        self.cursor = self.drawRect(xcenter - tile_width / 2,
-                                    ycenter - tile_height / 2,
+        
+        assert xtiles % 2 != 0 and ytiles % 2 != 0
+        self.xmax = int(xtiles / 2)
+        self.xmin = int(xtiles / 2) * -1
+        self.ymax = int(ytiles / 2)
+        self.ymin = int(ytiles / 2) * -1
+        self.rand = Random()
+        self.rand.seed(time.time())
+        
+        xcoord, ycoord = self.generate_target_coordinates()
+        self.assign_target(xcoord, ycoord)
+        self.cursor = self.drawRect(self.xcenter - tile_width / 2,
+                                    self.ycenter - tile_height / 2,
                                     tile_width - 1, tile_height - 1,
                                     canvas.batch, color=(0,128,255),
                                     fill=True)
-
+        
+    def generate_target_coordinates(self):
+        return self.rand.randint(self.xmin, self.xmax), self.rand.randint(self.ymin, self.ymax)
+        
+    def assign_target(self, xcoord, ycoord):
+        self.target = self.drawRect(self.xcenter - self.tile_width / 2 + xcoord*self.tile_width,
+                                    self.ycenter - self.tile_height / 2 - ycoord*self.tile_height,
+                                    self.tile_width - 1, self.tile_height - 1,
+                                    self.canvas.batch, color=(0,255,128),
+                                    fill=True)
+            
     def render(self):
         state = self.model.get_state()
         if not state:
             return
-
+            
         if state.change == GridStateChange.XChange:
             self.cursor.vertices[::2] = [i + int(state.step_value)*self
             .tile_width for i in self.cursor.vertices[::2]]
