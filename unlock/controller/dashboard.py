@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model import GridState, TimedStimuli, TimedStimulus
+from unlock.model import ControllerGridState, TimedStimuli, TimedStimulus
 from unlock.util import Trigger
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, GridView
 from unlock.decode import RawInlineSignalReceiver, CommandReceiverFactory
@@ -65,7 +65,7 @@ class Dashboard(UnlockControllerFragment):
         if not controllers:
             raise ValueError
             
-        grid_state = GridState(controllers)
+        grid_state = ControllerGridState(controllers)
         icons = []
         for controller in controllers:
             icons.append((controller.icon_path, controller.name))
