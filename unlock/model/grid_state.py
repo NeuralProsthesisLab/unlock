@@ -31,7 +31,7 @@ from .model import UnlockModel
 class GridStateChange(object):
     XChange = 0
     YChange = 1
-
+    Select = 2
     def __init__(self, change, step_value=None):
         super(GridStateChange, self).__init__()
         self.change = change
@@ -52,6 +52,7 @@ class GridState(UnlockModel):
             
           
     def process_command(self, command):
+        assert not (command.decision is not None and command.selection is not None)
         if command.decision is not None:
             self.process_decision(command.decision)
             
@@ -139,10 +140,10 @@ class HierarchyGridState(GridState):
         """
         Determine and execute current tile's associated action
         """
-        print("Selection = " , self.state)
-
-
-
+        assert self.state_change == None
+        self.state_change = GridStateChange(GridStateChange.Select, self.state)
+        
+        
 class GridTileState(UnlockModel):
     def __init__(self, label=None, icon=None, action=None):
         super(GridTileState, self).__init__()

@@ -86,8 +86,7 @@ class HierarchyGridView(UnlockView):
         self.rand = Random()
         self.rand.seed(time.time())
         
-        xcoord, ycoord = self.generate_target_coordinates()
-        self.assign_target(xcoord, ycoord)
+        self.assign_target()
         self.cursor = self.drawRect(self.xcenter - tile_width / 2,
                                     self.ycenter - tile_height / 2,
                                     tile_width - 1, tile_height - 1,
@@ -97,13 +96,20 @@ class HierarchyGridView(UnlockView):
     def generate_target_coordinates(self):
         return self.rand.randint(self.xmin, self.xmax), self.rand.randint(self.ymin, self.ymax)
         
-    def assign_target(self, xcoord, ycoord):
-        self.target = self.drawRect(self.xcenter - self.tile_width / 2 + xcoord*self.tile_width,
-                                    self.ycenter - self.tile_height / 2 - ycoord*self.tile_height,
+    def assign_target(self):
+        self.xcoord, self.ycoord = self.generate_target_coordinates()        
+        self.target = self.drawRect(self.xcenter - self.tile_width / 2 + self.xcoord*self.tile_width,
+                                    self.ycenter - self.tile_height / 2 + self.ycoord*self.tile_height,
                                     self.tile_width - 1, self.tile_height - 1,
                                     self.canvas.batch, color=(0,255,128),
                                     fill=True)
-            
+    def mark_target(self, ):
+        self.target = self.drawRect(self.xcenter - self.tile_width / 2 + self.xcoord*self.tile_width,
+                                    self.ycenter - self.tile_height / 2 + self.ycoord*self.tile_height,
+                                    self.tile_width - 1, self.tile_height - 1,
+                                    self.canvas.batch, color=(0,128,255),
+                                    fill=False)
+    
     def render(self):
         state = self.model.get_state()
         if not state:
@@ -115,3 +121,9 @@ class HierarchyGridView(UnlockView):
         elif state.change == GridStateChange.YChange:
             self.cursor.vertices[1::2] = [i + int(state.step_value)*self
             .tile_height for i in self.cursor.vertices[1::2]]
+        elif state.change == GridStateChange.Select:
+            if state.step_value == (self.xcoord,self.ycoord):
+                self.target.delete()
+#                self.mark_target()
+                self.assign_target()
+                
