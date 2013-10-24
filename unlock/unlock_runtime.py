@@ -238,8 +238,6 @@ class UnlockRuntime(object):
                 self.args['receiver'] = options.receiver
             if options.decoder != None:
                 self.args['decoder'] = options.decoder
-            else:
-                self.args['decoder'] = 'inline'
                 
             self.__configure_logging__()
             self.__create_controllers__()
