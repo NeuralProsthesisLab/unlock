@@ -144,15 +144,3 @@ class HierarchyGridState(GridState):
         self.state_change = GridStateChange(GridStateChange.Select, self.state)
         
         
-class GridTileState(UnlockModel):
-    def __init__(self, label=None, icon=None, action=None):
-        super(GridTileState, self).__init__()
-        self.label = label
-        self.icon = icon
-        self.action = action
-        self.state_change = None
-
-    def get_state(self):
-        ret = self.state_change
-        self.state_change = None
-        return ret
