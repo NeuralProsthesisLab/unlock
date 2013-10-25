@@ -193,6 +193,5 @@ class GridSpeakView(HierarchyGridView):
         elif state.change == GridStateChange.YChange:
             self.cursor.vertices[1::2] = [i + int(state.step_value)*self.tile_height for i in self.cursor.vertices[1::2]]
         elif state.change == GridStateChange.Select:
-            print("the value is ", state.step_value, " the text is ", self.words[state.step_value][0])
             self.words[state.step_value][1].play()
            
