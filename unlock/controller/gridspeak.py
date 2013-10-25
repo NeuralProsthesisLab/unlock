@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from unlock.model import TimedStimulus, HierarchyGridState, TimedStimuli, OfflineData
-from unlock.view import FlickeringPygletSprite, SpritePositionComputer, HierarchyGridView
+from unlock.view import FlickeringPygletSprite, SpritePositionComputer, HierarchyGridView, GridSpeakView
 from unlock.decode import HarmonicSumDecision, RawInlineSignalReceiver, ClassifiedCommandReceiver, CommandReceiverFactory
 from unlock.controller import UnlockController, Canvas, UnlockControllerFragment, UnlockControllerChain
 import inspect
@@ -41,9 +41,9 @@ class GridSpeak(UnlockControllerFragment):
     @staticmethod
     def create_gridspeak_fragment(canvas):
         grid_model = HierarchyGridState(2)
-        grid_view = HierarchyGridView(grid_model, canvas)
+        gridspeak_view = GridSpeakView(None,grid_model, canvas)
         assert canvas != None
-        gridspeak = GridSpeak(grid_model, [grid_view], canvas.batch)
+        gridspeak = GridSpeak(grid_model, [gridspeak_view], canvas.batch)
         return gridspeak
         
     @staticmethod
