@@ -6,6 +6,7 @@ from .view import UnlockView
 
 from random import Random
 import inspect
+import pyglet
 import time
 import os
 
@@ -128,34 +129,61 @@ class HierarchyGridView(UnlockView):
                 self.assign_target()
     
 class GridSpeakView(HierarchyGridView):
-    def __init__(self, gridtext_2d_tuple, model, canvas, tile_width=100, tile_height=100):
+    def __init__(self, gridtext_2d_tuple, model, canvas, tile_width=100, tile_height=100, gender='Female'):
         ''' Requires a 2d tuple of lists of equal length, a gridmodel and a canvas '''
         #length = len(gridtext_2d_tuple[0])
         #for row in gridtext_2d_tuple:
         #    assert len(row) == length
-            
+                
         super(GridSpeakView, self).__init__(model, canvas)#,len(gridtext_2d_tuple[0]), len(gridtext_2d_tuple))
-        #self.xoffset = canvas.width/2
-        #self.yoffset = canvas.height/2
+        # XXX - this needs to get pushed into configuration data
+        self.target.delete()
+        self.target = None
+        path = os.path.dirname(inspect.getfile(GridSpeakView))
+        self.alone = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender, 'alone.wav')))
+        self.bored = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender, 'bored.wav')))
+        self.down = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender, 'down.wav')))
+        self.explain = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender , 'explain.wav')))
+        self.get = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender , 'get.wav')))
+        self.goodbye = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender , 'goodbye.wav')))
+        self.hello = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender , 'hello.wav')))
+        self.help = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender , 'help.wav')))
+        self.howareyou = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender , 'howareyou.wav')))
+        self.hungah = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender , 'hungry.wav')))
+        self.left = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'left.wav')))
+        self.move = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'move.wav')))
+        self.no = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'no.wav')))
+        self.nose = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'nose.wav')))
+        self.pain = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'pain.wav')))
+        self.repeat = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'repeat.wav')))        
+        self.right = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'right.wav')))
+        self.sorry = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'sorry.wav')))
+        self.thanks = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'thanks.wav')))                        
+        self.thirsty = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'thirsty.wav')))
+        self.up = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'up.wav')))                        
+        self.when = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'when.wav')))                        
+        self.where = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'where.wav')))
+        self.who = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'who.wav')))                        
+        self.yes = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'yes.wav')))                        
+        self.words = {
+            (-2, -2): ('alone', self.alone), (-2, -1): ('bored',self.bored), (-2,0): ('down', self.down), (-2,1):('explain', self.explain),(-2,2):('get', self.get),
+            (-1,-2):('goodbye', self.goodbye), (-1,-1):('hello', self.hello), (-1,0):('help', self.help), (-1,1):('how R U', self.howareyou), (-1,2):('hungrey', self.hungah),
+            (0,-2):('left', self.left), (0,-1):('move', self.move), (0,0):('no',self.no), (0,1):('nose', self.nose), (0,2):('pain',self.pain),
+            (1,-2):('repeat', self.repeat), (1,-1):('right', self.right), (1,0):('sorry', self.sorry), (1,1):('thanks', self.thanks), (1,2):('thirsty', self.thirsty),
+            (2,-2): ('up', self.up), (2,-1):('when', self.when), (2,0):('where', self.where), (2,1):('who', self.who), (2,2):('yes', self.yes)
+        }
+        self.labels = []
         self.draw_words(gridtext_2d_tuple, model, canvas, self.xoffset, self.yoffset)       
     
     def draw_words(self, gridtext_2d_tuple, model, canvas, x_offset, y_offset):#, rows, columns, tile_width,
-        words = ['alone', 'bored','down', 'explain', 'get', 'goodbye', 'hello', 'help', 'how R U',
-                 'hungrey', 'left', 'move', 'no', 'nose', 'pain', 'repeat', 'right', 'sorry',
-                 'thanks', 'thirsty', 'up', 'when', 'where', 'who', 'yes']
-        self.labels = []
-        count = 0
-        for i in range(5):
-            for j in range(5):
-                xoffset = x_offset+self.tile_width*(i)
-                yoffset = y_offset+self.tile_height*(j)
-                print ('position = ', (i, j), ' words count = ', words[count],  ' xoffset = ', xoffset, x_offset, ' yoffset = ', yoffset)
-                label = PygletTextLabel(model, canvas, words[count], xoffset+self.tile_width/2, yoffset+self.tile_height/2, anchor_x='center', anchor_y='center', width=self.tile_width-1, size=18)
-                label.label.multiline = True
-                self.labels.append(label)
-                count += 1
-
- 
+        #words = [v[0] for k, v in self.words.items()]
+        for k,v in self.words.items():
+            xoffset = self.xcenter+self.tile_width*(k[0])
+            yoffset = self.ycenter+self.tile_height*(k[1])
+            label = PygletTextLabel(model, canvas, v[0], xoffset, yoffset, anchor_x='center', anchor_y='center', width=self.tile_width-1, size=18)
+            label.label.multiline = True
+            self.labels.append(label)
+                
     def render(self):
         state = self.model.get_state()
         if not state:
@@ -166,9 +194,6 @@ class GridSpeakView(HierarchyGridView):
         elif state.change == GridStateChange.YChange:
             self.cursor.vertices[1::2] = [i + int(state.step_value)*self.tile_height for i in self.cursor.vertices[1::2]]
         elif state.change == GridStateChange.Select:
-            if state.step_value == (self.xcoord,self.ycoord):
-                self.target.delete()
-#                self.mark_target()
-                self.assign_target()
-        
-        
+            print("the value is ", state.step_value, " the text is ", self.words[state.step_value][0])
+            self.words[state.step_value][1].play()
+           
