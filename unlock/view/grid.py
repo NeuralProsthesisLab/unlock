@@ -176,7 +176,6 @@ class GridSpeakView(HierarchyGridView):
         self.draw_words(gridtext_2d_tuple, model, canvas, self.xoffset, self.yoffset)       
     
     def draw_words(self, gridtext_2d_tuple, model, canvas, x_offset, y_offset):#, rows, columns, tile_width,
-        #words = [v[0] for k, v in self.words.items()]
         for k,v in self.words.items():
             xoffset = self.xcenter+self.tile_width*(k[0])
             yoffset = self.ycenter+self.tile_height*(k[1])
