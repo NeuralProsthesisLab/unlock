@@ -307,9 +307,6 @@ class CommandReceiverFactory(object):
 def command_receiver_fn(Q, classifier, classifier_args, args):
     from unlock import unlock_runtime
     import unlock.context
-    
-   # print('queue, classifier, classifer_args, args ', classifier, classifier_args, args)
-    
     factory = unlock_runtime.UnlockFactory(args)
     app_ctx = unlock.context.ApplicationContext(factory)
     assert args['decoder'] == 'inline'
