@@ -1,7 +1,7 @@
 from unlock.model import UnlockModel
 from unlock.model import GridStateChange
 from .pyglet_sprite import PygletSprite
-from .pyglet_text import PygletTextLabel
+from .pyglet_text import PygletTextLabel, PygletHTMLTextLabel
 from .view import UnlockView
 
 from random import Random
@@ -73,9 +73,11 @@ class HierarchyGridView(UnlockView):
         self.tile_height = tile_height
         self.xcenter = canvas.width / 2
         self.ycenter = canvas.height / 2
-        xoffset = self.xcenter - (xtiles * tile_width) / 2
-        yoffset = self.ycenter - (ytiles * tile_height) / 2
-        self.grid_lines = self.drawGrid(xoffset, yoffset, xtiles, ytiles,
+        self.xtiles = xtiles
+        self.ytiles = ytiles
+        self.xoffset = self.xcenter - (self.xtiles * tile_width) / 2
+        self.yoffset = self.ycenter - (self.ytiles * tile_height) / 2
+        self.grid_lines = self.drawGrid(self.xoffset, self.yoffset, xtiles, ytiles,
                                         tile_width, tile_height, canvas.batch)
         
         assert xtiles % 2 != 0 and ytiles % 2 != 0
@@ -116,14 +118,57 @@ class HierarchyGridView(UnlockView):
             return
             
         if state.change == GridStateChange.XChange:
-            self.cursor.vertices[::2] = [i + int(state.step_value)*self
-            .tile_width for i in self.cursor.vertices[::2]]
+            self.cursor.vertices[::2] = [i + int(state.step_value)*self.tile_width for i in self.cursor.vertices[::2]]
         elif state.change == GridStateChange.YChange:
-            self.cursor.vertices[1::2] = [i + int(state.step_value)*self
-            .tile_height for i in self.cursor.vertices[1::2]]
+            self.cursor.vertices[1::2] = [i + int(state.step_value)*self.tile_height for i in self.cursor.vertices[1::2]]
         elif state.change == GridStateChange.Select:
             if state.step_value == (self.xcoord,self.ycoord):
                 self.target.delete()
 #                self.mark_target()
                 self.assign_target()
-                
+    
+class GridSpeakView(HierarchyGridView):
+    def __init__(self, gridtext_2d_tuple, model, canvas, tile_width=100, tile_height=100):
+        ''' Requires a 2d tuple of lists of equal length, a gridmodel and a canvas '''
+        #length = len(gridtext_2d_tuple[0])
+        #for row in gridtext_2d_tuple:
+        #    assert len(row) == length
+            
+        super(GridSpeakView, self).__init__(model, canvas)#,len(gridtext_2d_tuple[0]), len(gridtext_2d_tuple))
+        #self.xoffset = canvas.width/2
+        #self.yoffset = canvas.height/2
+        self.draw_words(gridtext_2d_tuple, model, canvas, self.xoffset, self.yoffset)       
+    
+    def draw_words(self, gridtext_2d_tuple, model, canvas, x_offset, y_offset):#, rows, columns, tile_width,
+        words = ['alone', 'bored','down', 'explain', 'get', 'goodbye', 'hello', 'help', 'how R U',
+                 'hungrey', 'left', 'move', 'no', 'nose', 'pain', 'repeat', 'right', 'sorry',
+                 'thanks', 'thirsty', 'up', 'when', 'where', 'who', 'yes']
+        self.labels = []
+        count = 0
+        for i in range(5):
+            for j in range(5):
+                xoffset = x_offset+self.tile_width*(i)
+                yoffset = y_offset+self.tile_height*(j)
+                print ('position = ', (i, j), ' words count = ', words[count],  ' xoffset = ', xoffset, x_offset, ' yoffset = ', yoffset)
+                label = PygletTextLabel(model, canvas, words[count], xoffset+self.tile_width/2, yoffset+self.tile_height/2, anchor_x='center', anchor_y='center', width=self.tile_width-1, size=18)
+                label.label.multiline = True
+                self.labels.append(label)
+                count += 1
+
+ 
+    def render(self):
+        state = self.model.get_state()
+        if not state:
+            return
+            
+        if state.change == GridStateChange.XChange:
+            self.cursor.vertices[::2] = [i + int(state.step_value)*self.tile_width for i in self.cursor.vertices[::2]]
+        elif state.change == GridStateChange.YChange:
+            self.cursor.vertices[1::2] = [i + int(state.step_value)*self.tile_height for i in self.cursor.vertices[1::2]]
+        elif state.change == GridStateChange.Select:
+            if state.step_value == (self.xcoord,self.ycoord):
+                self.target.delete()
+#                self.mark_target()
+                self.assign_target()
+        
+        
