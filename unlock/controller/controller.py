@@ -264,8 +264,8 @@ class sEMGControllerFragment(UnlockControllerFragment):
     def create_semg(decoder, thresholds):
 #        classifier = RootMeanSquare(thresholds)
         raise Exception("FML")
-        command_receiver = decoder.create_receiver(classifier=UnlockClassifierFactory.FacialEMGDetector,
-                                                   **{'thresholds' : thresholds })
+        #command_receiver = decoder.create_receiver(classifier=UnlockClassifierFactory.FacialEMGDetector,
+        #                                           **{'thresholds' : thresholds })
         return sEMGControllerFragment(command_receiver)
         
         
