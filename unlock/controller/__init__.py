@@ -30,4 +30,5 @@ from .dashboard import *
 from .collector import *
 from .fastpad import *
 from .gridspeak import *
+from .gridcursor import *
 from .scope import *
