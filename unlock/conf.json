@@ -18,16 +18,20 @@
             "args" : {
             }
         },
-
         {
-            "name" : "Collector",
+            "name" : "GridCursor",
+            "args" : {
+            }
+        },
+        {
+            "name" : "MouthBasedEMGCollector",
             "args" : {
             }
         },
         {
             "name" : "Dashboard",
             "args" : {
-                "controllers" : ["FastPad", "GridSpeak", "Collector"]
+                "controllers" : ["FastPad", "GridSpeak", "GridCursor", "MouthBasedEMGCollector"]
             }
         }
     ],    
