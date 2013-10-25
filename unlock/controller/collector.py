@@ -25,8 +25,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model import OfflineData, CueStateMachine, CueState
-from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator
+from unlock.model import OfflineData, CueStateMachine, CueState, DynamicPositionCueState
+from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator, DynamicPositionPygletTextLabel
 from unlock.util import TrialState, Trigger
 from unlock.decode import RawInlineSignalReceiver
 
@@ -67,16 +67,65 @@ class Collector(UnlockControllerFragment):
         return self.standalone
       
     @staticmethod
-    def create_collector(window, signal, timer, stimuli=None, trials=10, cue_duration=.5,
+    def create_eye_based_emg_collector(window, decoder, stimuli=None, trials=10, cue_duration=.5,
+                         rest_duration=1, indicate_duration=1, output_file='collector', standalone=False):
+        canvas = Canvas.create(window.width, window.height)
+        cues = [Trigger.Left, Trigger.Right, Trigger.Up, Trigger.Down, Trigger.Select]
+        cue_states = []
+        for cue in cues:  
+            cue_states.append(CueState.create(cue, cue_duration))
+                              
+        rest_state = CueState.create(Trigger.Rest, rest_duration)
+
+        indicate_state = DynamicPositionCueState.create(Trigger.Indicate, indicate_duration, canvas.height, canvas.height/8,
+                                              canvas.width, canvas.width/8)
+        
+        cue_state = CueStateMachine.create_sequential_cue_indicate_rest(cue_states, rest_state,
+                                                                        indicate_state,trials=trials)
+        
+        left = PygletTextLabel(cue_state.cue_states[0], canvas, 'left', canvas.width / 2.0,
+                               canvas.height / 2.0)
+        right = PygletTextLabel(cue_state.cue_states[1], canvas, 'right', canvas.width / 2.0,
+                                canvas.height / 2.0)
+        forward = PygletTextLabel(cue_state.cue_states[2], canvas, 'up', canvas.width / 2.0,
+                                  canvas.height / 2.0)
+        back = PygletTextLabel(cue_state.cue_states[3], canvas, 'down', canvas.width / 2.0,
+                               canvas.height / 2.0)
+        select = PygletTextLabel(cue_state.cue_states[4], canvas, 'select', canvas.width / 2.0,
+                                 canvas.height / 2.0)
+        
+        rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0,
+                                    canvas.height / 2.0)
+        rest = BellRingTextLabelDecorator(rest_text)
+        
+        indicate_text = DynamicPositionPygletTextLabel(cue_state.indicate_state, canvas, '+',
+                                                       canvas.width / 2.0, canvas.height / 2.0)
+        
+        offline_data = OfflineData(output_file)
+        collector = Collector(window, cue_state, offline_data, [left, right, forward, back, select, rest, indicate_text],
+                              canvas.batch, standalone=standalone)
+        view_chain = collector.views
+        
+        command_receiver = RawInlineSignalReceiver(decoder.signal, decoder.timer)
+        
+        controller_chain = UnlockControllerChain(window, command_receiver,
+                                                 [collector] , 'Collector', 'collector.png',
+                                                 standalone=standalone)
+        return controller_chain
+            
+    @staticmethod
+    def create_mouth_based_emg_collector(window, decoder, stimuli=None, trials=10, cue_duration=.5,
                          rest_duration=1, indicate_duration=1, output_file='collector', standalone=False):
         canvas = Canvas.create(window.width, window.height)
         cues = [Trigger.Left, Trigger.Right, Trigger.Forward, Trigger.Back, Trigger.Select]
         cue_states = []
-        for cue in cues:
+        for cue in cues:  
             cue_states.append(CueState.create(cue, cue_duration))
+                              
         rest_state = CueState.create(Trigger.Rest, rest_duration)
 
-        indicate_state = CueState.create(Trigger.Indicate, indicate_duration)        
+        indicate_state = CueState.create(Trigger.Indicate, indicate_duration)
+        
         cue_state = CueStateMachine.create_sequential_cue_indicate_rest(cue_states, rest_state,
                                                                         indicate_state,trials=trials)
         
@@ -91,21 +140,19 @@ class Collector(UnlockControllerFragment):
         select = PygletTextLabel(cue_state.cue_states[4], canvas, 'select', canvas.width / 2.0,
                                  canvas.height / 2.0)
         
-        rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0,
+        rest = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0,
                                     canvas.height / 2.0)
+#        rest = BellRingTextLabelDecorator(rest_text)
         
-        
-        indicate_text = PygletTextLabel(cue_state.indicate_state, canvas, '',
-                                                       canvas.width / 2.0, canvas.height / 2.0)
-        indicate = BellRingTextLabelDecorator(indicate_text)        
-        
+        indicate_text = BellRingTextLabelDecorator(PygletTextLabel(cue_state.indicate_state, canvas, '',
+                                       canvas.width / 2.0, canvas.height / 2.0))
         
         offline_data = OfflineData(output_file)
-        collector = Collector(window, cue_state, offline_data, [left, right, forward, back, select, rest_text, indicate],
+        collector = Collector(window, cue_state, offline_data, [left, right, forward, back, select, rest, indicate_text],
                               canvas.batch, standalone=standalone)
         view_chain = collector.views
         
-        command_receiver = RawInlineSignalReceiver(signal, timer)
+        command_receiver = RawInlineSignalReceiver(decoder.signal, decoder.timer)
         
         controller_chain = UnlockControllerChain(window, command_receiver,
                                                  [collector] , 'Collector', 'collector.png',
