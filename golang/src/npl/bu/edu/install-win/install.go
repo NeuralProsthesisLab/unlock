@@ -107,15 +107,22 @@ func attemptDownloadCorrectFile(fileUrl string, fileName string, fullPath string
         downloadAndWrite(fileUrl, fileName, fullPath)
     }     
     
+    var sha1Url string
+    if (!*testDownloadTimeout) {
+        sha1Url = fileUrl+".sha1"
+    } else {
+        sha1Url = fileUrl+".sha1.fake"
+    }
+    
     isFileGood := false                    
-    isFileGood = checkSum(fullPath, fileUrl+".sha1")     
+    isFileGood = checkSum(fullPath, sha1Url)     
     var numAttempt int
         
     for numAttempt = 0; numAttempt < 5 && !isFileGood; numAttempt++ {            
         log.Println("File corrupted or outdated. Downloading new file")
             
         downloadAndWrite(fileUrl, fileName, fullPath)                    
-        isFileGood = checkSum(fullPath, fileUrl+".sha1")
+        isFileGood = checkSum(fullPath, sha1Url)
     }
         
     if numAttempt == 5 {
@@ -307,6 +314,7 @@ func installUnlock(pythonPath string, baseUrl string, fileName string, packageNa
 var confFile = flag.String("conf", "", "Qualified file name of Unlock installation configuration file")
 var devOption = flag.Bool("dev", false, "Setup development env")
 var repoPath = flag.String("repo", "", "Path to project's git repo")
+var testDownloadTimeout = flag.Bool("testDownloadTimeout", false, "Test download timeout after 5 attempts to download correct file")
 
 func createConf() UnlockInstallConf {
     if *confFile == `` {
