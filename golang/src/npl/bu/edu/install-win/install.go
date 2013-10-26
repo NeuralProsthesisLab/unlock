@@ -91,26 +91,7 @@ func downloadAndWriteFileWithIntegrityCheck(fileUrl string, fileName string, ski
     if !skipCheck {    
         log.Println("Check integrity for file", fileName)
     
-        isFileExist,_ := checkFileExists(fullPath)    
-        if !isFileExist {        
-            downloadAndWrite(fileUrl, fileName, fullPath)
-        }   
-
-        isFileGood := false        
-        isFileGood = checkSum(fullPath, fileUrl+".sha1")
-                
-        for !isFileGood {            
-            log.Println("File corrupted or outdated. Downloading new file")
-            
-            // ADDITION: Check n retry times
-              
-            downloadAndWrite(fileUrl, fileName, fullPath)
-                    
-            isFileGood = checkSum(fullPath, fileUrl+".sha1")
-        }     
-
-        log.Println("File is good")
-        
+        attemptDownloadCorrectFile(fileUrl, fileName, fullPath)        
     } else {
         log.Println("Skip file integrity check for", fileName)
         
@@ -118,6 +99,30 @@ func downloadAndWriteFileWithIntegrityCheck(fileUrl string, fileName string, ski
     }
     
     return fullPath
+}
+
+func attemptDownloadCorrectFile(fileUrl string, fileName string, fullPath string) {
+    isFileExist,_ := checkFileExists(fullPath)    
+    if !isFileExist {        
+        downloadAndWrite(fileUrl, fileName, fullPath)
+    }     
+    
+    isFileGood := false                    
+    isFileGood = checkSum(fullPath, fileUrl+".sha1")     
+    var numAttempt int
+        
+    for numAttempt = 0; numAttempt < 5 && !isFileGood; numAttempt++ {            
+        log.Println("File corrupted or outdated. Downloading new file")
+            
+        downloadAndWrite(fileUrl, fileName, fullPath)                    
+        isFileGood = checkSum(fullPath, fileUrl+".sha1")
+    }
+        
+    if numAttempt == 5 {
+        log.Fatalln(`FATAL: 5 failed attempts to download new`, fileName, `package`)
+    } else {
+        log.Println("File is good")
+    }
 }
 
 func downloadAndWrite(fileUrl string, fileName string, fullPath string) {
@@ -314,7 +319,8 @@ func createConf() UnlockInstallConf {
             `pyglet-1.2alpha-p3.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`, `AVbin10-win32.exe`, 
             `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, `unlock-0.3.7-win32.zip`, `unlock`, `unlock-0.3.7`,
             `scons-2.3.0.zip`, `scons`, `scons-2.3.0`,
-            `unlock.exe`, `vcredist_2010_x86.exe`, `pyaudio-0.2.7.py33.exe`, `pywin32-218.win32-py3.3.exe`}
+            `unlock.exe`, `vcredist_2010_x86.exe`, `pyaudio-0.2.7.py33.exe`, `pywin32-218.win32-py3.3.exe`,
+            `unlock-x86.exe`, `unlock-x86-64.exe`}
     } else {
         return ParseConf(*confFile)
     }    
@@ -334,6 +340,18 @@ func installUnlockRunner(baseUrl string, unlockDirectory string, unlockexe strin
     chdirFailOnError(unlockDirectory, ` ERROR: Failed to install unlock.exe: couldn't change dir `)
     downloadAndWriteFile(baseUrl+unlockexe, unlockexe)
     os.Chdir(cwd)
+}
+
+func installUnlockExe(baseUrl string, x86FileName string, x64FileName string) {
+    hostArch := os.Getenv(`GOHOSTARCH`)
+    
+    if hostArch == `amd64` {
+        log.Println("Install unlock.exe x64")
+        installBinPackage(baseUrl, x64FileName, `unlockExe-x64`)
+    } else {
+        log.Println("Install unlock.exe x86")
+        installBinPackage(baseUrl, x86FileName, `unlockExe-x86`)
+    }
 }
 
 func main() {
@@ -376,5 +394,6 @@ func main() {
         installUnlock(conf.PythonPath, conf.BaseUrl, conf.UnlockZipName, conf.UnlockPackageName, conf.UnlockPackageDirectory)
         //installScons(conf.PythonPath, conf.BaseUrl, conf.SconsZipName, conf.SconsPackageName, conf.SconsPackageDirectory)
         //installUnlockRunner(conf.BaseUrl, conf.UnlockDirectory, conf.Unlockexe)
+        installUnlockExe(conf.BaseUrl, conf.UnlockExeX86PackageName, conf.UnlockExeX64PackageName)
 	}
 }
