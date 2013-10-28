@@ -29,23 +29,23 @@ from .classify import UnlockClassifier
 import numpy as np
 
 class EyeBlinkDetector(UnlockClassifier):
-    def __init__(self):
+    def __init__(self, eog_channels=(5, 7), rms_threshold=60000):
         super(EyeBlinkDetector, self).__init__()
         
         ## enobio setup: 5 - left eye, 7 - right eye
-        self.eog_channels = [5, 7]
+        self.eog_channels = eog_channels
         
         # adaptive demean
         self.mu = 0
         self.alpha = 0.05
         
         # blink settings
-        self.threshold = 60000  # rms window threshold
+        self.threshold = rms_threshold  # rms window threshold
         self.long_blink_time = 1000  # number of samples - 2s
-        self.short_blink_time = 500 # number of samples - 1s
+        self.short_blink_time = 500  # number of samples - 1s
         self.short_blink_notified = False
-        self.blink_timer = 0 # sample counter
-        self.blink_action = 0 # action id, should be enum or function
+        self.blink_timer = 0  # sample counter
+        self.blink_action = 0  # action id, should be enum or function
         self.rms_window = 50
         self.sample_buffer = np.zeros(self.rms_window)
         
@@ -64,7 +64,7 @@ class EyeBlinkDetector(UnlockClassifier):
         self.sample_buffer[-s:] = samples
             
         rms = np.sqrt(np.mean(self.sample_buffer**2))
-            
+
         if rms > self.threshold:
             self.blink_timer += s
             if self.blink_timer >= self.long_blink_time:
