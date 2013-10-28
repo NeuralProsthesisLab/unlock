@@ -105,7 +105,6 @@ class PygletWindow(pyglet.window.Window):
             self.decoder.shutdown()
             pyglet.app.exit()
             
-            
     def activate_controller(self, controller):
         if self.active_controller:
             self.controller_stack.append(self.active_controller)
@@ -173,7 +172,7 @@ class UnlockControllerChain(UnlockController):
     def __init__(self, window, command_receiver, controllers, name, icon,
                  poll_signal_frequency=1.0/512.0, standalone=False):
         assert controllers != None and len(controllers) > 0
-        
+            
         views = []
         batches = set([])
         for controller in controllers:
@@ -192,11 +191,11 @@ class UnlockControllerChain(UnlockController):
         self.standalone = standalone
         self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(UnlockControllerChain)),
                                       'resource', self.icon)
-        
+            
     def update_state(self, command):
         for controller in self.controllers:
             controller.update_state(command)
-        
+                
     def keyboard_input(self, command):
         for controller in self.controllers:
             controller.keyboard_input(command)
@@ -291,8 +290,8 @@ class EEGControllerFragment(UnlockControllerFragment):
             color1 = (0, 0, 0)
             color2 = (255, 255, 255)
 
-        width = 200
-        height = 200
+        width = 150
+        height = 150
         xf = 2
         yf = 2
         
