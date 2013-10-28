@@ -58,6 +58,7 @@ class HarmonicSumDecision(UnlockClassifier):
             i *= 2
         self.nfft = i
         self.window = 1 #np.hanning(self.nSamples).reshape((self.nSamples, 1))
+        self.nfft = 2048
 
         # indices for frequency components
         # as the values returned by the fft are in freq space, the resolution
