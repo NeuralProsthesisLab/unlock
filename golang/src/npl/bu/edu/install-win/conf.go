@@ -68,6 +68,8 @@ type UnlockInstallConf struct {
 	VCRedistPackageName string
 	PyAudioPackageName string    
     PyWinPackageName string
+    UnlockExeX86PackageName string
+    UnlockExeX64PackageName string
 }
  
 func ParseConf(confFile string) UnlockInstallConf {
