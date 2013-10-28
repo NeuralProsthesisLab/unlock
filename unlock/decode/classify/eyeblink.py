@@ -27,25 +27,30 @@
 
 from .classify import UnlockClassifier
 import numpy as np
+import time
 
 class EyeBlinkDetector(UnlockClassifier):
-    def __init__(self):
+    NoEvent = 0
+    SelectionEvent = 1
+    EscapeEvent = 2
+
+    def __init__(self, eog_channels=(5, 7), strategy='length', rms_threshold=60000):
         super(EyeBlinkDetector, self).__init__()
-        
+
+        # blink detection method
+        if strategy == 'length':
+            self.blink_strategy = BlinkLengthStrategy(rms_threshold, 1, 2)
+        else:
+            self.blink_strategy = BlinkCountStrategy(rms_threshold, 0.25, 0.5)
+
         ## enobio setup: 5 - left eye, 7 - right eye
-        self.eog_channels = [5, 7]
+        self.eog_channels = eog_channels
         
         # adaptive demean
         self.mu = 0
         self.alpha = 0.05
         
         # blink settings
-        self.threshold = 60000  # rms window threshold
-        self.long_blink_time = 1000  # number of samples - 2s
-        self.short_blink_time = 500 # number of samples - 1s
-        self.short_blink_notified = False
-        self.blink_timer = 0 # sample counter
-        self.blink_action = 0 # action id, should be enum or function
         self.rms_window = 50
         self.sample_buffer = np.zeros(self.rms_window)
         
@@ -59,30 +64,102 @@ class EyeBlinkDetector(UnlockClassifier):
         for i in range(s):
             self.mu = (1-self.alpha)*self.mu + self.alpha*samples[i]
             samples[i] -= self.mu
-            
+
+        if s >= len(self.sample_buffer):
+            s = len(self.sample_buffer)
         self.sample_buffer = np.roll(self.sample_buffer, -s)
-        self.sample_buffer[-s:] = samples
+        self.sample_buffer[-s:] = samples[-s:]
             
         rms = np.sqrt(np.mean(self.sample_buffer**2))
-            
-        if rms > self.threshold:
-            self.blink_timer += s
-            if self.blink_timer >= self.long_blink_time:
-                # notify user long blink occurred
-                self.blink_action = 2
-            elif not (self.short_blink_notified and
-                      self.blink_timer >= self.short_blink_time):
-                # notify user short blink occurred
-                self.short_blink_notified = True
-                self.blink_action = 1
-        elif self.blink_action > 0:
-            print('blink action:', self.blink_action)
-            command.selection = True
-            self.blink_action = 0
-            self.short_blink_notified = False
-        else:
-            self.blink_timer = 0
-            
+
+        command.selection = self.blink_strategy.process_rms(rms)
         return command
-        
-        
+
+
+class BlinkLengthStrategy:
+    def __init__(self, rms_threshold, short_blink_time, long_blink_time):
+        """
+        Events are determined by the length of a single intentional blink.
+        """
+        # event parameters
+        self.rms_threshold = rms_threshold
+        self.short_blink_time = short_blink_time  # selection event
+        self.long_blink_time = long_blink_time  # escape event
+
+        # state variables
+        self.short_blink_notified = False
+        self.blink_time_start = 0
+        self.blink_event = EyeBlinkDetector.NoEvent
+
+    def reset(self):
+        self.short_blink_notified = False
+        self.blink_time_start = 0
+        self.blink_event = EyeBlinkDetector.NoEvent
+
+    def process_rms(self, rms):
+        if rms < self.rms_threshold and self.blink_time_start == 0:
+            return
+
+        if rms > self.rms_threshold:
+            now = time.time()
+            if self.blink_time_start == 0:
+                self.blink_time_start = now
+
+            if now >= self.blink_time_start + self.long_blink_time:
+                # TODO: notify user long blink occurred
+                self.blink_event = EyeBlinkDetector.EscapeEvent
+            elif (not self.short_blink_notified and
+                  now >= self.blink_time_start + self.short_blink_time):
+                # TODO: notify user short blink occurred
+                self.short_blink_notified = True
+                self.blink_event = EyeBlinkDetector.SelectionEvent
+        elif self.blink_event != EyeBlinkDetector.NoEvent:
+            print('blink event:', self.blink_event)
+            self.reset()
+            # TODO: support escape event, currently only selection
+            return True
+        else:
+            self.reset()
+
+
+class BlinkCountStrategy:
+    def __init__(self, rms_threshold, min_blink_interval, max_blink_interval):
+        """
+        Events are determined by the number of intentional repetitive blinks.
+        """
+        # event parameters
+        self.rms_threshold = rms_threshold
+        self.min_blink_interval = min_blink_interval
+        self.max_blink_interval = max_blink_interval
+
+        # state variables
+        self.blink_count = 0
+        self.last_blink_time = time.time()
+        self.blink_event = EyeBlinkDetector.NoEvent
+
+    def reset(self):
+        self.blink_count = 0
+        self.last_blink_time = time.time()
+        self.blink_event = EyeBlinkDetector.NoEvent
+
+    def process_rms(self, rms):
+        if rms < self.rms_threshold and self.blink_count == 0:
+            return
+
+        now = time.time()
+        if rms >= self.rms_threshold:
+            if now >= self.last_blink_time + self.min_blink_interval:
+                self.blink_count += 1
+                self.last_blink_time = now
+        elif now >= self.last_blink_time + self.max_blink_interval:
+            if self.blink_count > 1:
+                if self.blink_count == 2:
+                    self.blink_event = EyeBlinkDetector.SelectionEvent
+                elif self.blink_count == 3:
+                    self.blink_event = EyeBlinkDetector.EscapeEvent
+                print('blink event:', self.blink_event)
+                self.reset()
+                # TODO: support escape event, currently only selection
+                return True
+            else:
+                self.reset()

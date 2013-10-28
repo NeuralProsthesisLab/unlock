@@ -28,7 +28,9 @@
 import decode #HarmonicSumDecision # XXX - circular dep badness
 
 class UnlockClassifier(object):
-    HarmonicSumDecision=0    
+    HarmonicSumDecision = 0
+    EyeBlinkDetector = 1
+
     def __init__(self):
         super(UnlockClassifier, self).__init__()
         
@@ -37,8 +39,9 @@ class UnlockClassifier(object):
         
     @staticmethod
     def create(classifier, args):
-        if classifier == UnlockClassifier.HarmonicSumDecision or classifier == None:
+        if classifier == UnlockClassifier.HarmonicSumDecision or classifier is None:
             return decode.HarmonicSumDecision(**args)
+        elif classifier == UnlockClassifier.EyeBlinkDetector:
+            return decode.EyeBlinkDetector(**args)
         else:
             raise Exception("FML")
-    
