@@ -49,10 +49,12 @@ class GridState(UnlockModel):
                          (1, 1), (1, -1), (-1, -1), (-1, 1)]
         self.state = (0, 0)
         self.state_change = None
-            
-          
+
     def process_command(self, command):
-        assert not (command.decision is not None and command.selection is not None)
+        # a selection event supersedes a decision event
+        if command.decision is not None and command.selection is not None:
+            command.decision = None
+
         if command.decision is not None:
             self.process_decision(command.decision)
             
