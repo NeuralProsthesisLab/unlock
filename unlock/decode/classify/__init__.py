@@ -28,3 +28,4 @@
 from .hsd import *
 from .rms import *
 from .classify import *
+from .eyeblink import *
