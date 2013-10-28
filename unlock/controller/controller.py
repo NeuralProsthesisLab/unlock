@@ -291,8 +291,8 @@ class EEGControllerFragment(UnlockControllerFragment):
             color1 = (0, 0, 0)
             color2 = (255, 255, 255)
 
-        width = 200
-        height = 200
+        width = 150
+        height = 150
         xf = 2
         yf = 2
         
@@ -336,10 +336,14 @@ class EEGControllerFragment(UnlockControllerFragment):
              reversal=False, rotation=90)
         stimuli.add_stimulus(stimulus4)
         views.append(fs4)
-        args = {'targets' : freqs , 'duration': 4, 'fs': 256, 'electrodes':
-            4 }
-        command_receiver = decoder.create_receiver(args, classifier_type=UnlockClassifier.HarmonicSumDecision)
-               
+        args = {'targets': freqs, 'duration': 3, 'fs': 256, 'electrodes': 4}
+        ssvep_command_receiver = decoder.create_receiver(args,
+                        classifier_type=UnlockClassifier.HarmonicSumDecision)
+
+        eb_args = {'eog_channels': [1, 2], 'rms_threshold': 390000000}
+        command_receiver = decoder.create_receiver(eb_args,
+                        classifier_type=UnlockClassifier.EyeBlinkDetector,
+                        chained_classifier=ssvep_command_receiver)
         return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
         
         
