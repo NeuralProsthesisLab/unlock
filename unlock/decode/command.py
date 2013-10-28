@@ -280,21 +280,24 @@ class CommandReceiverFactory(object):
     
     @staticmethod
     def map_factory_method(string):
-        map_ = { 'delta': CommandReceiverFactory.Delta, 'raw' : CommandReceiverFactory.Raw,
+        map_ = {'delta': CommandReceiverFactory.Delta, 'raw': CommandReceiverFactory.Raw,
                 'classified': CommandReceiverFactory.Classified, 'datagram': CommandReceiverFactory.Datagram,
                 'inline': CommandReceiverFactory.Inline, 'multiprocess': CommandReceiverFactory.Multiprocess}
         return map_[string]
                 
                 
     @staticmethod
-    def create(factory_method=None, signal=None, timer=None, classifier=None, source=None):
+    def create(factory_method=None, signal=None, timer=None, classifier=None,
+               source=None, chained_receiver=None):
         #print ("RECATE command ", signal)
-        if factory_method == CommandReceiverFactory.Delta or factory_method == None:
+        if factory_method == CommandReceiverFactory.Delta or factory_method is None:
             return DeltaCommandReceiver()
         elif factory_method == CommandReceiverFactory.Raw:
             return RawInlineSignalReceiver(signal, timer)
         elif factory_method == CommandReceiverFactory.Classified:
-            return ClassifiedCommandReceiver(RawInlineSignalReceiver(signal, timer), classifier)
+            if chained_receiver is None:
+                chained_receiver = RawInlineSignalReceiver(signal, timer)
+            return ClassifiedCommandReceiver(chained_receiver, classifier)
         elif factory_method == CommandReceiverFactory.Datagram:
             return DatagramCommandReceiver(source)
         elif factory_method == CommandReceiverFactory.Inline:
@@ -353,10 +356,13 @@ class InlineDecoder(object):
     def stop(self):
         raise Exception("WTF")
         
-    def create_receiver(self, args, classifier_type=None):
+    def create_receiver(self, args, classifier_type=None,
+                        chained_classifier=None):
         classifier_obj = UnlockClassifier.create(classifier_type, args)
         return CommandReceiverFactory.create(factory_method=self.factory_method, signal=self.signal,
-                                             timer=self.timer, classifier=classifier_obj)
+                                             timer=self.timer,
+                                             classifier=classifier_obj,
+                                             chained_receiver=chained_classifier)
         
         
 class MultiProcessDecoder(object):
