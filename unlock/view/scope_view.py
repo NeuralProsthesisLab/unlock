@@ -40,14 +40,22 @@ class TimeScopeView(UnlockView):
 
         self.xlim = (canvas.width*0.05, canvas.width*0.95)
         self.ylim = (canvas.height*0.05, canvas.height*0.95)
+        self.xscale = (self.xlim[1] - self.xlim[0]) / float(self.model.n_samples)
 
-        self.cursor = self.drawLine(self.xlim[0], self.ylim[0],
-                                    self.xlim[0], self.ylim[1],
+        x0 = self.scale_width(self.xlim[0])
+        self.cursor = self.drawLine(x0, self.ylim[0], x0, self.ylim[1],
                                     canvas.batch, color=(255, 0, 0))
+
+    def scale_width(self, x):
+        """
+        Scale the position of the data points to fit the width of the screen
+        """
+        return x * self.xscale + self.xlim[0]
 
     def render(self):
         cursor_pos, traces = self.model.get_state()
-        self.cursor.vertices[::2] = (self.xlim[0] + cursor_pos,)*2
+        x = self.scale_width(cursor_pos)
+        self.cursor.vertices[::2] = (x,)*2
 
 
 class LinePlotView(UnlockView):
