@@ -39,9 +39,11 @@ class TimeScopeState(UnlockModel):
 
         self.cursor = 0
         self.traces = np.zeros((self.n_samples, self.n_channels))
+        self.yscale = 1
+        self.yshift = 0
 
     def get_state(self):
-        return self.cursor, self.traces
+        return self.cursor, self.traces, self.yshift, self.yscale
 
     def process_command(self, command):
         if not command.is_valid():
@@ -51,8 +53,24 @@ class TimeScopeState(UnlockModel):
         s = samples.shape[0]
         idx = np.arange(self.cursor, self.cursor+s) % self.n_samples
         self.traces[idx] = samples
+        last_cursor = self.cursor
         self.cursor += s
         self.cursor %= self.n_samples
+        if self.cursor < last_cursor:
+            max = np.max(self.traces)
+            scale = np.round(0.5*(max - np.min(self.traces)), 2)
+            shift = max - scale
+            if scale != 0:
+                if 0.9*self.yscale < scale / 100.0 < 1.1*self.yscale:
+                    pass
+                else:
+                    self.yscale = scale / 100.0
+                if 0.9*self.yshift < shift < 1.1*self.yshift:
+                    pass
+                else:
+                    self.yshift = shift
+
+
 
 
 class LinePlotState(UnlockModel):
