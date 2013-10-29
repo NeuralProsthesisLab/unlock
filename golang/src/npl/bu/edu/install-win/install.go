@@ -85,20 +85,27 @@ func downloadAndWriteFile(fileUrl string, fileName string) string {
     return downloadAndWriteFileWithIntegrityCheck(fileUrl, fileName, false)
 }
 
+func downloadAndWriteFileToPath(fileUrl string, fileName string, path string) string {
+    return downloadAndWriteFileWithIntegrityCheckToPath(fileUrl, fileName, false, path)
+}
+
 func downloadAndWriteFileWithIntegrityCheck(fileUrl string, fileName string, skipCheck bool) string {	
-    fullPath := filepath.Join(getDownloadDirectory(), fileName)
-    
+    fullPath := filepath.Join(getDownloadDirectory(), fileName)   
+    return downloadAndWriteFileWithIntegrityCheckToPath(fileUrl, fileName, skipCheck, fullPath)
+}
+
+func downloadAndWriteFileWithIntegrityCheckToPath(fileUrl string, fileName string, skipCheck bool, path string) string {
     if !skipCheck {    
         log.Println("Check integrity for file", fileName)
     
-        attemptDownloadCorrectFile(fileUrl, fileName, fullPath)        
+        attemptDownloadCorrectFile(fileUrl, fileName, path)        
     } else {
         log.Println("Skip file integrity check for", fileName)
         
-        downloadAndWrite(fileUrl, fileName, fullPath)
+        downloadAndWrite(fileUrl, fileName, path)
     }
     
-    return fullPath
+    return path
 }
 
 func attemptDownloadCorrectFile(fileUrl string, fileName string, fullPath string) {
@@ -355,10 +362,10 @@ func installUnlockExe(baseUrl string, x86FileName string, x64FileName string) {
     
     if hostArch == `amd64` {
         log.Println("Install unlock.exe x64")
-        installBinPackage(baseUrl, x64FileName, `unlockExe-x64`)
+        downloadAndWriteFileToPath(baseUrl+"/"+x64FileName, x64FileName, "C:\\Unlock\\unlock.exe")
     } else {
         log.Println("Install unlock.exe x86")
-        installBinPackage(baseUrl, x86FileName, `unlockExe-x86`)
+        downloadAndWriteFileToPath(baseUrl+"/"+x86FileName, x86FileName, "C:\\Unlock\\unlock.exe")
     }
 }
 
