@@ -82,7 +82,8 @@ func unzipExpand(fileName string) {
 }
 
 func downloadAndWriteFile(fileUrl string, fileName string) string {
-    return downloadAndWriteFileWithIntegrityCheck(fileUrl, fileName, false)
+    fullPath := defaultPathToWrite(fileName)   
+    return downloadAndWriteFileToPath(fileUrl, fileName, fullPath)
 }
 
 func downloadAndWriteFileToPath(fileUrl string, fileName string, path string) string {
@@ -90,8 +91,12 @@ func downloadAndWriteFileToPath(fileUrl string, fileName string, path string) st
 }
 
 func downloadAndWriteFileWithIntegrityCheck(fileUrl string, fileName string, skipCheck bool) string {	
-    fullPath := filepath.Join(getDownloadDirectory(), fileName)   
+    fullPath := defaultPathToWrite(fileName)   
     return downloadAndWriteFileWithIntegrityCheckToPath(fileUrl, fileName, skipCheck, fullPath)
+}
+
+func defaultPathToWrite(fileName string) string {
+    return filepath.Join(getDownloadDirectory(), fileName) 
 }
 
 func downloadAndWriteFileWithIntegrityCheckToPath(fileUrl string, fileName string, skipCheck bool, path string) string {
