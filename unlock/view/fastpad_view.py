@@ -1,4 +1,4 @@
-from .view import UnlockView
+from unlock.view.view import UnlockView
 
 import sys
 

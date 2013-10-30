@@ -25,9 +25,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .neuralsignal import *
-from .audio_signal import *
-from .file_signal import *
+from unlock.decode.acquire.neuralsignal import *
+from unlock.decode.acquire.audio_signal import *
+from unlock.decode.acquire.file_signal import *
 #try:
 #    from .nidaq import *
 #except:

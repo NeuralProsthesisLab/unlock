@@ -12,12 +12,12 @@ import types
 import inspect
 import logging
 
-from . import app_context
+from unlock.context import app_context
 #from _config_base import *
 #from springpython.context import scope
 from unlock.util import decorator, partial
-from .app_context import ApplicationContextAware
-from .app_context import PythonObjectFactory, ReflectiveObjectFactory
+from app_context import ApplicationContextAware
+from app_context import PythonObjectFactory, ReflectiveObjectFactory
 
 
 def get_string(value):

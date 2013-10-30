@@ -30,7 +30,7 @@ from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTe
 from unlock.util import TrialState, Trigger
 from unlock.decode import RawInlineSignalReceiver
 
-from .controller import Canvas, UnlockControllerFragment, UnlockControllerChain
+from unlock.controller import Canvas, UnlockControllerFragment, UnlockControllerChain
 
 import inspect
 import logging

@@ -1,4 +1,4 @@
-# Copyright (c) James Percent, Byron Galbraith and Unlock contributors.
+# Copyright (c) Byron Galbraith, James Percent,  and Unlock contributors.
 # All rights reserved.
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .view import UnlockView
+from unlock.view.view import UnlockView
 
 
 class TimeScopeView(UnlockView):

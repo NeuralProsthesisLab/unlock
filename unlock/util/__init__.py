@@ -24,10 +24,10 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from .dispatcher import *
-from .decorator import *
-from .misc import *
-from .observable import *
-from .saferef import *
-from .sockets import *
-from .state import *
+from unlock.util.dispatcher import *
+from unlock.util.decorator import *
+from unlock.util.misc import *
+from unlock.util.observable import *
+from unlock.util.saferef import *
+from unlock.util.sockets import *
+from unlock.util.state import *

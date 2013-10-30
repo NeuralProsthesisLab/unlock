@@ -25,11 +25,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .util import *
-from .model import *
-from .view import *
-from .controller import *
-from .context import *
-from .decode import *
-from unlock_runtime import *
+from unlock.util import *
+from unlock.model import *
+from unlock.view import *
+from unlock.controller import *
+from unlock.context import *
+from unlock.decode import *
+from unlock import unlock_runtime
 
