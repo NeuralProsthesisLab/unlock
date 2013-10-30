@@ -147,6 +147,8 @@ class UnlockController(object):
         
     def poll_signal(self, delta):
         command = self.command_receiver.next_command(delta)
+        if command.stop:
+            return self.handle_stop_request()
         self.update_state(command)
         self.render()
         
