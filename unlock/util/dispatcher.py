@@ -1,7 +1,7 @@
 
 import weakref
 
-from . import saferef
+from unlock.util import saferef
 import collections
 
 WEAKREF_TYPES = (weakref.ReferenceType, saferef.BoundMethodWeakref)

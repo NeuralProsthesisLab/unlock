@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
-from .model import UnlockModel
+from unlock.model.model import UnlockModel
 
 
 class TimeScopeState(UnlockModel):
