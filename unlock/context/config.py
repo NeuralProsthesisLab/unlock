@@ -16,8 +16,8 @@ from unlock.context import app_context
 #from _config_base import *
 #from springpython.context import scope
 from unlock.util import decorator, partial
-from app_context import ApplicationContextAware
-from app_context import PythonObjectFactory, ReflectiveObjectFactory
+from unlock.context.app_context import ApplicationContextAware
+from unlock.context.app_context import PythonObjectFactory, ReflectiveObjectFactory
 
 
 def get_string(value):
