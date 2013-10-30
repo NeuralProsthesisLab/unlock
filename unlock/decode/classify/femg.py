@@ -1,4 +1,4 @@
-# Copyright (c) James Percent, Byron Galbraith, and Unlock contributors.
+# Copyright (c) Byron Galbraith, James Percent, and Unlock contributors.
 # All rights reserved.
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -50,7 +50,7 @@ class FacialEMGDetector(UnlockClassifier):
     Right = 2
     Select = 3
 
-    def __init__(self, rms_thresholds, channels=2, window_size=22050):
+    def __init__(self, rms_thresholds, channels=4, window_size=22050):
         super(FacialEMGDetector, self).__init__()
         self.thresholds = rms_thresholds
         self.channels = channels
@@ -76,13 +76,13 @@ class FacialEMGDetector(UnlockClassifier):
         """
         if not command.is_valid():
             return command
-
+            
         samples = command.data_matrix[0:4]
         rms = np.sqrt(np.mean(samples**2, axis=0))
-
+        
         self.window = np.roll(self.window, -1, axis=0)
         self.window[-1] = rms
-
+        
         activations = np.max(self.window, axis=0) > self.thresholds
         if activations[self.Select]:
             decision = None
@@ -92,5 +92,6 @@ class FacialEMGDetector(UnlockClassifier):
             if decision is not None:
                 command.decision = decision
                 self.window = np.zeros((self.window_size, self.channels))
-
+                
         return command
+    
