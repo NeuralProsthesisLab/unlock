@@ -41,6 +41,7 @@ import (
     "io"
     "bytes"
     "crypto/sha1"
+    "strings"
 )
 
 func runCommand(command string, errorMsg string, failOnError bool) bool {
@@ -183,7 +184,11 @@ func computeChecksum(filePath string) []byte {
 }
 
 func downloadChecksum(checksumFileUrl string) []byte {
-    checksumFile := downloadAndWriteFileWithIntegrityCheck(checksumFileUrl, `checksum`, true)  
+    // Get filename from url
+    urlPieces := strings.Split(checksumFileUrl, "/")
+    fileName := urlPieces[len(urlPieces)-1]
+    
+    checksumFile := downloadAndWriteFileWithIntegrityCheck(checksumFileUrl, fileName, true)  
     
     content,err := ioutil.ReadFile(checksumFile)
     if err != nil { panic(err) }
