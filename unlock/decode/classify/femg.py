@@ -25,7 +25,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .classify import UnlockClassifier
+from unlock.decode.classify.classify import UnlockClassifier
+#from classify import UnlockClassifier
 import numpy as np
 
 
@@ -49,7 +50,7 @@ class FacialEMGDetector(UnlockClassifier):
     Bottom = 1
     Right = 2
     Select = 3
-
+    
     def __init__(self, rms_thresholds, channels=4, window_size=22050):
         super(FacialEMGDetector, self).__init__()
         self.thresholds = rms_thresholds
@@ -77,14 +78,14 @@ class FacialEMGDetector(UnlockClassifier):
         if not command.is_valid():
             return command
             
-        samples = command.data_matrix[0:4]
+        samples = command.data_matrix[0:self.channels]
         rms = np.sqrt(np.mean(samples**2, axis=0))
         
         self.window = np.roll(self.window, -1, axis=0)
         self.window[-1] = rms
         
         activations = np.max(self.window, axis=0) > self.thresholds
-        if activations[self.Select]:
+        if activations[FacialEMGDetector.Select]:
             decision = None
             for i, pattern in enumerate(self.decision_patterns):
                 if np.array_equal(activations[0:3], pattern):
@@ -95,3 +96,22 @@ class FacialEMGDetector(UnlockClassifier):
                 
         return command
     
+
+def test_facial_emg_detector():
+    class Command(object):
+        def __init__(self):
+            self.validity = True
+            self.data_matrix = None
+            
+        def is_valid(self, ):
+            return self.validity
+        
+        
+    
+    f = FacialEMGDetector(None)
+    assert f is not None
+    
+
+
+if __name__ == '__main__':
+    test_facial_emg_detector()

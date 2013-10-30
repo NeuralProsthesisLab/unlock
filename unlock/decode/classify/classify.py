@@ -25,7 +25,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import decode #HarmonicSumDecision # XXX - circular dep badness
+#import decode #HarmonicSumDecision # XXX - circular dep badness
+
+import unlock.decode 
 
 class UnlockClassifier(object):
     HarmonicSumDecision = 0
@@ -40,8 +42,8 @@ class UnlockClassifier(object):
     @staticmethod
     def create(classifier, args):
         if classifier == UnlockClassifier.HarmonicSumDecision or classifier is None:
-            return decode.HarmonicSumDecision(**args)
+            return unlock.decode.HarmonicSumDecision(**args)
         elif classifier == UnlockClassifier.EyeBlinkDetector:
-            return decode.EyeBlinkDetector(**args)
+            return unlock.decode.EyeBlinkDetector(**args)
         else:
             raise Exception("FML")

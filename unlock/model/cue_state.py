@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from unlock.util import TrialTimeState, Trigger
-from .model import UnlockModel
+from unlock.model.model import UnlockModel
 from random import Random
     
 

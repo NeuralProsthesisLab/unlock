@@ -31,9 +31,9 @@
 #import shutil
 #import inspect
 
-from .acquire import *
-from .classify import *
-from .command import *
+from unlock.decode.acquire import *
+from unlock.decode.classify import *
+from unlock.decode.command import *
 #
 #def machine():
 #    """Return type of machine."""

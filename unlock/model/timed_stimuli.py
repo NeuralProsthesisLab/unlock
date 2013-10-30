@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from unlock.util import TrialState, TrialTimeState, RunState, Trigger, SequenceState
-from .model import UnlockModel
+from unlock.model.model import UnlockModel
 
 import logging
 

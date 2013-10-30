@@ -24,11 +24,11 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from .controller import *
-from .calibrate import *
-from .dashboard import *
-from .collector import *
-from .fastpad import *
-from .gridspeak import *
-from .gridcursor import *
-from .scope import *
+from unlock.controller.controller import *
+from unlock.controller.calibrate import *
+from unlock.controller.dashboard import *
+from unlock.controller.collector import *
+from unlock.controller.fastpad import *
+from unlock.controller.gridspeak import *
+from unlock.controller.gridcursor import *
+from unlock.controller.scope import *

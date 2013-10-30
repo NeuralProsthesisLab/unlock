@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #from misc import DelegatorMixin
-from . import dispatcher
+from unlock.util import dispatcher
 import socket
 import inspect
 import time

@@ -25,7 +25,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .hsd import *
-from .rms import *
-from .classify import *
-from .eyeblink import *
+from unlock.decode.classify.hsd import *
+from unlock.decode.classify.rms import *
+from unlock.decode.classify.femg import *
+from unlock.decode.classify.classify import *
+from unlock.decode.classify.eyeblink import *

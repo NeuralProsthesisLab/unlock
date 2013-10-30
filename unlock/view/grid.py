@@ -1,8 +1,8 @@
 from unlock.model import UnlockModel
 from unlock.model import GridStateChange
-from .pyglet_sprite import PygletSprite
-from .pyglet_text import PygletTextLabel, PygletHTMLTextLabel
-from .view import UnlockView
+from unlock.view.pyglet_sprite import PygletSprite
+from unlock.view.pyglet_text import PygletTextLabel, PygletHTMLTextLabel
+from unlock.view.view import UnlockView
 
 from random import Random
 import inspect
