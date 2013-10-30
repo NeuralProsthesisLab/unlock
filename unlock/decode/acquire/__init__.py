@@ -27,6 +27,7 @@
 
 from .neuralsignal import *
 from .audio_signal import *
+from .file_signal import *
 #try:
 #    from .nidaq import *
 #except:

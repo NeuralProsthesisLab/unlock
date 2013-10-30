@@ -87,6 +87,7 @@ class UnlockFactory(context.PythonConfig):
         stimuli = EEGControllerFragment.create_ssvep(canvas, self.decoder)
         return stimuli
         
+    
     @context.Object(lazy_init=True)        
     def semg(self):
         from unlock.controller import sEMGControllerFragment
@@ -122,7 +123,7 @@ class UnlockFactory(context.PythonConfig):
         return signal
     
     @context.Object(lazy_init=True)    
-    def mobilab(self, comport='COM3', analog_channels_bitmask=120):
+    def mobilab(self, comport='COM5', analog_channels_bitmask=120):
         from unlock.decode import acquire
         
         self.timer = acquire.create_timer()
@@ -131,6 +132,17 @@ class UnlockFactory(context.PythonConfig):
         if not signal.start():
             print('mobilab device did not start streaming') 
             raise RuntimeError('mobilab device did not start streaming')                       
+        return signal
+
+    @context.Object(lazy_init=True)
+    def file(self):
+        from unlock.decode import acquire
+        self.timer = acquire.create_timer()
+        print ("FILE SIGNAL CRETEED")
+        signal = acquire.MemoryResidentFileSignal('analysis/data/valid/emg_signal_1380649383_tongue_c.5_r.5_i1.txt', self.timer, channels=17)
+        if not signal.start():
+            print('file signal failed to start; filename = ', self.args['filename'])
+            raise RuntimeError('file signal failed to start')
         return signal
     
     @context.Object(lazy_init=True)
