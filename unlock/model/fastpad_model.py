@@ -1,4 +1,4 @@
-from .model import UnlockModel
+from unlock.model.model import UnlockModel
 
 class FastPadModel(UnlockModel):
     UP = 1

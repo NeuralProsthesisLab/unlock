@@ -25,10 +25,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .model import *
-from .cue_state import *
-from .timed_stimuli import *
-from .offline_data import *
-from .grid_state import *
-from .fastpad_model import *
-from .scope_state import *
+from unlock.model.model import *
+from unlock.model.cue_state import *
+from unlock.model.timed_stimuli import *
+from unlock.model.offline_data import *
+from unlock.model.grid_state import *
+from unlock.model.fastpad_model import *
+from unlock.model.scope_state import *
