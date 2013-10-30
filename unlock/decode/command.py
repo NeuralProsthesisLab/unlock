@@ -229,7 +229,32 @@ class ClassifiedCommandReceiver(CommandReceiver):
     def stop(self):
         pass
             
-          
+
+class FileSignalReceiver(CommandReceiver):
+    def __init__(self, signal, timer):
+        super(FileSignalReceiver, self).__init__()        
+        self.signal = signal
+        self.timer = timer
+        self.calls = 0
+        
+    def next_command(self, delta):
+        samples = self.signal.acquire()
+        self.calls += 1
+        if samples is not None and samples > 0:
+            matrix = self.signal.getdata(samples)
+            # XXX - the rawcmd.make_matrix stuff is a hack.  perhaps this should be a filerawcommand?
+            raw_command = RawSignalCommand(delta, matrix, samples/self.signal.channels(), self.signal.channels(), self.timer)
+            raw_command.matrix = matrix
+        else:
+            raise EOFError("FileSignalReceiver: FileSignal complete; calls = "+str(self.calls))
+            
+        assert raw_command != None
+        return raw_command
+            
+    def stop(self):
+        pass
+        
+        
 class RawInlineSignalReceiver(CommandReceiver):
     def __init__(self, signal, timer):
         super(RawInlineSignalReceiver, self).__init__()        
@@ -285,7 +310,6 @@ class CommandReceiverFactory(object):
                 'inline': CommandReceiverFactory.Inline, 'multiprocess': CommandReceiverFactory.Multiprocess}
         return map_[string]
                 
-                
     @staticmethod
     def create(factory_method=None, signal=None, timer=None, classifier=None,
                source=None, chained_receiver=None):
@@ -296,7 +320,14 @@ class CommandReceiverFactory(object):
             return RawInlineSignalReceiver(signal, timer)
         elif factory_method == CommandReceiverFactory.Classified:
             if chained_receiver is None:
-                chained_receiver = RawInlineSignalReceiver(signal, timer)
+                from .acquire import MemoryResidentFileSignal
+                # XXX - this is a quick hack, but this should be refactored.  Perhaps the base command
+                #       receiver construction should happen in the main factory and be injected
+                if type(signal) == MemoryResidentFileSignal:
+                    print("creating memory resident file signal")
+                    chained_receiver = FileSignalReceiver(signal, timer)
+                else:
+                    chained_receiver = RawInlineSignalReceiver(signal, timer)
             return ClassifiedCommandReceiver(chained_receiver, classifier)
         elif factory_method == CommandReceiverFactory.Datagram:
             return DatagramCommandReceiver(source)
