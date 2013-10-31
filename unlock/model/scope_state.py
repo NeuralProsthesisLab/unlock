@@ -42,10 +42,22 @@ class TimeScopeState(UnlockModel):
         self.yscale = 1
         self.yshift = 0
 
+        self.refresh_rate = 1/30.0
+        self.elapsed = 0
+        self.state_change = False
+
     def get_state(self):
-        return self.cursor, self.traces, self.yshift, self.yscale
+        update = self.state_change
+        if self.state_change:
+            self.state_change = False
+        return update, self.cursor, self.traces, self.yshift, self.yscale
 
     def process_command(self, command):
+        self.elapsed += command.delta
+        if self.elapsed >= self.refresh_rate:
+            self.state_change = True
+            self.elapsed = 0
+
         if not command.is_valid():
             return
 
@@ -56,34 +68,18 @@ class TimeScopeState(UnlockModel):
         last_cursor = self.cursor
         self.cursor += s
         self.cursor %= self.n_samples
+
+        # compute auto-scaling parameters
         if self.cursor < last_cursor:
             max = np.max(self.traces)
             scale = np.round(0.5*(max - np.min(self.traces)), 2)
             shift = max - scale
             if scale != 0:
-                if 0.9*self.yscale < scale / 100.0 < 1.1*self.yscale:
+                if 0.9*self.yscale < 100.0 / scale < 1.1*self.yscale:
                     pass
                 else:
-                    self.yscale = scale / 100.0
+                    self.yscale = 100.0 / scale
                 if 0.9*self.yshift < shift < 1.1*self.yshift:
                     pass
                 else:
                     self.yshift = shift
-
-
-
-
-class LinePlotState(UnlockModel):
-    def __init__(self):
-        super(LinePlotState, self).__init__()
-
-
-    def updateData(self, y_data, offset=0):
-        points = len(y_data)
-        lines = y_data[0:2]
-        for i in range(1,points-1):
-            lines.extend([y_data[i],y_data[i+1]])
-        self.line.vertices[1::2] = [i + self.y for i in lines]
-#        self.line.vertices[1] = y_data[0] + self.y
-#        self.line.vertices[3:-2:2] = [i + self.y for i in y_data]
-#        self.line.vertices[-1] = y_data[-1] + self.y_data
