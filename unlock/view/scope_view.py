@@ -83,7 +83,7 @@ class TimeScopeView(UnlockView):
             x = self.scale_width(cursor_pos)
             self.cursor.vertices[::2] = (x,)*2
             for i, trace in enumerate(self.traces):
-                y = self.scale_height(y_data[:, i], shift, scale, i)
+                y = self.scale_height(y_data[:, i], shift[i], scale, i)
                 data_points = len(y)
                 y_points = np.zeros(len(trace.vertices)/2)
                 for j in range(data_points-1):
