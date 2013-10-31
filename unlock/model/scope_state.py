@@ -40,7 +40,7 @@ class TimeScopeState(UnlockModel):
         self.cursor = 0
         self.traces = np.zeros((self.n_samples, self.n_channels))
         self.yscale = 1
-        self.yshift = 0
+        self.yshift = np.zeros(self.n_channels)
 
         self.refresh_rate = 1/30.0
         self.elapsed = 0
@@ -73,13 +73,13 @@ class TimeScopeState(UnlockModel):
         if self.cursor < last_cursor:
             max = np.max(self.traces)
             scale = np.round(0.5*(max - np.min(self.traces)), 2)
-            shift = max - scale
+            shift = np.max(self.traces, axis=0) - scale
             if scale != 0:
-                if 0.9*self.yscale < 100.0 / scale < 1.1*self.yscale:
-                    pass
-                else:
-                    self.yscale = 100.0 / scale
-                if 0.9*self.yshift < shift < 1.1*self.yshift:
-                    pass
-                else:
-                    self.yshift = shift
+                #if 0.9*self.yscale < 100.0 / scale < 1.1*self.yscale:
+                #    pass
+                #else:
+                self.yscale = 100.0 / scale
+                #if 0.9*self.yshift < shift < 1.1*self.yshift:
+                #    pass
+                #else:
+                self.yshift = shift
