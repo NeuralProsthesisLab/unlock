@@ -86,7 +86,7 @@ class UnlockView(object):
             ('v2f', (xoffset + x1, yoffset + y1, xoffset + x2, yoffset + y2)),
             ('c3B', color*2))
 
-    def drawLinePlot(self, vertices, color=(255,255,255), group=None):
+    def drawLinePlot(self, vertices, batch, color=(255,255,255), group=None):
         """
         Given a set of vertices, will plot lines between each vertices in the
         list
@@ -95,15 +95,16 @@ class UnlockView(object):
         :param color: Color of Line plot. Tuple of length three
         :param group: batch group
         """
-        points = len(vertices) / 2
-        #vertices[::2] = [i + self.x for i in vertices[::2]]
-        #vertices[1::2] = [i + self.y for i in vertices[1::2]]
-        lines = vertices[0:4]
-        for i in range(1,points-1):
-            lines.extend([vertices[i*2],vertices[i*2+1],
-                          vertices[(i+1)*2],vertices[(i+1)*2+1]])
-        points = len(lines) / 2
+        data_points = int(len(vertices) / 2)
+        # create points - 1 line segments
+        # both endpoints of each segment need to be specified, so all but the
+        # two endpoints of the entire trace need to be repeated
+        line_segments = vertices[0:4]  # (x0, y0, x1, y1)
+        for i in range(1, data_points-1):
+            line_segments.extend([vertices[i*2], vertices[i*2+1],
+                                  vertices[(i+1)*2], vertices[(i+1)*2+1]])
+        plot_points = int(len(line_segments) / 2)
 
-        return self.batch.add(points, pyglet.gl.GL_LINES, group,
-            ('v2f', lines),
-            ('c3B', color*points))
+        return batch.add(plot_points, pyglet.gl.GL_LINES, group,
+            ('v2f', line_segments),
+            ('c3B', color*plot_points))
