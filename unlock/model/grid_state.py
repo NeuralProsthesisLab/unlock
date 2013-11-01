@@ -104,6 +104,8 @@ class ControllerGridState(GridState):
     def process_selection(self):
         if self.state in self.controllers:
             controller = self.controllers[self.state]
+            if type(controller) is str:
+                return
             controller.activate()
             
     def handle_state_change(self, new_state, change):
