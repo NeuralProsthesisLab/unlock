@@ -52,6 +52,7 @@ package_data = {
                                    'acquire/Enobio3GAPI.dll', 'acquire/QtCore4.dll', 'acquire/WinBluetoothAPI.dll',
                                    'acquire/msvcr100.dll', 'acquire/msvcp100.dll', 'acquire/python33.dll',
                                    'acquire/neuralsignal-unit-tests.exe', 'acquire/neuralsignal.pyd',
+                                   'acquire/gMOBIlabplus.dll'
 # mac os x libs find acquire-c++/boost/macosx-x86-64/lib | grep -v -e lib$  -e gd | sed s/^/\'/ | sed s/$/\',/ 
                             #'acquire/neuralsignal.so'
                             ],
