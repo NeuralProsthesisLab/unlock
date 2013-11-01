@@ -72,7 +72,11 @@ class EyeBlinkDetector(UnlockClassifier):
             
         rms = np.sqrt(np.mean(self.sample_buffer**2))
 
-        command.selection = self.blink_strategy.process_rms(rms)
+        result = self.blink_strategy.process_rms(rms)
+        if result == EyeBlinkDetector.SelectionEvent:
+            command.selection = True
+        elif result == EyeBlinkDetector.EscapeEvent:
+            command.stop = True
         return command
 
 
@@ -116,8 +120,7 @@ class BlinkLengthStrategy:
         elif self.blink_event != EyeBlinkDetector.NoEvent:
             print('blink event:', self.blink_event)
             self.reset()
-            # TODO: support escape event, currently only selection
-            return True
+            return self.blink_event
         else:
             self.reset()
 
@@ -159,7 +162,6 @@ class BlinkCountStrategy:
                     self.blink_event = EyeBlinkDetector.EscapeEvent
                 print('blink event:', self.blink_event)
                 self.reset()
-                # TODO: support escape event, currently only selection
-                return True
+                return self.blink_event
             else:
                 self.reset()
