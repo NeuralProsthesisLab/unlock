@@ -34,14 +34,15 @@ class EyeBlinkDetector(UnlockClassifier):
     SelectionEvent = 1
     EscapeEvent = 2
 
-    def __init__(self, eog_channels=(5, 7), strategy='length', rms_threshold=60000):
+    def __init__(self, eog_channels=(5, 7), strategy='length',
+                 rms_threshold=60000):
         super(EyeBlinkDetector, self).__init__()
 
         # blink detection method
         if strategy == 'length':
             self.blink_strategy = BlinkLengthStrategy(rms_threshold, 1, 2)
         else:
-            self.blink_strategy = BlinkCountStrategy(rms_threshold, 0.25, 0.5)
+            self.blink_strategy = BlinkCountStrategy(rms_threshold, 0.5, 0.75)
 
         ## enobio setup: 5 - left eye, 7 - right eye
         self.eog_channels = eog_channels
