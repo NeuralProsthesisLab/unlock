@@ -120,8 +120,9 @@ class BlinkLengthStrategy:
                 self.blink_event = EyeBlinkDetector.SelectionEvent
         elif self.blink_event != EyeBlinkDetector.NoEvent:
             print('blink event:', self.blink_event)
+            ret = self.blink_event
             self.reset()
-            return self.blink_event
+            return ret
         else:
             self.reset()
 
@@ -162,7 +163,8 @@ class BlinkCountStrategy:
                 elif self.blink_count == 3:
                     self.blink_event = EyeBlinkDetector.EscapeEvent
                 print('blink event:', self.blink_event)
+                ret = self.blink_event
                 self.reset()
-                return self.blink_event
+                return ret
             else:
                 self.reset()
