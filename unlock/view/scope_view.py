@@ -140,7 +140,7 @@ class FrequencyScopeView(UnlockView):
         if labels is not None:
             x_points = np.linspace(x1, x2, len(labels))
             for i, x in enumerate(x_points):
-                lines.append(self.drawText(labels[i], x, y1 - 15, canvas.batch,
+                lines.append(self.drawText(labels[i], x, y1 - 15, canvas,
                                            size=12))
         return lines
 

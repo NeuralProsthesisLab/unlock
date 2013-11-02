@@ -50,8 +50,8 @@ class UnlockView(object):
                 ('c3B', color*2)))
         return self.verticies
         
-    def drawText(self, text, x, y, batch, font='Helvetica', size=48,
-                 color=(255,255,255,255), group=None, xoffset=0, yoffset=0):
+    def drawText(self, text, x, y, canvas, font='Helvetica', size=48,
+                 color=(255,255,255,255), group=None):
         """
         Draws text at a specific point on the screen
         
@@ -67,9 +67,9 @@ class UnlockView(object):
             color = color + (255,)
             
         return pyglet.text.Label(text,
-            font_name=font, font_size=size, x=xoffset + x, y=yoffset + y,
+            font_name=font, font_size=size, x=canvas.x + x, y=canvas.y + y,
             anchor_x='center', anchor_y='center', color=color,
-            group=group, batch=batch)
+            group=group, batch=canvas.batch)
             
     def drawLine(self, x1, y1, x2, y2, canvas, color=(255,255,255), group=None):
         """
