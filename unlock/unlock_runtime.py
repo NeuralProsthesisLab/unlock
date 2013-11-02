@@ -37,7 +37,7 @@ import logging.config
 from unlock import context
 from unlock.decode import CommandReceiverFactory, InlineDecoder, MultiProcessDecoder
 from unlock.controller import PygletWindow, Dashboard, FastPad, Canvas, \
-    Calibrate, GridSpeak, GridCursor, Collector, TimeScope
+    Calibrate, GridSpeak, GridCursor, Collector
 from optparse import OptionParser
 
 
@@ -47,11 +47,12 @@ class UnlockFactory(context.PythonConfig):
         self.logger = logging.getLogger(__name__)
         self.args = args
         self.mac_addr = None
+        self.com_port = None
         self.window = None
         self.calibrator = None
         self.stimuli = None
         if 'receiver' in self.args.keys():
-           self.receiver = CommandReceiverFactory.map_factory_method(self.args['receiver'])
+            self.receiver = CommandReceiverFactory.map_factory_method(self.args['receiver'])
         else:
             self.receiver = CommandReceiverFactory.Classified
             
@@ -86,8 +87,7 @@ class UnlockFactory(context.PythonConfig):
         canvas = Canvas.create(self.window.width, self.window.height)
         stimuli = EEGControllerFragment.create_ssvep(canvas, self.decoder)
         return stimuli
-        
-    
+
     @context.Object(lazy_init=True)        
     def semg(self):
         from unlock.controller import sEMGControllerFragment
@@ -108,8 +108,8 @@ class UnlockFactory(context.PythonConfig):
     @context.Object(lazy_init=True)    
     def enobio(self):
         from unlock.decode import acquire
-        if self.mac_addr == None:
-            print ('enobio requires a mac address; none set')
+        if self.mac_addr is None:
+            print('enobio requires a mac address; none set')
             raise RuntimeError('enobio requires a mac address; none set')
             
         self.timer = acquire.create_timer()
@@ -123,11 +123,16 @@ class UnlockFactory(context.PythonConfig):
         return signal
     
     @context.Object(lazy_init=True)    
-    def mobilab(self, comport='COM5', analog_channels_bitmask=120):
+    def mobilab(self):
         from unlock.decode import acquire
-        
+        if self.com_port is None:
+            print('mobilab requires a com port; none set')
+            raise RuntimeError('mobilab requires a com port; none set')
+
+        analog_channels_bitmask = 1+2+4+8+128  #1+2+4+8+16+32+64+128:
         self.timer = acquire.create_timer()
-        signal = acquire.create_nonblocking_mobilab_signal(self.timer, analog_channels_bitmask, 0, comport)
+        signal = acquire.create_nonblocking_mobilab_signal(
+            self.timer, analog_channels_bitmask, 0, self.com_port)
         
         if not signal.start():
             print('mobilab device did not start streaming') 
@@ -138,7 +143,7 @@ class UnlockFactory(context.PythonConfig):
     def file(self):
         from unlock.decode import acquire
         self.timer = acquire.create_timer()
-        print ("FILE SIGNAL CRETEED")
+        print("FILE SIGNAL CREATED")
         signal = acquire.MemoryResidentFileSignal('analysis/data/valid/emg_signal_1380649383_tongue_c.5_r.5_i1.txt', self.timer, channels=17)
         if not signal.start():
             print('file signal failed to start; filename = ', self.args['filename'])
@@ -156,34 +161,48 @@ class UnlockFactory(context.PythonConfig):
         
     @context.Object(lazy_init=True)
     def PygletWindow(self):
-        return PygletWindow(self.decoder, self.args['fullscreen'], self.args['fps'], self.args['vsync'])        
+        return PygletWindow(self.decoder, self.args['fullscreen'],
+                            self.args['fps'], self.args['vsync'])
         
     @context.Object(lazy_init=True)
     def CalibrateSEMG(self):
-        self.calibrator, calibrator = Calibrate.create_smg_calibrator(self.window, self.decoder, self.stimuli,
-                                                                      **self.args['CalibrateSEMG'])
+        self.calibrator, calibrator = Calibrate.create_smg_calibrator(
+            self.window, self.decoder, self.stimuli,
+            **self.args['CalibrateSEMG'])
         return calibrator
         
     @context.Object(lazy_init=True)
     def MouthBasedEMGCollector(self):
-        return Collector.create_mouth_based_emg_collector(self.window, self.decoder, self.stimuli, **self.args['MouthBasedEMGCollector'])
+        return Collector.create_mouth_based_emg_collector(
+            self.window, self.decoder, self.stimuli,
+            **self.args['MouthBasedEMGCollector'])
        
     @context.Object(lazy_init=True)
     def FastPad(self):
-        return FastPad.create_fastpad(self.window, self.decoder, self.stimuli, **self.args['FastPad'])
+        return FastPad.create_fastpad(
+            self.window, self.decoder, self.stimuli, **self.args['FastPad'])
             
     @context.Object(lazy_init=True)
     def GridSpeak(self):
-        return GridSpeak.create_gridspeak(self.window, self.decoder, self.stimuli,
-                                          **self.args['GridSpeak'])
+        return GridSpeak.create_gridspeak(
+            self.window, self.decoder, self.stimuli, **self.args['GridSpeak'])
+
     @context.Object(lazy_init=True)
     def GridCursor(self):
-        return GridCursor.create_gridcursor(self.window, self.decoder, self.stimuli,
-                                          **self.args['GridCursor'])
+        return GridCursor.create_gridcursor(
+            self.window, self.decoder, self.stimuli, **self.args['GridCursor'])
+
     @context.Object(lazy_init=True)
     def TimeScope(self):
-        return TimeScope.create_timescope(self.window, self.decoder,
-                                          **self.args['TimeScope'])
+        from unlock.controller import TimeScope
+        return TimeScope.create_time_scope(
+            self.window, self.decoder, **self.args['TimeScope'])
+
+    @context.Object(lazy_init=True)
+    def FrequencyScope(self):
+        from unlock.controller import FrequencyScope
+        return FrequencyScope.create_frequency_scope(
+            self.window, self.decoder, **self.args['FrequencyScope'])
 
     @context.Object(lazy_init=True)
     def Dashboard(self):
@@ -199,7 +218,7 @@ class UnlockFactory(context.PythonConfig):
             
 class UnlockRuntime(object):
     def __init__(self):
-        "Initializes the UnlockRuntime."
+        """Initializes the UnlockRuntime."""
         self.conf = None
         self.log = None
         
@@ -216,7 +235,8 @@ class UnlockRuntime(object):
             loglevel_help = 'sets the root logging level; valid values are debug, info, warn, error and critical; default value is warn; overrides the config file setting'
             signal_help = 'selects the signaling system; valid values are: random, mobilab, enobio and audio; default value is random; overrides the config file setting'
             stimuli_help = 'sets the system to use a shared stimuli; valid values are: ssvep, msequence and semg'
-            mac_addr_help = 'a comma separated list of hexidecimal values that are required to connect to some signaling devices;for example -m "0x1,0x2,0x3,0x4,0x5,0x6"'
+            mac_addr_help = 'a comma separated list of hexadecimal values that are required to connect to some signaling devices;for example -m "0x1,0x2,0x3,0x4,0x5,0x6"'
+            com_port_help = 'the COM port associated with some data acquisition devices; e.g. -p COM3'
             receiver_help = 'sets the type of receiver; valid values include delta, raw, classified and datagram'
             decoder_help = 'sets the type of decoder; valid values include inline and multiprocess'
             conf = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'conf.json')
@@ -228,9 +248,10 @@ class UnlockRuntime(object):
             parser.add_option('-s', '--signal', dest='signal', default=None, type=str, metavar='SIGNAL', help=signal_help)
             parser.add_option('-t', '--stimuli', type=str, dest='stimuli', default=None, metavar='STIMULI', help=stimuli_help)
             parser.add_option('-m', '--mac-addr', dest='mac_addr', default=None, type=str, metavar='MAC-ADDR', help=mac_addr_help)
+            parser.add_option('-p', '--com-port', dest='com_port', default=None, type=str, metavar='COM-PORT', help=com_port_help)
             parser.add_option('-r', '--receiver', dest='receiver', default=None, type=str, metavar='RECEIVER', help=receiver_help)
             parser.add_option('-d', '--decoder', dest='decoder', default=None, type=str, metavar='DECODER', help=decoder_help)
-            valid_levels = { 'debug' : logging.DEBUG, 'info' : logging.INFO, 'warn' : logging.WARN, 'error' : logging.ERROR, 'critical' : logging.CRITICAL}
+            valid_levels = {'debug': logging.DEBUG, 'info': logging.INFO, 'warn': logging.WARN, 'error': logging.ERROR, 'critical': logging.CRITICAL}
             (options, args) = parser.parse_args()
         except Exception as e:
             raise e
@@ -238,21 +259,23 @@ class UnlockRuntime(object):
         try:
             self.conf = options.conf
             self.args = self.__parse_conf__()
-            if options.fullscreen != None:
+            if options.fullscreen is not None:
                 self.args['fullscreen'] = options.fullscreen
-            if options.fps != None:    
+            if options.fps is not None:
                 self.args['fps'] = options.fps
-            if options.signal != None:
+            if options.signal is not None:
                 self.args['signal'] = options.signal
-            if options.vsync != None:
+            if options.vsync is not None:
                 self.args['vsync'] = options.vsync
-            if options.mac_addr != None:
+            if options.mac_addr is not None:
                 self.args['mac_addr'] = options.mac_addr
-            if options.stimuli != None:
+            if options.com_port is not None:
+                self.args['com_port'] = options.com_port
+            if options.stimuli is not None:
                 self.args['stimuli'] = options.stimuli
-            if options.receiver != None:
+            if options.receiver is not None:
                 self.args['receiver'] = options.receiver
-            if options.decoder != None:
+            if options.decoder is not None:
                 self.args['decoder'] = options.decoder
                 
             self.__configure_logging__()

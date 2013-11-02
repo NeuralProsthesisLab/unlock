@@ -25,8 +25,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model import TimeScopeState
-from unlock.view import TimeScopeView
+from unlock.model import TimeScopeState, FrequencyScopeState
+from unlock.view import TimeScopeView, FrequencyScopeView
 from unlock.decode import CommandReceiverFactory
 from unlock.controller import Canvas, UnlockControllerFragment, UnlockControllerChain
 
@@ -37,22 +37,51 @@ class TimeScope(UnlockControllerFragment):
         super(TimeScope, self).__init__(scope_state, views, batch, standalone)
         
     @staticmethod
-    def create_timescope_fragment(canvas):
-        scope_model = TimeScopeState(4, 250)
+    def create_time_scope_fragment(canvas, **kwargs):
+        scope_model = TimeScopeState(**kwargs)
         scope_view = TimeScopeView(scope_model, canvas)
         assert canvas is not None
-        timescope = TimeScope(scope_model, [scope_view], canvas.batch)
-        return timescope
+        scope = TimeScope(scope_model, [scope_view], canvas.batch)
+        return scope
         
     @staticmethod
-    def create_timescope(window, decoder):
+    def create_time_scope(window, decoder, **kwargs):
         canvas = Canvas.create(window.width, window.height)        
-        timescope = TimeScope.create_timescope_fragment(canvas)
+        scope = TimeScope.create_time_scope_fragment(canvas, **kwargs)
         command_receiver = CommandReceiverFactory.create(
             CommandReceiverFactory.Raw, decoder.signal, decoder.timer)
 
         controller_chain = UnlockControllerChain(window, command_receiver,
-                                                 [timescope] , 'TimeScope',
+                                                 [scope], 'TimeScope',
+                                                 'gridspeak.png',
+                                                 standalone=False)
+        return controller_chain
+
+
+class FrequencyScope(UnlockControllerFragment):
+    def __init__(self, scope_state, views, batch, standalone=False):
+        assert scope_state is not None
+        super(FrequencyScope, self).__init__(scope_state, views, batch,
+                                             standalone)
+
+    @staticmethod
+    def create_frequency_scope_fragment(canvas, **kwargs):
+        scope_model = FrequencyScopeState(**kwargs)
+        scope_view = FrequencyScopeView(scope_model, canvas)
+        assert canvas is not None
+        scope = FrequencyScope(scope_model, [scope_view], canvas.batch)
+        return scope
+
+    @staticmethod
+    def create_frequency_scope(window, decoder, **kwargs):
+        canvas = Canvas.create(window.width, window.height)
+        scope = FrequencyScope.create_frequency_scope_fragment(canvas,
+                                                               **kwargs)
+        command_receiver = CommandReceiverFactory.create(
+            CommandReceiverFactory.Raw, decoder.signal, decoder.timer)
+
+        controller_chain = UnlockControllerChain(window, command_receiver,
+                                                 [scope], 'FrequencyScope',
                                                  'gridspeak.png',
                                                  standalone=False)
         return controller_chain
