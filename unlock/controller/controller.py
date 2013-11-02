@@ -47,10 +47,10 @@ class Canvas(object):
         return self.xcenter(), self.ycenter()
         
     def xcenter(self):
-        return self.width / 2
+        return self.width / 2 + self.x
     
     def ycenter(self):
-        return self.height / 2
+        return self.height / 2 + self.y
         
     @staticmethod
     def create(width, height, xoffset=0, yoffset=0):
