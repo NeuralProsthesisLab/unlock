@@ -26,9 +26,9 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from unlock.model import UnlockModel
-from unlock.view import HierarchyGridView
-from unlock.controller import Canvas, UnlockControllerFragment, UnlockControllerChain, EEGControllerFragment
-
+from unlock.controller import Canvas, UnlockControllerFragment, \
+    UnlockControllerChain, EEGControllerFragment, FrequencyScope
+from unlock.decode import CommandReceiverFactory
 
 class Diagnostic(UnlockControllerFragment):
     def __init__(self, model, views, batch, standalone=False):
@@ -41,13 +41,22 @@ class Diagnostic(UnlockControllerFragment):
         return diagnostic
         
     @staticmethod
-    def create_diagnostic(window, color='bw'):
+    def create_diagnostic(window, decoder, **kwargs):
+        command_receiver = CommandReceiverFactory.create(
+            CommandReceiverFactory.Raw, decoder.signal, decoder.timer)
+
         stimulus_canvas = Canvas.create(window.width / 2, window.height)
         stimulus = EEGControllerFragment.create_single_ssvep(
-            stimulus_canvas, 15.0, color)
-            
+            stimulus_canvas, command_receiver, 15.0, **kwargs['stimulus'])
+
+        scope_canvas = Canvas.create(window.width / 2, window.height,
+                                     xoffset=(window.width / 2))
+        scope = FrequencyScope.create_frequency_scope_fragment(
+            scope_canvas, **kwargs['scope'])
+
+
         controller_chain = UnlockControllerChain(
-            window, stimulus.command_receiver, [stimulus], 'Diagnostic',
+            window, command_receiver, [stimulus, scope], 'Diagnostic',
             'gridcursor.png', standalone=False)
         return controller_chain
         
