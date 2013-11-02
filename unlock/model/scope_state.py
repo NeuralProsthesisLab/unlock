@@ -30,7 +30,7 @@ from unlock.model.model import UnlockModel
 
 
 class TimeScopeState(UnlockModel):
-    def __init__(self, n_channels, fs, duration=2):
+    def __init__(self, n_channels=1, fs=256, duration=2):
         super(TimeScopeState, self).__init__()
         self.n_channels = n_channels
         self.fs = fs
@@ -42,7 +42,7 @@ class TimeScopeState(UnlockModel):
         self.yscale = 1
         self.yshift = np.zeros(self.n_channels)
 
-        self.refresh_rate = 1/30.0
+        self.refresh_rate = 1/20.0
         self.elapsed = 0
         self.state_change = False
 
@@ -83,3 +83,52 @@ class TimeScopeState(UnlockModel):
                 #    pass
                 #else:
                 self.yshift = shift
+
+
+class FrequencyScopeState(UnlockModel):
+    def __init__(self, n_channels=1, fs=256, duration=2, nfft=None,
+                 freq_range=(0, 1)):
+        super(FrequencyScopeState, self).__init__()
+        self.n_channels = n_channels
+        self.fs = fs
+        self.duration = duration
+        self.nfft = nfft
+        self.n_samples = self.duration * self.fs
+        self.data = np.zeros((self.n_samples, self.n_channels))
+
+        if self.nfft is None:
+            self.nfft = self.n_samples
+        self.fft_bin_width = fs / self.nfft
+        self.fft_bins = self.fft_bin_width*np.arange(self.nfft/2 + 1)
+        assert freq_range[0] >= 0, freq_range[1] <= 1
+        self.trace_begin = np.floor(freq_range[0]*(fs/2) / self.fft_bin_width)
+        self.trace_end = np.ceil(freq_range[1]*(fs/2) / self.fft_bin_width)+1
+        self.trace = np.zeros(self.trace_end - self.trace_begin)
+
+        self.refresh_rate = 1/20.0
+        self.elapsed = 0
+        self.state_change = False
+
+    def get_state(self):
+        update = self.state_change
+        if self.state_change:
+            self.state_change = False
+        return update, self.trace
+
+    def process_command(self, command):
+        self.elapsed += command.delta
+        if self.elapsed >= self.refresh_rate:
+            self.state_change = True
+            self.elapsed = 0
+
+        if not command.is_valid():
+            return
+
+        samples = command.matrix[:, 0:self.n_channels]
+        s = samples.shape[0]
+        self.data = np.roll(self.data, -s)
+        self.data[-s:] = samples
+
+        fft = np.abs(np.fft.rfft(self.data[:, [0]], n=self.nfft, axis=0))
+        self.trace = fft[self.trace_begin:self.trace_end]
+        self.trace /= np.max(self.trace)
