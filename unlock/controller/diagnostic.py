@@ -24,12 +24,31 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from unlock.controller.controller import *
-from unlock.controller.calibrate import *
-from unlock.controller.dashboard import *
-from unlock.controller.collector import *
-from unlock.controller.fastpad import *
-from unlock.controller.gridspeak import *
-from unlock.controller.gridcursor import *
-from unlock.controller.scope import *
-from unlock.controller.diagnostic import *
+
+from unlock.model import UnlockModel
+from unlock.view import HierarchyGridView
+from unlock.controller import Canvas, UnlockControllerFragment, UnlockControllerChain, EEGControllerFragment
+
+
+class Diagnostic(UnlockControllerFragment):
+    def __init__(self, model, views, batch, standalone=False):
+        super(Diagnostic, self).__init__(model, views, batch, standalone)
+        
+    @staticmethod
+    def create_diagnostic_fragment(canvas):
+        model = UnlockModel(state=True)
+        diagnostic = Diagnostic(model, [], canvas.batch)
+        return diagnostic
+        
+    @staticmethod
+    def create_diagnostic(window, color='bw'):
+        stimulus_canvas = Canvas.create(window.width / 2, window.height)
+        stimulus = EEGControllerFragment.create_single_ssvep(
+            stimulus_canvas, 15.0, color)
+            
+        controller_chain = UnlockControllerChain(
+            window, stimulus.command_receiver, [stimulus], 'Diagnostic',
+            'gridcursor.png', standalone=False)
+        return controller_chain
+        
+        

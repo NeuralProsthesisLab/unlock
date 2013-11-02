@@ -205,6 +205,12 @@ class UnlockFactory(context.PythonConfig):
             self.window, self.decoder, **self.args['FrequencyScope'])
 
     @context.Object(lazy_init=True)
+    def Diagnostic(self):
+        from unlock.controller import Diagnostic
+        return Diagnostic.create_diagnostic(
+            self.window, **self.args['Diagnostic'])
+
+    @context.Object(lazy_init=True)
     def Dashboard(self):
         args = self.args['Dashboard']
         controllers = []

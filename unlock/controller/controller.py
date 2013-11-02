@@ -351,7 +351,23 @@ class EEGControllerFragment(UnlockControllerFragment):
                         chained_classifier=ssvep_command_receiver)
         return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
         
-        
+    @staticmethod
+    def create_single_ssvep(canvas, frequency, color='ry'):
+        if color == 'ry':
+            color1 = (255, 0, 0)
+            color2 = (255, 255, 0)
+        else:
+            color1 = (0, 0, 0)
+            color2 = (255, 255, 255)
+
+        stimulus = TimedStimulus.create(frequency * 2)
+        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+            stimulus, canvas, SpritePositionComputer.Center, width=300,
+            height=300, xfreq=2, yfreq=2, color_on=color1, color_off=color2,
+            reversal=False)
+        command_receiver = CommandReceiverFactory.create(CommandReceiverFactory.Delta)
+        return EEGControllerFragment(command_receiver, stimulus, [fs], canvas.batch)
+
     @staticmethod
     def create_msequence(canvas, signal, timer, color='bw'):
         raise Exception("This was not maintained through changes and needs some love before it is ready to run again..")
