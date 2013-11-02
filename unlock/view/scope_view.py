@@ -113,6 +113,7 @@ class FrequencyScopeView(UnlockView):
         self.yscale = self.trace_height
 
         self.traces = []
+        self.axes = []
         for trace in range(self.model.n_channels):
             x = self.scale_width(np.arange(0, plot_points))
             y = self.scale_height(np.zeros(plot_points),
@@ -120,6 +121,9 @@ class FrequencyScopeView(UnlockView):
             values = zip(x, y)
             vertices = [point for points in values for point in points]
             self.traces.append(self.drawLinePlot(vertices, canvas.batch))
+            self.axes.append(self.drawLine(x[0], y[0], x[-1], y[0],
+                                           canvas.batch))
+
 
     def scale_width(self, x):
         """
@@ -133,7 +137,7 @@ class FrequencyScopeView(UnlockView):
         and the number of traces. The scale factor is automatically adjusted
         to the data, and is thus part of the model.
         """
-        offset = self.ylim[0] + 0.5*self.trace_height + \
+        offset = self.ylim[0] + 0.05*self.trace_height + \
             trace*(self.trace_height + self.trace_margin)
         y = (y - shift) * scale
         return y * self.yscale + offset
