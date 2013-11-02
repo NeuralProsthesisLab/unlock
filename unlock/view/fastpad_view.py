@@ -54,7 +54,7 @@ class FastPadButton(UnlockView):
         self.texts = []
         self.rects = []
         self.texts.append(self.drawText(labels[0],
-                rect[0] + (.5 * rect[2]), rect[1] + (.75 * rect[3]), self.canvas.batch))
+                rect[0] + (.5 * rect[2]), rect[1] + (.75 * rect[3]), self.canvas))
         self.rects.append((
             rect[0] + (.5 * rect[2]) - self.texts[-1].content_width/2,
             rect[1] + (.75 * rect[3]) - self.texts[-1].content_height * 0.35,
@@ -68,7 +68,7 @@ class FastPadButton(UnlockView):
             left = rect[0] + (width / 2)
             for label in labels[1:]:
                 self.texts.append(self.drawText(label,
-                    left, rect[1] + (.25 * rect[3]), self.canvas.batch, size=int(.65 * self.texts[0].font_size)))
+                    left, rect[1] + (.25 * rect[3]), self.canvas, size=int(.65 * self.texts[0].font_size)))
                 self.rects.append((
                     left - self.texts[-1].content_width/2,
                     rect[1] + (.25 * rect[3]) - self.texts[-1].content_height * 0.35,
@@ -128,7 +128,7 @@ class FastPadView(UnlockView):
 #                 color=(255,255,255,255), group=None, xoffset=0, yoffset=0):
         
         self.text = self.drawText("",
-                canvas.width / 4 + canvas.width/2/2, canvas.height * .65 + textH/2, self.batch)
+                canvas.width / 4 + canvas.width/2/2, canvas.height * .65 + textH/2, canvas)
         self.text.width = canvas.width / 4
         startH = canvas.height / 4
         # Create the buttons
