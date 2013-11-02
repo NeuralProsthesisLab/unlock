@@ -40,10 +40,16 @@
             }
         },
         {
+            "name" : "Diagnostic",
+            "args" : {
+            }
+        },
+                {
             "name" : "Dashboard",
             "args" : {
                 "controllers" : ["FastPad", "GridSpeak", "GridCursor",
-                    "MouthBasedEMGCollector", "TimeScope", "FrequencyScope"]
+                    "MouthBasedEMGCollector", "TimeScope", "FrequencyScope",
+                    "Diagnostic"]
             }
         }
     ],    
