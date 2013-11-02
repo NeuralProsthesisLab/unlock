@@ -59,7 +59,7 @@ class TimeScopeView(UnlockView):
                                   0, 1, trace)
             values = zip(x, y)
             vertices = [point for points in values for point in points]
-            self.traces.append(self.drawLinePlot(vertices, canvas.batch))
+            self.traces.append(self.drawLinePlot(vertices, canvas))
 
     def scale_width(self, x):
         """
@@ -120,7 +120,7 @@ class FrequencyScopeView(UnlockView):
                                   0, 1, trace)
             values = zip(x, y)
             vertices = [point for points in values for point in points]
-            self.traces.append(self.drawLinePlot(vertices, canvas.batch))
+            self.traces.append(self.drawLinePlot(vertices, canvas))
             freq_labels = np.linspace(self.model.freq_begin,
                                       self.model.freq_end, 5)
             labels = ["%.2f" % f for f in freq_labels]
