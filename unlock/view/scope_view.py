@@ -49,9 +49,6 @@ class TimeScopeView(UnlockView):
         self.trace_height -= self.trace_margin
         self.yscale = self.trace_height / 200
 
-        self.cursor = self.drawLine(self.xlim[0], self.ylim[0],
-                                    self.xlim[0], self.ylim[1],
-                                    canvas.batch, color=(255, 0, 0))
         self.traces = []
         for trace in range(self.model.n_channels):
             x = self.scale_width(np.arange(0, self.model.n_samples))
@@ -60,6 +57,10 @@ class TimeScopeView(UnlockView):
             values = zip(x, y)
             vertices = [point for points in values for point in points]
             self.traces.append(self.drawLinePlot(vertices, canvas))
+
+        self.cursor = self.drawLine(self.xlim[0], self.ylim[0],
+                                    self.xlim[0], self.ylim[1],
+                                    canvas, color=(255, 0, 0))
 
     def scale_width(self, x):
         """
@@ -106,8 +107,8 @@ class FrequencyScopeView(UnlockView):
         self.ylim = (canvas.height*0.05, canvas.height*0.95)
 
         plot_points = len(self.model.trace)
-        self.xscale = (self.xlim[1]-self.xlim[0]) / plot_points
-        self.trace_height = (self.ylim[1]-self.ylim[0])/float(self.model.n_channels)
+        self.xscale = (self.xlim[1]-self.xlim[0])/plot_points
+        self.trace_height = (self.ylim[1]-self.ylim[0])/self.model.n_channels
         self.trace_margin = 0.1 * self.trace_height
         self.trace_height -= self.trace_margin
         self.yscale = self.trace_height
@@ -125,21 +126,21 @@ class FrequencyScopeView(UnlockView):
                                       self.model.freq_end, 5)
             labels = ["%.2f" % f for f in freq_labels]
             self.axes.append(self.generate_axis(
-                x[0], y[0], x[-1], y[0], canvas.batch, labels=labels))
+                x[0], y[0], x[-1], y[0], canvas, labels=labels))
 
-    def generate_axis(self, x1, y1, x2, y2, batch, ticks=None, labels=None):
+    def generate_axis(self, x1, y1, x2, y2, canvas, ticks=None, labels=None):
         lines = list()
-        lines.append(self.drawLine(x1, y1, x2, y2, batch))
+        lines.append(self.drawLine(x1, y1, x2, y2, canvas))
         if ticks is None and labels is not None:
             ticks = len(labels)
         if ticks is not None:
             x_points = np.linspace(x1, x2, ticks)
             for x in x_points:
-                lines.append(self.drawLine(x, y1, x, y1 - 10, batch))
+                lines.append(self.drawLine(x, y1, x, y1 - 10, canvas))
         if labels is not None:
             x_points = np.linspace(x1, x2, len(labels))
             for i, x in enumerate(x_points):
-                lines.append(self.drawText(labels[i], x, y1 - 15, batch,
+                lines.append(self.drawText(labels[i], x, y1 - 15, canvas.batch,
                                            size=12))
         return lines
 
