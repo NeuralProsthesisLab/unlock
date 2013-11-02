@@ -121,8 +121,27 @@ class FrequencyScopeView(UnlockView):
             values = zip(x, y)
             vertices = [point for points in values for point in points]
             self.traces.append(self.drawLinePlot(vertices, canvas.batch))
-            self.axes.append(self.drawLine(x[0], y[0], x[-1], y[0],
-                                           canvas.batch))
+            freq_labels = np.linspace(self.model.freq_begin,
+                                      self.model.freq_end, 5)
+            labels = ["%.2f" % f for f in freq_labels]
+            self.axes.append(self.generate_axis(
+                x[0], y[0], x[-1], y[0], canvas.batch, labels=labels))
+
+    def generate_axis(self, x1, y1, x2, y2, batch, ticks=None, labels=None):
+        lines = list()
+        lines.append(self.drawLine(x1, y1, x2, y2, batch))
+        if ticks is None and labels is not None:
+            ticks = len(labels)
+        if ticks is not None:
+            x_points = np.linspace(x1, x2, ticks)
+            for x in x_points:
+                lines.append(self.drawLine(x, y1, x, y1 - 10, batch))
+        if labels is not None:
+            x_points = np.linspace(x1, x2, len(labels))
+            for i, x in enumerate(x_points):
+                lines.append(self.drawText(labels[i], x, y1 - 15, batch,
+                                           size=12))
+        return lines
 
 
     def scale_width(self, x):
