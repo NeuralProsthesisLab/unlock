@@ -89,6 +89,8 @@ class FrequencyScopeState(UnlockModel):
     def __init__(self, n_channels=1, fs=256, duration=2, nfft=None,
                  freq_range=(0, 1)):
         super(FrequencyScopeState, self).__init__()
+        assert freq_range[0] >= 0, freq_range[1] <= 1
+
         self.n_channels = n_channels
         self.fs = fs
         self.duration = duration
@@ -100,9 +102,10 @@ class FrequencyScopeState(UnlockModel):
             self.nfft = self.n_samples
         self.fft_bin_width = fs / self.nfft
         self.fft_bins = self.fft_bin_width*np.arange(self.nfft/2 + 1)
-        assert freq_range[0] >= 0, freq_range[1] <= 1
-        self.trace_begin = np.floor(freq_range[0]*(fs/2) / self.fft_bin_width)
-        self.trace_end = np.ceil(freq_range[1]*(fs/2) / self.fft_bin_width)+1
+        self.freq_begin = freq_range[0] * (fs/2)
+        self.freq_end = freq_range[1] * (fs/2)
+        self.trace_begin = np.floor(self.freq_begin / self.fft_bin_width)
+        self.trace_end = np.ceil(self.freq_end / self.fft_bin_width) + 1
         self.trace = np.zeros(self.trace_end - self.trace_begin)
 
         self.refresh_rate = 1/20.0
