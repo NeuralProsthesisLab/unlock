@@ -9,55 +9,42 @@ from unlock.util import switch
 
 
 class SpritePositionComputer(object):
-    North=0
-    NorthEast=1
-    East=2
-    SouthEast=3
-    South=4
-    SouthWest=5
-    West=6
-    NorthWest=7
-    Center=8 
-    def __init__(self, screen_width, screen_height, image_width, image_height, rotation):
-        self.width = screen_width
-        self.height = screen_height
+    North = 0
+    NorthEast = 1
+    East = 2
+    SouthEast = 3
+    South = 4
+    SouthWest = 5
+    West = 6
+    NorthWest = 7
+    Center = 8
+
+    def __init__(self, canvas, image_width, image_height, rotation):
+        self.width = canvas.width
+        self.height = canvas.height
+        self.x0 = canvas.x
+        self.y0 = canvas.y
         self.angle = abs(radians(rotation))
-        self.box_width = (image_width * cos(self.angle) + image_height * sin(self.angle))
-        self.box_height = (image_width * sin(self.angle) + image_height * cos(self.angle))
+        self.box_width = (image_width * cos(self.angle) +
+                          image_height * sin(self.angle))
+        self.box_height = (image_width * sin(self.angle) +
+                           image_height * cos(self.angle))
         self.center()
         
     def compute(self, position):
-        for case in switch(position):
-            if case(SpritePositionComputer.North):
-                self.north()
-                break
-            if case(SpritePositionComputer.NorthEast):
-                self.northeast()
-                break
-            if case(SpritePositionComputer.East):
-                self.east()
-                break
-            if case(SpritePositionComputer.SouthEast):
-                self.southeast()
-                break
-            if case(SpritePositionComputer.South):
-                self.south()
-                break
-            if case(SpritePositionComputer.SouthWest):
-                self.southwest()
-                break
-            if case(SpritePositionComputer.West):
-                self.west()
-                break
-            if case(SpritePositionComputer.NorthWest):
-                self.northwest()
-                break
-            if case(SpritePositionComputer.Center):
-                self.center()
-                break
-            if case ():
-                self.center()
-                break
+        {
+            SpritePositionComputer.North: self.north,
+            SpritePositionComputer.NorthEast: self.northeast,
+            SpritePositionComputer.East: self.east,
+            SpritePositionComputer.SouthEast: self.southeast,
+            SpritePositionComputer.South: self.south,
+            SpritePositionComputer.SouthWest: self.southwest,
+            SpritePositionComputer.West: self.west,
+            SpritePositionComputer.NorthWest: self.northwest,
+            SpritePositionComputer.Center: self.center,
+        }.get(position, self.center)()
+        self.x += self.x0
+        self.y += self.y0
                 
     def north(self):
         self.x = self.width / 2
@@ -186,7 +173,7 @@ class PygletSprite(UnlockView):
             
         texture_region = PygletSprite.create_checkered_box_texture_region(width, height, xfreq, yfreq, xduty, yduty, xuneven, yuneven, color_on, color_off)
             
-        spc = SpritePositionComputer(canvas.width, canvas.height, texture_region.width, texture_region.height, rotation)
+        spc = SpritePositionComputer(canvas, texture_region.width, texture_region.height, rotation)
         spc.compute(position)
            
         return PygletSprite(model, canvas, texture_region, spc.x + xoffset, spc.y + yoffset, rotation)
