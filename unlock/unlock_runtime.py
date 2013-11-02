@@ -208,7 +208,7 @@ class UnlockFactory(context.PythonConfig):
     def Diagnostic(self):
         from unlock.controller import Diagnostic
         return Diagnostic.create_diagnostic(
-            self.window, **self.args['Diagnostic'])
+            self.window, self.decoder, **self.args['Diagnostic'])
 
     @context.Object(lazy_init=True)
     def Dashboard(self):

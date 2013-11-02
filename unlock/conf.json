@@ -42,6 +42,10 @@
         {
             "name" : "Diagnostic",
             "args" : {
+                "stimulus" : {
+                },
+                "scope" : {
+                }
             }
         },
                 {
