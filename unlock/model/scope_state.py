@@ -26,6 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
+import scipy.signal as sig
 from unlock.model.model import UnlockModel
 
 
@@ -88,9 +89,8 @@ class TimeScopeState(UnlockModel):
 
 class FrequencyScopeState(UnlockModel):
     def __init__(self, n_channels=1, fs=256, duration=2, nfft=None,
-                 freq_range=(0, 1)):
+                 freq_range=None):
         super(FrequencyScopeState, self).__init__()
-        assert freq_range[0] >= 0, freq_range[1] <= 1
 
         self.n_channels = n_channels
         self.fs = fs
@@ -103,8 +103,13 @@ class FrequencyScopeState(UnlockModel):
             self.nfft = self.n_samples
         self.fft_bin_width = fs / self.nfft
         self.fft_bins = self.fft_bin_width*np.arange(self.nfft/2 + 1)
-        self.freq_begin = freq_range[0] * (fs/2)
-        self.freq_end = freq_range[1] * (fs/2)
+
+        if freq_range is None:
+            freq_range = (0, fs/2)
+        assert freq_range[0] >= 0, freq_range[1] <= fs / 2
+
+        self.freq_begin = freq_range[0]
+        self.freq_end = freq_range[1]
         self.trace_begin = np.floor(self.freq_begin / self.fft_bin_width)
         self.trace_end = np.ceil(self.freq_end / self.fft_bin_width) + 1
         self.trace = np.zeros(self.trace_end - self.trace_begin)
@@ -133,7 +138,8 @@ class FrequencyScopeState(UnlockModel):
         s = samples.shape[0]
         self.data = np.roll(self.data, -s)
         self.data[-s:] = samples
-
-        fft = np.abs(np.fft.rfft(self.data[:, [0]], n=self.nfft, axis=0))
-        self.trace = fft[self.trace_begin:self.trace_end]
+        _, psd = sig.periodogram(self.data[:, [0]], fs=self.fs, nfft=self.nfft,
+                              axis=0)
+        #fft = np.abs(np.fft.rfft(self.data[:, [0]], n=self.nfft, axis=0))
+        self.trace = psd[self.trace_begin:self.trace_end]
         self.trace /= np.max(self.trace)
