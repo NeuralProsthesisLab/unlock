@@ -83,11 +83,15 @@ func unzipExpand(fileName string) {
 }
 
 func downloadAndWriteFile(fileUrl string, fileName string) string {
-    return downloadAndWriteFileWithIntegrityCheck(fileUrl, fileName, false)
+    if *repoPath == `` {
+        return downloadAndWriteFileWithIntegrityCheck(fileUrl, fileName, false)
+    } else {
+        return filepath.Join(*repoPath, fileName)
+    }
 }
 
 func downloadAndWriteFileWithIntegrityCheck(fileUrl string, fileName string, skipCheck bool) string {	
-    fullPath := filepath.Join(getDownloadDirectory(), fileName) 
+    fullPath := filepath.Join(getWorkingDirectoryAbsolutePath(), fileName) 
     
     if !skipCheck {    
         log.Println("Check integrity for file", fileName)
@@ -191,16 +195,6 @@ func checkFileExists(path string) (bool, error) {
     if err == nil { return true, nil }
     if os.IsNotExist(err) { return false, nil }
     return false, err
-}
-
-func getDownloadDirectory() string {
-    path := getWorkingDirectoryAbsolutePath()
-    
-    if *repoPath != `` {
-		path = filepath.Join(*repoPath, `package`)
-	}
-    
-    return path
 }
 
 func getWorkingDirectoryAbsolutePath() string {	
