@@ -25,11 +25,23 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model.model import *
-from unlock.model.cue_state import *
-from unlock.model.timed_stimuli import *
-from unlock.model.offline_data import *
-from unlock.model.grid_state import *
-from unlock.model.fastpad_model import *
-from unlock.model.scope_state import *
-from unlock.model.diagnostic_state import *
+from unlock.model.model import UnlockModel
+
+
+class DiagnosticState(UnlockModel):
+    FrequencyUp = 1
+    FrequencyDown = 2
+    ChannelDown = 3
+    ChannelUp = 4
+
+    def __init__(self, stimulus, scope):
+        super(DiagnosticState, self).__init__()
+
+        self.scope = scope
+        self.stimulus = stimulus
+
+    def process_command(self, command):
+        if command.decision == DiagnosticState.ChannelDown:
+            self.scope.model.change_display_channel(-1)
+        elif command.decision == DiagnosticState.ChannelUp:
+            self.scope.model.change_display_channel(1)
