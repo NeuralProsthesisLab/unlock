@@ -86,7 +86,7 @@ func downloadAndWriteFile(fileUrl string, fileName string) string {
     if *repoPath == `` {
         return downloadAndWriteFileWithIntegrityCheck(fileUrl, fileName, false)
     } else {
-        return filepath.Join(*repoPath, fileName)
+        return filepath.Join(*repoPath, `package`, fileName)
     }
 }
 
