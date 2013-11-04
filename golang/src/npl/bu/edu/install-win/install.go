@@ -83,35 +83,23 @@ func unzipExpand(fileName string) {
 }
 
 func downloadAndWriteFile(fileUrl string, fileName string) string {
-    fullPath := defaultPathToWrite(fileName)   
-    return downloadAndWriteFileToPath(fileUrl, fileName, fullPath)
-}
-
-func downloadAndWriteFileToPath(fileUrl string, fileName string, path string) string {
-    return downloadAndWriteFileWithIntegrityCheckToPath(fileUrl, fileName, false, path)
+    return downloadAndWriteFileWithIntegrityCheck(fileUrl, fileName, false)
 }
 
 func downloadAndWriteFileWithIntegrityCheck(fileUrl string, fileName string, skipCheck bool) string {	
-    fullPath := defaultPathToWrite(fileName)   
-    return downloadAndWriteFileWithIntegrityCheckToPath(fileUrl, fileName, skipCheck, fullPath)
-}
-
-func defaultPathToWrite(fileName string) string {
-    return filepath.Join(getDownloadDirectory(), fileName) 
-}
-
-func downloadAndWriteFileWithIntegrityCheckToPath(fileUrl string, fileName string, skipCheck bool, path string) string {
+    fullPath := filepath.Join(getDownloadDirectory(), fileName) 
+    
     if !skipCheck {    
         log.Println("Check integrity for file", fileName)
     
-        attemptDownloadCorrectFile(fileUrl, fileName, path)        
+        attemptDownloadCorrectFile(fileUrl, fileName, fullPath)        
     } else {
         log.Println("Skip file integrity check for", fileName)
         
-        downloadAndWrite(fileUrl, fileName, path)
+        downloadAndWrite(fileUrl, fileName, fullPath)
     }
     
-    return path
+    return fullPath
 }
 
 func attemptDownloadCorrectFile(fileUrl string, fileName string, fullPath string) {
@@ -371,12 +359,18 @@ func installUnlockRunner(baseUrl string, unlockDirectory string, unlockexe strin
 func installUnlockExe(baseUrl string, x86FileName string, x64FileName string) {
     hostArch := os.Getenv(`GOHOSTARCH`)
     
+    var file string
     if hostArch == `amd64` {
-        log.Println("Install unlock.exe x64")
-        downloadAndWriteFileToPath(baseUrl+"/"+x64FileName, x64FileName, "C:\\Unlock\\unlock.exe")
+        log.Println("Install unlock.exe x64")        
+        file = downloadAndWriteFile(baseUrl+"/"+x64FileName, x64FileName) 
     } else {
-        log.Println("Install unlock.exe x86")
-        downloadAndWriteFileToPath(baseUrl+"/"+x86FileName, x86FileName, "C:\\Unlock\\unlock.exe")
+        log.Println("Install unlock.exe x86")        
+        file = downloadAndWriteFile(baseUrl+"/"+x86FileName, x86FileName) 
+    }
+    
+    err := cp(`C:\Unlock\unlock.exe`, file)
+    if err != nil {
+        log.Fatalln(err)
     }
 }
 
