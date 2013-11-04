@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model import UnlockModel
+from unlock.model import DiagnosticState
 from unlock.controller import Canvas, UnlockControllerFragment, \
     UnlockControllerChain, EEGControllerFragment, FrequencyScope
 from unlock.decode import CommandReceiverFactory
@@ -35,8 +35,8 @@ class Diagnostic(UnlockControllerFragment):
         super(Diagnostic, self).__init__(model, views, batch, standalone)
         
     @staticmethod
-    def create_diagnostic_fragment(canvas):
-        model = UnlockModel(state=True)
+    def create_diagnostic_fragment(canvas, stimulus, scope):
+        model = DiagnosticState(stimulus, scope)
         diagnostic = Diagnostic(model, [], canvas.batch)
         return diagnostic
         
@@ -54,10 +54,11 @@ class Diagnostic(UnlockControllerFragment):
         scope = FrequencyScope.create_frequency_scope_fragment(
             scope_canvas, **kwargs['scope'])
 
+        diagnostic_canvas = Canvas.create(window.width, window.height)
+        diagnostic = Diagnostic.create_diagnostic_fragment(diagnostic_canvas,
+                                                           stimulus, scope)
 
         controller_chain = UnlockControllerChain(
-            window, command_receiver, [stimulus, scope], 'Diagnostic',
-            'gridcursor.png', standalone=False)
+            window, command_receiver, [diagnostic, stimulus, scope],
+            'Diagnostic', 'gridcursor.png', standalone=False)
         return controller_chain
-        
-        

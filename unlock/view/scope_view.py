@@ -107,15 +107,16 @@ class FrequencyScopeView(UnlockView):
         self.ylim = (canvas.height*0.05, canvas.height*0.95)
 
         plot_points = len(self.model.trace)
+        display_channels = len(self.model.display_channels)
         self.xscale = (self.xlim[1]-self.xlim[0])/plot_points
-        self.trace_height = (self.ylim[1]-self.ylim[0])/self.model.n_channels
+        self.trace_height = (self.ylim[1]-self.ylim[0])/display_channels
         self.trace_margin = 0.1 * self.trace_height
         self.trace_height -= self.trace_margin
         self.yscale = self.trace_height
 
         self.traces = []
         self.axes = []
-        for trace in range(self.model.n_channels):
+        for trace in range(display_channels):
             x = self.scale_width(np.arange(0, plot_points))
             y = self.scale_height(np.zeros(plot_points),
                                   0, 1, trace)
