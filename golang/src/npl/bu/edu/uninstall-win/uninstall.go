@@ -4,10 +4,11 @@ import (
     "os"
     "log"
     "path/filepath"
+    "npl/bu/edu/conf"
 )
 
 func main() {
-    conf := ParseConf(`conf.json`)
+    conf := unlockconf.ParseConf(`conf.json`)
 
     if err := os.RemoveAll(filepath.Join(conf.PythonBasePath, `Lib\site-packages\unlock`)); err != nil {
         log.Fatalln(err)
