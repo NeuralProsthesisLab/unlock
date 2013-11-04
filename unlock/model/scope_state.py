@@ -53,10 +53,11 @@ class TimeScopeState(UnlockModel):
         return update, self.cursor, self.traces, self.yshift, self.yscale
 
     def process_command(self, command):
-        self.elapsed += command.delta
-        if self.elapsed >= self.refresh_rate:
-            self.state_change = True
-            self.elapsed = 0
+        if command.delta is not None:
+            self.elapsed += command.delta
+            if self.elapsed >= self.refresh_rate:
+                self.state_change = True
+                self.elapsed = 0
 
         if not command.is_valid():
             return
@@ -119,10 +120,11 @@ class FrequencyScopeState(UnlockModel):
         return update, self.trace
 
     def process_command(self, command):
-        self.elapsed += command.delta
-        if self.elapsed >= self.refresh_rate:
-            self.state_change = True
-            self.elapsed = 0
+        if command.delta is not None:
+            self.elapsed += command.delta
+            if self.elapsed >= self.refresh_rate:
+                self.state_change = True
+                self.elapsed = 0
 
         if not command.is_valid():
             return
