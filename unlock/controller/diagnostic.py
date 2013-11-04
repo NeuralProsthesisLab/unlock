@@ -35,8 +35,8 @@ class Diagnostic(UnlockControllerFragment):
         super(Diagnostic, self).__init__(model, views, batch, standalone)
         
     @staticmethod
-    def create_diagnostic_fragment(canvas, stimulus, scope):
-        model = DiagnosticState(stimulus, scope)
+    def create_diagnostic_fragment(canvas, scope, stimulus, **kwargs):
+        model = DiagnosticState(scope, stimulus, **kwargs)
         diagnostic = Diagnostic(model, [], canvas.batch)
         return diagnostic
         
@@ -55,8 +55,8 @@ class Diagnostic(UnlockControllerFragment):
             scope_canvas, **kwargs['scope'])
 
         diagnostic_canvas = Canvas.create(window.width, window.height)
-        diagnostic = Diagnostic.create_diagnostic_fragment(diagnostic_canvas,
-                                                           stimulus, scope)
+        diagnostic = Diagnostic.create_diagnostic_fragment(
+            diagnostic_canvas, scope, stimulus, **kwargs['diagnostic'])
 
         controller_chain = UnlockControllerChain(
             window, command_receiver, [diagnostic, stimulus, scope],
