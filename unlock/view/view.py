@@ -50,8 +50,8 @@ class UnlockView(object):
                 ('c3B', color*2)))
         return self.verticies
         
-    def drawText(self, text, x, y, batch, font='Helvetica', size=48,
-                 color=(255,255,255,255), group=None, xoffset=0, yoffset=0):
+    def drawText(self, text, x, y, canvas, font='Helvetica', size=48,
+                 color=(255,255,255,255), group=None):
         """
         Draws text at a specific point on the screen
         
@@ -67,11 +67,11 @@ class UnlockView(object):
             color = color + (255,)
             
         return pyglet.text.Label(text,
-            font_name=font, font_size=size, x=xoffset + x, y=yoffset + y,
+            font_name=font, font_size=size, x=canvas.x + x, y=canvas.y + y,
             anchor_x='center', anchor_y='center', color=color,
-            group=group, batch=batch)
+            group=group, batch=canvas.batch)
             
-    def drawLine(self, x1, y1, x2, y2, batch, color=(255,255,255), group=None, xoffset=0, yoffset=0):
+    def drawLine(self, x1, y1, x2, y2, canvas, color=(255,255,255), group=None):
         """
         Draws a line between two points on the screen
         
@@ -82,11 +82,11 @@ class UnlockView(object):
         :param color: Color of line. Tuple of length three.
         :param group: Batch group
         """
-        return batch.add(2, pyglet.gl.GL_LINES, group,
-            ('v2f', (xoffset + x1, yoffset + y1, xoffset + x2, yoffset + y2)),
+        return canvas.batch.add(2, pyglet.gl.GL_LINES, group,
+            ('v2f', (canvas.x+x1, canvas.y+y1, canvas.x+x2, canvas.y+y2)),
             ('c3B', color*2))
 
-    def drawLinePlot(self, vertices, batch, color=(255,255,255), group=None):
+    def drawLinePlot(self, vertices, canvas, color=(255,255,255), group=None):
         """
         Given a set of vertices, will plot lines between each vertices in the
         list
@@ -99,12 +99,14 @@ class UnlockView(object):
         # create points - 1 line segments
         # both endpoints of each segment need to be specified, so all but the
         # two endpoints of the entire trace need to be repeated
+        vertices[::2] = [x + canvas.x for x in vertices[::2]]
+        vertices[1::2] = [y + canvas.y for y in vertices[1::2]]
         line_segments = vertices[0:4]  # (x0, y0, x1, y1)
         for i in range(1, data_points-1):
             line_segments.extend([vertices[i*2], vertices[i*2+1],
                                   vertices[(i+1)*2], vertices[(i+1)*2+1]])
         plot_points = int(len(line_segments) / 2)
 
-        return batch.add(plot_points, pyglet.gl.GL_LINES, group,
+        return canvas.batch.add(plot_points, pyglet.gl.GL_LINES, group,
             ('v2f', line_segments),
             ('c3B', color*plot_points))

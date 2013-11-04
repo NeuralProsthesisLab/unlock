@@ -83,7 +83,10 @@ class PygletKeyboardCommand(Command):
         elif symbol == pyglet.window.key.ESCAPE:
             self.stop = True
         elif symbol in labels:
-            self.decision = labels.index(symbol) + 1        
+            self.decision = labels.index(symbol) + 1
+
+    def is_valid(self):
+        return False
             
             
 class RawSignalCommand(Command):
