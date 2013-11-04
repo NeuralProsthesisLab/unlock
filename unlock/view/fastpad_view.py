@@ -19,7 +19,7 @@ class FastPadButton(UnlockView):
     """
     Class for a FastPad button.
     """
-    def __init__(self, rect, labels, actions, batch):
+    def __init__(self, rect, labels, actions, canvas):
         """
         Initialize the internal data structures and
         graphical button layout.
@@ -37,24 +37,24 @@ class FastPadButton(UnlockView):
         Raises an Exception if anything goes wrong.
         """
         super(FastPadButton, self).__init__()
-        self.batch = batch
+        self.canvas = canvas
         # Draw the button border -- hack around Unlock's drawRect()
         #drawRect(*rect) # This would be nicer...
         self.rect = rect
         self.drawLine(rect[0], rect[1],
-                rect[0], rect[1] + rect[3], self.batch)
+                rect[0], rect[1] + rect[3], self.canvas)
         self.drawLine(rect[0], rect[1] + rect[3],
-                rect[0] + rect[2], rect[1] + rect[3], self.batch)
+                rect[0] + rect[2], rect[1] + rect[3], self.canvas)
         self.drawLine(rect[0] + rect[2], rect[1] + rect[3],
-                rect[0] + rect[2], rect[1], self.batch)
+                rect[0] + rect[2], rect[1], self.canvas)
         self.drawLine(rect[0] + rect[2],
-                rect[1], rect[0], rect[1], self.batch)
+                rect[1], rect[0], rect[1], self.canvas)
             
         # Draw the labels
         self.texts = []
         self.rects = []
         self.texts.append(self.drawText(labels[0],
-                rect[0] + (.5 * rect[2]), rect[1] + (.75 * rect[3]), self.batch))
+                rect[0] + (.5 * rect[2]), rect[1] + (.75 * rect[3]), self.canvas))
         self.rects.append((
             rect[0] + (.5 * rect[2]) - self.texts[-1].content_width/2,
             rect[1] + (.75 * rect[3]) - self.texts[-1].content_height * 0.35,
@@ -68,7 +68,7 @@ class FastPadButton(UnlockView):
             left = rect[0] + (width / 2)
             for label in labels[1:]:
                 self.texts.append(self.drawText(label,
-                    left, rect[1] + (.25 * rect[3]), self.batch, size=int(.65 * self.texts[0].font_size)))
+                    left, rect[1] + (.25 * rect[3]), self.canvas, size=int(.65 * self.texts[0].font_size)))
                 self.rects.append((
                     left - self.texts[-1].content_width/2,
                     rect[1] + (.25 * rect[3]) - self.texts[-1].content_height * 0.35,
@@ -128,7 +128,7 @@ class FastPadView(UnlockView):
 #                 color=(255,255,255,255), group=None, xoffset=0, yoffset=0):
         
         self.text = self.drawText("",
-                canvas.width / 4 + canvas.width/2/2, canvas.height * .65 + textH/2, self.batch)
+                canvas.width / 4 + canvas.width/2/2, canvas.height * .65 + textH/2, canvas)
         self.text.width = canvas.width / 4
         startH = canvas.height / 4
         # Create the buttons
@@ -138,73 +138,73 @@ class FastPadView(UnlockView):
                 (padL, startH, buttonW, buttonH),
                 ["<"],
                 [self.removeText],
-                self.batch
+                canvas
                 )
         self.button0 = FastPadButton(
                 (padL + buttonW, startH, buttonW, buttonH),
                 ["0", "_"],
                 [self.addText],
-                self.batch,                
+                canvas,
                 )
         self.buttonE = FastPadButton(
                 (padL + (2 * buttonW), startH, buttonW, buttonH),
                 [">"],
                 [self.speakText],
-                self.batch,                                
+                canvas,
                 )
         self.button7 = FastPadButton(
                 (padL, startH+buttonH, buttonW, buttonH),
                 ["7", "P", "Q", "R", "S"],
                 [self.addText],
-                self.batch,                                
+                canvas,
                 )
         self.button8 = FastPadButton(
                 (padL + buttonW, startH+buttonH, buttonW, buttonH),
                 ["8", "T", "U", "V"],
                 [self.addText],
-                self.batch,                                
+                canvas,
                 )
         self.button9 = FastPadButton(
                 (padL + (2 * buttonW), startH+buttonH, buttonW, buttonH),
                 ["9", "W", "X", "Y", "Z"],
                 [self.addText],
-                self.batch,                                
+                canvas,
                 )
         self.button4 = FastPadButton(
                 (padL, startH+buttonH * 2, buttonW, buttonH),
                 ["4", "G", "H", "I"],
                 [self.addText],
-                self.batch,                                
+                canvas,
                 )
         self.button5 = FastPadButton(
                 (padL + buttonW, startH+buttonH * 2, buttonW, buttonH),
                 ["5", "J", "K", "L"],
                 [self.addText],
-                self.batch,                                
+                canvas,
                 )
         self.button6 = FastPadButton(
                 (padL + (2 * buttonW), startH+buttonH * 2, buttonW, buttonH),
                 ["6", "M", "N", "O"],
                 [self.addText],
-                self.batch,                                
+                canvas,
                 )
         self.button1 = FastPadButton(
                 (padL, startH+buttonH * 3, buttonW, buttonH),
                 ["1"],
                 [self.addText],
-                self.batch,                                
+                canvas,
                 )
         self.button2 = FastPadButton(
                 (padL + buttonW, startH+buttonH * 3, buttonW, buttonH),
                 ["2", "A", "B", "C"],
                 [self.addText],
-                self.batch,                                
+                canvas,
                 )
         self.button3 = FastPadButton(
                 (padL + (2 * buttonW), startH+buttonH * 3, buttonW, buttonH),
                 ["3", "D", "E", "F"],
                 [self.addText],
-                self.batch,                                
+                canvas,
                 )
                 
         # Link the buttons to each other
