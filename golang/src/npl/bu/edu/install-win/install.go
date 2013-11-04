@@ -30,6 +30,7 @@ package main
 
 import (
     "npl/bu/edu/unzip"
+    "npl/bu/edu/conf"
     "net/http"
     "fmt"
     "io/ioutil"
@@ -315,9 +316,9 @@ var devOption = flag.Bool("dev", false, "Setup development env")
 var repoPath = flag.String("repo", "", "Path to project's git repo")
 var testDownloadTimeout = flag.Bool("testDownloadTimeout", false, "Test download timeout after 5 attempts to download correct file")
 
-func createConf() UnlockInstallConf {
+func createConf() unlockconf.UnlockInstallConf {
     if *confFile == `` {
-        return UnlockInstallConf {`C:\Unlock`, `http://jpercent.org/unlock/`, `C:\Python33;C:\Python33\Lib;C:\Python33\DLLs`, `python-3.3.2.msi`,
+        return unlockconf.UnlockInstallConf {`C:\Unlock`, `http://jpercent.org/unlock/`, `C:\Python33;C:\Python33\Lib;C:\Python33\DLLs`, `python-3.3.2.msi`,
             `Python-3.3.2`, `C:\Python33`, `C:\Python33\python.exe`, `numpy-MKL-1.7.1.win32-py3.3.exe`,
             `C:\Python33\Scripts\easy_install.exe`, `C:\Python33\Scripts\pip.exe`,
             `C:\Python33\Scripts\virtualenv.exe`, `python33`,
@@ -330,7 +331,7 @@ func createConf() UnlockInstallConf {
             `unlock-x86.exe`, `unlock-x86-64.exe`,
             `uninstall-win.exe`, `uninstall.bat`}
     } else {
-        return ParseConf(*confFile)
+        return unlockconf.ParseConf(*confFile)
     }    
 }
 
@@ -401,6 +402,10 @@ func cp(dst, src string) error {
 	return d.Close()
 }
 
+func installConfFile(unlockDir string, conf unlockconf.UnlockInstallConf) {
+    unlockconf.WriteConf(filepath.Join(unlockDir, `conf.json`), conf)
+}
+
 func main() {
 
     flag.Parse()
@@ -413,7 +418,7 @@ func main() {
     log.Printf("conf file = "+*confFile)
     
     var conf = createConf()
-    installUninstaller(conf.BaseUrl, conf.UnlockUninstallerPackageName, conf.UnlockUninstallerBatFile)
+    
     installPython(conf.BaseUrl, conf.PythonPathEnvVar, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
     installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
 	installNumPy(conf.BaseUrl, conf.NumpyPackageName)
@@ -442,7 +447,7 @@ func main() {
         //installScons(conf.PythonPath, conf.BaseUrl, conf.SconsZipName, conf.SconsPackageName, conf.SconsPackageDirectory)
         //installUnlockRunner(conf.BaseUrl, conf.UnlockDirectory, conf.Unlockexe)
         installUnlockExe(conf.BaseUrl, conf.UnlockExeX86PackageName, conf.UnlockExeX64PackageName)
-        WriteConf(filepath.Join(conf.UnlockDirectory, `conf.json`), conf)
+        installConfFile(conf.UnlockDirectory, conf)
         installUninstaller(conf.BaseUrl, conf.UnlockUninstallerPackageName, conf.UnlockUninstallerBatFile)
 	}
 }
