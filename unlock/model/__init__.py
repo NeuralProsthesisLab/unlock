@@ -32,3 +32,4 @@ from unlock.model.offline_data import *
 from unlock.model.grid_state import *
 from unlock.model.fastpad_model import *
 from unlock.model.scope_state import *
+from unlock.model.diagnostic_state import *

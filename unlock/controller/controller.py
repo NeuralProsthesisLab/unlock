@@ -47,10 +47,10 @@ class Canvas(object):
         return self.xcenter(), self.ycenter()
         
     def xcenter(self):
-        return self.width / 2
+        return self.width / 2 + self.x
     
     def ycenter(self):
-        return self.height / 2
+        return self.height / 2 + self.y
         
     @staticmethod
     def create(width, height, xoffset=0, yoffset=0):
@@ -151,7 +151,10 @@ class UnlockController(object):
             return self.handle_stop_request()
         self.update_state(command)
         self.render()
-        
+
+    def handle_stop_request(self):
+        self.deactivate()
+
     def update_state(self, command):
         ''' Subclass hook '''
         pass
@@ -283,7 +286,7 @@ class EEGControllerFragment(UnlockControllerFragment):
         pass
         
     @staticmethod
-    def create_ssvep(canvas, decoder, color='ry'):
+    def create_ssvep(canvas, decoder, color='bw'):
 
         if color == 'ry':
             color1 = (255, 0, 0)
@@ -292,10 +295,10 @@ class EEGControllerFragment(UnlockControllerFragment):
             color1 = (0, 0, 0)
             color2 = (255, 255, 255)
 
-        width = 150
-        height = 150
-        xf = 2
-        yf = 2
+        width = 500
+        height = 100
+        xf = 5
+        yf = 1
         
         stimuli = TimedStimuli.create(4.0)
         views = []
@@ -337,17 +340,33 @@ class EEGControllerFragment(UnlockControllerFragment):
              reversal=False, rotation=90)
         stimuli.add_stimulus(stimulus4)
         views.append(fs4)
-        args = {'targets': freqs, 'duration': 3, 'fs': 256, 'electrodes': 4}
+        args = {'targets': freqs, 'duration': 3, 'fs': 256, 'electrodes': 5}
         ssvep_command_receiver = decoder.create_receiver(args,
                         classifier_type=UnlockClassifier.HarmonicSumDecision)
 
-        eb_args = {'eog_channels': [1, 2], 'rms_threshold': 390000000}
+        eb_args = {'eog_channels': [4], 'strategy': 'count',
+                   'rms_threshold': 4000}
         command_receiver = decoder.create_receiver(eb_args,
                         classifier_type=UnlockClassifier.EyeBlinkDetector,
                         chained_classifier=ssvep_command_receiver)
         return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
         
-        
+    @staticmethod
+    def create_single_ssvep(canvas, command_receiver, frequency, color='ry'):
+        if color == 'ry':
+            color1 = (255, 0, 0)
+            color2 = (255, 255, 0)
+        else:
+            color1 = (0, 0, 0)
+            color2 = (255, 255, 255)
+
+        stimulus = TimedStimulus.create(frequency * 2)
+        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+            stimulus, canvas, SpritePositionComputer.Center, width=300,
+            height=300, xfreq=2, yfreq=2, color_on=color1, color_off=color2,
+            reversal=False)
+        return EEGControllerFragment(command_receiver, stimulus, [fs], canvas.batch)
+
     @staticmethod
     def create_msequence(canvas, signal, timer, color='bw'):
         raise Exception("This was not maintained through changes and needs some love before it is ready to run again..")
@@ -406,5 +425,3 @@ class EEGControllerFragment(UnlockControllerFragment):
         
         command_receiver = RawInlineSignalReceiver(signal, timer)
         return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
-        
-        

@@ -32,5 +32,7 @@
 		"PyAudioPackageName" : "pyaudio-0.2.7.py33.exe",
         "PyWinPackageName" : "pywin32-218.win32-py3.3.exe",
         "UnlockExeX86PackageName" : "unlock-x86.exe",
-        "UnlockExeX64PackageName" : "unlock-x86-64.exe"
+        "UnlockExeX64PackageName" : "unlock-x86-64.exe",
+        "UnlockUninstallerPackageName" : "uninstall-win.exe",
+        "UnlockUninstallerBatFile" : "uninstall.bat"
 }

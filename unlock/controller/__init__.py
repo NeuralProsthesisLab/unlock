@@ -32,3 +32,4 @@ from unlock.controller.fastpad import *
 from unlock.controller.gridspeak import *
 from unlock.controller.gridcursor import *
 from unlock.controller.scope import *
+from unlock.controller.diagnostic import *
