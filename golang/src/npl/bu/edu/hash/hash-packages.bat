@@ -9,3 +9,5 @@ go run hash.go -file C:\Users\User\Documents\unlock\package\pywin32-218.win32-py
 go run hash.go -file C:\Users\User\Documents\unlock\package\unlock-0.3.7-win32.zip
 go run hash.go -file C:\Users\User\Documents\unlock\package\unlock-x86.exe
 go run hash.go -file C:\Users\User\Documents\unlock\package\unlock-x86-64.exe
+go run hash.go -file C:\Users\User\Documents\unlock\package\uninstall-win.exe
+go run hash.go -file C:\Users\User\Documents\unlock\package\uninstall.bat
