@@ -345,7 +345,8 @@ func createConf() UnlockInstallConf {
             `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, `unlock-0.3.7-win32.zip`, `unlock`, `unlock-0.3.7`,
             `scons-2.3.0.zip`, `scons`, `scons-2.3.0`,
             `unlock.exe`, `vcredist_2010_x86.exe`, `pyaudio-0.2.7.py33.exe`, `pywin32-218.win32-py3.3.exe`,
-            `unlock-x86.exe`, `unlock-x86-64.exe`}
+            `unlock-x86.exe`, `unlock-x86-64.exe`,
+            `uninstall-win.exe`, `uninstall.bat`}
     } else {
         return ParseConf(*confFile)
     }    
@@ -379,6 +380,39 @@ func installUnlockExe(baseUrl string, x86FileName string, x64FileName string) {
     }
 }
 
+func installUninstaller(baseUrl string, packageName string, batFile string) {
+    file := downloadAndWriteFile(baseUrl+"/"+packageName, packageName)    
+    err := cp(`C:\Unlock\uninstall-win.exe`, file)
+    if err != nil {
+        log.Fatalln(err)
+    }
+    
+    file = downloadAndWriteFile(baseUrl+"/"+batFile, batFile) 
+    err = cp(`C:\Unlock\uninstall.bat`, file)
+    if err != nil {
+        log.Fatalln(err)
+    }
+}
+
+func cp(dst, src string) error {
+	s, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	// no need to check errors on read only file, we already got everything
+	// we need from the filesystem, so nothing can go wrong now.
+	defer s.Close()
+	d, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(d, s); err != nil {
+		d.Close()
+		return err
+	}
+	return d.Close()
+}
+
 func main() {
 
     flag.Parse()
@@ -391,7 +425,7 @@ func main() {
     log.Printf("conf file = "+*confFile)
     
     var conf = createConf()
-    
+    installUninstaller(conf.BaseUrl, conf.UnlockUninstallerPackageName, conf.UnlockUninstallerBatFile)
     installPython(conf.BaseUrl, conf.PythonPathEnvVar, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
     installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
 	installNumPy(conf.BaseUrl, conf.NumpyPackageName)
@@ -420,5 +454,7 @@ func main() {
         //installScons(conf.PythonPath, conf.BaseUrl, conf.SconsZipName, conf.SconsPackageName, conf.SconsPackageDirectory)
         //installUnlockRunner(conf.BaseUrl, conf.UnlockDirectory, conf.Unlockexe)
         installUnlockExe(conf.BaseUrl, conf.UnlockExeX86PackageName, conf.UnlockExeX64PackageName)
+        WriteConf(filepath.Join(conf.UnlockDirectory, `conf.json`), conf)
+        installUninstaller(conf.BaseUrl, conf.UnlockUninstallerPackageName, conf.UnlockUninstallerBatFile)
 	}
 }

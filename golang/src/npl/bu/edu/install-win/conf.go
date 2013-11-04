@@ -70,6 +70,8 @@ type UnlockInstallConf struct {
     PyWinPackageName string
     UnlockExeX86PackageName string
     UnlockExeX64PackageName string
+    UnlockUninstallerPackageName string
+    UnlockUninstallerBatFile string
 }
  
 func ParseConf(confFile string) UnlockInstallConf {
@@ -83,4 +85,16 @@ func ParseConf(confFile string) UnlockInstallConf {
     json.Unmarshal(file, &conf)
     log.Printf("---------------->%v<----------------\n", conf)
     return conf
+}
+
+func WriteConf(filePath string, conf UnlockInstallConf) {
+    content, err := json.Marshal(&conf)
+    if err != nil {
+        log.Fatalln(err)
+    }
+    
+    err = ioutil.WriteFile(filePath, content, 0744)
+    if err != nil {
+        log.Fatalln(err)
+    }
 }
