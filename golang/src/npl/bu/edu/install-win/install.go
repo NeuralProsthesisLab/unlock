@@ -30,6 +30,7 @@ package main
 
 import (
     "npl/bu/edu/unzip"
+    "npl/bu/edu/conf"
     "net/http"
     "fmt"
     "io/ioutil"
@@ -83,35 +84,27 @@ func unzipExpand(fileName string) {
 }
 
 func downloadAndWriteFile(fileUrl string, fileName string) string {
-    fullPath := defaultPathToWrite(fileName)   
-    return downloadAndWriteFileToPath(fileUrl, fileName, fullPath)
-}
-
-func downloadAndWriteFileToPath(fileUrl string, fileName string, path string) string {
-    return downloadAndWriteFileWithIntegrityCheckToPath(fileUrl, fileName, false, path)
+    if *repoPath == `` {
+        return downloadAndWriteFileWithIntegrityCheck(fileUrl, fileName, false)
+    } else {
+        return filepath.Join(*repoPath, `package`, fileName)
+    }
 }
 
 func downloadAndWriteFileWithIntegrityCheck(fileUrl string, fileName string, skipCheck bool) string {	
-    fullPath := defaultPathToWrite(fileName)   
-    return downloadAndWriteFileWithIntegrityCheckToPath(fileUrl, fileName, skipCheck, fullPath)
-}
-
-func defaultPathToWrite(fileName string) string {
-    return filepath.Join(getDownloadDirectory(), fileName) 
-}
-
-func downloadAndWriteFileWithIntegrityCheckToPath(fileUrl string, fileName string, skipCheck bool, path string) string {
+    fullPath := filepath.Join(getWorkingDirectoryAbsolutePath(), fileName) 
+    
     if !skipCheck {    
         log.Println("Check integrity for file", fileName)
     
-        attemptDownloadCorrectFile(fileUrl, fileName, path)        
+        attemptDownloadCorrectFile(fileUrl, fileName, fullPath)        
     } else {
         log.Println("Skip file integrity check for", fileName)
         
-        downloadAndWrite(fileUrl, fileName, path)
+        downloadAndWrite(fileUrl, fileName, fullPath)
     }
     
-    return path
+    return fullPath
 }
 
 func attemptDownloadCorrectFile(fileUrl string, fileName string, fullPath string) {
@@ -203,16 +196,6 @@ func checkFileExists(path string) (bool, error) {
     if err == nil { return true, nil }
     if os.IsNotExist(err) { return false, nil }
     return false, err
-}
-
-func getDownloadDirectory() string {
-    path := getWorkingDirectoryAbsolutePath()
-    
-    if *repoPath != `` {
-		path = filepath.Join(*repoPath, `package`)
-	}
-    
-    return path
 }
 
 func getWorkingDirectoryAbsolutePath() string {	
@@ -333,9 +316,9 @@ var devOption = flag.Bool("dev", false, "Setup development env")
 var repoPath = flag.String("repo", "", "Path to project's git repo")
 var testDownloadTimeout = flag.Bool("testDownloadTimeout", false, "Test download timeout after 5 attempts to download correct file")
 
-func createConf() UnlockInstallConf {
+func createConf() unlockconf.UnlockInstallConf {
     if *confFile == `` {
-        return UnlockInstallConf {`C:\Unlock`, `http://jpercent.org/unlock/`, `C:\Python33;C:\Python33\Lib;C:\Python33\DLLs`, `python-3.3.2.msi`,
+        return unlockconf.UnlockInstallConf {`C:\Unlock`, `http://jpercent.org/unlock/`, `C:\Python33;C:\Python33\Lib;C:\Python33\DLLs`, `python-3.3.2.msi`,
             `Python-3.3.2`, `C:\Python33`, `C:\Python33\python.exe`, `numpy-MKL-1.7.1.win32-py3.3.exe`,
             `C:\Python33\Scripts\easy_install.exe`, `C:\Python33\Scripts\pip.exe`,
             `C:\Python33\Scripts\virtualenv.exe`, `python33`,
@@ -345,9 +328,10 @@ func createConf() UnlockInstallConf {
             `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, `unlock-0.3.7-win32.zip`, `unlock`, `unlock-0.3.7`,
             `scons-2.3.0.zip`, `scons`, `scons-2.3.0`,
             `unlock.exe`, `vcredist_2010_x86.exe`, `pyaudio-0.2.7.py33.exe`, `pywin32-218.win32-py3.3.exe`,
-            `unlock-x86.exe`, `unlock-x86-64.exe`}
+            `unlock-x86.exe`, `unlock-x86-64.exe`,
+            `uninstall-win.exe`, `uninstall.bat`}
     } else {
-        return ParseConf(*confFile)
+        return unlockconf.ParseConf(*confFile)
     }    
 }
 
@@ -370,13 +354,56 @@ func installUnlockRunner(baseUrl string, unlockDirectory string, unlockexe strin
 func installUnlockExe(baseUrl string, x86FileName string, x64FileName string) {
     hostArch := os.Getenv(`GOHOSTARCH`)
     
+    var file string
     if hostArch == `amd64` {
-        log.Println("Install unlock.exe x64")
-        downloadAndWriteFileToPath(baseUrl+"/"+x64FileName, x64FileName, "C:\\Unlock\\unlock.exe")
+        log.Println("Install unlock.exe x64")        
+        file = downloadAndWriteFile(baseUrl+"/"+x64FileName, x64FileName) 
     } else {
-        log.Println("Install unlock.exe x86")
-        downloadAndWriteFileToPath(baseUrl+"/"+x86FileName, x86FileName, "C:\\Unlock\\unlock.exe")
+        log.Println("Install unlock.exe x86")        
+        file = downloadAndWriteFile(baseUrl+"/"+x86FileName, x86FileName) 
     }
+    
+    err := cp(`C:\Unlock\unlock.exe`, file)
+    if err != nil {
+        log.Fatalln(err)
+    }
+}
+
+func installUninstaller(baseUrl string, packageName string, batFile string) {
+    file := downloadAndWriteFile(baseUrl+"/"+packageName, packageName)    
+    err := cp(`C:\Unlock\uninstall-win.exe`, file)
+    if err != nil {
+        log.Fatalln(err)
+    }
+    
+    file = downloadAndWriteFile(baseUrl+"/"+batFile, batFile) 
+    err = cp(`C:\Unlock\uninstall.bat`, file)
+    if err != nil {
+        log.Fatalln(err)
+    }
+}
+
+func cp(dst, src string) error {
+	s, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	// no need to check errors on read only file, we already got everything
+	// we need from the filesystem, so nothing can go wrong now.
+	defer s.Close()
+	d, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(d, s); err != nil {
+		d.Close()
+		return err
+	}
+	return d.Close()
+}
+
+func installConfFile(unlockDir string, conf unlockconf.UnlockInstallConf) {
+    unlockconf.WriteConf(filepath.Join(unlockDir, `conf.json`), conf)
 }
 
 func main() {
@@ -420,5 +447,7 @@ func main() {
         //installScons(conf.PythonPath, conf.BaseUrl, conf.SconsZipName, conf.SconsPackageName, conf.SconsPackageDirectory)
         //installUnlockRunner(conf.BaseUrl, conf.UnlockDirectory, conf.Unlockexe)
         installUnlockExe(conf.BaseUrl, conf.UnlockExeX86PackageName, conf.UnlockExeX64PackageName)
+        installConfFile(conf.UnlockDirectory, conf)
+        installUninstaller(conf.BaseUrl, conf.UnlockUninstallerPackageName, conf.UnlockUninstallerBatFile)
 	}
 }
