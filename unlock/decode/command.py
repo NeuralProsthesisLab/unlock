@@ -90,6 +90,7 @@ class PygletKeyboardCommand(Command):
             
             
 class RawSignalCommand(Command):
+    TriggerCount = 4
     def __init__(self, delta, raw_data_vector, samples, channels, timer):
         super(RawSignalCommand, self).__init__(delta)
         self.raw_data_vector = raw_data_vector
@@ -248,6 +249,7 @@ class FileSignalReceiver(CommandReceiver):
             # XXX - the rawcmd.make_matrix stuff is a hack.  perhaps this should be a filerawcommand?
             raw_command = RawSignalCommand(delta, matrix, samples/self.signal.channels(), self.signal.channels(), self.timer)
             raw_command.matrix = matrix
+            raw_command.data_matrix = matrix[:,:-RawSignal.TriggerCount]
         else:
             raise EOFError("FileSignalReceiver: FileSignal complete; calls = "+str(self.calls))
             
@@ -297,7 +299,7 @@ class DeltaCommandReceiver(CommandReceiver):
     def next_command(self, delta):
         return Command(delta)
         
-        
+
 class CommandReceiverFactory(object):
     Delta=0
     Raw=1
