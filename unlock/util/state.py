@@ -29,31 +29,32 @@ import time
 
 
 class RunState(object):
-    stopped = 0
-    running = 1
-    resting = 2
+    Stopped = 0
+    Running = 1
+    Resting = 2
+
     def __init__(self):
-        self.stop()
+        self.state = RunState.Stopped
         
     def run(self):
-        self.state = RunState.running
+        self.state = RunState.Running
         
     def rest(self):
-        self.state = RunState.resting
+        self.state = RunState.Resting
         
     def stop(self):
-        self.state = RunState.stopped
+        self.state = RunState.Stopped
         
     def is_running(self):
-        return True if self.state == RunState.running else False
+        return self.state == RunState.Running
         
     def is_resting(self):
-        return True if self.state == RunState.resting else False
+        return self.state == RunState.Resting
         
     def is_stopped(self):
-        return True if self.state == RunState.stopped else False
+        return self.state == RunState.Stopped
 
-        
+
 class TimerState(object):
     """
     Keeps track of elapsed time

@@ -8,31 +8,31 @@ class StateTests(unittest.TestCase):
         
     def testRunState(self):
         run_state = RunState()
-        self.assertEquals(RunState.stopped, run_state.state)
+        self.assertEquals(RunState.Stopped, run_state.state)
         self.assertEquals(True, run_state.is_stopped())
         self.assertEquals(False, run_state.is_running())
         self.assertEquals(False, run_state.is_resting())
 
         run_state.run()
-        self.assertEquals(RunState.running, run_state.state)
+        self.assertEquals(RunState.Running, run_state.state)
         self.assertEquals(False, run_state.is_stopped())
         self.assertEquals(True, run_state.is_running())
         self.assertEquals(False, run_state.is_resting())
         
         run_state.rest()
-        self.assertEquals(RunState.resting, run_state.state)
+        self.assertEquals(RunState.Resting, run_state.state)
         self.assertEquals(False, run_state.is_stopped())
         self.assertEquals(False, run_state.is_running())
         self.assertEquals(True, run_state.is_resting())
         
         run_state.run()
-        self.assertEquals(RunState.running, run_state.state)
+        self.assertEquals(RunState.Running, run_state.state)
         self.assertEquals(False, run_state.is_stopped())
         self.assertEquals(True, run_state.is_running())
         self.assertEquals(False, run_state.is_resting())
                 
         run_state.stop()
-        self.assertEquals(RunState.stopped, run_state.state)
+        self.assertEquals(RunState.Stopped, run_state.state)
         self.assertEquals(True, run_state.is_stopped())
         self.assertEquals(False, run_state.is_running())
         self.assertEquals(False, run_state.is_resting())
@@ -60,7 +60,7 @@ class StateTests(unittest.TestCase):
         trial_state.start()
         start = time.time()
         state, change = trial_state.update_state(0)
-        self.assertEquals(RunState.running, state)
+        self.assertEquals(RunState.Running, state)
         self.assertEquals(TrialState.unchanged, change)
 
 
