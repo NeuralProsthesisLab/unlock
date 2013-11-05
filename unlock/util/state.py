@@ -57,16 +57,22 @@ class RunState(object):
 
 class TimerState(object):
     """
-    Keeps track of elapsed time
+    A timer based off the variable time deltas coming from the system.
+    In the event the timer duration is small i.e. < 100ms, jitter in the delta
+    value can cause problems. Keeping the residual time instead of a full
+    reset has been shown to have better accuracy in this case.
     """
     def __init__(self, duration):
         self.duration = float(duration)
+        self.reset = lambda t: 0
+        if self.duration < 0.1:
+            self.reset = lambda t: t - self.duration
         self.elapsed = 0
         self.last_time = -1
 
     def begin_timer(self):
         # TODO: smarter time adjustment strategy
-        self.elapsed -= self.duration
+        self.elapsed = self.reset(self.elapsed)
         self.last_time = time.time()
         
     def update_timer(self, delta):
