@@ -68,7 +68,7 @@ class TimedStimuli(UnlockModel):
         ret = Trigger.Null
         state, change_value = self.state.update_state(command.delta)
         self.logger.debug("state, change value ", state, change_value)
-        if state == RunState.running:
+        if state == RunState.Running:
             sequence_start_trigger = False
             for stimulus in self.stimuli:
                 sequence_start_trigger = stimulus.process_command(command)
