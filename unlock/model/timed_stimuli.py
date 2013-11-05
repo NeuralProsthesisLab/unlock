@@ -74,9 +74,9 @@ class TimedStimuli(UnlockModel):
                 sequence_start_trigger = stimulus.process_command(command)
             if sequence_start_trigger:
                 ret = Trigger.Start
-        elif change_value == TrialState.rest_expiry:
+        elif change_value == TrialState.RestExpiry:
             self.start()
-        elif change_value == TrialState.trial_expiry:
+        elif change_value == TrialState.TrialExpiry:
             self.pause()
             
         return ret
@@ -85,8 +85,8 @@ class TimedStimuli(UnlockModel):
         raise NotImplementedError()
     
     @staticmethod
-    def create(stimuli_duration):
-        trial_state = TrialState.create(stimuli_duration, 0)
+    def create(stimuli_duration, rest_duration=0):
+        trial_state = TrialState.create(stimuli_duration, rest_duration)
         return TimedStimuli(trial_state)
             
             
