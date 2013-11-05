@@ -52,44 +52,31 @@ class RunState(object):
         
     def is_stopped(self):
         return True if self.state == RunState.stopped else False
+
         
-        
-class TrialTimeState(object):
-    def __init__(self, trial_duration=None, rest_duration=None):
-        self.trial_duration = float(trial_duration)
-        self.rest_duration = float(rest_duration)
-        self.__set_period_duration__()
-        self.trail_end = self.trial_duration
-        self.period_end = self.period_duration
-        self.trial_time = 0      
+class TimerState(object):
+    """
+    Keeps track of elapsed time
+    """
+    def __init__(self, duration):
+        self.duration = float(duration)
+        self.elapsed = 0
         self.last_time = -1
 
-    def __set_period_duration__(self):
-        self.period_duration = self.trial_duration + self.rest_duration
-        
-    def begin_trial(self):
-        self.trial_time -= self.trial_duration
-        #self.trial_end = self.trial_time + self.trial_duration
-        #self.period_end = self.trial_time + self.period_duration
+    def begin_timer(self):
+        # TODO: smarter time adjustment strategy
+        self.elapsed -= self.duration
         self.last_time = time.time()
         
-    def update_trial_time(self, delta):
-        self.trial_time += delta
+    def update_timer(self, delta):
+        self.elapsed += delta
         
-    def is_trial_complete(self):
-        return True if self.trial_time >= self.trial_duration else False
-        
-    def is_rest_complete(self):
-        return True if self.trial_time >= self.period_duration else False
-        
-    def set_trial_duration(self, duration):
-        self.trial_duration = float(duration)
-        self.__set_period_duration__()
-        
-    def set_rest_duration(self, duration):
-        self.reset_duration = float(duration)
-        self.__set_period_duration__()        
-        
+    def is_complete(self):
+        return self.elapsed >= self.duration
+
+    def set_duration(self, duration):
+        self.duration = float(duration)
+
         
 class TrialState():
     unchanged = 0
@@ -100,24 +87,24 @@ class TrialState():
         self.run_state = trial_run_state
         def state_change_fn():
             change_value = self.unchanged
-            if self.run_state.is_running() and self.time_state.is_trial_complete():
+            if self.run_state.is_running() and self.time_state.is_complete():
                 self.run_state.rest()
                 change_value = self.trial_expiry
             elif self.run_state.is_resting() and self.time_state.is_rest_complete():
                 self.run_state.run()
-                self.time_state.begin_trial()
-                change_value = self.rest_expiry                
+                self.time_state.begin_timer()
+                change_value = self.rest_expiry
             return self.run_state.state, change_value
             
         self.update_state_table = state_change_fn
        
     def update_state(self, delta):
-        self.time_state.update_trial_time(delta)
+        self.time_state.update_timer(delta)
         return self.update_state_table()
         
     def start(self):
         self.run_state.run()
-        self.time_state.begin_trial()
+        self.time_state.begin_timer()
         
     def stop(self):
         self.run_state.stop()
@@ -127,7 +114,7 @@ class TrialState():
         
     @staticmethod
     def create(stimuli_duration, rest_duration, run_state=RunState()):
-        return TrialState(TrialTimeState(stimuli_duration, rest_duration), run_state)
+        return TrialState(TimerState(stimuli_duration), run_state)
         
         
 class SequenceState(object):
@@ -155,5 +142,3 @@ class SequenceState(object):
     def is_end(self):
         if self.index+1 == len(self.sequence):
             return True
-            
-            
