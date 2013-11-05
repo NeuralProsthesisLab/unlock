@@ -45,7 +45,7 @@ class ContextTests(unittest.TestCase):
         start = time.time()
         state, change = trial_state.update_state(0)
         self.assertEquals(unlock.util.RunState.Running, state)
-        self.assertEquals(unlock.util.TrialState.unchanged, change)
+        self.assertEquals(unlock.util.TrialState.Unchanged, change)
         self.assertEquals(1.0, trial_state.time_state.trial_duration)
         self.assertEquals(1.0, trial_state.time_state.rest_duration)                
     
@@ -60,7 +60,7 @@ class ContextTests(unittest.TestCase):
         start = time.time()
         state, change = trial_state.update_state(0)
         self.assertEquals(unlock.util.RunState.Running, state)
-        self.assertEquals(unlock.util.TrialState.unchanged, change)
+        self.assertEquals(unlock.util.TrialState.Unchanged, change)
         self.assertEquals(1.0, trial_state.time_state.trial_duration)
         self.assertEquals(1.0, trial_state.time_state.rest_duration)        
             
