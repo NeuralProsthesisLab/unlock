@@ -1,6 +1,6 @@
 
 from .. import ApplicationContext, XMLConfig, PythonConfig, Object
-from unlock.util import TrialTimeState, RunState, TrialState
+from unlock.util import TimerState, RunState, TrialState
 import context
 
 import time
@@ -19,8 +19,8 @@ class TrialStateFactory(PythonConfig):
         return unlock.util.RunState()
             
     @Object(context.PROTOTYPE)
-    def TrialTimeState(self):
-        return TrialTimeState(trial_duration=1.0, rest_duration=1.0)
+    def TimerState(self):
+        return TimerState(duration=1.0)
             
     @Object(context.PROTOTYPE)
     def TrialState(self):
