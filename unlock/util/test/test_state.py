@@ -61,7 +61,7 @@ class StateTests(unittest.TestCase):
         start = time.time()
         state, change = trial_state.update_state(0)
         self.assertEquals(RunState.Running, state)
-        self.assertEquals(TrialState.unchanged, change)
+        self.assertEquals(TrialState.Unchanged, change)
 
 
 def getSuite():
