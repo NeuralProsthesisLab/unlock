@@ -80,32 +80,39 @@ class TimerState(object):
 
         
 class TrialState():
-    unchanged = 0
-    trial_expiry = 1
-    rest_expiry = 2
-    def __init__(self, trial_time_state, trial_run_state):
-        self.time_state = trial_time_state
-        self.run_state = trial_run_state
+    Unchanged = 0
+    TrialExpiry = 1
+    RestExpiry = 2
+
+    def __init__(self, trial_timer, rest_timer, run_state):
+        self.trial_timer = trial_timer
+        self.rest_timer = rest_timer
+        self.run_state = run_state
+        self.active_timer = self.trial_timer
+
         def state_change_fn():
-            change_value = self.unchanged
-            if self.run_state.is_running() and self.time_state.is_complete():
-                self.run_state.rest()
-                change_value = self.trial_expiry
-            elif self.run_state.is_resting() and self.time_state.is_rest_complete():
-                self.run_state.run()
-                self.time_state.begin_timer()
-                change_value = self.rest_expiry
+            change_value = self.Unchanged
+            if self.active_timer.is_complete():
+                if self.run_state.is_running():
+                    self.run_state.rest()
+                    self.active_timer = self.rest_timer
+                    change_value = self.TrialExpiry
+                elif self.run_state.is_resting():
+                    self.run_state.run()
+                    self.active_timer = self.trial_timer
+                    change_value = self.RestExpiry
+                self.active_timer.begin_timer()
             return self.run_state.state, change_value
             
         self.update_state_table = state_change_fn
        
     def update_state(self, delta):
-        self.time_state.update_timer(delta)
+        self.active_timer.update_timer(delta)
         return self.update_state_table()
         
     def start(self):
         self.run_state.run()
-        self.time_state.begin_timer()
+        self.active_timer.begin_timer()
         
     def stop(self):
         self.run_state.stop()
@@ -115,7 +122,9 @@ class TrialState():
         
     @staticmethod
     def create(stimuli_duration, rest_duration, run_state=RunState()):
-        return TrialState(TimerState(stimuli_duration), run_state)
+        trial_timer = TimerState(stimuli_duration)
+        rest_timer = TimerState(rest_duration)
+        return TrialState(trial_timer, rest_timer, run_state)
         
         
 class SequenceState(object):
