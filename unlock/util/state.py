@@ -29,95 +29,96 @@ import time
 
 
 class RunState(object):
-    stopped = 0
-    running = 1
-    resting = 2
+    Stopped = 0
+    Running = 1
+    Resting = 2
+
     def __init__(self):
-        self.stop()
+        self.state = RunState.Stopped
         
     def run(self):
-        self.state = RunState.running
+        self.state = RunState.Running
         
     def rest(self):
-        self.state = RunState.resting
+        self.state = RunState.Resting
         
     def stop(self):
-        self.state = RunState.stopped
+        self.state = RunState.Stopped
         
     def is_running(self):
-        return True if self.state == RunState.running else False
+        return self.state == RunState.Running
         
     def is_resting(self):
-        return True if self.state == RunState.resting else False
+        return self.state == RunState.Resting
         
     def is_stopped(self):
-        return True if self.state == RunState.stopped else False
-        
-        
-class TrialTimeState(object):
-    def __init__(self, trial_duration=None, rest_duration=None):
-        self.trial_duration = float(trial_duration)
-        self.rest_duration = float(rest_duration)
-        self.__set_period_duration__()
-        self.trail_end = self.trial_duration
-        self.period_end = self.period_duration
-        self.trial_time = 0      
+        return self.state == RunState.Stopped
+
+
+class TimerState(object):
+    """
+    A timer based off the variable time deltas coming from the system.
+    In the event the timer duration is small i.e. < 100ms, jitter in the delta
+    value can cause problems. Keeping the residual time instead of a full
+    reset has been shown to have better accuracy in this case.
+    """
+    def __init__(self, duration):
+        self.duration = float(duration)
+        self.reset = lambda t: 0
+        if self.duration < 0.1:
+            self.reset = lambda t: t - self.duration
+        self.elapsed = 0
         self.last_time = -1
 
-    def __set_period_duration__(self):
-        self.period_duration = self.trial_duration + self.rest_duration
-        
-    def begin_trial(self):
-        self.trial_time -= self.trial_duration
-        #self.trial_end = self.trial_time + self.trial_duration
-        #self.period_end = self.trial_time + self.period_duration
+    def begin_timer(self):
+        # TODO: smarter time adjustment strategy
+        self.elapsed = self.reset(self.elapsed)
         self.last_time = time.time()
         
-    def update_trial_time(self, delta):
-        self.trial_time += delta
+    def update_timer(self, delta):
+        self.elapsed += delta
         
-    def is_trial_complete(self):
-        return True if self.trial_time >= self.trial_duration else False
-        
-    def is_rest_complete(self):
-        return True if self.trial_time >= self.period_duration else False
-        
-    def set_trial_duration(self, duration):
-        self.trial_duration = float(duration)
-        self.__set_period_duration__()
-        
-    def set_rest_duration(self, duration):
-        self.reset_duration = float(duration)
-        self.__set_period_duration__()        
-        
+    def is_complete(self):
+        return self.elapsed >= self.duration
+
+    def set_duration(self, duration):
+        self.duration = float(duration)
+
         
 class TrialState():
-    unchanged = 0
-    trial_expiry = 1
-    rest_expiry = 2
-    def __init__(self, trial_time_state, trial_run_state):
-        self.time_state = trial_time_state
-        self.run_state = trial_run_state
+    Unchanged = 0
+    TrialExpiry = 1
+    RestExpiry = 2
+
+    def __init__(self, trial_timer, rest_timer, run_state):
+        self.trial_timer = trial_timer
+        self.rest_timer = rest_timer
+        self.run_state = run_state
+        self.active_timer = self.trial_timer
+
         def state_change_fn():
-            change_value = self.unchanged
-            if self.run_state.is_running() and self.time_state.is_trial_complete():
-                self.run_state.rest()
-                change_value = self.trial_expiry
-            elif self.run_state.is_resting() and self.time_state.is_rest_complete():
-                self.run_state.run()
-                self.time_state.begin_trial()
-                change_value = self.rest_expiry                
+            change_value = self.Unchanged
+            if self.active_timer.is_complete():
+                if self.run_state.is_running():
+                    self.run_state.rest()
+                    self.active_timer = self.rest_timer
+                    change_value = self.TrialExpiry
+                elif self.run_state.is_resting():
+                    self.run_state.run()
+                    self.active_timer = self.trial_timer
+                    change_value = self.RestExpiry
+                self.active_timer.begin_timer()
             return self.run_state.state, change_value
             
         self.update_state_table = state_change_fn
        
     def update_state(self, delta):
-        self.time_state.update_trial_time(delta)
+        self.active_timer.update_timer(delta)
         return self.update_state_table()
         
     def start(self):
         self.run_state.run()
-        self.time_state.begin_trial()
+        self.active_timer.begin_timer()
         
     def stop(self):
         self.run_state.stop()
@@ -127,7 +128,9 @@ class TrialState():
         
     @staticmethod
     def create(stimuli_duration, rest_duration, run_state=RunState()):
-        return TrialState(TrialTimeState(stimuli_duration, rest_duration), run_state)
+        trial_timer = TimerState(stimuli_duration)
+        rest_timer = TimerState(rest_duration)
+        return TrialState(trial_timer, rest_timer, run_state)
         
         
 class SequenceState(object):
@@ -155,5 +158,3 @@ class SequenceState(object):
     def is_end(self):
         if self.index+1 == len(self.sequence):
             return True
-            
-            
