@@ -5,7 +5,7 @@ import (
 )
 
 func Chunk(path string) {
-    fmt.Println(file)
+    fmt.Println(path)
 }
 
 func Reconstruct(path string) {
