@@ -31,6 +31,7 @@ package main
 import (
     "npl/bu/edu/unzip"
     "npl/bu/edu/conf"
+    "npl/bu/edu/chunker"
     "net/http"
     "fmt"
     "io/ioutil"
@@ -88,7 +89,7 @@ func downloadAndWriteFile(fileUrl string, fileName string) string {
     if *repoPath == `` {
         return getOnlineFile(fileUrl, fileName, false)
     } else {
-        return filepath.Join(*repoPath, `package`, fileName)
+        return getOfflineFile(filepath.Join(*repoPath, `package`, fileName))
     }
 }
 
@@ -106,6 +107,30 @@ func getOnlineFile(fileUrl string, fileName string, alwaysGetNewFile bool) strin
     }
     
     return pathToWrite
+}
+
+func getOfflineFile(path string) string {
+    var fileExists bool
+    var err error
+    if fileExists,err = checkFileExists(path); err != nil {
+        log.Fatalln(err)        
+    }
+    
+    if !fileExists {
+        // Check if this is a big file and there exists its smaller parts
+        var partFileExists bool
+        if partFileExists,err = checkFileExists(path+`.part0`); err != nil {
+            log.Fatalln(err)        
+        }
+        
+        if !partFileExists {
+            log.Fatalln(`File`, path, `does not exist`)
+        }
+        
+        chunker.Reconstruct(path)
+    }
+    
+    return path
 }
 
 func downloadIfBadFile(fileUrl string, fullPath string, fileName string) {
