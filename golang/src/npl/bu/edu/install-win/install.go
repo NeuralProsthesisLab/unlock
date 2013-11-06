@@ -32,6 +32,7 @@ import (
     "npl/bu/edu/unzip"
     "npl/bu/edu/conf"
     "npl/bu/edu/chunker"
+    "npl/bu/edu/hashutil"
     "net/http"
     "fmt"
     "io/ioutil"
@@ -42,7 +43,6 @@ import (
     "path/filepath"
     "io"
     "bytes"
-    "crypto/sha1"
     "strings"
 )
 
@@ -188,23 +188,10 @@ func downloadAndWrite(fileUrl string, fullPath string, fileName string) {
 }
 
 func checkSum(filePath string, checksumFileUrl string) bool {
-    computedHash := computeChecksum(filePath)
+    computedHash := hashutil.ComputeChecksum(filePath)
     downloadedHash := downloadChecksum(checksumFileUrl)
     
     return bytes.Compare(computedHash, downloadedHash) == 0 
-}
-
-func computeChecksum(filePath string) []byte {
-    content,err := ioutil.ReadFile(filePath)
-    if err != nil { panic(err) }
-    
-    s1 := sha1.New()
-    s1.Write([]byte(content))
-    hashed := s1.Sum(nil)
-    
-    log.Println(`Computed checksum: `, hashed)
-    
-    return hashed
 }
 
 func downloadChecksum(checksumFileUrl string) []byte {

@@ -4,8 +4,8 @@ import (
     "io/ioutil"
     "flag"
     "log"
-    "crypto/sha1"
     "path/filepath"
+    "npl/bu/edu/hashutil"
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
         fullPath,_ := filepath.Abs(file)
         log.Println("Full path: " + fullPath)
     
-        hash := computeChecksum(fullPath)
+        hash := hashutil.ComputeChecksum(fullPath)
         
         hashFile := fullPath + ".sha1"
         err := ioutil.WriteFile(hashFile, hash, 0755)
@@ -34,17 +34,4 @@ func main() {
     } else {
         log.Fatalln("No file provided")
     }
-}
-
-func computeChecksum(filePath string) []byte {
-    content,err := ioutil.ReadFile(filePath)
-    if err != nil { panic(err) }
-    
-    s1 := sha1.New()
-    s1.Write([]byte(content))
-    hashed := s1.Sum(nil)
-    
-    log.Println(`Computed checksum: `, hashed)
-    
-    return hashed
 }
