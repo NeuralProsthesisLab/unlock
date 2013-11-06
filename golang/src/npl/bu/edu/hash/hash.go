@@ -8,13 +8,13 @@ import (
     "path/filepath"
 )
 
-var file = flag.String("file", "", "File to hash")
-
 func main() {
     flag.Parse()
     
-    if *file != `` {
-        fullPath,_ := filepath.Abs(*file)
+    file := flag.Arg(0)
+    
+    if file != `` {
+        fullPath,_ := filepath.Abs(file)
         log.Println("Full path: " + fullPath)
     
         hash := computeChecksum(fullPath)
