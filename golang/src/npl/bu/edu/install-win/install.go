@@ -86,21 +86,21 @@ func unzipExpand(fileName string) {
 func downloadAndWriteFile(fileUrl string, fileName string) string {
     // Use the files in <repo>/package/ if specified by -repo flag
     if *repoPath == `` {
-        return downloadAndWriteFileWithIntegrityCheck(fileUrl, fileName, false)
+        return getOnlineFile(fileUrl, fileName, false)
     } else {
         return filepath.Join(*repoPath, `package`, fileName)
     }
 }
 
-func downloadAndWriteFileWithIntegrityCheck(fileUrl string, fileName string, skipCheck bool) string {	
+func getOnlineFile(fileUrl string, fileName string, alwaysGetNewFile bool) string {	
     pathToWrite := filepath.Join(getWorkingDirectoryAbsolutePath(), fileName) 
     
-    if !skipCheck {    
-        log.Println("Check integrity for file", fileName)
+    if !alwaysGetNewFile {    
+        log.Println("Attempt to use existing", fileName)
     
-        attemptDownloadCorrectFile(fileUrl, pathToWrite, fileName)        
+        downloadIfBadFile(fileUrl, pathToWrite, fileName)        
     } else {
-        log.Println("Skip file integrity check for", fileName)
+        log.Println("Get new", fileName)
         
         downloadAndWrite(fileUrl, pathToWrite, fileName)
     }
@@ -108,10 +108,10 @@ func downloadAndWriteFileWithIntegrityCheck(fileUrl string, fileName string, ski
     return pathToWrite
 }
 
-func attemptDownloadCorrectFile(fileUrl string, fullPath string, fileName string) {
+func downloadIfBadFile(fileUrl string, fullPath string, fileName string) {
     isFileExist,_ := checkFileExists(fullPath)    
     if !isFileExist {        
-        downloadAndWrite(fileUrl, fileName, fullPath)
+        downloadAndWrite(fileUrl, fullPath, fileName)
     }     
     
     // Use fake sha1 if testing
@@ -129,7 +129,7 @@ func attemptDownloadCorrectFile(fileUrl string, fullPath string, fileName string
     for numAttempt = 0; numAttempt < 5 && !isFileGood; numAttempt++ {            
         log.Println("File corrupted or outdated. Downloading new file")
             
-        downloadAndWrite(fileUrl, fileName, fullPath)                    
+        downloadAndWrite(fileUrl, fullPath, fileName)                    
         isFileGood = checkSum(fullPath, sha1Url)
     }
         
@@ -183,7 +183,7 @@ func downloadChecksum(checksumFileUrl string) []byte {
     urlPieces := strings.Split(checksumFileUrl, "/")
     fileName := urlPieces[len(urlPieces)-1]
     
-    checksumFile := downloadAndWriteFileWithIntegrityCheck(checksumFileUrl, fileName, true)  
+    checksumFile := getOnlineFile(checksumFileUrl, fileName, true)  
     
     content,err := ioutil.ReadFile(checksumFile)
     if err != nil { panic(err) }
