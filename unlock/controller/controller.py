@@ -300,7 +300,7 @@ class EEGControllerFragment(UnlockControllerFragment):
         xf = 5
         yf = 1
         
-        stimuli = TimedStimuli.create(4.0)
+        stimuli = TimedStimuli.create(3.0, 1.0)
         views = []
         
         freqs = [12.0, 13.0, 14.0, 15.0]
