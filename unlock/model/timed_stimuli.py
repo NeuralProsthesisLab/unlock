@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.util import TrialState, TrialTimeState, RunState, Trigger, SequenceState
+from unlock.util import TrialState, TimerState, RunState, Trigger, SequenceState
 from unlock.model.model import UnlockModel
 
 import logging
@@ -68,15 +68,15 @@ class TimedStimuli(UnlockModel):
         ret = Trigger.Null
         state, change_value = self.state.update_state(command.delta)
         self.logger.debug("state, change value ", state, change_value)
-        if state == RunState.running:
+        if state == RunState.Running:
             sequence_start_trigger = False
             for stimulus in self.stimuli:
                 sequence_start_trigger = stimulus.process_command(command)
             if sequence_start_trigger:
                 ret = Trigger.Start
-        elif change_value == TrialState.rest_expiry:
+        elif change_value == TrialState.RestExpiry:
             self.start()
-        elif change_value == TrialState.trial_expiry:
+        elif change_value == TrialState.TrialExpiry:
             self.pause()
             
         return ret
@@ -85,8 +85,8 @@ class TimedStimuli(UnlockModel):
         raise NotImplementedError()
     
     @staticmethod
-    def create(stimuli_duration):
-        trial_state = TrialState.create(stimuli_duration, 0)
+    def create(stimuli_duration, rest_duration=0):
+        trial_state = TrialState.create(stimuli_duration, rest_duration)
         return TimedStimuli(trial_state)
             
             
@@ -111,9 +111,8 @@ class TimedStimulus(UnlockModel):
     def start(self):
         self.seq_state.start()
         self.state = self.seq_state.state()
-        self.time_state.begin_trial()
-            
-            
+        self.time_state.begin_timer()
+
     def stop(self):
         self.state = False
             
@@ -121,12 +120,15 @@ class TimedStimulus(UnlockModel):
         """
         Updates the stimulus to the next state in the presentation
         sequence if the trial time is exceeded.
-        
+
+        Note: the usage of "trial" here is incorrect. a trial is defined by the
+         experimental paradigm, this is simply the refresh or display rate
+
         A value of Trigger.Start is returned at the start of the sequence.
         """
         trigger_value = Trigger.Null
-        self.time_state.update_trial_time(command.delta)
-        if self.time_state.is_trial_complete():
+        self.time_state.update_timer(command.delta)
+        if self.time_state.is_complete():
             self.state = self.seq_state.state()
             if self.seq_state.is_start():
                 start_trigger = Trigger.Start
@@ -138,7 +140,7 @@ class TimedStimulus(UnlockModel):
                 else:
                     trigger_value = Trigger.Repeat
                     
-            self.time_state.begin_trial()
+            self.time_state.begin_timer()
             self.seq_state.step()
             #self.logger.debug("TimedStimulus trial complete; next state = ", self.state)
         return trigger_value
@@ -146,8 +148,6 @@ class TimedStimulus(UnlockModel):
     @staticmethod
     def create(rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x), repeat_count=1):
         flick_rate = 1.0/rate
-        time_state = TrialTimeState(flick_rate, 0)
+        time_state = TimerState(flick_rate)
         seq_state = SequenceState(sequence, value_transformer_fn)
         return TimedStimulus(time_state, seq_state, repeat_count=repeat_count)
-            
-         
