@@ -134,8 +134,12 @@ func getOfflineFile(path string) string {
 }
 
 func downloadIfBadFile(fileUrl string, fullPath string, fileName string) {
-    isFileExist,_ := checkFileExists(fullPath)    
-    if !isFileExist {        
+    var isFileExist bool
+    var err error
+    isFileExist,err = checkFileExists(fullPath)  
+    if err != nil {
+        log.Fatalln(err)
+    } else if !isFileExist {        
         downloadAndWrite(fileUrl, fullPath, fileName)
     }     
     
