@@ -84,6 +84,7 @@ func unzipExpand(fileName string) {
 }
 
 func downloadAndWriteFile(fileUrl string, fileName string) string {
+    // Use the files in <repo>/package/ if specified by -repo flag
     if *repoPath == `` {
         return downloadAndWriteFileWithIntegrityCheck(fileUrl, fileName, false)
     } else {
@@ -92,27 +93,28 @@ func downloadAndWriteFile(fileUrl string, fileName string) string {
 }
 
 func downloadAndWriteFileWithIntegrityCheck(fileUrl string, fileName string, skipCheck bool) string {	
-    fullPath := filepath.Join(getWorkingDirectoryAbsolutePath(), fileName) 
+    pathToWrite := filepath.Join(getWorkingDirectoryAbsolutePath(), fileName) 
     
     if !skipCheck {    
         log.Println("Check integrity for file", fileName)
     
-        attemptDownloadCorrectFile(fileUrl, fileName, fullPath)        
+        attemptDownloadCorrectFile(fileUrl, pathToWrite, fileName)        
     } else {
         log.Println("Skip file integrity check for", fileName)
         
-        downloadAndWrite(fileUrl, fileName, fullPath)
+        downloadAndWrite(fileUrl, pathToWrite, fileName)
     }
     
-    return fullPath
+    return pathToWrite
 }
 
-func attemptDownloadCorrectFile(fileUrl string, fileName string, fullPath string) {
+func attemptDownloadCorrectFile(fileUrl string, fullPath string, fileName string) {
     isFileExist,_ := checkFileExists(fullPath)    
     if !isFileExist {        
         downloadAndWrite(fileUrl, fileName, fullPath)
     }     
     
+    // Use fake sha1 if testing
     var sha1Url string
     if (!*testDownloadTimeout) {
         sha1Url = fileUrl+".sha1"
@@ -138,7 +140,7 @@ func attemptDownloadCorrectFile(fileUrl string, fileName string, fullPath string
     }
 }
 
-func downloadAndWrite(fileUrl string, fileName string, fullPath string) {
+func downloadAndWrite(fileUrl string, fullPath string, fileName string) {
     log.Println("Downloading file "+fileName+" from URL = "+fileUrl)
     resp, err := http.Get(fileUrl)
     if err != nil {
@@ -177,7 +179,7 @@ func computeChecksum(filePath string) []byte {
 }
 
 func downloadChecksum(checksumFileUrl string) []byte {
-    // Get filename from url
+    // Get checksum filename from url
     urlPieces := strings.Split(checksumFileUrl, "/")
     fileName := urlPieces[len(urlPieces)-1]
     
