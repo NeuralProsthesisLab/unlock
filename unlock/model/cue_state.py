@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.util import TrialTimeState, Trigger
+from unlock.util import TimerState, Trigger
 from unlock.model.model import UnlockModel
 from random import Random
     
@@ -119,7 +119,7 @@ class CueState(UnlockModel):
         
     def start(self):
         assert self.transition_fn != None        
-        self.trial_time_state.begin_trial()
+        self.trial_time_state.begin_timer()
         self.state = True
         
     def stop(self):
@@ -128,14 +128,14 @@ class CueState(UnlockModel):
     def process_command(self, command):
         assert self.transition_fn != None
         ret = Trigger.Null
-        self.trial_time_state.update_trial_time(command.delta)
-        if self.trial_time_state.is_trial_complete():
+        self.trial_time_state.update_timer(command.delta)
+        if self.trial_time_state.is_complete():
             ret = self.transition_fn()
         return ret
             
     @staticmethod
     def create(state_id, duration):
-        time_state = TrialTimeState(duration, 0)
+        time_state = TimerState(duration)
         return CueState(state_id, time_state)
         
 
@@ -194,7 +194,7 @@ class DynamicPositionCueState(CueState):
           
     @staticmethod
     def create(state_id, duration, screen_height, height, screen_width, width, radius=1):
-        time_state = TrialTimeState(duration, 0)
+        time_state = TimerState(duration)
         return DynamicPositionCueState(state_id, time_state, screen_height, height, screen_width, width, radius)
         
         
@@ -265,5 +265,3 @@ class MultipleSequentialTimedStimuliCueState(UnlockModel):
             ret = trigger_value
             self.state = self.stimulus.get_state()            
         return ret
-        
-                               
