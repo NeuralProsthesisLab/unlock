@@ -275,7 +275,7 @@ class sEMGControllerFragment(UnlockControllerFragment):
         
 class EEGControllerFragment(UnlockControllerFragment):
     def __init__(self, command_receiver, timed_stimuli, views, batch):
-        assert timed_stimuli != None
+        assert timed_stimuli is not None
         super(EEGControllerFragment, self).__init__(timed_stimuli, views, batch)
         self.command_receiver = command_receiver
         
@@ -340,12 +340,18 @@ class EEGControllerFragment(UnlockControllerFragment):
              reversal=False, rotation=90)
         stimuli.add_stimulus(stimulus4)
         views.append(fs4)
-        args = {'targets': freqs, 'duration': 3, 'fs': 256, 'electrodes': 5}
+
+        # TODO: this should be created at this level and passed in, not pulled
+        # out
+        task_state = stimuli.state
+
+        args = {'task_state': task_state, 'targets': freqs, 'duration': 3,
+                'fs': 256, 'electrodes': 5}
         ssvep_command_receiver = decoder.create_receiver(args,
                         classifier_type=UnlockClassifier.HarmonicSumDecision)
 
-        eb_args = {'eog_channels': [4], 'strategy': 'count',
-                   'rms_threshold': 4000}
+        eb_args = {'task_state': task_state, 'eog_channels': [4],
+                   'strategy': 'count', 'rms_threshold': 4000}
         command_receiver = decoder.create_receiver(eb_args,
                         classifier_type=UnlockClassifier.EyeBlinkDetector,
                         chained_classifier=ssvep_command_receiver)
