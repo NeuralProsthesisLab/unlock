@@ -135,8 +135,8 @@ class CommandReceiver(object):
         raise NotImplementedError("Every CommandReceiver must implement the next_command method")
         
     def stop(self):
-        raise NotImplementedError("Every CommandReceiver must implement the stop method")
-        
+        pass
+
             
 class CommandSenderInterface(object):
     def send(self, command):
@@ -230,10 +230,7 @@ class ClassifiedCommandReceiver(CommandReceiver):
         assert classified_command != None
         return classified_command
         
-    def stop(self):
-        pass
-            
-
+        
 class FileSignalReceiver(CommandReceiver):
     def __init__(self, signal, timer):
         super(FileSignalReceiver, self).__init__()        
@@ -256,9 +253,6 @@ class FileSignalReceiver(CommandReceiver):
         assert raw_command != None
         return raw_command
             
-    def stop(self):
-        pass
-        
         
 class RawInlineSignalReceiver(CommandReceiver):
     def __init__(self, signal, timer):
@@ -288,10 +282,8 @@ class RawInlineSignalReceiver(CommandReceiver):
         
         return raw_command
             
-    def stop(self):
-        pass
-        
-        
+            
+            
 class DeltaCommandReceiver(CommandReceiver):
     def __init__(self):
         super(DeltaCommandReceiver, self).__init__()
@@ -299,7 +291,47 @@ class DeltaCommandReceiver(CommandReceiver):
     def next_command(self, delta):
         return Command(delta)
         
-
+        
+class FileSignalReceiver(CommandReceiver):
+    def __init__(self, signal, timer):
+        super(FileSignalReceiver, self).__init__()        
+        self.signal = signal
+        self.timer = timer
+        self.calls = 0
+        
+    def next_command(self, delta):
+        samples = self.signal.acquire()
+        self.calls += 1
+        if samples is not None and samples > 0:
+            matrix = self.signal.getdata(samples)
+            # XXX - the rawcmd.make_matrix stuff is a hack.  perhaps this should be a filerawcommand?
+            raw_command = RawSignalCommand(delta, matrix, samples/self.signal.channels(), self.signal.channels(), self.timer)
+            raw_command.matrix = matrix
+            raw_command.data_matrix = matrix[:,:-RawSignal.TriggerCount]
+        else:
+            raise EOFError("FileSignalReceiver: FileSignal complete; calls = "+str(self.calls))
+            
+        assert raw_command != None
+        return raw_command
+            
+            
+class SyntheticCommandReceiver(CommandReceiver):
+    def __init__(self, signal, timer, command_receiver=None):
+        self.signal = signal
+        if command_receiver == None:
+            self.next_command = lambda delta, data, samples, channels, timer: RawCommand(delta,\
+                                                                data, samples, channels, timer)
+            
+    def next_command(self, samples=None):
+        matrix = self.signal.generate_samples(samples)
+        if samples is not None:
+            assert samples == matrix.size
+        raw_command = self.next_command(delta, matrix, b.size, self.signal.channels(), self.timer)
+        if raw_command.is_valid():
+            # XXX - make_matrix stuff is messy and, perhaps, should be refactored
+            raw_command.make_matrix()
+            
+     
 class CommandReceiverFactory(object):
     Delta=0
     Raw=1
