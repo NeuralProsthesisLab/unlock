@@ -94,19 +94,49 @@ func downloadAndWriteFile(fileUrl string, fileName string) string {
 }
 
 func getOnlineFile(fileUrl string, fileName string, alwaysGetNewFile bool) string {	
-    pathToWrite := filepath.Join(getWorkingDirectoryAbsolutePath(), fileName) 
+    fileUrls := []string {fileUrl}
+    fileNames := []string {fileName}
+    finalPath := filepath.Join(getWorkingDirectoryAbsolutePath(), fileName) 
     
-    if !alwaysGetNewFile {    
-        log.Println("Attempt to use existing", fileName)
+    // Check if big file
+    // 1. Check if whole file exists
+    resp, err := http.Head(fileUrl)
+    if err != nil {
+        log.Fatalln(err)
+    }
+    defer resp.Body.Close()
     
-        downloadIfBadFile(fileUrl, pathToWrite, fileName)        
-    } else {
-        log.Println("Get new", fileName)
+    // 2. Check if small parts exists
+    if resp.StatusCode == 404 {
+        resp, err = http.Head(fileUrl+`.part0`)
+        if err != nil {
+            log.Fatalln(err)
+        }
+        defer resp.Body.Close()
         
-        downloadAndWrite(fileUrl, pathToWrite, fileName)
+        if resp.StatusCode == 404 {
+            log.Fatalln(`File`, fileUrl, `not found`)
+        } else {
+            
+        }
+    }
+
+    // Download file (or parts of big file)
+    for i := 0; i < len(fileUrls); i++ { 
+        pathToWrite := filepath.Join(getWorkingDirectoryAbsolutePath(), fileNames[i]) 
+        
+        if !alwaysGetNewFile {    
+            log.Println("Get new if not existing:", fileNames[i])
+        
+            downloadIfBadFile(fileUrls[i], pathToWrite, fileNames[i])        
+        } else {
+            log.Println("Always get new:", fileNames[i])
+            
+            downloadAndWrite(fileUrls[i], pathToWrite, fileNames[i])
+        }
     }
     
-    return pathToWrite
+    return finalPath
 }
 
 func getOfflineFile(path string) string {
