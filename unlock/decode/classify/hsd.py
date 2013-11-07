@@ -27,6 +27,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from unlock.decode.classify.classify import UnlockClassifier
+from unlock.util import TrialState
 import numpy as np
 
 
@@ -37,24 +38,28 @@ class HarmonicSumDecision(UnlockClassifier):
     frequencies and their harmonics. The target with the highest sum is chosen
     as the attended frequency.
     """
-    def __init__(self, targets=[12.0, 13.0, 14.0, 15.0], duration=3, fs=500, electrodes=8, filters=None):
-        super(HarmonicSumDecision, self).__init__()
+    def __init__(self, task_state=None, targets=(12.0, 13.0, 14.0, 15.0),
+                 duration=3, fs=500, electrodes=8, filters=None):
+        assert task_state is not None
+        super(HarmonicSumDecision, self).__init__(task_state)
         self.targets = targets
         self.target_window = 0.1
         self.fs = fs
         self.electrodes = electrodes
-        self.nSamples = int(duration * fs)
+        self.n_samples = int(duration * fs)
         self.overflow = 256
-        self.buffer = np.zeros((self.nSamples + self.overflow, electrodes))
+        self.buffer = np.zeros((self.n_samples + self.overflow, electrodes))
         self.cursor = 0
         self.filters = filters
+
+        self.enabled = True
 
         self.fft_params()
 
     def fft_params(self):
         """Determine all the relevant parameters for fft analysis"""
         i = 2
-        while i <= self.nSamples:
+        while i <= self.n_samples:
             i *= 2
         self.nfft = i
         self.window = 1 #np.hanning(self.nSamples).reshape((self.nSamples, 1))
@@ -82,10 +87,18 @@ class HarmonicSumDecision(UnlockClassifier):
         """
         command contains a data matrix of samples assumed to be an ndarray of
          shape (samples, electrodes+)
-
-        command can also contain directives to reset the buffer
         """
         if not command.is_valid():
+            return command
+
+        classify_now = False
+        if self.task_state.last_change == TrialState.RestExpiry:
+            self.enabled = True
+            self.cursor = 0
+        elif self.task_state.last_change == TrialState.TrialExpiry:
+            self.enabled = False
+            classify_now = True
+        elif not self.enabled:
             return command
 
         samples = command.matrix[:, 0:self.electrodes]
@@ -93,8 +106,8 @@ class HarmonicSumDecision(UnlockClassifier):
         self.buffer[self.cursor:self.cursor+s, :] = samples
         self.cursor += s
 
-        if self.cursor >= self.nSamples:
-            x = self.buffer[0:self.nSamples]
+        if self.cursor >= self.n_samples or classify_now:
+            x = self.buffer[0:self.cursor]
             #if self.filters is not None:
             #    x = self.filters.apply(x)
             x = x[:, 1:4]# - x[:, 6].reshape((len(x), 1))
@@ -106,7 +119,7 @@ class HarmonicSumDecision(UnlockClassifier):
             d = np.argmax(sums)
             np.set_printoptions(precision=2)
             print("HSD: %d (%.1f Hz)" % (d+1, self.targets[d]),
-                sums / np.max(sums))
+                sums / np.max(sums), self.cursor)
             ## TODO: roll any leftover samples to the beginning of the buffer
             self.cursor = 0
             command.decision = d + 1

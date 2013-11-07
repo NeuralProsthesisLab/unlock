@@ -29,21 +29,23 @@
 
 import unlock.decode 
 
+
 class UnlockClassifier(object):
     HarmonicSumDecision = 0
     EyeBlinkDetector = 1
 
-    def __init__(self):
+    def __init__(self, task_state=None):
         super(UnlockClassifier, self).__init__()
+        self.task_state = task_state
         
     def classify(self, command):
         pass
         
     @staticmethod
-    def create(classifier, args):
+    def create(classifier, kwargs):
         if classifier == UnlockClassifier.HarmonicSumDecision or classifier is None:
-            return unlock.decode.HarmonicSumDecision(**args)
+            return unlock.decode.HarmonicSumDecision(**kwargs)
         elif classifier == UnlockClassifier.EyeBlinkDetector:
-            return unlock.decode.EyeBlinkDetector(**args)
+            return unlock.decode.EyeBlinkDetector(**kwargs)
         else:
             raise Exception("FML")
