@@ -67,7 +67,8 @@ class FrequencyScope(UnlockControllerFragment):
     @staticmethod
     def create_frequency_scope_fragment(canvas, **kwargs):
         scope_model = FrequencyScopeState(**kwargs)
-        scope_view = FrequencyScopeView(scope_model, canvas)
+        scope_view = FrequencyScopeView(scope_model, canvas,
+                                        labels=scope_model.labels)
         assert canvas is not None
         scope = FrequencyScope(scope_model, [scope_view], canvas.batch)
         return scope
