@@ -89,13 +89,14 @@ class TimeScopeState(UnlockModel):
 
 class FrequencyScopeState(UnlockModel):
     def __init__(self, n_channels=1, fs=256, duration=2, nfft=None,
-                 freq_range=None, display_channels=None):
+                 freq_range=None, display_channels=None, labels=None):
         super(FrequencyScopeState, self).__init__()
 
         self.n_channels = n_channels
         self.fs = fs
         self.duration = duration
         self.nfft = nfft
+        self.labels = labels
         self.n_samples = self.duration * self.fs
         self.data = np.zeros((self.n_samples, self.n_channels))
 
