@@ -58,6 +58,9 @@ class UnlockFactory(context.PythonConfig):
             
         if 'mac_addr' in self.args.keys():
             self.mac_addr = [int(value,0) for value in [x.strip() for x in self.args['mac_addr'].split(',')]]
+
+        if 'com_port' in self.args.keys():
+            self.com_port = self.args['com_port']
     
     @context.Object(lazy_init=True)
     def HarmonicSumDecision(self):
