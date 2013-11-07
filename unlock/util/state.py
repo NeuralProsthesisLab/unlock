@@ -95,6 +95,7 @@ class TrialState():
         self.rest_timer = rest_timer
         self.run_state = run_state
         self.active_timer = self.trial_timer
+        self.last_change = self.Unchanged
 
         def state_change_fn():
             change_value = self.Unchanged
@@ -108,6 +109,7 @@ class TrialState():
                     self.active_timer = self.trial_timer
                     change_value = self.RestExpiry
                 self.active_timer.begin_timer()
+            self.last_change = change_value
             return self.run_state.state, change_value
             
         self.update_state_table = state_change_fn

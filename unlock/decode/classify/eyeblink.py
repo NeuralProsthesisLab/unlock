@@ -34,9 +34,9 @@ class EyeBlinkDetector(UnlockClassifier):
     SelectionEvent = 1
     EscapeEvent = 2
 
-    def __init__(self, eog_channels=(5, 7), strategy='length',
+    def __init__(self, task_state=None, eog_channels=(5, 7), strategy='length',
                  rms_threshold=60000):
-        super(EyeBlinkDetector, self).__init__()
+        super(EyeBlinkDetector, self).__init__(task_state)
 
         # blink detection method
         if strategy == 'length':
