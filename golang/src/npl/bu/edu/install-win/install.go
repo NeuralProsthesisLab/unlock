@@ -44,6 +44,7 @@ import (
     "io"
     "bytes"
     "strings"
+    "strconv"
 )
 
 func runCommand(command string, errorMsg string, failOnError bool) bool {
@@ -87,26 +88,23 @@ func unzipExpand(fileName string) {
 func downloadAndWriteFile(fileUrl string, fileName string) string {
     // Use the files in <repo>/package/ if specified by -repo flag
     if *repoPath == `` {
-        return getOnlineFile(fileUrl, fileName, false)
+        return getOnlineFile(fileUrl, fileName)
     } else {
         return getOfflineFile(filepath.Join(*repoPath, `package`, fileName))
     }
 }
 
-func getOnlineFile(fileUrl string, fileName string, alwaysGetNewFile bool) string {	
-    fileUrls := []string {fileUrl}
-    fileNames := []string {fileName}
+func getOnlineFile(fileUrl string, fileName string) string {	
     finalPath := filepath.Join(getWorkingDirectoryAbsolutePath(), fileName) 
     
-    // Check if big file
-    // 1. Check if whole file exists
+    // HEAD request to see if file exist on server
     resp, err := http.Head(fileUrl)
     if err != nil {
         log.Fatalln(err)
     }
     defer resp.Body.Close()
     
-    // 2. Check if small parts exists
+    // If whole file does not exist    
     if resp.StatusCode == 404 {
         resp, err = http.Head(fileUrl+`.part0`)
         if err != nil {
@@ -114,27 +112,34 @@ func getOnlineFile(fileUrl string, fileName string, alwaysGetNewFile bool) strin
         }
         defer resp.Body.Close()
         
+        // If small parts do not exist    
         if resp.StatusCode == 404 {
             log.Fatalln(`File`, fileUrl, `not found`)
-        } else {
             
-        }
-    }
-
-    // Download file (or parts of big file)
-    for i := 0; i < len(fileUrls); i++ { 
-        pathToWrite := filepath.Join(getWorkingDirectoryAbsolutePath(), fileNames[i]) 
-        
-        if !alwaysGetNewFile {    
-            log.Println("Get new if not existing:", fileNames[i])
-        
-            downloadIfBadFile(fileUrls[i], pathToWrite, fileNames[i])        
+        // Else, it must be big file
         } else {
-            log.Println("Always get new:", fileNames[i])
+            // Download parts
+            for i := 0; resp.StatusCode != 404; i++ {
+                pathToWrite := filepath.Join(getWorkingDirectoryAbsolutePath(), fileName+`.part`+strconv.Itoa(i))             
+                downloadIfBadFile(fileUrl+`.part`+strconv.Itoa(i), pathToWrite, fileName+`.part`+strconv.Itoa(i))        
+                                
+                resp, err = http.Head(fileUrl+`.part`+strconv.Itoa(i+1))
+                if err != nil {
+                    log.Fatalln(`Error getting part`, strconv.Itoa(i)+`:`, err)
+                }
+                defer resp.Body.Close()
+            }
             
-            downloadAndWrite(fileUrls[i], pathToWrite, fileNames[i])
+            // Reconstruct
+            downloadAndWrite(fileUrl+`.sha1`, finalPath+`.sha1`, fileName+`.sha1`)
+            chunker.Reconstruct(finalPath)
         }
-    }
+        
+    // Else, download like normal
+    } else {
+        pathToWrite := finalPath 
+        downloadIfBadFile(fileUrl, pathToWrite, fileName)           
+    }    
     
     return finalPath
 }
@@ -229,7 +234,8 @@ func downloadChecksum(checksumFileUrl string) []byte {
     urlPieces := strings.Split(checksumFileUrl, "/")
     fileName := urlPieces[len(urlPieces)-1]
     
-    checksumFile := getOnlineFile(checksumFileUrl, fileName, true)  
+    checksumFile := filepath.Join(getWorkingDirectoryAbsolutePath(), fileName)
+    downloadAndWrite(checksumFileUrl, checksumFile, fileName)  
     
     content,err := ioutil.ReadFile(checksumFile)
     if err != nil { panic(err) }
