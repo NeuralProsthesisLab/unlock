@@ -2,8 +2,8 @@ package chunker
 
 import (
     "os"
-    "io"
     "strconv"
+    "log"
 )
 
 func Chunk(path string) {
@@ -26,7 +26,7 @@ func Chunk(path string) {
         }
     }()
 
-    n := 1  
+    readIndex := 0  
     i := 0
     for {
         // open output file
@@ -34,25 +34,35 @@ func Chunk(path string) {
         if err != nil { panic(err) }
         // close fo on exit and check for its returned error
         defer func() {
+            finfo,err := fo.Stat()
+            if err != nil { panic(err) } 
+        
             if err := fo.Close(); err != nil {
                 panic(err)
+            }            
+                       
+            if finfo.Size() == 0 {
+                os.Remove(fo.Name())
             }
         }()
 
         // make a buffer to keep chunks that are read
         buf := make([]byte, 50000000)
-        for {
-            // read a chunk
-            n, err = fi.ReadAt(buf, int64(n-1))
-            if err != nil && err != io.EOF { panic(err) }
-            if n == 0 { return }
+        // read a chunk
+        log.Println(`readIndex =`, readIndex)
+        byteRead, err := fi.ReadAt(buf, int64(readIndex))    
+        log.Println(`Read`, byteRead, `bytes`)
+        // Somehow ReadAt() returns EOF != io.EOF so we have to manually compare like this
+        if err != nil && err.Error() != `read `+fi.Name()+`: Reached the end of the file.` { panic(err) }
+        if byteRead == 0 { break }
 
-            // write a chunk
-            if _, err := fo.Write(buf[:n]); err != nil {
-                panic(err)
-            }
+        // write a chunk
+        log.Println(`Begin writing`)
+        if _, err := fo.Write(buf[:byteRead]); err != nil {
+            panic(err)
         }
         
+        readIndex += byteRead        
         i++
     }
 }
