@@ -123,9 +123,10 @@ class FrequencyScopeView(UnlockView):
             values = zip(x, y)
             vertices = [point for points in values for point in points]
             self.traces.append(self.drawLinePlot(vertices, canvas))
-            freq_labels = np.linspace(self.model.freq_begin,
-                                      self.model.freq_end, 5)
-            labels = ["%.2f" % f for f in freq_labels]
+            if labels is None:
+                freq_labels = np.linspace(self.model.freq_begin,
+                                          self.model.freq_end, 5)
+                labels = ["%.2f" % f for f in freq_labels]
             self.axes.append(self.generate_axis(
                 x[0], y[0], x[-1], y[0], canvas, labels=labels))
 
@@ -141,7 +142,7 @@ class FrequencyScopeView(UnlockView):
         if labels is not None:
             x_points = np.linspace(x1, x2, len(labels))
             for i, x in enumerate(x_points):
-                lines.append(self.drawText(labels[i], x, y1 - 15, canvas,
+                lines.append(self.drawText(str(labels[i]), x, y1 - 15, canvas,
                                            size=12))
         return lines
 
