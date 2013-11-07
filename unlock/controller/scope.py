@@ -45,11 +45,14 @@ class TimeScope(UnlockControllerFragment):
         return scope
         
     @staticmethod
-    def create_time_scope(window, decoder, **kwargs):
+    def create_time_scope(window, decoder, base=None, **kwargs):
         canvas = Canvas.create(window.width, window.height)        
         scope = TimeScope.create_time_scope_fragment(canvas, **kwargs)
-        command_receiver = CommandReceiverFactory.create(
-            CommandReceiverFactory.Raw, decoder.signal, decoder.timer)
+        if base is None:
+            command_receiver = CommandReceiverFactory.create(
+                CommandReceiverFactory.Raw, decoder.signal, decoder.timer)
+        else:
+            command_receiver = base.command_receiver
 
         controller_chain = UnlockControllerChain(window, command_receiver,
                                                  [scope], 'TimeScope',
@@ -74,12 +77,15 @@ class FrequencyScope(UnlockControllerFragment):
         return scope
 
     @staticmethod
-    def create_frequency_scope(window, decoder, **kwargs):
+    def create_frequency_scope(window, decoder, base=None, **kwargs):
         canvas = Canvas.create(window.width, window.height)
         scope = FrequencyScope.create_frequency_scope_fragment(canvas,
                                                                **kwargs)
-        command_receiver = CommandReceiverFactory.create(
-            CommandReceiverFactory.Raw, decoder.signal, decoder.timer)
+        if base is None:
+            command_receiver = CommandReceiverFactory.create(
+                CommandReceiverFactory.Raw, decoder.signal, decoder.timer)
+        else:
+            command_receiver = base.command_receiver
 
         controller_chain = UnlockControllerChain(window, command_receiver,
                                                  [scope], 'FrequencyScope',
