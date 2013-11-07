@@ -88,23 +88,25 @@ class HarmonicSumDecision(UnlockClassifier):
         command contains a data matrix of samples assumed to be an ndarray of
          shape (samples, electrodes+)
         """
-        if not command.is_valid():
-            return command
-
         classify_now = False
         if self.task_state.last_change == TrialState.RestExpiry:
             self.enabled = True
             self.cursor = 0
         elif self.task_state.last_change == TrialState.TrialExpiry:
             self.enabled = False
-            classify_now = True
-        elif not self.enabled:
+            if self.cursor >= 0.9*self.n_samples:
+                classify_now = True
+        elif not self.enabled or not command.is_valid():
             return command
 
-        samples = command.matrix[:, 0:self.electrodes]
-        s = samples.shape[0]
-        self.buffer[self.cursor:self.cursor+s, :] = samples
-        self.cursor += s
+        # this check is a hack to deal with the edge case when the task period
+        # expires and we want to classify now but we also have an invalid
+        # data command. TODO: find a less ugly way to handle this
+        if command.is_valid():
+            samples = command.matrix[:, 0:self.electrodes]
+            s = samples.shape[0]
+            self.buffer[self.cursor:self.cursor+s, :] = samples
+            self.cursor += s
 
         if self.cursor >= self.n_samples or classify_now:
             x = self.buffer[0:self.cursor]
