@@ -199,13 +199,14 @@ class UnlockFactory(context.PythonConfig):
     def TimeScope(self):
         from unlock.controller import TimeScope
         return TimeScope.create_time_scope(
-            self.window, self.decoder, **self.args['TimeScope'])
+            self.window, self.decoder, self.stimuli, **self.args['TimeScope'])
 
     @context.Object(lazy_init=True)
     def FrequencyScope(self):
         from unlock.controller import FrequencyScope
         return FrequencyScope.create_frequency_scope(
-            self.window, self.decoder, **self.args['FrequencyScope'])
+            self.window, self.decoder, self.stimuli,
+            **self.args['FrequencyScope'])
 
     @context.Object(lazy_init=True)
     def Diagnostic(self):
