@@ -33,6 +33,7 @@ import (
     "npl/bu/edu/conf"
     "npl/bu/edu/chunker"
     "npl/bu/edu/hashutil"
+    "npl/bu/edu/util"
     "net/http"
     "fmt"
     "io/ioutil"
@@ -147,14 +148,14 @@ func getOnlineFile(fileUrl string, fileName string) string {
 func getOfflineFile(path string) string {
     var fileExists bool
     var err error
-    if fileExists,err = checkFileExists(path); err != nil {
+    if fileExists,err = util.CheckFileExists(path); err != nil {
         log.Fatalln(err)        
     }
     
     if !fileExists {
         // Check if this is a big file and there exists its smaller parts
         var partFileExists bool
-        if partFileExists,err = checkFileExists(path+`.part0`); err != nil {
+        if partFileExists,err = util.CheckFileExists(path+`.part0`); err != nil {
             log.Fatalln(err)        
         }
         
@@ -171,7 +172,7 @@ func getOfflineFile(path string) string {
 func downloadIfBadFile(fileUrl string, fullPath string, fileName string) {
     var isFileExist bool
     var err error
-    isFileExist,err = checkFileExists(fullPath)  
+    isFileExist,err = util.CheckFileExists(fullPath)  
     if err != nil {
         log.Fatalln(err)
     } else if !isFileExist {        
@@ -243,13 +244,6 @@ func downloadChecksum(checksumFileUrl string) []byte {
     log.Println(`Downloaded checksum: `, content)
     
     return content
-}
-
-func checkFileExists(path string) (bool, error) {
-    _, err := os.Stat(path)
-    if err == nil { return true, nil }
-    if os.IsNotExist(err) { return false, nil }
-    return false, err
 }
 
 func getWorkingDirectoryAbsolutePath() string {	
@@ -383,7 +377,8 @@ func createConf() unlockconf.UnlockInstallConf {
             `scons-2.3.0.zip`, `scons`, `scons-2.3.0`,
             `unlock.exe`, `vcredist_2010_x86.exe`, `pyaudio-0.2.7.py33.exe`, `pywin32-218.win32-py3.3.exe`,
             `unlock-x86.exe`, `unlock-x86-64.exe`,
-            `uninstall-win.exe`, `uninstall.bat`}
+            `uninstall-win.exe`, `uninstall.bat`,
+            `Scipy-stack-13.10.11.win32-py3.3.exe`}
     } else {
         return unlockconf.ParseConf(*confFile)
     }    
@@ -472,7 +467,7 @@ func main() {
     log.Printf("conf file = "+*confFile)
     
     var conf = createConf()
-    
+    installBinPackage(conf.BaseUrl, conf.ScipyPackageName, `scipy`)
     installPython(conf.BaseUrl, conf.PythonPathEnvVar, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
     installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
 	installNumPy(conf.BaseUrl, conf.NumpyPackageName)
