@@ -11,3 +11,4 @@ go run hash.go C:\Users\User\Documents\unlock\package\unlock-x86.exe
 go run hash.go C:\Users\User\Documents\unlock\package\unlock-x86-64.exe
 go run hash.go C:\Users\User\Documents\unlock\package\uninstall-win.exe
 go run hash.go C:\Users\User\Documents\unlock\package\uninstall.bat
+go run hash.go C:\Users\User\Documents\unlock\package\Scipy-stack-13.10.11.win32-py3.3.exe
