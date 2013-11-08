@@ -132,8 +132,13 @@ func getOnlineFile(fileUrl string, fileName string) string {
             }
             
             // Reconstruct
-            downloadAndWrite(fileUrl+`.sha1`, finalPath+`.sha1`, fileName+`.sha1`)
-            chunker.Reconstruct(finalPath)
+            fileIsGood := false
+            var i int
+            for i = 0; i < 5 && !fileIsGood; i++ {
+                chunker.Reconstruct(finalPath)
+                fileIsGood = checkSum(finalPath, fileUrl+`.sha1`)
+            }
+            if i == 5 { log.Fatalln(`Failed to reconstruct`, finalPath) }
         }
         
     // Else, download like normal
@@ -467,9 +472,10 @@ func main() {
     log.Printf("conf file = "+*confFile)
     
     var conf = createConf()
-    installBinPackage(conf.BaseUrl, conf.ScipyPackageName, `scipy`)
+    
     installPython(conf.BaseUrl, conf.PythonPathEnvVar, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
     installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
+    installBinPackage(conf.BaseUrl, conf.ScipyPackageName, `scipy`)
 	installNumPy(conf.BaseUrl, conf.NumpyPackageName)
     //installEasyInstall(conf.BaseUrl, conf.PythonPath)
     //installPip(conf.EasyInstallPath)
