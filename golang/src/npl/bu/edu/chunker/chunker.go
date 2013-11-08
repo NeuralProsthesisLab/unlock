@@ -6,6 +6,7 @@ import (
     "log"
     "io"
     "npl/bu/edu/util"
+    "npl/bu/edu/hashutil"
 )
 
 func Chunk(path string) {
@@ -45,6 +46,8 @@ func Chunk(path string) {
                        
             if finfo.Size() == 0 {
                 os.Remove(fo.Name())
+            } else {
+                hashutil.WriteChecksum(fo.Name())
             }
         }()
 
