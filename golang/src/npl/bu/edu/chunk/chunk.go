@@ -5,9 +5,15 @@ import (
     "npl/bu/edu/chunker"
 )
 
+var reconstruct = flag.Bool(`r`, false, `Reconstruct file instead of chunking`)
+
 func main() {
-    flag.Parse()
-    
+    flag.Parse()    
     file := flag.Arg(0)
-    chunker.Chunk(file)
+    
+    if !*reconstruct {
+        chunker.Chunk(file)
+    } else {
+        chunker.Reconstruct(file)
+    }
 }

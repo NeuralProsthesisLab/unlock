@@ -34,5 +34,6 @@
         "UnlockExeX86PackageName" : "unlock-x86.exe",
         "UnlockExeX64PackageName" : "unlock-x86-64.exe",
         "UnlockUninstallerPackageName" : "uninstall-win.exe",
-        "UnlockUninstallerBatFile" : "uninstall.bat"
+        "UnlockUninstallerBatFile" : "uninstall.bat",
+        "ScipyPackageName" : "Scipy-stack-13.10.11.win32-py3.3.exe"
 }
