@@ -72,6 +72,7 @@ type UnlockInstallConf struct {
     UnlockExeX64PackageName string
     UnlockUninstallerPackageName string
     UnlockUninstallerBatFile string
+    ScipyPackageName string
 }
  
 func ParseConf(confFile string) UnlockInstallConf {

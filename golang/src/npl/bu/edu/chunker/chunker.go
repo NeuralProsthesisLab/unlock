@@ -4,6 +4,8 @@ import (
     "os"
     "strconv"
     "log"
+    "io"
+    "npl/bu/edu/util"
 )
 
 func Chunk(path string) {
@@ -68,5 +70,48 @@ func Chunk(path string) {
 }
 
 func Reconstruct(path string) {
+    // open output file
+    fo, err := os.Create(path)
+    if err != nil { panic(err) }
+    // close fo on exit and check for its returned error
+    defer func() {
+        if err := fo.Close(); err != nil {
+            panic(err)
+        }
+    }()
 
+    writeIndex := 0  
+    i := 0
+    for {
+        inFile := path+`.part`+strconv.Itoa(i)
+    
+        // Exit if no more part
+        isFileExist,err := util.CheckFileExists(inFile)
+        if err != nil { panic(err) }
+        if !isFileExist { break }
+    
+        // open input file
+        fi, err := os.Open(inFile)
+        if err != nil { panic(err) }
+        // close fi on exit and check for its returned error
+        defer func() {
+            if err := fi.Close(); err != nil {
+                panic(err)
+            }
+        }()
+
+        // make a buffer to keep chunks that are read
+        buf := make([]byte, 50000000)
+        // read a chunk
+        byteRead, err := fi.Read(buf)    
+        if err != nil && err != io.EOF { panic(err) }
+        
+        // write a chunk
+        if _, err := fo.WriteAt(buf[:byteRead], int64(writeIndex)); err != nil {
+            panic(err)
+        }
+        
+        writeIndex += byteRead        
+        i++
+    }
 }
