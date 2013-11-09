@@ -19,6 +19,9 @@ func Chunk(path string) {
         panic(`File must be 100MB or more`)
     }
     
+    // Make sha1
+    hashutil.WriteChecksum(path)
+    
     // open input file
     fi, err := os.Open(path)
     if err != nil { panic(err) }
@@ -73,6 +76,18 @@ func Chunk(path string) {
 }
 
 func Reconstruct(path string) {
+    fileIsGood := false
+    var i int
+    for i = 0; i < 5 && !fileIsGood; i++ {
+        reconstruct(path)
+        fileIsGood = hashutil.CompareChecksum(path)
+    }
+    if i == 5 { log.Fatalln(`Failed to reconstruct`, path) }
+}
+
+func reconstruct(path string) {
+    log.Println("Reconstruct file", path)
+    
     // open output file
     fo, err := os.Create(path)
     if err != nil { panic(err) }
@@ -117,4 +132,4 @@ func Reconstruct(path string) {
         writeIndex += byteRead        
         i++
     }
-}
+} 
