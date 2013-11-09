@@ -5,6 +5,7 @@ import (
     "io/ioutil"
     "log"
     "path/filepath"
+    "bytes"
 )
 
 func ComputeChecksum(filePath string) []byte {
@@ -38,4 +39,14 @@ func WriteChecksum(file string) {
     } else {
         log.Println("File reads:", data)
     }
+}
+
+func CompareChecksum(path string) bool {
+    content,err := ioutil.ReadFile(path+`.sha1`)
+    if err != nil { panic(err) }
+    
+    result := bytes.Compare(ComputeChecksum(path), content) == 0
+    if !result { log.Println("Checksum not match") } else { log.Println("Checksum match") }
+    
+    return result
 }
