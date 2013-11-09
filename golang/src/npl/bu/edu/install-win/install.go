@@ -43,7 +43,6 @@ import (
     "log"
     "path/filepath"
     "io"
-    "bytes"
     "strings"
     "strconv"
 )
@@ -132,13 +131,7 @@ func getOnlineFile(fileUrl string, fileName string) string {
             }
             
             // Reconstruct
-            fileIsGood := false
-            var i int
-            for i = 0; i < 5 && !fileIsGood; i++ {
-                chunker.Reconstruct(finalPath)
-                fileIsGood = checkSum(finalPath, fileUrl+`.sha1`)
-            }
-            if i == 5 { log.Fatalln(`Failed to reconstruct`, finalPath) }
+            chunker.Reconstruct(finalPath)
         }
         
     // Else, download like normal
@@ -229,10 +222,10 @@ func downloadAndWrite(fileUrl string, fullPath string, fileName string) {
 }
 
 func checkSum(filePath string, checksumFileUrl string) bool {
-    computedHash := hashutil.ComputeChecksum(filePath)
-    downloadedHash := downloadChecksum(checksumFileUrl)
+    hashutil.WriteChecksum(filePath)
+    downloadChecksum(checksumFileUrl)
     
-    return bytes.Compare(computedHash, downloadedHash) == 0 
+    return hashutil.CompareChecksum(filePath) 
 }
 
 func downloadChecksum(checksumFileUrl string) []byte {
