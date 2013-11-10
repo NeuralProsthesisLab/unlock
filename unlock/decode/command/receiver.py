@@ -24,109 +24,16 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 from unlock.util import DatagramWrapper
 from unlock.decode.classify import UnlockClassifier
-from multiprocessing import Process, Queue
+from unlock.decode.command import RawSignalCommand, Command
 import socket
 import pickle
 import json
-import logging
-import pyglet
-import time
 import numpy as np
 
 
-class Command(object):
-    def __init__(self, delta=None, decision=None, selection=None, data=None, json=False):
-        super(Command, self).__init__()        
-        self.delta = delta
-        self.decision = decision
-        self.selection = selection
-        self.data = data
-        self.json = json
-        
-    def is_valid(self):
-        return True
-        
-    @staticmethod
-    def serialize(command):
-        if command.json:
-            ret = json.dumps(command)
-        else:
-            ret = pickle.dumps(command)
-        return ret
-           
-    @staticmethod
-    def deserialize(serialized_command, json=False):
-        if json:
-            ret = json.loads(serialized_command)
-        else:
-            ret = pickle.loads(serialized_command)
-        return ret
-            
-            
-class PygletKeyboardCommand(Command):
-    def __init__(self, symbol, modifiers):
-        super(PygletKeyboardCommand, self).__init__()
-        self.stop = False
-        labels = [ord(c) for c in 'abcdefghijklmnopqrstuvwxyz_12345']
-        if symbol == pyglet.window.key.UP:
-            self.decision = 1
-        elif symbol == pyglet.window.key.DOWN:
-            self.decision = 2
-        elif symbol == pyglet.window.key.LEFT:
-            self.decision = 3 
-        elif symbol == pyglet.window.key.RIGHT:
-            self.decision = 4
-        elif symbol == pyglet.window.key.SPACE:
-            self.selection = 1
-        elif symbol == pyglet.window.key.ESCAPE:
-            self.stop = True
-        elif symbol in labels:
-            self.decision = labels.index(symbol) + 1
-
-    def is_valid(self):
-        return False
-            
-            
-class RawSignalCommand(Command):
-    TriggerCount = 4
-    def __init__(self, delta, raw_data_vector, samples, channels, timer):
-        super(RawSignalCommand, self).__init__(delta)
-        self.raw_data_vector = raw_data_vector
-        self.samples = samples
-        self.channels = channels
-        self.timer = timer
-        self.sequence_trigger_vector = np.zeros((samples, 1))
-        self.sequence_trigger_time_vector = np.zeros((samples, 1))
-        self.cue_trigger_vector = np.zeros((samples, 1))
-        self.cue_trigger_time_vector = np.zeros((samples, 1))        
-        self.logger = logging.getLogger(__name__)
-        
-    def __reset_trigger_vectors__(self):
-        self.sequence_trigger_vector[-1] = 0
-        self.sequence_trigger_time_vector[-1] = 0        
-        self.cue_trigger_vector[-1] = 0
-        self.cue_trigger_time_vector[-1] = 0
-
-    def is_valid(self):
-        return self.raw_data_vector.size > 0
-    
-    def set_sequence_trigger(self, sequence_trigger_value):
-        self.sequence_trigger_vector[-1] = sequence_trigger_value
-        self.sequence_trigger_time_vector[-1] = self.timer.elapsedMicroSecs()
-        
-    def set_cue_trigger(self, cue_trigger_value):
-        self.cue_trigger_vector[-1] = cue_trigger_value
-        self.cue_trigger_time_vector[-1] = self.timer.elapsedMicroSecs()
-        
-    def make_matrix(self):
-        self.data_matrix = self.raw_data_vector.reshape((self.samples, self.channels))
-        self.matrix = np.hstack((self.data_matrix, self.sequence_trigger_vector, self.sequence_trigger_time_vector, self.cue_trigger_vector, self.cue_trigger_time_vector))
-        self.__reset_trigger_vectors__()
-        self.logger.debug("Data = ", self.matrix)
-        
-        
 class CommandReceiver(object):
     def __init__(self):
         super(CommandReceiver, self).__init__()        
@@ -136,7 +43,7 @@ class CommandReceiver(object):
         
     def stop(self):
         pass
-
+            
             
 class CommandSenderInterface(object):
     def send(self, command):
@@ -253,7 +160,7 @@ class FileSignalReceiver(CommandReceiver):
         assert raw_command != None
         return raw_command
             
-        
+            
 class RawInlineSignalReceiver(CommandReceiver):
     def __init__(self, signal, timer):
         super(RawInlineSignalReceiver, self).__init__()        
@@ -262,7 +169,6 @@ class RawInlineSignalReceiver(CommandReceiver):
         
     def next_command(self, delta):
         samples = self.signal.acquire()
-        
         if samples is not None and samples > 0:
             c_data = self.signal.getdata(samples)
             
@@ -279,9 +185,7 @@ class RawInlineSignalReceiver(CommandReceiver):
             raw_command.make_matrix()
             
         assert raw_command != None
-        
         return raw_command
-            
             
             
 class DeltaCommandReceiver(CommandReceiver):
@@ -315,23 +219,63 @@ class FileSignalReceiver(CommandReceiver):
         return raw_command
             
             
-class SyntheticCommandReceiver(CommandReceiver):
+class GeneratedSignalReceiver(CommandReceiver):
     def __init__(self, signal, timer, command_receiver=None):
         self.signal = signal
+        self.timer = timer
         if command_receiver == None:
-            self.next_command = lambda delta, data, samples, channels, timer: RawCommand(delta,\
-                                                                data, samples, channels, timer)
-            
-    def next_command(self, samples=None):
+            def create_raw_command(delta, data, samples, channels, timer):
+                return RawSignalCommand(delta, data, samples, channels, timer)
+            self.generate_next = create_raw_command
+        else:
+            self.generate_next = command_receiver.next_command
+    def next_command(self, delta, samples=None):
         matrix = self.signal.generate_samples(samples)
         if samples is not None:
             assert samples == matrix.size
-        raw_command = self.next_command(delta, matrix, b.size, self.signal.channels(), self.timer)
+        print("size = ", matrix.size)
+        raw_command = self.generate_next(delta, matrix, matrix.shape[0], self.signal.channels, self.timer)
         if raw_command.is_valid():
-            # XXX - make_matrix stuff is messy and, perhaps, should be refactored
             raw_command.make_matrix()
             
-     
+        return raw_command
+            
+            
+class MultiProcessCommandReceiver(CommandReceiver):
+    def __init__(self, classifier, classifier_args, args):
+        super(MultiProcessCommandReceiver, self).__init__()        
+        self.Q = Queue()
+        self.args = args
+        self.args['decoder'] = 'inline'
+        self.process = Process(target=remote_receive_next_command, args=(self.Q, classifier, classifier_args, self.args))
+        self.process.start()
+        
+    def next_command(self, delta):
+        return self.Q.get()
+        
+    def stop(self):
+        self.process.terminate()
+        self.process.join()
+        
+#@staticmethod 
+def remote_receive_next_command(Q, classifier, classifier_args, args):
+    from unlock import unlock_runtime
+    import unlock.context
+    factory = unlock_runtime.UnlockFactory(args)
+    app_ctx = unlock.context.ApplicationContext(factory)
+    assert args['decoder'] == 'inline'
+    factory.signal = app_ctx.get_object(args['signal'])
+    factory.decoder = app_ctx.get_object(args['decoder'])
+    command_receiver = factory.decoder.create_receiver(classifier_args, classifier)
+    import time
+    start = time.time()
+    while True:
+        command = command_receiver.next_command(time.time() - start)
+        # can't pickle the C++ object
+        command.timer = None
+        Q.put(command)
+        
+            
 class CommandReceiverFactory(object):
     Delta=0
     Raw=1
@@ -357,7 +301,7 @@ class CommandReceiverFactory(object):
             return RawInlineSignalReceiver(signal, timer)
         elif factory_method == CommandReceiverFactory.Classified:
             if chained_receiver is None:
-                from .acquire import MemoryResidentFileSignal
+                from unlock.decode.acquire import MemoryResidentFileSignal
                 # XXX - this is a quick hack, but this should be refactored.  Perhaps the base command
                 #       receiver construction should happen in the main factory and be injected
                 if type(signal) == MemoryResidentFileSignal:
@@ -374,82 +318,5 @@ class CommandReceiverFactory(object):
             return MultiProcessCommandReceiver(ClassifiedCommandReceiver(RawInlineSignalReceiver(signal, timer), classifier))
         else:
             raise LookupError('CommandReceiver does not support the factory method identified by '+str(factory_method))
-        
-def command_receiver_fn(Q, classifier, classifier_args, args):
-    from unlock import unlock_runtime
-    import unlock.context
-    factory = unlock_runtime.UnlockFactory(args)
-    app_ctx = unlock.context.ApplicationContext(factory)
-    assert args['decoder'] == 'inline'
-    factory.signal = app_ctx.get_object(args['signal'])
-    factory.decoder = app_ctx.get_object(args['decoder'])
-    command_receiver = factory.decoder.create_receiver(classifier_args, classifier)
-    import time
-    start = time.time()
-    while True:
-        command = command_receiver.next_command(time.time() - start)
-        # can't pickle the C++ object
-        command.timer = None
-        Q.put(command)
-        
-        
-class MultiProcessCommandReceiver(CommandReceiver):
-    def __init__(self, classifier, classifier_args, args):
-        super(MultiProcessCommandReceiver, self).__init__()        
-        self.Q = Queue()
-        self.args = args
-        self.args['decoder'] = 'inline'
-        self.process = Process(target=command_receiver_fn, args=(self.Q, classifier, classifier_args, self.args))
-        self.process.start()
-        
-    def next_command(self, delta):
-        return self.Q.get()
-        
-    def stop(self):
-        self.process.terminate()
-        self.process.join()
-        
-        
-class InlineDecoder(object):
-    def __init__(self, factory_method, signal, timer):
-        super(InlineDecoder, self).__init__()
-        self.factory_method = factory_method
-        self.signal = signal
-        self.timer = timer
-        
-    def shutdown(self):
-        self.signal.stop()
-        self.signal.close()
-        
-    def stop(self):
-        raise Exception("WTF")
-        
-    def create_receiver(self, args, classifier_type=None,
-                        chained_classifier=None):
-        classifier_obj = UnlockClassifier.create(classifier_type, args)
-        return CommandReceiverFactory.create(factory_method=self.factory_method, signal=self.signal,
-                                             timer=self.timer,
-                                             classifier=classifier_obj,
-                                             chained_receiver=chained_classifier)
-        
-        
-class MultiProcessDecoder(object):
-    def __init__(self, args):
-        super(MultiProcessDecoder, self).__init__()
-        self.args = args
-        self.mp_cmd_receiver = None
-        
-    def shutdown(self):
-        if self.mp_cmd_receiver != None:
-            self.mp_cmd_receiver.stop()
-        
-    def stop(self):
-        pass    
-        
-    def create_receiver(self, args, classifier_type=None):
-        self.mp_cmd_receiver = MultiProcessCommandReceiver(classifier_type, args, self.args)
-        return self.mp_cmd_receiver
-#        classifier_obj = UnlockClassifier.create(classifier_type, args)
- #       return CommandReceiverFactory.create(factory_method=self.factory_method, signal=self.signal, timer=self.timer, classifier=classifier_obj)
-        
-        
+            
+            
