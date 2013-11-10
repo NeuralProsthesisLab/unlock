@@ -47,13 +47,13 @@ class DiagnosticState(UnlockModel):
             self.cursor += 1
             if self.cursor >= len(self.frequencies):
                 self.cursor = len(self.frequencies) - 1
-            rate = 1 / self.frequencies[self.cursor]
+            rate = 1 / (self.frequencies[self.cursor] * 2)
             self.stimulus.model.time_state.set_duration(rate)
         elif command.decision == DiagnosticState.FrequencyDown:
             self.cursor -= 1
             if self.cursor < 0:
                 self.cursor = 0
-            rate = 1 / self.frequencies[self.cursor]
+            rate = 1 / (self.frequencies[self.cursor] * 2)
             self.stimulus.model.time_state.set_duration(rate)
         elif command.decision == DiagnosticState.ChannelDown:
             self.scope.model.change_display_channel(-1)
