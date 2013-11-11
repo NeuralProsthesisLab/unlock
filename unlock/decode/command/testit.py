@@ -24,11 +24,34 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from unlock.util.dispatcher import *
-from unlock.util.decorator import *
-from unlock.util.misc import *
-from unlock.util.observable import *
-from unlock.util.saferef import *
-from unlock.util.sockets import *
-from unlock.util.state import *
-from unlock.util.signal import *
+
+from unlock.decode.command.receiver import CommandReceiverFactory, CommandReceiver
+from unlock.decode.classify import UnlockClassifier
+from multiprocessing import Process, Queue
+
+class MP(object):
+    def __init__(self):
+        self.Q = Queue()
+        self.process = Process(target=MP.remote_receive_next_command, args=(self.Q,))
+        self.process.start()
+        
+    def run(self):
+        i = 0
+        while i < 3:
+            print ("Vaslue returned == ", self.Q.get())
+            i += 1        
+        self.process.terminate()
+        self.process.join()
+    
+    @staticmethod 
+    def remote_receive_next_command(Q):
+        i = 0
+        while i < 3:
+            Q.put(i)
+            i += 1
+        
+if __name__ == '__main__':
+    mp = MP()
+    mp.run()
+    
+ 
