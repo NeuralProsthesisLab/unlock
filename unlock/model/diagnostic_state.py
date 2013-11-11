@@ -34,11 +34,11 @@ class DiagnosticState(UnlockModel):
     ChannelDown = 3
     ChannelUp = 4
 
-    def __init__(self, scope, stimulus, frequencies=(10,)):
+    def __init__(self, scope, stimuli, frequencies=(10,)):
         super(DiagnosticState, self).__init__()
 
         self.scope = scope
-        self.stimulus = stimulus
+        self.stimuli = stimuli
         self.frequencies = frequencies
         self.cursor = 0
 
@@ -48,13 +48,13 @@ class DiagnosticState(UnlockModel):
             if self.cursor >= len(self.frequencies):
                 self.cursor = len(self.frequencies) - 1
             rate = 1 / (self.frequencies[self.cursor] * 2)
-            self.stimulus.model.time_state.set_duration(rate)
+            self.stimuli.model.stimuli[0].time_state.set_duration(rate)
         elif command.decision == DiagnosticState.FrequencyDown:
             self.cursor -= 1
             if self.cursor < 0:
                 self.cursor = 0
             rate = 1 / (self.frequencies[self.cursor] * 2)
-            self.stimulus.model.time_state.set_duration(rate)
+            self.stimuli.model.stimuli[0].time_state.set_duration(rate)
         elif command.decision == DiagnosticState.ChannelDown:
             self.scope.model.change_display_channel(-1)
         elif command.decision == DiagnosticState.ChannelUp:
