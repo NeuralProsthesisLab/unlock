@@ -46,7 +46,7 @@ class RMSSignalGenerator(object):
     '''            
     def __init__(self, channels, minmax, thresholds, state, samples, seed=31337):
         assert channels == len(thresholds) and channels == len(minmax)
-        self.chans = channels
+        self.channels = channels
         self.min = 0
         self.max = 1
         self.minmax = minmax
@@ -62,16 +62,16 @@ class RMSSignalGenerator(object):
         if samples == None:
             samples = self.samples
             
-        ret = np.zeros((samples, self.chans))
+        ret = np.zeros((samples, self.channels))
         for sample in range(samples):
             ret[sample] = self.generate_sample(self.state.state())
-            self.state.step()
+        self.state.step()
         return ret
     
     def simple_sample_gen(self, state_value):
-        assert self.chans == len(state_value)
-        sample = np.zeros(self.chans)
-        for i in range(self.chans):
+        assert self.channels == len(state_value)
+        sample = np.zeros(self.channels)
+        for i in range(self.channels):
             if state_value[i] == True:
                 sample[i] =  self.random.randint(self.thresholds[i], self.minmax[i][self.max])
             elif state_value[i] == False:
