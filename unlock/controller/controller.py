@@ -366,7 +366,7 @@ class EEGControllerFragment(UnlockControllerFragment):
             color1 = (0, 0, 0)
             color2 = (255, 255, 255)
 
-        stimuli = TimedStimuli.create(3)
+        stimuli = TimedStimuli.create(3, 1)
         stimulus = TimedStimulus.create(frequency * 2)
         fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
             stimulus, canvas, SpritePositionComputer.Center, width=300,
