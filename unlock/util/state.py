@@ -119,9 +119,11 @@ class TrialState():
         return self.update_state_table()
         
     def start(self):
+        self.active_timer = self.trial_timer
+        self.last_change = TrialState.Unchanged
         self.run_state.run()
         self.active_timer.begin_timer()
-        
+
     def stop(self):
         self.run_state.stop()
         
