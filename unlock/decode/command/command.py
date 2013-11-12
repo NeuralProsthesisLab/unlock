@@ -118,7 +118,6 @@ class RawSignalCommand(Command):
         self.cue_trigger_time_vector[-1] = self.timer.elapsedMicroSecs()
         
     def make_matrix(self):
-        print('shape = ', self.raw_data_vector.shape, self.samples, self.channels)
         if self.raw_data_vector.shape != (self.samples, self.channels):    
             self.data_matrix = self.raw_data_vector.reshape((self.samples, self.channels))
         else:
