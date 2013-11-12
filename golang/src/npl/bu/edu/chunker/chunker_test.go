@@ -4,30 +4,13 @@ import (
     "testing"
     "npl/bu/edu/util"
     "npl/bu/edu/hashutil"
+    "npl/bu/edu/testutil"
     "os"
     "strconv"
-    "path/filepath"
 )
 
 func TestChunker(t *testing.T) {
-    testDir,_ := filepath.Abs("./test")
-    testFile,_ := filepath.Abs(testDir+"/testfile")
-
-    // Delete unwanted files if exists
-    isExist,err := util.CheckFileExists(testDir)
-    if err != nil {
-        t.Error(err)
-    }
-    if (isExist) {
-        err = os.RemoveAll(testDir)
-        if err != nil {
-            t.Error(err)
-        }
-    }    
-    err = os.Mkdir(testDir, 0755)
-    if err != nil {
-        t.Error(err)
-    }
+    testFile := testutil.Setup(t)
     
     // Create 100MB file
     fo, err := os.Create(testFile)
@@ -44,7 +27,7 @@ func TestChunker(t *testing.T) {
     Chunk(testFile)
     
     // Check if original sha1 created
-    isExist,err = util.CheckFileExists(testFile+".sha1")
+    isExist,err := util.CheckFileExists(testFile+".sha1")
     if err != nil {
         t.Error(err)
     }
@@ -78,9 +61,5 @@ func TestChunker(t *testing.T) {
         t.Error("Reconstructed file not match original sha1")
     }
     
-    // Clean up test files
-    err = os.RemoveAll(testDir)
-    if err != nil {
-        t.Error(err)
-    }
+    testutil.Teardown(t)
 }
