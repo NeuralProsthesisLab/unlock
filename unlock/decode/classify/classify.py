@@ -25,8 +25,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#import decode #HarmonicSumDecision # XXX - circular dep badness
-
 import unlock.decode 
 
 
@@ -49,6 +47,6 @@ class UnlockClassifier(object):
         elif classifier == UnlockClassifier.EyeBlinkDetector:
             return unlock.decode.EyeBlinkDetector(**kwargs)
         elif classifier == UnlockClassifier.FacialEMGDetector:
-            return unllock.decode.FacialEMGDetector(**kwargs)
+            return unlock.decode.FacialEMGDetector(**kwargs)
         else:
             raise Exception("Undefined Classifier: ", classifier, " kwargs = ", kwargs)
