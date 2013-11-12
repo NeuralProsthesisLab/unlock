@@ -223,5 +223,4 @@ class HarmonicSumDecisionDiagnostic(UnlockClassifier):
             self.cursor = 0
             self.classify_now = False
             #command.decision = d + 1
-
-        return command
+            return "%s: %.1f Hz" % (self.label, self.targets[d])
