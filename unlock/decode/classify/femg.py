@@ -26,7 +26,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from unlock.decode.classify.classify import UnlockClassifier
-#from classify import UnlockClassifier
 import numpy as np
 
 
@@ -46,10 +45,16 @@ class FacialEMGDetector(UnlockClassifier):
     RMS value computed over the window of interest is greater than a
     user-supplied threshold value.
     """
-    Left = 0
-    Bottom = 1
-    Right = 2
-    Select = 3
+    LeftElectrode = 0
+    BottomElectrode = 1
+    RightElectrode = 2
+    SelectElectrode = 3
+    
+    #Undecided = 0
+    UpDecision = 1
+    DownDecision = 2
+    LeftDecision = 3
+    RightDecision = 4
     
     def __init__(self, rms_thresholds, channels=4, window_size=22050):
         super(FacialEMGDetector, self).__init__()
@@ -61,12 +66,13 @@ class FacialEMGDetector(UnlockClassifier):
         # The state of whether the maximum rms value of a channel
         # (Left, Right, Bottom) is above threshold. Ordered to coincide with
         # the control scheme of Up,Down,Left,Right
-        self.decision_patterns = np.array([
-            [True, True, True],  # Up/Forward
-            [True, True, False],  # Down/Backward
-            [True, False, False],  # Left
-            [False, True, False]  # Right
-        ])
+        self.decision_patterns = {
+#            FacialEMGDetector.Undecided : np.array([False, False, False]),
+            FacialEMGDetector.UpDecision : np.array([True, True, True]),
+            FacialEMGDetector.DownDecision : np.array([True, False, True]),
+            FacialEMGDetector.LeftDecision : np.array([True, False, False]),
+            FacialEMGDetector.RightDecision : np.array([False, False, True])
+        }
 
     def classify(self, command):
         """
@@ -85,33 +91,18 @@ class FacialEMGDetector(UnlockClassifier):
         self.window[-1] = rms
         
         activations = np.max(self.window, axis=0) > self.thresholds
-        if activations[FacialEMGDetector.Select]:
+        if activations[FacialEMGDetector.SelectElectrode]:
             decision = None
-            for i, pattern in enumerate(self.decision_patterns):
-                if np.array_equal(activations[0:3], pattern):
-                    decision = i + 1
+            for key, pattern_value in self.decision_patterns.items():
+                if np.array_equal(activations[0:3], pattern_value):
+                    decision = key
+                    break
+                    
+            # always clear the window after a selection
+            self.window = np.zeros((self.window_size, self.channels))
+            
             if decision is not None:
                 command.decision = decision
-                self.window = np.zeros((self.window_size, self.channels))
                 
         return command
     
-
-def test_facial_emg_detector():
-    class Command(object):
-        def __init__(self):
-            self.validity = True
-            self.data_matrix = None
-            
-        def is_valid(self, ):
-            return self.validity
-        
-        
-    
-    f = FacialEMGDetector(None)
-    assert f is not None
-    
-
-
-if __name__ == '__main__':
-    test_facial_emg_detector()

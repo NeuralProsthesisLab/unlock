@@ -233,11 +233,11 @@ class GeneratedSignalReceiver(CommandReceiver):
         matrix = self.signal.generate_samples(samples)
         if samples is not None:
             assert samples == matrix.size
-        print("size = ", matrix.size)
         raw_command = self.generate_next(delta, matrix, matrix.shape[0], self.signal.channels, self.timer)
         if raw_command.is_valid():
             raw_command.make_matrix()
             
+        #print("data matrix = ", raw_command.data_matrix)
         return raw_command
             
             
