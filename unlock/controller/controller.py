@@ -148,12 +148,10 @@ class UnlockController(object):
     def poll_signal(self, delta):
         command = self.command_receiver.next_command(delta)
         if 'stop' in command.__dict__:
-            return self.handle_stop_request()
-        self.update_state(command)
-        self.render()
-
-    def handle_stop_request(self):
-        self.deactivate()
+            self.window.handle_stop_request()
+        else:
+            self.update_state(command)
+            self.render()
 
     def update_state(self, command):
         ''' Subclass hook '''
@@ -167,6 +165,7 @@ class UnlockController(object):
         self.window.activate_controller(self)
         
     def deactivate(self):
+        self.window.deactivate_controller()
         return self.standalone
         
     def render(self):
@@ -223,6 +222,10 @@ class UnlockControllerChain(UnlockController):
        
         
 class UnlockControllerFragment(UnlockController):
+    '''
+    A controller fragment is part of a controller that can be mixed in with other fragments, but
+    cannot be a standalone fragment.
+    '''
     def __init__(self, model, views, batch, standalone=False):
         super(UnlockControllerFragment, self).__init__(None, None, None, None, None, None)
         self.model = model
@@ -233,23 +236,26 @@ class UnlockControllerFragment(UnlockController):
         self.render = None
         
     def update_state(self, command):
-        if command.is_valid():
+        if command is not None and command.is_valid() and self.model is not None:
             self.model.process_command(command)
             
     def keyboard_input(self, command):
-        self.model.process_command(command)
+        if self.model is not None:
+            self.model.process_command(command)
     
     def activate(self):
-        self.model.start()
+        if self.model is not None:
+            self.model.start()
         
     def deactivate(self):
-        self.model.stop()
+        if self.model is not None:
+            self.model.stop()
         return self.standalone
             
           
-class sEMGControllerFragment(UnlockControllerFragment):
+class FacialEMGDetectorFragment(UnlockControllerFragment):
     def __init__(self, command_receiver):
-        super(sEMGControllerFragment, self).__init__(None, [], None)
+        super(FacialEMGDetectorFragment, self).__init__(None, [], None)
         self.command_receiver = command_receiver
         
     def update_state(self, command):
@@ -266,11 +272,8 @@ class sEMGControllerFragment(UnlockControllerFragment):
         
     @staticmethod
     def create_semg(decoder, thresholds):
-#        classifier = RootMeanSquare(thresholds)
-        raise Exception("FML")
-        #command_receiver = decoder.create_receiver(classifier=UnlockClassifierFactory.FacialEMGDetector,
-        #                                           **{'thresholds' : thresholds })
-        return sEMGControllerFragment(command_receiver)
+        command_receiver = decoder.create_receiver({}, classifier_type=UnlockClassifier.FacialEMGDetector)
+        return FacialEMGDetectorFragment(command_receiver)
         
         
 class EEGControllerFragment(UnlockControllerFragment):
@@ -433,3 +436,5 @@ class EEGControllerFragment(UnlockControllerFragment):
         
         command_receiver = RawInlineSignalReceiver(signal, timer)
         return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
+            
+            
