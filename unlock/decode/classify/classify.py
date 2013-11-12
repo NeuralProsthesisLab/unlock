@@ -33,6 +33,7 @@ import unlock.decode
 class UnlockClassifier(object):
     HarmonicSumDecision = 0
     EyeBlinkDetector = 1
+    FacialEMGDetector = 2
 
     def __init__(self, task_state=None):
         super(UnlockClassifier, self).__init__()
@@ -47,5 +48,7 @@ class UnlockClassifier(object):
             return unlock.decode.HarmonicSumDecision(**kwargs)
         elif classifier == UnlockClassifier.EyeBlinkDetector:
             return unlock.decode.EyeBlinkDetector(**kwargs)
+        elif classifier == UnlockClassifier.FacialEMGDetector:
+            return unllock.decode.FacialEMGDetector(**kwargs)
         else:
-            raise Exception("FML")
+            raise Exception("Undefined Classifier: ", classifier, " kwargs = ", kwargs)
