@@ -1,0 +1,66 @@
+{
+    "main" : "Diagnostic",
+    "signal" : "random",
+    "mac_addr" : "0x61,0x9c,0x58,0x80,0x07,0x00",
+    "com_port" : "COM3",
+    "fullscreen" : false,
+    "fps" : false,
+    "vsync" : false,
+    "decoder" : "inline",
+    "controllers" : [
+        {
+            "name" : "Diagnostic",
+            "args" : {
+                "diagnostic" : {
+                    "continuous" : false,
+                    "frequencies" : [11, 12, 13, 14, 15, 16]
+                },
+                "stimulus" : {
+
+                },
+                "scope" : {
+                    "fs" : 256,
+                    "duration" : 3,
+                    "n_channels" : 8,
+                    "freq_range" : [10, 17],
+                    "labels" : [10, 11, 12, 13, 14, 15, 16, 17],
+                    "display_channels" : [2],
+                    "nfft" : 2048
+                }
+            }
+        }
+    ],
+    
+    "logging": {
+        "version": 1,
+        "disable_existing_loggers": false,
+        "formatters": {
+            "simple": {
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            }
+        },
+     
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "level": "DEBUG",
+                "formatter": "simple",
+                "stream": "ext://sys.stdout"
+            },
+            
+            "file_handler": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "formatter": "simple",
+                "filename": "unlock.log",
+                "maxBytes": 10485760,
+                "backupCount": 20,
+                "encoding": "utf8"
+            }
+        },
+        
+        "root": {
+            "level": "INFO",
+            "handlers": ["console", "file_handler"]
+        }
+    }
+}
