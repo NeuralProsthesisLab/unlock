@@ -43,7 +43,8 @@ class DiagnosticState(UnlockModel):
     ChannelDown = 3
     ChannelUp = 4
 
-    def __init__(self, scope, stimuli, frequencies=(10,), continuous=True):
+    def __init__(self, scope, stimuli, frequencies=(10,), decoders=None,
+                 continuous=True):
         super(DiagnosticState, self).__init__()
 
         self.scope = scope
@@ -51,6 +52,9 @@ class DiagnosticState(UnlockModel):
         self.frequencies = frequencies
         self.cursor = 0
         self.continuous = continuous
+        self.decoders = decoders
+        if decoders is None:
+            self.decoders = list()
 
     def process_command(self, command):
         if self.continuous:
@@ -67,11 +71,17 @@ class DiagnosticState(UnlockModel):
         if command.selection:
             if self.stimuli.model.state.is_stopped():
                 self.stimuli.model.start()
+                for decoder in self.decoders:
+                    decoder.start()
             else:
                 self.stimuli.model.stop()
+                for decoder in self.decoders:
+                    decoder.stop()
 
         if command.decision is not None:
             self.handle_decision(command.decision)
+
+        self.update_decoders(command)
 
     def handle_discrete_command(self, command):
         """
@@ -81,11 +91,16 @@ class DiagnosticState(UnlockModel):
         if not self.stimuli.model.state.is_stopped():
             if self.stimuli.model.state.last_change == TrialState.TrialExpiry:
                 self.stimuli.model.stop()
+                for decoder in self.decoders:
+                    decoder.stop()
             else:
+                self.update_decoders(command)
                 return
 
         if command.selection:
             self.stimuli.model.start()
+            for decoder in self.decoders:
+                decoder.start()
 
         if command.decision is not None:
             self.handle_decision(command.decision)
@@ -107,3 +122,7 @@ class DiagnosticState(UnlockModel):
             self.scope.model.change_display_channel(-1)
         elif decision == DiagnosticState.ChannelUp:
             self.scope.model.change_display_channel(1)
+
+    def update_decoders(self, command):
+        for decoder in self.decoders:
+            decoder.classify(command)

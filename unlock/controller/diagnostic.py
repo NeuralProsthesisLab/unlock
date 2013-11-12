@@ -28,7 +28,8 @@
 from unlock.model import DiagnosticState
 from unlock.controller import Canvas, UnlockControllerFragment, \
     UnlockControllerChain, EEGControllerFragment, FrequencyScope
-from unlock.decode import CommandReceiverFactory
+from unlock.decode import CommandReceiverFactory, HarmonicSumDecisionDiagnostic
+
 
 class Diagnostic(UnlockControllerFragment):
     def __init__(self, model, views, batch, standalone=False):
@@ -48,20 +49,28 @@ class Diagnostic(UnlockControllerFragment):
         else:
             command_receiver = base.command_receiver
 
-        stimulus_canvas = Canvas.create(window.width / 2, window.height)
-        stimulus = EEGControllerFragment.create_single_ssvep(
-            stimulus_canvas, command_receiver, 15.0, **kwargs['stimulus'])
+        stimuli_canvas = Canvas.create(window.width / 2, window.height)
+        stimuli = EEGControllerFragment.create_single_ssvep(
+            stimuli_canvas, command_receiver, 15.0, **kwargs['stimulus'])
 
         scope_canvas = Canvas.create(window.width / 2, window.height,
                                      xoffset=(window.width / 2))
         scope = FrequencyScope.create_frequency_scope_fragment(
             scope_canvas, **kwargs['scope'])
 
+        hsd_args = {'targets': [12, 13, 14, 15], 'duration': 3, 'fs': 256,
+                    'electrodes': 4, 'label': 'HSD1'}
+        hsd = HarmonicSumDecisionDiagnostic(**hsd_args)
+        hsd2_args = {'targets': [13, 14, 15, 16], 'duration': 3, 'fs': 256,
+                     'electrodes': 4, 'label': 'HSD2'}
+        hsd2 = HarmonicSumDecisionDiagnostic(**hsd2_args)
+
         diagnostic_canvas = Canvas.create(window.width, window.height)
         diagnostic = Diagnostic.create_diagnostic_fragment(
-            diagnostic_canvas, scope, stimulus, **kwargs['diagnostic'])
+            diagnostic_canvas, scope, stimuli, decoders=[hsd, hsd2],
+            **kwargs['diagnostic'])
 
         controller_chain = UnlockControllerChain(
-            window, command_receiver, [diagnostic, stimulus, scope],
+            window, command_receiver, [diagnostic, stimuli, scope],
             'Diagnostic', 'gridcursor.png', standalone=False)
         return controller_chain
