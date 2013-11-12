@@ -36,11 +36,11 @@ class TimedStimuli(UnlockModel):
     def __init__(self, state):
         super(UnlockModel, self).__init__()
         self.state = state
-        self.stimuli = set([])
+        self.stimuli = list()
         self.logger = logging.getLogger(__name__)
         
     def add_stimulus(self, stimulus):
-        self.stimuli.add(stimulus)
+        self.stimuli.append(stimulus)
             
     def start(self):
         self.state.start()
