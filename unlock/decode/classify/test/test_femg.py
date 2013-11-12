@@ -95,7 +95,7 @@ class FacialEMGDectectorTests(unittest.TestCase):
         
         
 def getSuite():
-    return unittest.makeSuite(CollectorTests,'test')
+    return unittest.makeSuite(FacialEMGDetectorTests,'test')
 
 if __name__ == "__main__":
     unittest.main()
