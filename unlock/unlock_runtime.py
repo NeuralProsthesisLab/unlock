@@ -93,8 +93,9 @@ class UnlockFactory(context.PythonConfig):
 
     @context.Object(lazy_init=True)        
     def semg(self):
-        from unlock.controller import sEMGControllerFragment
-        stimuli = sEMGControllerFragment.create_semg(self.decoder)
+        from unlock.controller import FacialEMGDetectorFragment
+        stimuli = FacialEMGDetectorFragment.create_semg(self.decoder, None)
+        self.command_receiver = stimuli.command_receiver
         return stimuli
         
     @context.Object(lazy_init=True)        
@@ -168,10 +169,10 @@ class UnlockFactory(context.PythonConfig):
                             self.args['fps'], self.args['vsync'])
         
     @context.Object(lazy_init=True)
-    def CalibrateSEMG(self):
+    def CalibrateFacialEMGDetector(self):
         self.calibrator, calibrator = Calibrate.create_smg_calibrator(
-            self.window, self.decoder, self.stimuli,
-            **self.args['CalibrateSEMG'])
+            self.window, self.command_receiver,
+            **self.args['CalibrateFacialEMGDetector'])
         return calibrator
         
     @context.Object(lazy_init=True)
