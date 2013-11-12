@@ -366,12 +366,14 @@ class EEGControllerFragment(UnlockControllerFragment):
             color1 = (0, 0, 0)
             color2 = (255, 255, 255)
 
+        stimuli = TimedStimuli.create(3, 1)
         stimulus = TimedStimulus.create(frequency * 2)
         fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
             stimulus, canvas, SpritePositionComputer.Center, width=300,
             height=300, xfreq=2, yfreq=2, color_on=color1, color_off=color2,
             reversal=False)
-        return EEGControllerFragment(command_receiver, stimulus, [fs], canvas.batch)
+        stimuli.add_stimulus(stimulus)
+        return EEGControllerFragment(command_receiver, stimuli, [fs], canvas.batch)
 
     @staticmethod
     def create_msequence(canvas, signal, timer, color='bw'):

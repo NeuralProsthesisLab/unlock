@@ -41,9 +41,12 @@ class Diagnostic(UnlockControllerFragment):
         return diagnostic
         
     @staticmethod
-    def create_diagnostic(window, decoder, **kwargs):
-        command_receiver = CommandReceiverFactory.create(
-            CommandReceiverFactory.Raw, decoder.signal, decoder.timer)
+    def create_diagnostic(window, decoder, base=None, **kwargs):
+        if base is None:
+            command_receiver = CommandReceiverFactory.create(
+                CommandReceiverFactory.Raw, decoder.signal, decoder.timer)
+        else:
+            command_receiver = base.command_receiver
 
         stimulus_canvas = Canvas.create(window.width / 2, window.height)
         stimulus = EEGControllerFragment.create_single_ssvep(
