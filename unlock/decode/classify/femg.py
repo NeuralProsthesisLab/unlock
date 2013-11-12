@@ -56,9 +56,9 @@ class FacialEMGDetector(UnlockClassifier):
     LeftDecision = 3
     RightDecision = 4
     
-    def __init__(self, rms_thresholds, channels=4, window_size=22050):
+    def __init__(self, thresholds=None, channels=4, window_size=22050):
         super(FacialEMGDetector, self).__init__()
-        self.thresholds = rms_thresholds
+        self.thresholds = thresholds
         self.channels = channels
         self.window_size = window_size
         self.window = np.zeros((window_size, channels))
@@ -81,28 +81,31 @@ class FacialEMGDetector(UnlockClassifier):
         2. Determine if an eye blink has occurred
         3. If eye blink, evaluate buffer for emg activity
         """
+        assert self.thresholds is not None
         if not command.is_valid():
             return command
+        try:     
+            samples = command.data_matrix[0:self.channels]
+            rms = np.sqrt(np.mean(samples**2, axis=0))
             
-        samples = command.data_matrix[0:self.channels]
-        rms = np.sqrt(np.mean(samples**2, axis=0))
-        
-        self.window = np.roll(self.window, -1, axis=0)
-        self.window[-1] = rms
-        
-        activations = np.max(self.window, axis=0) > self.thresholds
-        if activations[FacialEMGDetector.SelectElectrode]:
-            decision = None
-            for key, pattern_value in self.decision_patterns.items():
-                if np.array_equal(activations[0:3], pattern_value):
-                    decision = key
-                    break
-                    
-            # always clear the window after a selection
-            self.window = np.zeros((self.window_size, self.channels))
+            self.window = np.roll(self.window, -1, axis=0)
+            self.window[-1] = rms[0:4]
             
-            if decision is not None:
-                command.decision = decision
+            activations = np.max(self.window, axis=0) > self.thresholds
+            if activations[FacialEMGDetector.SelectElectrode]:
+                decision = None
+                for key, pattern_value in self.decision_patterns.items():
+                    if np.array_equal(activations[0:3], pattern_value):
+                        decision = key
+                        break
+                        
+                # always clear the window after a selection
+                self.window = np.zeros((self.window_size, self.channels))
                 
+                if decision is not None:
+                    command.decision = decision
+        except Exception as e:
+            print('Exception in FacialEMGDetector.classify: ', e)
+            
         return command
     
