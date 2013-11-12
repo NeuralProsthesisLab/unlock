@@ -57,40 +57,40 @@ class FacialEMGDectectorTests(unittest.TestCase):
         
         command_receiver = GeneratedSignalReceiver(signal, timer)
         classified_command_receiver = ClassifiedCommandReceiver(command_receiver, emg)
-        print ("Thresholds = ", thresholds)
+        #print ("Thresholds = ", thresholds)
         command = classified_command_receiver.next_command(time.time())
-        print("decision = ", command.decision)
+        #print("decision = ", command.decision)
         assert command.decision is None
         command = classified_command_receiver.next_command(time.time())
-        print("decision = ", command.decision)
+        #print("decision = ", command.decision)
         assert command.decision is None
 
         command = classified_command_receiver.next_command(time.time())
-        print("decision = ", command.decision)
+        #print("decision = ", command.decision)
         assert command.decision is None
         command = classified_command_receiver.next_command(time.time())
-        print("decision = ", command.decision)
+        #print("decision = ", command.decision)
         assert command.decision == FacialEMGDetector.LeftDecision
         
         command = classified_command_receiver.next_command(time.time())
-        print("decision = ", command.decision)
+        #print("decision = ", command.decision)
         assert command.decision is None
         command = classified_command_receiver.next_command(time.time())
-        print("decision = ", command.decision)
+        #print("decision = ", command.decision)
         assert command.decision == FacialEMGDetector.RightDecision        
         
         command = classified_command_receiver.next_command(time.time())
-        print("decision = ", command.decision)
+        #print("decision = ", command.decision)
         assert command.decision is None
         command = classified_command_receiver.next_command(time.time())
-        print("decision = ", command.decision)        
+        #print("decision = ", command.decision)        
         assert command.decision == FacialEMGDetector.DownDecision
         
         command = classified_command_receiver.next_command(time.time())
-        print("decision = ", command.decision)
+        #print("decision = ", command.decision)
         assert command.decision is None
         command = classified_command_receiver.next_command(time.time())
-        print("decision = ", command.decision)
+        #print("decision = ", command.decision)
         assert command.decision == FacialEMGDetector.UpDecision
         
         
