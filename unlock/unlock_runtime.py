@@ -332,7 +332,8 @@ class UnlockRuntime(object):
 
             
         self.factory.window = self.app_ctx.get_object('PygletWindow')
-        self.factory.stimuli = self.app_ctx.get_object(self.args['stimuli'])                
+        if 'stimuli' in self.args.keys():
+            self.factory.stimuli = self.app_ctx.get_object(self.args['stimuli'])
         self.main = self.app_ctx.get_object(self.args['main'])
             
     def __configure_logging__(self):
