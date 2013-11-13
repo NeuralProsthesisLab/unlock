@@ -29,6 +29,7 @@
 from unlock.decode.classify.classify import UnlockClassifier
 from unlock.util import TrialState
 import numpy as np
+import time
 
 
 class HarmonicSumDecision(UnlockClassifier):
@@ -152,6 +153,7 @@ class HarmonicSumDecisionDiagnostic(UnlockClassifier):
 
         self.enabled = True
         self.classify_now = False
+        self.target_label = None
 
         self.fft_params()
 
@@ -197,30 +199,53 @@ class HarmonicSumDecisionDiagnostic(UnlockClassifier):
         command contains a data matrix of samples assumed to be an ndarray of
          shape (samples, electrodes+)
         """
+        if self.classify_now:
+            return self.decode()
+
         if not self.enabled or not command.is_valid():
-            return command
+            return
 
         samples = command.matrix[:, 0:self.electrodes]
         s = samples.shape[0]
         self.buffer[self.cursor:self.cursor+s, :] = samples
         self.cursor += s
 
-        if self.cursor >= self.n_samples or self.classify_now:
-            x = self.buffer[0:self.cursor]
-            #if self.filters is not None:
-            #    x = self.filters.apply(x)
-            x = x[:, 1:4]# - x[:, 6].reshape((len(x), 1))
-            x -= np.mean(x, axis=0)
-            y = np.abs(np.fft.rfft(self.window * x, n=self.nfft, axis=0))
-            sums = np.zeros(len(self.targets))
-            for i in range(len(self.targets)):
-                sums[i] = np.sum(y[self.harmonics[i], :])
-            d = np.argmax(sums)
-            np.set_printoptions(precision=2)
-            print("%s: %d (%.1f Hz)" % (self.label, d+1, self.targets[d]),
-                sums / np.max(sums), self.cursor)
-            ## TODO: roll any leftover samples to the beginning of the buffer
-            self.cursor = 0
-            self.classify_now = False
-            #command.decision = d + 1
-            return "%s: %.1f Hz" % (self.label, self.targets[d])
+        if self.cursor >= self.n_samples:
+            return self.decode()
+
+    def decode(self):
+        log = {
+            'targets': self.targets,
+            'fs': self.fs,
+            'n_samples': self.n_samples,
+            'nfft': self.nfft,
+            'n_harmonics': self.nHarmonics,
+            'feature_width': 2,
+            'channel_weights': [0, 1, 1, 1, 0, 0, 0, 0],
+            'feature_method': 'fft',
+            'classify_method': 'argmax of sums',
+        }
+        x = self.buffer[0:self.cursor]
+        log['data'] = x
+        #if self.filters is not None:
+        #    x = self.filters.apply(x)
+        x = x[:, 1:4]  # - x[:, 6].reshape((len(x), 1))
+        x -= np.mean(x, axis=0)
+        y = np.abs(np.fft.rfft(self.window * x, n=self.nfft, axis=0))
+        sums = np.zeros(len(self.targets))
+        for i in range(len(self.targets)):
+            sums[i] = np.sum(y[self.harmonics[i], :])
+        log['sums'] = sums
+        d = np.argmax(sums)
+        log['class_label'] = d
+        if self.target_label is not None:
+            log['target_label'] = self.target_label
+        np.set_printoptions(precision=2)
+        print("%s: %d (%.1f Hz)" % (self.label, d+1, self.targets[d]),
+            sums / np.max(sums), self.cursor)
+        ## TODO: roll any leftover samples to the beginning of the buffer
+        self.cursor = 0
+        self.classify_now = False
+        np.savez("%s-%d" % (self.label, time.time()), **log)
+        #command.decision = d + 1
+        return "%s: %.1f Hz" % (self.label, self.targets[d])
