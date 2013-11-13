@@ -51,11 +51,18 @@ class DiagnosticState(UnlockModel):
         self.stimuli = stimuli
         self.frequencies = frequencies
         self.cursor = 0
+        rate = 1 / (self.frequencies[self.cursor] * 2)
+        self.stimuli.model.stimuli[0].time_state.set_duration(rate)
         self.continuous = continuous
         self.decoders = decoders
         if decoders is None:
             self.decoders = list()
+        for decoder in self.decoders:
+            # this should be pushed into the decoder as an object reference
+            # so changing it doesn't require a push-style update list this
+            decoder.target_label = self.cursor
 
+        self.trial_count = 0
         self.feedback_change = False
         self.feedback_results = list()
 
@@ -101,13 +108,24 @@ class DiagnosticState(UnlockModel):
         Handle the transition between trial and output.
         """
         if not self.stimuli.model.state.is_stopped():
-            if self.stimuli.model.state.last_change == TrialState.TrialExpiry:
+            if self.trial_count == 0:
+                # this is a hack to get around the current setup where the
+                # stimuli starts immediately
                 self.trial_stop()
+            elif self.stimuli.model.state.last_change == TrialState.TrialExpiry:
+                # there is an occasional delay apparently that can happen when
+                # using actual devices which causes this state to be missed
+                # i.e. it goes to rest, then the next rest state, resulting in
+                # an Unchanged response, before this check happens. A better
+                # method would preserve the value until it was queried.
+                self.trial_stop()
+                self.update_decoders(command)
             else:
                 self.update_decoders(command)
                 return
 
         if command.selection:
+            self.trial_count += 1
             self.trial_start()
 
         if command.decision is not None:
@@ -120,12 +138,18 @@ class DiagnosticState(UnlockModel):
                 self.cursor = len(self.frequencies) - 1
             rate = 1 / (self.frequencies[self.cursor] * 2)
             self.stimuli.model.stimuli[0].time_state.set_duration(rate)
+            for decoder in self.decoders:
+                decoder.target_label = self.cursor
+
         elif decision == DiagnosticState.FrequencyDown:
             self.cursor -= 1
             if self.cursor < 0:
                 self.cursor = 0
             rate = 1 / (self.frequencies[self.cursor] * 2)
             self.stimuli.model.stimuli[0].time_state.set_duration(rate)
+            for decoder in self.decoders:
+                decoder.target_label = self.cursor
+
         elif decision == DiagnosticState.ChannelDown:
             if self.scope is not None:
                 self.scope.model.change_display_channel(-1)
@@ -142,7 +166,8 @@ class DiagnosticState(UnlockModel):
     def get_state(self):
         if self.feedback_change:
             text = ','.join(self.feedback_results)
-            self.feedback_results = list()
+            if text != '':
+                text = '[%.1f Hz] - %s' % (self.frequencies[self.cursor], text)
             self.feedback_change = False
             return True, text
         else:
