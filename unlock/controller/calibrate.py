@@ -130,7 +130,7 @@ class Calibrate(UnlockControllerFragment):
                                   canvas.height / 2.0)
 #        back = PygletTextLabel(cue_state.cue_states[3], canvas, 'back', canvas.width / 2.0,
  #                              canvas.height / 2.0)
-        select = PygletTextLabel(cue_state.cue_states[4], canvas, 'select', canvas.width / 2.0,
+        select = PygletTextLabel(cue_state.cue_states[3], canvas, 'select', canvas.width / 2.0,
                                  canvas.height / 2.0)
         
         rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0,
