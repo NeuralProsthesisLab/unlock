@@ -127,3 +127,101 @@ class HarmonicSumDecision(UnlockClassifier):
             command.decision = d + 1
             
         return command
+
+
+class HarmonicSumDecisionDiagnostic(UnlockClassifier):
+    """
+    Harmonic Sum Decision (HSD) computes the frequency power spectrum of EEG
+    data over one or more electrodes then sums the amplitudes of target
+    frequencies and their harmonics. The target with the highest sum is chosen
+    as the attended frequency.
+    """
+    def __init__(self, targets=(12.0, 13.0, 14.0, 15.0),
+                 duration=3, fs=500, electrodes=8, filters=None, label='HSD'):
+        super(HarmonicSumDecisionDiagnostic, self).__init__()
+        self.targets = targets
+        self.target_window = 0.1
+        self.fs = fs
+        self.electrodes = electrodes
+        self.n_samples = int(duration * fs)
+        self.overflow = 256
+        self.buffer = np.zeros((self.n_samples + self.overflow, electrodes))
+        self.cursor = 0
+        self.filters = filters
+        self.label = label
+
+        self.enabled = True
+        self.classify_now = False
+
+        self.fft_params()
+
+    def fft_params(self):
+        """Determine all the relevant parameters for fft analysis"""
+        i = 2
+        while i <= self.n_samples:
+            i *= 2
+        self.nfft = i
+        self.window = 1 #np.hanning(self.nSamples).reshape((self.nSamples, 1))
+        self.nfft = 2048
+
+        # indices for frequency components
+        # as the values returned by the fft are in freq space, the resolution
+        # is limited to the size of the fft, which in this case is just the
+        # next largest power of 2. for a small time window, this results in
+        # poor frequency resolution.
+        self.nHarmonics = 2
+        self.harmonics = []
+        f = np.fft.fftfreq(self.nfft, 1.0/self.fs)[0:self.nfft/2]
+        f_step = f[1]
+        for target in self.targets:
+            r = []
+            for h in range(1, self.nHarmonics+1):
+                q = h * target / f_step
+                # q = np.where(np.logical_and(f > h*target - self.target_window,
+                #                             f < h*target + self.target_window))
+                r.extend([np.floor(q), np.ceil(q)])
+            self.harmonics.append(r)
+
+    def start(self):
+        self.enabled = True
+        self.cursor = 0
+        self.classify_now = False
+
+    def stop(self):
+        self.enabled = False
+        if self.cursor >= 0.9*self.n_samples:
+            self.classify_now = True
+
+    def classify(self, command):
+        """
+        command contains a data matrix of samples assumed to be an ndarray of
+         shape (samples, electrodes+)
+        """
+        if not self.enabled or not command.is_valid():
+            return command
+
+        samples = command.matrix[:, 0:self.electrodes]
+        s = samples.shape[0]
+        self.buffer[self.cursor:self.cursor+s, :] = samples
+        self.cursor += s
+
+        if self.cursor >= self.n_samples or self.classify_now:
+            x = self.buffer[0:self.cursor]
+            #if self.filters is not None:
+            #    x = self.filters.apply(x)
+            x = x[:, 1:4]# - x[:, 6].reshape((len(x), 1))
+            x -= np.mean(x, axis=0)
+            y = np.abs(np.fft.rfft(self.window * x, n=self.nfft, axis=0))
+            sums = np.zeros(len(self.targets))
+            for i in range(len(self.targets)):
+                sums[i] = np.sum(y[self.harmonics[i], :])
+            d = np.argmax(sums)
+            np.set_printoptions(precision=2)
+            print("%s: %d (%.1f Hz)" % (self.label, d+1, self.targets[d]),
+                sums / np.max(sums), self.cursor)
+            ## TODO: roll any leftover samples to the beginning of the buffer
+            self.cursor = 0
+            self.classify_now = False
+            #command.decision = d + 1
+
+        return command
