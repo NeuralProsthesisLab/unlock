@@ -63,5 +63,5 @@ class Diagnostic(UnlockControllerFragment):
 
         controller_chain = UnlockControllerChain(
             window, command_receiver, [diagnostic, stimulus, scope],
-            'Diagnostic', 'gridcursor.png', standalone=False)
+            'Diagnostic', 'frequency2-128x128.png', standalone=False)
         return controller_chain
