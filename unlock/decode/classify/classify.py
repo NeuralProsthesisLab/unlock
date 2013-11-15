@@ -32,14 +32,18 @@ class UnlockClassifier(object):
     HarmonicSumDecision = 0
     EyeBlinkDetector = 1
     FacialEMGDetector = 2
+    Unclassified = 3
 
     def __init__(self, task_state=None):
         super(UnlockClassifier, self).__init__()
         self.task_state = task_state
         
     def classify(self, command):
-        pass
+        return command
         
+    def reset(self):
+        pass
+    
     @staticmethod
     def create(classifier, kwargs):
         if classifier == UnlockClassifier.HarmonicSumDecision or classifier is None:
@@ -48,5 +52,9 @@ class UnlockClassifier(object):
             return unlock.decode.EyeBlinkDetector(**kwargs)
         elif classifier == UnlockClassifier.FacialEMGDetector:
             return unlock.decode.FacialEMGDetector(**kwargs)
+        elif classifier == UnlockClassifier.Unclassified:
+            return unlock.decode.UnlockClassifier(**kwargs)
         else:
             raise Exception("Undefined Classifier: ", classifier, " kwargs = ", kwargs)
+            
+            

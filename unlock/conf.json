@@ -1,10 +1,10 @@
 {
     "main" : "Dashboard",
-    "signal" : "file",
+    "signal" : "random",
     "mac_addr" : "0x61,0x9c,0x58,0x80,0x07,0x00",
     "com_port" : "COM3",
     "fullscreen" : false,
-    "fps" : false,
+    "fps" : true,
     "vsync" : false,
     "stimuli" : "ssvep",
     "decoder" : "inline",
@@ -40,7 +40,7 @@
             }
         },
         {
-            "name" : "Diagnostic",
+            "name" : "VepDiagnostic",
             "args" : {
                 "diagnostic" : {
                 },
@@ -55,7 +55,7 @@
             "args" : {
                 "controllers" : ["FastPad", "GridSpeak", "GridCursor",
                     "MouthBasedEMGCollector", "TimeScope", "FrequencyScope",
-                    "Diagnostic"]
+                    "VepDiagnostic"]
             }
         }
     ],    
