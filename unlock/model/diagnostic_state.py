@@ -29,7 +29,57 @@ from unlock.model.model import UnlockModel
 from unlock.util import TrialState
 
 
-class DiagnosticState(UnlockModel):
+class FacialEmgDiagnosticState(UnlockModel):
+    Up = 'UP'
+    Down = 'Down'
+    Left = 'Left'
+    Right = 'Right'
+    Selection = 'Selection'
+    def __init__(self, timer, classifier):
+        super(FacialEmgDiagnosticState, self).__init__()
+        self.timer = timer
+        self.classifier = classifier
+        self.text = ''
+        
+    def start(self):
+        self.timer.begin_timer()
+        self.classifier.reset()
+        self.state = True
+        self.text = 'Detecting'
+        
+    def stop(self):
+        self.timer.reset()
+        self.state = False
+        
+    def process_command(self, command):
+        if command.keyboard_selection:
+            self.start()
+            return
+                
+        if not self.state:
+            return
+        
+        self.timer.update_timer(command.delta)
+        if command.decision is not None:
+            self.handle_decision(command.decision)
+        elif command.selection is not None:
+            self.text = FacialEmgDiagnosticState.Selection
+            
+        if self.timer.is_complete():
+            self.stop()
+            
+    def handle_decision(self, decision):
+        if decision == FacialEMGDetector.UpDecision:
+            self.text = FacialEmgDiagnosticState.Up
+        elif decision == FacialEMGDetector.DownDecision:
+            self.text = FacialEmgDiagnosticState.Down            
+        elif decision == FacialEMGDetector.LeftDecision:
+            self.text = FacialEmgDiagnosticState.Left
+        elif decision == FacialEMGDetector.RightDecision:
+            self.text = FacialEmgDiagnosticState.Right
+            
+            
+class VepDiagnosticState(UnlockModel):
     """
     The diagnostic model supports two modes of operation: continuous and
      discrete. In the continuous mode, the stimuli is always flickering and the
@@ -45,7 +95,7 @@ class DiagnosticState(UnlockModel):
 
     def __init__(self, scope, stimuli, frequencies=(10,), decoders=None,
                  continuous=True):
-        super(DiagnosticState, self).__init__()
+        super(VepDiagnosticState, self).__init__()
 
         self.scope = scope
         self.stimuli = stimuli
