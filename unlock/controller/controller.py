@@ -180,7 +180,7 @@ class UnlockControllerChain(UnlockController):
         views = []
         batches = set([])
         for controller in controllers:
-            if controller.views != None and len(views) > 0:
+            if controller.views != None:
                 views.extend(controller.views)    
                     
             if controller.batches != None:
@@ -235,7 +235,7 @@ class UnlockControllerFragment(UnlockController):
         self.poll_signal = None
         self.render = None
         
-    def update_state(self, command):
+    def update_state(self, command):    
         if command is not None and command.is_valid() and self.model is not None:
             self.model.process_command(command)
             
@@ -275,52 +275,52 @@ class CalibratedControllerFragment(UnlockControllerFragment):
         self.poll_signal(delta)
         
           
-class UnstimulatedFragment(UnlockControllerFragment):
-    def __init__(self, command_receiver):
-        super(UnstimulatedFragment, self).__init__(None, [], None)
-        self.command_receiver = command_receiver
+#class UnstimulatedFragment(UnlockControllerFragment):
+#    def __init__(self, command_receiver):
+#        super(UnstimulatedFragment, self).__init__(None, [], None)
+#        self.command_receiver = command_receiver
+#        
+#    def update_state(self, command):
+#        pass
+#        
+#    def keyboard_input(self, command):
+#        pass
+#        
+#    def activate(self):
+#        pass
+#        
+#    def deactivate(self):
+#        pass
+#        
+#    @staticmethod
+#    def create_semg(decoder):
+#        command_receiver = decoder.create_receiver({}, classifier_type=UnlockClassifier.Unclassified)
+#        return UnstimulatedFragment(command_receiver)
         
-    def update_state(self, command):
-        pass
-        
-    def keyboard_input(self, command):
-        pass
-        
-    def activate(self):
-        pass
-        
-    def deactivate(self):
-        pass
-        
-    @staticmethod
-    def create_semg(decoder):
-        command_receiver = decoder.create_receiver({}, classifier_type=UnlockClassifier.Unclassified)
-        return UnstimulatedFragment(command_receiver)
-        
-           
-class FacialEMGDetectorFragment(UnlockControllerFragment):
-    def __init__(self, command_receiver):
-        super(FacialEMGDetectorFragment, self).__init__(None, [], None)
-        self.command_receiver = command_receiver
-        
-    def update_state(self, command):
-        pass
-        
-    def keyboard_input(self, command):
-        pass
-        
-    def activate(self):
-        pass
-        
-    def deactivate(self):
-        pass
-        
-    @staticmethod
-    def create_semg(decoder, thresholds):
-        command_receiver = decoder.create_receiver({}, classifier_type=UnlockClassifier.FacialEMGDetector)
-        return FacialEMGDetectorFragment(command_receiver)
-        
-        
+#           
+#class FacialEMGDetectorFragment(UnlockControllerFragment):
+#    def __init__(self, command_receiver):
+#        super(FacialEMGDetectorFragment, self).__init__(None, [], None)
+#        self.command_receiver = command_receiver
+#        
+#    def update_state(self, command):
+#        pass
+#        
+#    def keyboard_input(self, command):
+#        pass
+#        
+#    def activate(self):
+#        pass
+#        
+#    def deactivate(self):
+#        pass
+#        
+#    @staticmethod
+#    def create_semg(decoder, thresholds):
+#        command_receiver = decoder.create_receiver({}, classifier_type=UnlockClassifier.FacialEMGDetector)
+#        return FacialEMGDetectorFragment(command_receiver)
+#        
+#        
 class EEGControllerFragment(UnlockControllerFragment):
     def __init__(self, command_receiver, timed_stimuli, views, batch):
         assert timed_stimuli is not None
@@ -328,7 +328,7 @@ class EEGControllerFragment(UnlockControllerFragment):
         self.command_receiver = command_receiver
         
     def update_state(self, command):
-        return self.model.process_command(command)
+         return self.model.process_command(command)
         
     def keyboard_input(self,command):
         pass
