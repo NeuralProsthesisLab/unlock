@@ -91,6 +91,26 @@ class UnlockFactory(context.PythonConfig):
         stimuli = EEGControllerFragment.create_ssvep(canvas, self.decoder)
         return stimuli
 
+    @context.Object(lazy_init=True)
+    def nidaq(self):
+        from unlock.decode import acquire
+        self.timer = acquire.create_timer()
+        signal = acquire.create_nidaq_signal(self.timer)
+        if not signal.start():
+            raise RuntimeError('Failed to start Nation Instruments DAQ')
+        return signal
+        #for j in range(50):
+        #	ret = daq.acquire()
+        #	ret = daq.getdata(ret)
+        #	f = open('test.data', 'wb')
+        #	import numpy as np
+        #	a = np.array(ret, dtype='float64')
+        #	a = a.reshape((500, 4))
+        #	#np.savetxt(f, a, fmt='%d', delimiter='\t')
+        #	for i in range(20):
+        #		print(a[i])
+        #        
+        
     @context.Object(lazy_init=True)        
     def semg(self):
         from unlock.controller import FacialEMGDetectorFragment
@@ -98,6 +118,13 @@ class UnlockFactory(context.PythonConfig):
         self.command_receiver = stimuli.command_receiver
         return stimuli
         
+    #@context.Object(lazy_init=True)        
+    #def none(self):
+    #    from unlock.controller import FacialEMGDetectorFragment
+    #    stimuli = FacialEMGDetectorFragment.create_semg(self.decoder, None)
+    #    self.command_receiver = stimuli.command_receiver
+    #    return stimuli
+            
     @context.Object(lazy_init=True)        
     def audio(self):
         from unlock.decode import acquire
@@ -142,18 +169,17 @@ class UnlockFactory(context.PythonConfig):
             print('mobilab device did not start streaming') 
             raise RuntimeError('mobilab device did not start streaming')                       
         return signal
-
+        
     @context.Object(lazy_init=True)
     def file(self):
         from unlock.decode import acquire
         self.timer = acquire.create_timer()
-        print("FILE SIGNAL CREATED")
         signal = acquire.MemoryResidentFileSignal('analysis/data/valid/emg_signal_1380649383_tongue_c.5_r.5_i1.txt', self.timer, channels=17)
         if not signal.start():
             print('file signal failed to start; filename = ', self.args['filename'])
             raise RuntimeError('file signal failed to start')
         return signal
-    
+            
     @context.Object(lazy_init=True)
     def random(self):
         from unlock.decode import acquire
@@ -162,25 +188,25 @@ class UnlockFactory(context.PythonConfig):
         signal.open([])
         signal.start()
         return signal
-        
+            
     @context.Object(lazy_init=True)
     def PygletWindow(self):
         return PygletWindow(self.decoder, self.args['fullscreen'],
                             self.args['fps'], self.args['vsync'])
-        
+            
     @context.Object(lazy_init=True)
     def CalibrateFacialEMGDetector(self):
         self.calibrator, calibrator = Calibrate.create_smg_calibrator(
             self.window, self.command_receiver,
             **self.args['CalibrateFacialEMGDetector'])
         return calibrator
-        
+            
     @context.Object(lazy_init=True)
     def MouthBasedEMGCollector(self):
         return Collector.create_mouth_based_emg_collector(
             self.window, self.decoder, self.stimuli,
             **self.args['MouthBasedEMGCollector'])
-       
+           
     @context.Object(lazy_init=True)
     def FastPad(self):
         return FastPad.create_fastpad(
@@ -190,31 +216,37 @@ class UnlockFactory(context.PythonConfig):
     def GridSpeak(self):
         return GridSpeak.create_gridspeak(
             self.window, self.decoder, self.stimuli, **self.args['GridSpeak'])
-
+            
     @context.Object(lazy_init=True)
     def GridCursor(self):
         return GridCursor.create_gridcursor(
             self.window, self.decoder, self.stimuli, **self.args['GridCursor'])
-
+            
     @context.Object(lazy_init=True)
     def TimeScope(self):
         from unlock.controller import TimeScope
         return TimeScope.create_time_scope(
             self.window, self.decoder, self.stimuli, **self.args['TimeScope'])
-
+            
     @context.Object(lazy_init=True)
     def FrequencyScope(self):
         from unlock.controller import FrequencyScope
         return FrequencyScope.create_frequency_scope(
             self.window, self.decoder, self.stimuli,
             **self.args['FrequencyScope'])
-
+            
     @context.Object(lazy_init=True)
-    def Diagnostic(self):
+    def VepDiagnostic(self):
         from unlock.controller import Diagnostic
-        return Diagnostic.create_diagnostic(
-            self.window, self.decoder, **self.args['Diagnostic'])
-
+        return Diagnostic.create_vep_diagnostic(
+            self.window, self.decoder, **self.args['VepDiagnostic'])
+            
+    @context.Object(lazy_init=True)
+    def EmgDiagnostic(self):
+        from unlock.controller import Diagnostic
+        return Diagnostic.create_vep_diagnostic(
+            self.window, self.decoder, **self.args['EmgDiagnostic'])
+            
     @context.Object(lazy_init=True)
     def Dashboard(self):
         args = self.args['Dashboard']
