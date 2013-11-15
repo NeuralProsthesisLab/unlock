@@ -180,7 +180,7 @@ class UnlockControllerChain(UnlockController):
         views = []
         batches = set([])
         for controller in controllers:
-            if controller.views != None:
+            if controller.views != None and len(views) > 0:
                 views.extend(controller.views)    
                     
             if controller.batches != None:
@@ -251,8 +251,53 @@ class UnlockControllerFragment(UnlockController):
         if self.model is not None:
             self.model.stop()
         return self.standalone
+         
             
+class CalibratedControllerFragment(UnlockControllerFragment):
+    def __init__(self, window, model, views, batch, calibrator=None):
+        super(CalibratedControllerFragment, self).__init__(model, views, batch)
+        self.window = window
+        self.calibrator = calibrator
+        if calibrator != None:
+            self.initialized = False
+        else:
+            self.initialized = True            
+        #self.logger = logging.getLogger(__name__)
+
+    def initialize(self):
+        self.calibrator.activate()
+        self.initialized = True
+        
+    def poll_signal_interceptor(self, delta):
+        if not self.initialized:
+            self.initialize()
+            return
+        self.poll_signal(delta)
+        
           
+class UnstimulatedFragment(UnlockControllerFragment):
+    def __init__(self, command_receiver):
+        super(UnstimulatedFragment, self).__init__(None, [], None)
+        self.command_receiver = command_receiver
+        
+    def update_state(self, command):
+        pass
+        
+    def keyboard_input(self, command):
+        pass
+        
+    def activate(self):
+        pass
+        
+    def deactivate(self):
+        pass
+        
+    @staticmethod
+    def create_semg(decoder):
+        command_receiver = decoder.create_receiver({}, classifier_type=UnlockClassifier.Unclassified)
+        return UnstimulatedFragment(command_receiver)
+        
+           
 class FacialEMGDetectorFragment(UnlockControllerFragment):
     def __init__(self, command_receiver):
         super(FacialEMGDetectorFragment, self).__init__(None, [], None)
