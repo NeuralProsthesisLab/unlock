@@ -74,6 +74,10 @@ class FacialEMGDetector(UnlockClassifier):
             FacialEMGDetector.RightDecision : np.array([False, False, True])
         }
 
+    def reset(self):
+        self.window.fill(0)
+    
+
     def classify(self, command):
         """
         1. Compute RMS of incoming samples
