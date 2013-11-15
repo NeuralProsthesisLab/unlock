@@ -46,8 +46,7 @@ class Calibrate(UnlockControllerFragment):
         self.controllers = []
         self.last = None
         self.thresholds = {
-            Trigger.Forward: [], Trigger.Back: [],
-            Trigger.Left: [], Trigger.Right: [],
+            Trigger.Forward: [], Trigger.Back: [], Trigger.Left: [], Trigger.Right: [],
             Trigger.Select: []
         }
         
@@ -67,14 +66,14 @@ class Calibrate(UnlockControllerFragment):
                 lefts = self.thresholds[Trigger.Left]
                 self.thresholds[Trigger.Left] = np.concatenate((lefts, command.data_matrix[:, 0]))                
             elif self.last == Trigger.Forward:
-                rights = self.thresholds[Trigger.Forward]
-                self.thresholds[Trigger.Forward] = np.concatenate((rights, command.data_matrix[:, 1]))                
+                bottoms = self.thresholds[Trigger.Forward]
+                self.thresholds[Trigger.Forward] = np.concatenate((bottoms, command.data_matrix[:, 1]))                
             elif self.last == Trigger.Right:
                 rights = self.thresholds[Trigger.Right]
                 self.thresholds[Trigger.Right] = np.concatenate((rights, command.data_matrix[:, 2]))
             elif self.last == Trigger.Select:
                 selects = self.thresholds[Trigger.Select]
-                print("data matrix = ", command.data_matrix, " selection electrod = ", command.data_matrix[:, 3])
+#                print("data matrix = ", command.data_matrix, " selection electrod = ", command.data_matrix[:, 3])
                 self.thresholds[Trigger.Select] = np.concatenate((selects, command.data_matrix[:, 3]))
 
         if cue_trigger == Trigger.Left:
@@ -95,16 +94,16 @@ class Calibrate(UnlockControllerFragment):
             self.window.deactivate_controller()
             
     def calibrate(self):
-        print("Left ", np.array(self.thresholds[Trigger.Left]))
+        #print("Left ", np.array(self.thresholds[Trigger.Left]))
         left =  np.mean(np.array(self.thresholds[Trigger.Left]))
-        print("Bottom ", np.array(self.thresholds[Trigger.Forward]))
+        #print("Bottom ", np.array(self.thresholds[Trigger.Forward]))
         bottom = np.mean(np.array(self.thresholds[Trigger.Forward]))
-        print("Right ", np.array(self.thresholds[Trigger.Right]))
+        #print("Right ", np.array(self.thresholds[Trigger.Right]))
         right =  np.mean(np.array(self.thresholds[Trigger.Right]))
-        print("Select ", np.array(self.thresholds[Trigger.Select]))
+        #print("Select ", np.array(self.thresholds[Trigger.Select]))
         select = np.mean(np.array(self.thresholds[Trigger.Select]))
         self.classifier.thresholds = np.array([left, bottom, right, select])
-        print ("Threholds = ", self.classifier.thresholds)
+        #print ("Threholds = ", self.classifier.thresholds)
         
     def keyboard_input(self, command):
         pass
@@ -131,7 +130,7 @@ class Calibrate(UnlockControllerFragment):
                                   canvas.height / 2.0)
 #        back = PygletTextLabel(cue_state.cue_states[3], canvas, 'back', canvas.width / 2.0,
  #                              canvas.height / 2.0)
-        select = PygletTextLabel(cue_state.cue_states[4], canvas, 'select', canvas.width / 2.0,
+        select = PygletTextLabel(cue_state.cue_states[3], canvas, 'select', canvas.width / 2.0,
                                  canvas.height / 2.0)
         
         rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0,
