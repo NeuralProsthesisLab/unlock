@@ -1,5 +1,5 @@
 {
-    "main" : "Diagnostic",
+    "main" : "VepDiagnostic",
     "signal" : "random",
     "mac_addr" : "0x61,0x9c,0x58,0x80,0x07,0x00",
     "com_port" : "COM3",
@@ -9,7 +9,7 @@
     "decoder" : "inline",
     "controllers" : [
         {
-            "name" : "Diagnostic",
+            "name" : "VepDiagnostic",
             "args" : {
                 "diagnostic" : {
                     "continuous" : false,

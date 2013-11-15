@@ -235,7 +235,7 @@ class UnlockControllerFragment(UnlockController):
         self.poll_signal = None
         self.render = None
         
-    def update_state(self, command):
+    def update_state(self, command):    
         if command is not None and command.is_valid() and self.model is not None:
             self.model.process_command(command)
             
@@ -251,31 +251,76 @@ class UnlockControllerFragment(UnlockController):
         if self.model is not None:
             self.model.stop()
         return self.standalone
+         
             
+class CalibratedControllerFragment(UnlockControllerFragment):
+    def __init__(self, window, model, views, batch, calibrator=None):
+        super(CalibratedControllerFragment, self).__init__(model, views, batch)
+        self.window = window
+        self.calibrator = calibrator
+        if calibrator != None:
+            self.initialized = False
+        else:
+            self.initialized = True            
+        #self.logger = logging.getLogger(__name__)
+
+    def initialize(self):
+        self.calibrator.activate()
+        self.initialized = True
+        
+    def poll_signal_interceptor(self, delta):
+        if not self.initialized:
+            self.initialize()
+            return
+        self.poll_signal(delta)
+        
           
-class FacialEMGDetectorFragment(UnlockControllerFragment):
-    def __init__(self, command_receiver):
-        super(FacialEMGDetectorFragment, self).__init__(None, [], None)
-        self.command_receiver = command_receiver
+#class UnstimulatedFragment(UnlockControllerFragment):
+#    def __init__(self, command_receiver):
+#        super(UnstimulatedFragment, self).__init__(None, [], None)
+#        self.command_receiver = command_receiver
+#        
+#    def update_state(self, command):
+#        pass
+#        
+#    def keyboard_input(self, command):
+#        pass
+#        
+#    def activate(self):
+#        pass
+#        
+#    def deactivate(self):
+#        pass
+#        
+#    @staticmethod
+#    def create_semg(decoder):
+#        command_receiver = decoder.create_receiver({}, classifier_type=UnlockClassifier.Unclassified)
+#        return UnstimulatedFragment(command_receiver)
         
-    def update_state(self, command):
-        pass
-        
-    def keyboard_input(self, command):
-        pass
-        
-    def activate(self):
-        pass
-        
-    def deactivate(self):
-        pass
-        
-    @staticmethod
-    def create_semg(decoder, thresholds):
-        command_receiver = decoder.create_receiver({}, classifier_type=UnlockClassifier.FacialEMGDetector)
-        return FacialEMGDetectorFragment(command_receiver)
-        
-        
+#           
+#class FacialEMGDetectorFragment(UnlockControllerFragment):
+#    def __init__(self, command_receiver):
+#        super(FacialEMGDetectorFragment, self).__init__(None, [], None)
+#        self.command_receiver = command_receiver
+#        
+#    def update_state(self, command):
+#        pass
+#        
+#    def keyboard_input(self, command):
+#        pass
+#        
+#    def activate(self):
+#        pass
+#        
+#    def deactivate(self):
+#        pass
+#        
+#    @staticmethod
+#    def create_semg(decoder, thresholds):
+#        command_receiver = decoder.create_receiver({}, classifier_type=UnlockClassifier.FacialEMGDetector)
+#        return FacialEMGDetectorFragment(command_receiver)
+#        
+#        
 class EEGControllerFragment(UnlockControllerFragment):
     def __init__(self, command_receiver, timed_stimuli, views, batch):
         assert timed_stimuli is not None
@@ -283,7 +328,7 @@ class EEGControllerFragment(UnlockControllerFragment):
         self.command_receiver = command_receiver
         
     def update_state(self, command):
-        return self.model.process_command(command)
+         return self.model.process_command(command)
         
     def keyboard_input(self,command):
         pass

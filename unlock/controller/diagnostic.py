@@ -25,24 +25,66 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model import DiagnosticState
-from unlock.controller import Canvas, UnlockControllerFragment, \
+from unlock.model import VepDiagnosticState
+from unlock.controller import Canvas, CalibratedControllerFragment, \
     UnlockControllerChain, EEGControllerFragment, FrequencyScope
 from unlock.decode import CommandReceiverFactory, HarmonicSumDecisionDiagnostic
 
 
-class Diagnostic(UnlockControllerFragment):
-    def __init__(self, model, views, batch, standalone=False):
-        super(Diagnostic, self).__init__(model, views, batch, standalone)
+class Diagnostic(CalibratedControllerFragment):
+    def __init__(self, window, model, views, batch, calibrator=None):
+        super(Diagnostic, self).__init__(window, model, views, batch, calibrator)
         
     @staticmethod
-    def create_diagnostic_fragment(canvas, scope, stimulus, **kwargs):
-        model = DiagnosticState(scope, stimulus, **kwargs)
-        diagnostic = Diagnostic(model, [], canvas.batch)
+    def create_vep_diagnostic_fragment(window, canvas, scope, stimulus, **kwargs):
+        model = VepDiagnosticState(scope, stimulus, **kwargs)
+        diagnostic = Diagnostic(window, model, [], canvas.batch)
         return diagnostic
         
     @staticmethod
-    def create_diagnostic(window, decoder, base=None, **kwargs):
+    def create_femg_diagnostic_fragment(self, window, decoder, **kwargs):
+        command_receiver = CommandReceiverFactory.create(CommandReceiverFactory.Raw, decoder.signal, decoder.timer)
+        #command_receiver = RawInlineSignalReceiver(decoder.signal, decoder.timer)                                                           
+        #controller_chain = UnlockControllerChain(window, command_receiver,
+        #                                         [collector] , 'Diagnostic', 'frequency2-128x128.png',
+        #                                         standalone=False)
+        #return controller_chain
+        #
+        #if base is None:
+        #    command_receiver = CommandReceiverFactory.create(
+        #        CommandReceiverFactory.Raw, decoder.signal, decoder.timer)
+        #else:
+        #    command_receiver = base.command_receiver
+        #
+        #stimuli_canvas = Canvas.create(window.width / 2, window.height)
+        #stimuli = EEGControllerFragment.create_single_ssvep(
+        #    stimuli_canvas, command_receiver, 15.0, **kwargs['stimulus'])
+        #
+        #scope_canvas = Canvas.create(window.width / 2, window.height,
+        #                             xoffset=(window.width / 2))
+        #scope = FrequencyScope.create_frequency_scope_fragment(
+        #    scope_canvas, **kwargs['scope'])
+        #
+        #hsd_args = {'targets': [12, 13, 14, 15], 'duration': 3, 'fs': 256,
+        #            'electrodes': 4, 'label': 'HSD1'}
+        #hsd = HarmonicSumDecisionDiagnostic(**hsd_args)
+        #hsd2_args = {'targets': [13, 14, 15, 16], 'duration': 3, 'fs': 256,
+        #             'electrodes': 4, 'label': 'HSD2'}
+        #hsd2 = HarmonicSumDecisionDiagnostic(**hsd2_args)
+        #
+        #diagnostic_canvas = Canvas.create(window.width, window.height)
+        #diagnostic = Diagnostic.create_diagnostic_fragment(
+        #    diagnostic_canvas, scope, stimuli, decoders=[hsd, hsd2],
+        #    **kwargs['diagnostic'])
+        #
+        #controller_chain = UnlockControllerChain(
+        #    window, command_receiver, [diagnostic, stimuli, scope],
+        #    'Diagnostic', 'frequency2-128x128.png', standalone=False)
+        #return controller_chain
+        pass
+    
+    @staticmethod
+    def create_vep_diagnostic(window, decoder, base=None, **kwargs):
         if base is None:
             command_receiver = CommandReceiverFactory.create(
                 CommandReceiverFactory.Raw, decoder.signal, decoder.timer)
@@ -66,11 +108,11 @@ class Diagnostic(UnlockControllerFragment):
         hsd2 = HarmonicSumDecisionDiagnostic(**hsd2_args)
 
         diagnostic_canvas = Canvas.create(window.width, window.height)
-        diagnostic = Diagnostic.create_diagnostic_fragment(
-            diagnostic_canvas, scope, stimuli, decoders=[hsd, hsd2],
+        diagnostic = Diagnostic.create_vep_diagnostic_fragment(
+            window, diagnostic_canvas, scope, stimuli, decoders=[hsd, hsd2],
             **kwargs['diagnostic'])
 
         controller_chain = UnlockControllerChain(
             window, command_receiver, [diagnostic, stimuli, scope],
-            'Diagnostic', 'gridcursor.png', standalone=False)
+            'Diagnostic', 'frequency2-128x128.png', standalone=False)
         return controller_chain

@@ -56,7 +56,7 @@ class TimeScope(UnlockControllerFragment):
 
         controller_chain = UnlockControllerChain(window, command_receiver,
                                                  [scope], 'TimeScope',
-                                                 'gridspeak.png',
+                                                 'time-128x128.jpg',
                                                  standalone=False)
         return controller_chain
 
@@ -89,6 +89,6 @@ class FrequencyScope(UnlockControllerFragment):
 
         controller_chain = UnlockControllerChain(window, command_receiver,
                                                  [scope], 'FrequencyScope',
-                                                 'gridspeak.png',
+                                                 'frequency-128x128.jpg',
                                                  standalone=False)
         return controller_chain
