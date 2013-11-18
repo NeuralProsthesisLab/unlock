@@ -160,7 +160,7 @@ class UnlockFactory(context.PythonConfig):
             print('mobilab requires a com port; none set')
             raise RuntimeError('mobilab requires a com port; none set')
 
-        analog_channels_bitmask = 1+2+4+8+128  #1+2+4+8+16+32+64+128:
+        analog_channels_bitmask = 1+2+4+8+16+32+64+128
         self.timer = acquire.create_timer()
         signal = acquire.create_nonblocking_mobilab_signal(
             self.timer, analog_channels_bitmask, 0, self.com_port)
