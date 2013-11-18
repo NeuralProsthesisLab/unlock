@@ -11,10 +11,11 @@ class SampleTest(unittest.TestCase):
         if (os.path.exists(outputFile)):
             os.remove(outputFile)
     
-        runProc = subprocess.Popen("python sample.py lin_regress_plot_input.txt -export tests/"+outputFile, cwd="../")
+        runProc = subprocess.Popen("python sample.py tests/lin_regress_plot_input.csv -export tests/"+outputFile, cwd="../")
         runProc.wait()
         
-        self.assertTrue(filecmp.cmp(outputFile, "lin_regress_plot_expected_output.png", shallow=False))
+        self.assertTrue(filecmp.cmp(outputFile, "lin_regress_plot_expected_output.png", shallow=False),
+                        "Exported graph is incorrect")
         
         os.remove(outputFile)
 
