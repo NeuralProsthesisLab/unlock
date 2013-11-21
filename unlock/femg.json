@@ -25,7 +25,7 @@
             }
         },
         {
-            "name" : "MouthBasedEMGCollector",
+            "name" : "FacialEMGCollector",
             "args" : {
             }
         },
@@ -43,7 +43,7 @@
             "name" : "CalibrateFacialEMGDetector",
             "args" : {
                 "trials" : 4,
-                "cue_duration" : .5,
+                "cue_duration" : 1,
                 "rest_duration" : 1,
                 "indicate_duration" : 1
             }
