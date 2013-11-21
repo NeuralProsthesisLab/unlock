@@ -202,7 +202,7 @@ class UnlockFactory(context.PythonConfig):
         return calibrator
             
     @context.Object(lazy_init=True)
-    def MouthBasedEMGCollector(self):
+    def FacialEMGCollector(self):
         return Collector.create_mouth_based_emg_collector(
             self.window, self.decoder, self.stimuli,
             **self.args['MouthBasedEMGCollector'])
