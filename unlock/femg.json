@@ -42,6 +42,10 @@
         {
             "name" : "CalibrateFacialEMGDetector",
             "args" : {
+                "trials" : 4,
+                "cue_duration" : .5,
+                "rest_duration" : 1,
+                "indicate_duration" : 1
             }
         },
         {
