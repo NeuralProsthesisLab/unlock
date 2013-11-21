@@ -205,7 +205,7 @@ class UnlockFactory(context.PythonConfig):
     def FacialEMGCollector(self):
         return Collector.create_mouth_based_emg_collector(
             self.window, self.decoder, self.stimuli,
-            **self.args['MouthBasedEMGCollector'])
+            **self.args['FacialEMGCollector'])
            
     @context.Object(lazy_init=True)
     def FastPad(self):
