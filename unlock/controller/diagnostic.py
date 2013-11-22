@@ -118,7 +118,7 @@ class Diagnostic(CalibratedControllerFragment):
 
         diagnostic_canvas = Canvas.create(window.width, window.height)
         diagnostic = Diagnostic.create_vep_diagnostic_fragment(
-            diagnostic_canvas, scope, stimuli, decoders=decoders,
+            window, diagnostic_canvas, scope, stimuli, decoders=decoders,
             **kwargs['diagnostic'])
         controllers.append(diagnostic)
 
