@@ -29,16 +29,18 @@ from unlock.model import VepDiagnosticState
 from unlock.controller import Canvas, CalibratedControllerFragment, \
     UnlockControllerChain, EEGControllerFragment, FrequencyScope
 from unlock.decode import CommandReceiverFactory, HarmonicSumDecisionDiagnostic
-
+from unlock.view import PygletDynamicTextLabel
 
 class Diagnostic(CalibratedControllerFragment):
-    def __init__(self, window, model, views, batch, calibrator=None):
-        super(Diagnostic, self).__init__(window, model, views, batch, calibrator)
+    def __init__(self, window, model, views, batch, standalone=False):
+        super(Diagnostic, self).__init__(window, model, views, batch, standalone)
         
     @staticmethod
     def create_vep_diagnostic_fragment(window, canvas, scope, stimulus, **kwargs):
         model = VepDiagnosticState(scope, stimulus, **kwargs)
-        diagnostic = Diagnostic(window, model, [], canvas.batch)
+        feedback = PygletDynamicTextLabel(model, canvas, '', canvas.width/2,
+                                          canvas.height*0.9, size=20)
+        diagnostic = Diagnostic(window, model, [feedback], canvas.batch)
         return diagnostic
         
     @staticmethod
@@ -91,28 +93,36 @@ class Diagnostic(CalibratedControllerFragment):
         else:
             command_receiver = base.command_receiver
 
-        stimuli_canvas = Canvas.create(window.width / 2, window.height)
+        controllers = list()
+
+        stimuli_canvas = Canvas.create(window.width, window.height)
         stimuli = EEGControllerFragment.create_single_ssvep(
-            stimuli_canvas, command_receiver, 15.0, **kwargs['stimulus'])
+            stimuli_canvas, command_receiver, 10.0, **kwargs['stimulus'])
+        controllers.append(stimuli)
 
-        scope_canvas = Canvas.create(window.width / 2, window.height,
-                                     xoffset=(window.width / 2))
-        scope = FrequencyScope.create_frequency_scope_fragment(
-            scope_canvas, **kwargs['scope'])
+        #scope_canvas = Canvas.create(window.width / 2, window.height,
+        #                             xoffset=(window.width / 2))
+        #scope = FrequencyScope.create_frequency_scope_fragment(
+        #    scope_canvas, **kwargs['scope'])
+        #controllers.append(scope)
+        scope = None
 
-        hsd_args = {'targets': [12, 13, 14, 15], 'duration': 3, 'fs': 256,
-                    'electrodes': 4, 'label': 'HSD1'}
+        decoders = list()
+        hsd_args = {'targets': [12, 13, 14, 15], 'duration': 3, 'fs': 500,
+                    'electrodes': 8, 'label': 'HSD'}
         hsd = HarmonicSumDecisionDiagnostic(**hsd_args)
-        hsd2_args = {'targets': [13, 14, 15, 16], 'duration': 3, 'fs': 256,
-                     'electrodes': 4, 'label': 'HSD2'}
-        hsd2 = HarmonicSumDecisionDiagnostic(**hsd2_args)
+        decoders.append(hsd)
+        #hsd2_args = {'targets': [13, 14, 15, 16], 'duration': 3, 'fs': 256,
+        #             'electrodes': 4, 'label': 'HSD2'}
+        #hsd2 = HarmonicSumDecisionDiagnostic(**hsd2_args)
 
         diagnostic_canvas = Canvas.create(window.width, window.height)
         diagnostic = Diagnostic.create_vep_diagnostic_fragment(
-            window, diagnostic_canvas, scope, stimuli, decoders=[hsd, hsd2],
+            diagnostic_canvas, scope, stimuli, decoders=decoders,
             **kwargs['diagnostic'])
+        controllers.append(diagnostic)
 
         controller_chain = UnlockControllerChain(
-            window, command_receiver, [diagnostic, stimuli, scope],
+            window, command_receiver, controllers,
             'Diagnostic', 'frequency2-128x128.png', standalone=False)
         return controller_chain
