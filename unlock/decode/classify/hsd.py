@@ -263,35 +263,47 @@ class HarmonicSumDecision(UnlockClassifier):
     LogResultHandler = 1
     PrintResultHandler = 2
 
-    def __init__(self, model, threshold_strategy, fs=256, electrodes=8,
-                 targets=(12.0, 13.0, 14.0, 15.0), label='HSD'):
+    def __init__(self, model, threshold_strategy, fs, n_electrodes,
+                 result_handlers, targets=(12.0, 13.0, 14.0, 15.0),
+                 target_window=0.1, nfft=2048, n_harmonics=1,
+                 selected_channels=None, label='HSD'):
         super(HarmonicSumDecision, self).__init__()
 
         self.model = model
         self.threshold_strategy = threshold_strategy
 
-        self.electrodes = electrodes
         self.fs = fs
+        self.n_electrodes = n_electrodes
         self.targets = targets
-        self.target_window = 0.1
+        self.target_window = target_window
+        self.nfft = nfft
+        self.n_harmonics = n_harmonics
         self.label = label
-        self.selected_channels = [2]
+
+        self.selected_channels = selected_channels
+        if selected_channels is None:
+            self.selected_channels = range(self.n_electrodes)
+
+        self.result_handlers = set()
+        for rh in result_handlers:
+            handler = {
+                HarmonicSumDecision.SetResultHandler: self.set_result,
+                HarmonicSumDecision.LogResultHandler: self.log_result,
+                HarmonicSumDecision.PrintResultHandler: self.print_result
+            }.get(rh)
+            self.result_handlers.add(handler)
 
         self.actual_class = None
-        self.result_handlers = [self.print_result]  # generate from list
-
-        self.nfft = 2048
-        self.n_harmonics = 2
-        self.harmonics = []
+        self.harmonics = list()
         freq_step = self.fs / self.nfft
         freqs = freq_step * np.arange(self.nfft/2 + 1)
-        for target in self.targets:
-            harmonic_idx = []
+        for i, target in enumerate(self.targets):
+            harmonic_idx = list()
             for harmonic in range(1, self.n_harmonics+1):
                 idx = np.where(np.logical_and(
                     freqs > harmonic * target - self.target_window,
                     freqs < harmonic * target + self.target_window))[0]
-                harmonic_idx.extend(idx)
+                harmonic_idx.append(idx)
             self.harmonics.append(harmonic_idx)
 
     def start(self):
@@ -311,7 +323,10 @@ class HarmonicSumDecision(UnlockClassifier):
         y = np.abs(np.fft.rfft(y, n=self.nfft, axis=0))
         scores = np.zeros(len(self.targets))
         for i in range(len(self.targets)):
-            scores[i] = np.sum(y[self.harmonics[i], :])
+            score = 0
+            for harmonic in self.harmonics[i]:
+                score += np.mean(y[harmonic, :])
+            scores[i] = score
         return scores
 
     def decode(self, scores):
@@ -334,7 +349,7 @@ class HarmonicSumDecision(UnlockClassifier):
         """
 
         if command.is_valid():
-            self.model.buffer_data(command.matrix[:, 0:self.electrodes])
+            self.model.buffer_data(command.matrix[:, 0:self.n_electrodes])
 
         if self.model.is_ready():
             scores = self.extract_features(self.model.get_data())
@@ -402,6 +417,20 @@ class HarmonicSumDecision(UnlockClassifier):
 ###############################################################################
 # Decoder States
 ###############################################################################
+FixedTimeDecoder = 0
+ContinuousDecoder = 1
+
+
+def new_decoder_model(decoder, buffer_shape, **kwargs):
+    """Decoder State Factory"""
+    if decoder == FixedTimeDecoder:
+        return FixedTimeDecoderModel(buffer_shape, **kwargs)
+    elif decoder == ContinuousDecoder:
+        return ContinuousDecoderModel(buffer_shape, **kwargs)
+    else:
+        raise NotImplementedError("HSD decoder type not implemented")
+
+
 class DecoderModel(object):
     def __init__(self, buffer_shape):
         self.buffer = np.zeros(buffer_shape)
@@ -478,7 +507,7 @@ class FixedTimeDecoderModel(DecoderModel):
 
 
 class ContinuousDecoderModel(DecoderModel):
-    def __init__(self, buffer_shape, step_size, trial_limit):
+    def __init__(self, buffer_shape, step_size, trial_limit=1, **kwargs):
         super(ContinuousDecoderModel, self).__init__(buffer_shape)
         self.step_size = step_size
         self.trial_limit = trial_limit
@@ -498,6 +527,23 @@ class ContinuousDecoderModel(DecoderModel):
 ###############################################################################
 # Threshold Strategies
 ###############################################################################
+NoThreshold = 0
+AbsoluteThreshold = 1
+LDAThreshold = 2
+
+
+def new_threshold_strategy(strategy, **kwargs):
+    """Threshold Strategy Factory"""
+    if strategy == NoThreshold:
+        return NoThresholdStrategy()
+    elif strategy == AbsoluteThreshold:
+        return AbsoluteThresholdStrategy(**kwargs)
+    elif strategy == LDAThreshold:
+        return LDAThresholdStrategy(**kwargs)
+    else:
+        raise NotImplementedError("HSD threshold strategy not implemented")
+
+
 class ThresholdStrategy(object):
     def evaluate(self, sample):
         """
@@ -515,7 +561,7 @@ class NoThresholdStrategy(ThresholdStrategy):
 
 class AbsoluteThresholdStrategy(ThresholdStrategy):
     """Accepts everything greater than or equal to a set value."""
-    def __init__(self, threshold):
+    def __init__(self, threshold=0, **kwargs):
         self.threshold = threshold
 
     def evaluate(self, sample):
@@ -524,12 +570,14 @@ class AbsoluteThresholdStrategy(ThresholdStrategy):
 
 class LDAThresholdStrategy(ThresholdStrategy):
     """
-    Uses an a priori trained LDA classifier to determine the threshold
-    boundary. LDA predictions above a provided confidence level are accepted.
+    Uses an LDA classifier to determine the threshold boundary. LDA predictions
+    above a provided confidence level are accepted. Training data must be
+    supplied to the classifier.
     """
-    def __init__(self, lda, min_confidence):
-        self.clf = lda
+    def __init__(self, x=(0,1), y=(0,1), min_confidence=0.5, **kwargs):
         self.min_confidence = min_confidence
+        self.clf = lda.LDA()
+        self.clf.fit(x, y)
 
     def evaluate(self, sample):
         confidence = self.clf.predict_proba(sample)[0, 1]
@@ -537,59 +585,16 @@ class LDAThresholdStrategy(ThresholdStrategy):
 
 
 ###############################################################################
-# Global Creation Methods and Constants
+# Global Creation Method
 ###############################################################################
-NoThreshold = 0
-AbsoluteThreshold = 1
-LDAThreshold = 2
+def new_hsd(decoder_type, strategy_type, **kwargs):
+    """HSD Decoder Factory"""
+    fs = kwargs.get('fs', 256)
+    trial_length = kwargs.get('trial_length', 3)
+    n_electrodes = kwargs.get('n_electrodes', 8)
+    buffer_shape = (fs * trial_length, n_electrodes)
 
-
-def get_threshold_strategy(strategy, *args):
-    """Threshold Strategy Factory"""
-    if strategy == NoThreshold:
-        if len(args) != 0:
-            raise TypeError("Wrong number of arguments")
-        else:
-            return NoThresholdStrategy()
-    elif strategy == AbsoluteThreshold:
-        if len(args) != 1:
-            raise TypeError("Wrong number of arguments")
-        else:
-            return AbsoluteThresholdStrategy(*args)
-    elif strategy == LDAThreshold:
-        if len(args) != 2:
-            raise TypeError("Wrong number of arguments")
-        else:
-            return LDAThresholdStrategy(*args)
-    else:
-        raise NotImplementedError("HSD threshold strategy not implemented")
-
-
-FixedTimeDecoder = 0
-ContinuousDecoder = 1
-
-
-def get_decoder_type(decoder, *args):
-    """Decoder State Factory"""
-    if decoder == FixedTimeDecoder:
-        if len(args) != 2:
-            raise TypeError("Wrong number of arguments")
-        else:
-            return FixedTimeDecoderModel(*args)
-    elif decoder == ContinuousDecoder:
-        if len(args) != 2:
-            raise TypeError("Wrong number of arguments")
-        else:
-            return ContinuousDecoderModel(*args)
-    else:
-        raise NotImplementedError("HSD decoder type not implemented")
-
-
-def get_hsd(decoder_type, strategy, **kwargs):
-    """HSD Decoder Factory
-
-    classifier = hsd.get_hsd(hsd.ContinuousDecoder, hsd.LDAThreshold, )
-    """
-    decoder_state = get_decoder_type(decoder_type)
-    threshold_strategy = get_threshold_strategy(strategy)
-    return HarmonicSumDecision(decoder_state, threshold_strategy)
+    decoder_state = new_decoder_model(decoder_type, buffer_shape, **kwargs)
+    threshold_strategy = new_threshold_strategy(strategy_type, **kwargs)
+    return HarmonicSumDecision(decoder_state, threshold_strategy, fs,
+                               n_electrodes, **kwargs)
