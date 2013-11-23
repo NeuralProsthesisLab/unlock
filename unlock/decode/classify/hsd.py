@@ -29,10 +29,11 @@
 from unlock.decode.classify.classify import UnlockClassifier
 from unlock.util import TrialState
 import numpy as np
+from sklearn import lda
 import time
 
 
-class HarmonicSumDecision(UnlockClassifier):
+class OldHarmonicSumDecision(UnlockClassifier):
     """
     Harmonic Sum Decision (HSD) computes the frequency power spectrum of EEG
     data over one or more electrodes then sums the amplitudes of target
@@ -42,7 +43,7 @@ class HarmonicSumDecision(UnlockClassifier):
     def __init__(self, task_state=None, targets=(12.0, 13.0, 14.0, 15.0),
                  duration=3, fs=500, electrodes=8, filters=None):
         assert task_state is not None
-        super(HarmonicSumDecision, self).__init__(task_state)
+        super(OldHarmonicSumDecision, self).__init__(task_state)
         self.targets = targets
         self.target_window = 0.1
         self.fs = fs
@@ -249,3 +250,346 @@ class HarmonicSumDecisionDiagnostic(UnlockClassifier):
         np.savez("%s-%d" % (self.label, time.time()), **log)
         #command.decision = d + 1
         return "%s: %.1f Hz" % (self.label, self.targets[d])
+
+
+class HarmonicSumDecision(UnlockClassifier):
+    """
+    Harmonic Sum Decision (HSD) computes the frequency power spectrum of EEG
+    data over one or more electrodes then sums the amplitudes of target
+    frequencies and their harmonics. The target with the highest sum is chosen
+    as the attended frequency.
+    """
+    SetResultHandler = 0
+    LogResultHandler = 1
+    PrintResultHandler = 2
+
+    def __init__(self, model, threshold_strategy, fs=256, electrodes=8,
+                 targets=(12.0, 13.0, 14.0, 15.0), label='HSD'):
+        super(HarmonicSumDecision, self).__init__()
+
+        self.model = model
+        self.threshold_strategy = threshold_strategy
+
+        self.electrodes = electrodes
+        self.fs = fs
+        self.targets = targets
+        self.target_window = 0.1
+        self.label = label
+        self.selected_channels = [2]
+
+        self.actual_class = None
+        self.result_handlers = [self.print_result]  # generate from list
+
+        self.nfft = 2048
+        self.n_harmonics = 2
+        self.harmonics = []
+        freq_step = self.fs / self.nfft
+        freqs = freq_step * np.arange(self.nfft/2 + 1)
+        for target in self.targets:
+            harmonic_idx = []
+            for harmonic in range(1, self.n_harmonics+1):
+                idx = np.where(np.logical_and(
+                    freqs > harmonic * target - self.target_window,
+                    freqs < harmonic * target + self.target_window))[0]
+                harmonic_idx.extend(idx)
+            self.harmonics.append(harmonic_idx)
+
+    def start(self):
+        self.model.start()
+
+    def stop(self):
+        self.model.stop()
+
+    def extract_features(self, x):
+        """
+        The features used by HSD are the summed magnitudes of one or more
+        harmonics of the target frequencies across one or more channels of
+        recorded data.
+        """
+        y = x[:, self.selected_channels]
+        y -= np.mean(y, axis=0)
+        y = np.abs(np.fft.rfft(y, n=self.nfft, axis=0))
+        scores = np.zeros(len(self.targets))
+        for i in range(len(self.targets)):
+            scores[i] = np.sum(y[self.harmonics[i], :])
+        return scores
+
+    def decode(self, scores):
+        """
+        Find the largest frequency magnitude and determine if it meets
+        threshold criteria.
+        """
+        sort = np.sort(scores)[::-1]
+        winner = np.argmax(scores)
+        accept, confidence = self.threshold_strategy.evaluate(sort[0:2])
+
+        if accept:
+            return winner, confidence
+
+    def classify(self, command):
+        """
+        Buffer incoming data samples from the command object, then determine if
+        a decision has been reached and handle accordingly.
+        Must return the command object with or without modification.
+        """
+
+        if command.is_valid():
+            self.model.buffer_data(command.matrix[:, 0:self.electrodes])
+
+        if self.model.is_ready():
+            scores = self.extract_features(self.model.get_data())
+            result = self.decode(scores)
+
+            if result is not None:
+                predicted_class = result[0]
+                confidence = result[1]
+                for handler in self.result_handlers:
+                    handler(predicted_class, features=scores,
+                            actual_class=self.actual_class,
+                            confidence=confidence, command=command)
+
+            self.model.handle_result(result)
+
+        return command
+
+    def set_result(self, predicted_class, command=None, **kwargs):
+        """
+        Pass the result of the classifier on to the command object to perform
+        a system action.
+        """
+        if command is not None:
+            command.decision = predicted_class
+
+    def log_result(self, predicted_class, actual_class=None, features=None,
+                   confidence=None, **kwargs):
+        """
+        Save the results of the classifier, HSD parameters, and raw data used
+        to a file.
+        """
+        log = dict(
+            targets=self.targets,
+            fs=self.fs,
+            nfft=self.nfft,
+            n_harmonics=self.n_harmonics,
+            selected_channels=self.selected_channels,
+            data=self.model.get_data(),
+            predicted_class=predicted_class,
+            actual_class=actual_class,
+            features=features,
+            confidence=confidence
+        )
+        np.savez("%s-%d" % (self.label, time.time()), **log)
+
+    def print_result(self, predicted_class, actual_class=None, features=None,
+                     confidence=None, **kwargs):
+        """
+        Print the results of the HSD decoder to the console.
+        """
+        np.set_printoptions(precision=2)
+        result = "%s: %d (%.1f Hz)" % (self.label, predicted_class,
+                                       self.targets[predicted_class])
+        if confidence is not None:
+            result = "%s [%.2f]" % (result, confidence)
+
+        if actual_class is not None:
+            result = "%s / %d (%.1f Hz)" % (result, actual_class,
+                                            self.targets[actual_class])
+        print(result)
+        if features is not None:
+            print(features)
+
+
+###############################################################################
+# Decoder States
+###############################################################################
+class DecoderModel(object):
+    def __init__(self, buffer_shape):
+        self.buffer = np.zeros(buffer_shape)
+        self.cursor = 0
+        self.enabled = True
+
+    def start(self):
+        """Start and initialize the decoder to accept data."""
+        self.enabled = True
+        self.cursor = 0
+
+    def stop(self):
+        """Stop the decoder from accepting new data."""
+        self.enabled = False
+
+    def buffer_data(self, data):
+        """
+        Determines how to buffer incoming data samples. By default, samples
+        are added from the beginning of the buffer until it is full, then
+        further samples cause the early samples to be discarded.
+        data is assumed to have a shape of (n_samples, n_channels)
+        """
+        if not self.enabled:
+            return
+
+        n_samples = data.shape[0]
+        if self.cursor + n_samples >= self.buffer.shape[0]:
+            shift = self.cursor + n_samples - self.buffer.shape[0]
+            self.buffer = np.roll(self.buffer, -shift, axis=0)
+            self.buffer[-n_samples:] = data
+            self.cursor = self.buffer.shape[0]
+        else:
+            self.buffer[self.cursor:self.cursor+n_samples] = data
+            self.cursor += n_samples
+
+    def get_data(self):
+        """
+        Returns the buffered data according to the cursor position.
+        """
+        return self.buffer[0:self.cursor]
+
+    def is_ready(self):
+        """
+        Returns a boolean indicating whether or not to run the decoder on the
+        accumulated data.
+        """
+        raise NotImplementedError
+
+    def handle_result(self, result):
+        """
+        Any state updates or actions that are required after the decoder has
+        run.
+        """
+        raise NotImplementedError
+
+
+class FixedTimeDecoderModel(DecoderModel):
+    def __init__(self, buffer_shape, window_length):
+        super(FixedTimeDecoderModel, self).__init__(buffer_shape)
+        self.window_length = window_length
+        self.decode_now = False
+
+    def stop(self):
+        self.enabled = False
+        if self.cursor >= 0.9*self.buffer.shape[0]:
+            self.decode_now = True
+
+    def is_ready(self):
+        return self.cursor >= self.window_length or self.decode_now
+
+    def handle_result(self, result):
+        self.decode_now = False
+        self.cursor = 0
+
+
+class ContinuousDecoderModel(DecoderModel):
+    def __init__(self, buffer_shape, step_size, trial_limit):
+        super(ContinuousDecoderModel, self).__init__(buffer_shape)
+        self.step_size = step_size
+        self.trial_limit = trial_limit
+        self.last_mark = 0
+
+    def is_ready(self):
+        return self.cursor >= self.last_mark + self.step_size
+
+    def handle_result(self, result):
+        if result is not None or self.cursor >= self.trial_limit:
+            self.last_mark = 0
+            self.cursor = 0
+        else:
+            self.last_mark = self.cursor + self.step_size
+
+
+###############################################################################
+# Threshold Strategies
+###############################################################################
+class ThresholdStrategy(object):
+    def evaluate(self, sample):
+        """
+        Returns whether or not the provided sample passes a threshold test and
+        the associated confidence of that decision.
+        """
+        raise NotImplementedError
+
+
+class NoThresholdStrategy(ThresholdStrategy):
+    """Accepts everything"""
+    def evaluate(self, sample):
+        return True, 1.0
+
+
+class AbsoluteThresholdStrategy(ThresholdStrategy):
+    """Accepts everything greater than or equal to a set value."""
+    def __init__(self, threshold):
+        self.threshold = threshold
+
+    def evaluate(self, sample):
+        return sample >= self.threshold, 1.0
+
+
+class LDAThresholdStrategy(ThresholdStrategy):
+    """
+    Uses an a priori trained LDA classifier to determine the threshold
+    boundary. LDA predictions above a provided confidence level are accepted.
+    """
+    def __init__(self, lda, min_confidence):
+        self.clf = lda
+        self.min_confidence = min_confidence
+
+    def evaluate(self, sample):
+        confidence = self.clf.predict_proba(sample)[0, 1]
+        return confidence >= self.min_confidence, confidence
+
+
+###############################################################################
+# Global Creation Methods and Constants
+###############################################################################
+NoThreshold = 0
+AbsoluteThreshold = 1
+LDAThreshold = 2
+
+
+def get_threshold_strategy(strategy, *args):
+    """Threshold Strategy Factory"""
+    if strategy == NoThreshold:
+        if len(args) != 0:
+            raise TypeError("Wrong number of arguments")
+        else:
+            return NoThresholdStrategy()
+    elif strategy == AbsoluteThreshold:
+        if len(args) != 1:
+            raise TypeError("Wrong number of arguments")
+        else:
+            return AbsoluteThresholdStrategy(*args)
+    elif strategy == LDAThreshold:
+        if len(args) != 2:
+            raise TypeError("Wrong number of arguments")
+        else:
+            return LDAThresholdStrategy(*args)
+    else:
+        raise NotImplementedError("HSD threshold strategy not implemented")
+
+
+FixedTimeDecoder = 0
+ContinuousDecoder = 1
+
+
+def get_decoder_type(decoder, *args):
+    """Decoder State Factory"""
+    if decoder == FixedTimeDecoder:
+        if len(args) != 2:
+            raise TypeError("Wrong number of arguments")
+        else:
+            return FixedTimeDecoderModel(*args)
+    elif decoder == ContinuousDecoder:
+        if len(args) != 2:
+            raise TypeError("Wrong number of arguments")
+        else:
+            return ContinuousDecoderModel(*args)
+    else:
+        raise NotImplementedError("HSD decoder type not implemented")
+
+
+def get_hsd(decoder_type, strategy, **kwargs):
+    """HSD Decoder Factory
+
+    classifier = hsd.get_hsd(hsd.ContinuousDecoder, hsd.LDAThreshold, )
+    """
+    decoder_state = get_decoder_type(decoder_type)
+    threshold_strategy = get_threshold_strategy(strategy)
+    return HarmonicSumDecision(decoder_state, threshold_strategy)
