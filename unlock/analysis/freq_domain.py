@@ -9,7 +9,7 @@ argParser = argparse.ArgumentParser()
 argParser.add_argument('inputFile')
 args = argParser.parse_args()
 
-# Input signal: 256 quadruples
+# Input signal: Array of 256 quadruples
 input = []
 fin = open(args.inputFile, 'r')
 for line in fin:
@@ -18,12 +18,12 @@ for line in fin:
 fin.close()
 signal = np.array(input)
 
-# Get FFT for freq domain plot
-sp = np.fft.fft(signal)
+# Get 2 dimensional discrete fourier transform
+sp = np.fft.fft2(signal)
 amp = np.abs(sp)
 freq = np.fft.fftfreq(signal.shape[0])
 
-# Plot signal in frequency domain
+# Plot amplitude vs frequency
 plt.figure(1)
 plt.plot(freq, amp)
 plt.xlabel('Frequency')
@@ -32,5 +32,7 @@ plt.ylabel('Amplitude')
 # Plot spectrogram
 plt.figure(2)
 plt.specgram(signal, NFFT=1024)
+plt.xlabel("Time")
+plt.ylabel('Frequency')
 
 plt.show()
