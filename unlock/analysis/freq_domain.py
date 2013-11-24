@@ -1,10 +1,22 @@
+import argparse
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Parse arguments
+argParser = argparse.ArgumentParser()
+argParser.add_argument('inputFile')
+args = argParser.parse_args()
+
 # Input signal: 256 quadruples
 input = []
-for i in range(256):
-    input.append([1232+i, 2323445+2*i, 34322+3*i, 232445+4*i])
+fin = open(args.inputFile, 'r')
+next(fin) # Ignore first line (which is usually column names) in csv
+for line in fin:
+    quad = line.split(',')
+    input.append([float(quad[0]), float(quad[1]), float(quad[2]), float(quad[3])]);
+fin.close()
 signal = np.array(input)
 
 # Get FFT for freq domain plot
