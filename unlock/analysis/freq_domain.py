@@ -20,11 +20,14 @@ signal = np.array(input)
 
 # Get FFT for freq domain plot
 sp = np.fft.fft(signal)
+amp = np.abs(sp)
 freq = np.fft.fftfreq(signal.shape[0])
 
 # Plot signal in frequency domain
 plt.figure(1)
-plt.plot(freq, sp.real, freq, sp.imag)
+plt.plot(freq, amp)
+plt.xlabel('Frequency')
+plt.ylabel('Amplitude')
 
 # Plot spectrogram
 plt.figure(2)
