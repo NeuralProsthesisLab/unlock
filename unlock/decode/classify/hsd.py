@@ -33,7 +33,7 @@ from sklearn import lda
 import time
 
 
-class OldHarmonicSumDecision(UnlockClassifier):
+class HarmonicSumDecision(UnlockClassifier):
     """
     Harmonic Sum Decision (HSD) computes the frequency power spectrum of EEG
     data over one or more electrodes then sums the amplitudes of target
@@ -252,22 +252,26 @@ class HarmonicSumDecisionDiagnostic(UnlockClassifier):
         return "%s: %.1f Hz" % (self.label, self.targets[d])
 
 
-class HarmonicSumDecision(UnlockClassifier):
+###############################################################################
+# New Harmonic Sum Decision Decoder
+###############################################################################
+SetResultHandler = 0
+LogResultHandler = 1
+PrintResultHandler = 2
+
+
+class NewHarmonicSumDecision(UnlockClassifier):
     """
     Harmonic Sum Decision (HSD) computes the frequency power spectrum of EEG
     data over one or more electrodes then sums the amplitudes of target
     frequencies and their harmonics. The target with the highest sum is chosen
     as the attended frequency.
     """
-    SetResultHandler = 0
-    LogResultHandler = 1
-    PrintResultHandler = 2
-
-    def __init__(self, model, threshold_strategy, fs, n_electrodes,
-                 result_handlers, targets=(12.0, 13.0, 14.0, 15.0),
+    def __init__(self, model, threshold_strategy, fs=256, n_electrodes=8,
+                 result_handlers=(), targets=(12.0, 13.0, 14.0, 15.0),
                  target_window=0.1, nfft=2048, n_harmonics=1,
-                 selected_channels=None, label='HSD'):
-        super(HarmonicSumDecision, self).__init__()
+                 selected_channels=None, label='HSD', **kwargs):
+        super(NewHarmonicSumDecision, self).__init__()
 
         self.model = model
         self.threshold_strategy = threshold_strategy
@@ -287,9 +291,9 @@ class HarmonicSumDecision(UnlockClassifier):
         self.result_handlers = set()
         for rh in result_handlers:
             handler = {
-                HarmonicSumDecision.SetResultHandler: self.set_result,
-                HarmonicSumDecision.LogResultHandler: self.log_result,
-                HarmonicSumDecision.PrintResultHandler: self.print_result
+                SetResultHandler: self.set_result,
+                LogResultHandler: self.log_result,
+                PrintResultHandler: self.print_result
             }.get(rh)
             self.result_handlers.add(handler)
 
@@ -432,7 +436,7 @@ def new_decoder_model(decoder, buffer_shape, **kwargs):
 
 
 class DecoderModel(object):
-    def __init__(self, buffer_shape):
+    def __init__(self, buffer_shape, **kwargs):
         self.buffer = np.zeros(buffer_shape)
         self.cursor = 0
         self.enabled = True
@@ -488,7 +492,7 @@ class DecoderModel(object):
 
 
 class FixedTimeDecoderModel(DecoderModel):
-    def __init__(self, buffer_shape, window_length):
+    def __init__(self, buffer_shape, window_length, **kwargs):
         super(FixedTimeDecoderModel, self).__init__(buffer_shape)
         self.window_length = window_length
         self.decode_now = False
@@ -574,7 +578,7 @@ class LDAThresholdStrategy(ThresholdStrategy):
     above a provided confidence level are accepted. Training data must be
     supplied to the classifier.
     """
-    def __init__(self, x=(0,1), y=(0,1), min_confidence=0.5, **kwargs):
+    def __init__(self, x=(0, 1), y=(0, 1), min_confidence=0.5, **kwargs):
         self.min_confidence = min_confidence
         self.clf = lda.LDA()
         self.clf.fit(x, y)
@@ -589,12 +593,20 @@ class LDAThresholdStrategy(ThresholdStrategy):
 ###############################################################################
 def new_hsd(decoder_type, strategy_type, **kwargs):
     """HSD Decoder Factory"""
+
+    ## NOTE: model/strategy objects should be created elsewhere to avoid having
+    ## an unwiedly kwargs list being passed around to everyone.
     fs = kwargs.get('fs', 256)
     trial_length = kwargs.get('trial_length', 3)
     n_electrodes = kwargs.get('n_electrodes', 8)
     buffer_shape = (fs * trial_length, n_electrodes)
+    result_handlers = kwargs.get('result_handlers', (PrintResultHandler,))
+
+    kwargs['fs'] = fs
+    kwargs['trial_length'] = trial_length
+    kwargs['n_electrodes'] = n_electrodes
+    kwargs['result_handlers'] = result_handlers
 
     decoder_state = new_decoder_model(decoder_type, buffer_shape, **kwargs)
     threshold_strategy = new_threshold_strategy(strategy_type, **kwargs)
-    return HarmonicSumDecision(decoder_state, threshold_strategy, fs,
-                               n_electrodes, **kwargs)
+    return NewHarmonicSumDecision(decoder_state, threshold_strategy, **kwargs)
