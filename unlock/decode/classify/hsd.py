@@ -1,4 +1,3 @@
-
 # Copyright (c) James Percent, Byron Galbraith and Unlock contributors.
 # All rights reserved.
 # Redistribution and use in source and binary forms, with or without modification,
@@ -43,7 +42,7 @@ class HarmonicSumDecision(UnlockClassifier):
     def __init__(self, task_state=None, targets=(12.0, 13.0, 14.0, 15.0),
                  duration=3, fs=500, electrodes=8, filters=None):
         assert task_state is not None
-        super(OldHarmonicSumDecision, self).__init__(task_state)
+        super(HarmonicSumDecision, self).__init__(task_state)
         self.targets = targets
         self.target_window = 0.1
         self.fs = fs
