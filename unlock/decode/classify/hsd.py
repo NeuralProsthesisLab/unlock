@@ -498,7 +498,7 @@ class FixedTimeDecoderModel(DecoderModel):
 
     def stop(self):
         self.enabled = False
-        if self.cursor >= 0.9*self.buffer.shape[0]:
+        if self.cursor >= 0.9*self.window_length:
             self.decode_now = True
 
     def is_ready(self):
@@ -598,7 +598,7 @@ def new_hsd(decoder_type, strategy_type, **kwargs):
     fs = kwargs.get('fs', 256)
     trial_length = kwargs.get('trial_length', 3)
     n_electrodes = kwargs.get('n_electrodes', 8)
-    buffer_shape = (fs * trial_length, n_electrodes)
+    buffer_shape = (fs * (trial_length + 1), n_electrodes)
     result_handlers = kwargs.get('result_handlers', (PrintResultHandler,))
 
     kwargs['fs'] = fs
