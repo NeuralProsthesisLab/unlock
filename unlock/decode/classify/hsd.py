@@ -376,7 +376,7 @@ class NewHarmonicSumDecision(UnlockClassifier):
         a system action.
         """
         if command is not None:
-            command.decision = predicted_class
+            command.decision = predicted_class + 1
 
     def log_result(self, predicted_class, actual_class=None, features=None,
                    confidence=None, **kwargs):
@@ -597,12 +597,13 @@ def new_hsd(decoder_type, strategy_type, **kwargs):
     """HSD Decoder Factory"""
 
     ## NOTE: model/strategy objects should be created elsewhere to avoid having
-    ## an unwiedly kwargs list being passed around to everyone.
+    ## an unwieldly kwargs dict being passed around to everyone.
     fs = kwargs.get('fs', 256)
     trial_length = kwargs.get('trial_length', 3)
     n_electrodes = kwargs.get('n_electrodes', 8)
     buffer_shape = (fs * (trial_length + 1), n_electrodes)
-    result_handlers = kwargs.get('result_handlers', (PrintResultHandler,))
+    result_handlers = kwargs.get('result_handlers', (SetResultHandler,
+                                                     PrintResultHandler))
 
     kwargs['fs'] = fs
     kwargs['trial_length'] = trial_length
@@ -612,3 +613,10 @@ def new_hsd(decoder_type, strategy_type, **kwargs):
     decoder_state = new_decoder_model(decoder_type, buffer_shape, **kwargs)
     threshold_strategy = new_threshold_strategy(strategy_type, **kwargs)
     return NewHarmonicSumDecision(decoder_state, threshold_strategy, **kwargs)
+
+
+def new_fixed_time_hsd(**kwargs):
+    """Default fixed time HSD decoder setup."""
+    window_length = kwargs.get('window_length', 3*256)
+    kwargs['window_length'] = window_length
+    return new_hsd(FixedTimeDecoder, NoThreshold, **kwargs)
