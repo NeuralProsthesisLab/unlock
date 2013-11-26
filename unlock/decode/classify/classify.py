@@ -47,7 +47,7 @@ class UnlockClassifier(object):
     @staticmethod
     def create(classifier, kwargs):
         if classifier == UnlockClassifier.HarmonicSumDecision or classifier is None:
-            return unlock.decode.HarmonicSumDecision(**kwargs)
+            return unlock.decode.hsd.new_fixed_time_threshold_hsd(**kwargs)
         elif classifier == UnlockClassifier.EyeBlinkDetector:
             return unlock.decode.EyeBlinkDetector(**kwargs)
         elif classifier == UnlockClassifier.FacialEMGDetector:
@@ -56,5 +56,3 @@ class UnlockClassifier(object):
             return unlock.decode.UnlockClassifier(**kwargs)
         else:
             raise Exception("Undefined Classifier: ", classifier, " kwargs = ", kwargs)
-            
-            
