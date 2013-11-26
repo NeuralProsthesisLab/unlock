@@ -564,11 +564,12 @@ class NoThresholdStrategy(ThresholdStrategy):
 
 class AbsoluteThresholdStrategy(ThresholdStrategy):
     """Accepts everything greater than or equal to a set value."""
-    def __init__(self, threshold=0, **kwargs):
+    def __init__(self, threshold=0, reduction_fcn=np.mean, **kwargs):
         self.threshold = threshold
+        self.reduction_fcn = reduction_fcn
 
     def evaluate(self, sample):
-        return sample >= self.threshold, 1.0
+        return self.reduction_fcn(sample) >= self.threshold, 1.0
 
 
 class LDAThresholdStrategy(ThresholdStrategy):
@@ -577,13 +578,15 @@ class LDAThresholdStrategy(ThresholdStrategy):
     above a provided confidence level are accepted. Training data must be
     supplied to the classifier.
     """
-    def __init__(self, x=(0, 1), y=(0, 1), min_confidence=0.5, **kwargs):
+    def __init__(self, x=(0, 1), y=(0, 1), min_confidence=0.5,
+                 reduction_fcn=np.mean, **kwargs):
         self.min_confidence = min_confidence
         self.clf = lda.LDA()
         self.clf.fit(x, y)
+        self.reduction_fcn = reduction_fcn
 
     def evaluate(self, sample):
-        confidence = self.clf.predict_proba(sample)[0, 1]
+        confidence = self.clf.predict_proba(self.reduction_fcn(sample))[0, 1]
         return confidence >= self.min_confidence, confidence
 
 
