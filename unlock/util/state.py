@@ -95,6 +95,8 @@ class TrialState():
         self.rest_timer = rest_timer
         self.run_state = run_state
         self.active_timer = self.trial_timer
+
+        self.state_change = False
         self.last_change = self.Unchanged
 
         def state_change_fn():
@@ -109,7 +111,9 @@ class TrialState():
                     self.active_timer = self.trial_timer
                     change_value = self.RestExpiry
                 self.active_timer.begin_timer()
-            self.last_change = change_value
+            if change_value != self.Unchanged:
+                self.state_change = True
+                self.last_change = change_value
             return self.run_state.state, change_value
             
         self.update_state_table = state_change_fn
@@ -129,7 +133,14 @@ class TrialState():
         
     def is_stopped(self):
         return self.run_state.is_stopped()
-        
+
+    def get_state(self):
+        if self.state_change:
+            self.state_change = False
+            ret = self.last_change
+            self.last_change = TrialState.Unchanged
+            return ret
+
     @staticmethod
     def create(stimuli_duration, rest_duration, run_state=RunState()):
         trial_timer = TimerState(stimuli_duration)
