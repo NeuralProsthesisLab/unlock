@@ -393,8 +393,8 @@ class EEGControllerFragment(UnlockControllerFragment):
         # out
         task_state = stimuli.state
 
-        args = {'task_state': task_state, 'targets': freqs, 'duration': 3,
-                'fs': 256, 'electrodes': 5}
+        args = {'task_state': task_state, 'targets': freqs, 'trial_length': 3,
+                'fs': 256, 'n_electrodes': 8}
         ssvep_command_receiver = decoder.create_receiver(args,
                         classifier_type=UnlockClassifier.HarmonicSumDecision)
 
