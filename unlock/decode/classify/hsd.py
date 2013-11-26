@@ -268,8 +268,8 @@ class NewHarmonicSumDecision(UnlockClassifier):
     """
     def __init__(self, model, threshold_strategy, fs=256, n_electrodes=8,
                  result_handlers=(), targets=(12.0, 13.0, 14.0, 15.0),
-                 target_window=0.1, nfft=2048, n_harmonics=1,
-                 selected_channels=None, label='HSD', **kwargs):
+                 target_window=0.1, nfft=2048, n_harmonics=1, label='HSD',
+                 selected_channels=None, **kwargs):
         super(NewHarmonicSumDecision, self).__init__()
 
         self.model = model
@@ -337,9 +337,8 @@ class NewHarmonicSumDecision(UnlockClassifier):
         Find the largest frequency magnitude and determine if it meets
         threshold criteria.
         """
-        sort = np.sort(scores)[::-1]
         winner = np.argmax(scores)
-        accept, confidence = self.threshold_strategy.evaluate(sort[0:2])
+        accept, confidence = self.threshold_strategy.evaluate(scores)
 
         if accept:
             return winner, confidence
@@ -350,6 +349,7 @@ class NewHarmonicSumDecision(UnlockClassifier):
         a decision has been reached and handle accordingly.
         Must return the command object with or without modification.
         """
+        self.model.check_state()
 
         if command.is_valid():
             self.model.buffer_data(command.matrix[:, 0:self.n_electrodes])
@@ -358,13 +358,16 @@ class NewHarmonicSumDecision(UnlockClassifier):
             scores = self.extract_features(self.model.get_data())
             result = self.decode(scores)
 
-            if result is not None:
+            if result is None:
+                predicted_class = None
+                confidence = 1.0
+            else:
                 predicted_class = result[0]
                 confidence = result[1]
-                for handler in self.result_handlers:
-                    handler(predicted_class, features=scores,
-                            actual_class=self.actual_class,
-                            confidence=confidence, command=command)
+
+            for handler in self.result_handlers:
+                handler(predicted_class, command=command, features=scores,
+                        actual_class=self.actual_class, confidence=confidence)
 
             self.model.handle_result(result)
 
@@ -375,7 +378,7 @@ class NewHarmonicSumDecision(UnlockClassifier):
         Pass the result of the classifier on to the command object to perform
         a system action.
         """
-        if command is not None:
+        if command is not None and predicted_class is not None:
             command.decision = predicted_class + 1
 
     def log_result(self, predicted_class, actual_class=None, features=None,
@@ -403,18 +406,21 @@ class NewHarmonicSumDecision(UnlockClassifier):
         """
         Print the results of the HSD decoder to the console.
         """
-        np.set_printoptions(precision=2)
-        result = "%s: %d (%.1f Hz)" % (self.label, predicted_class,
-                                       self.targets[predicted_class])
-        if confidence is not None:
-            result = "%s [%.2f]" % (result, confidence)
+        if predicted_class is None:
+            print("%s: no decision" % self.label)
+        else:
+            np.set_printoptions(precision=2)
+            result = "%s: %d (%.1f Hz)" % (self.label, predicted_class,
+                                           self.targets[predicted_class])
+            if confidence is not None:
+                result = "%s [%.2f]" % (result, confidence)
 
-        if actual_class is not None:
-            result = "%s / %d (%.1f Hz)" % (result, actual_class,
-                                            self.targets[actual_class])
-        print(result)
-        if features is not None:
-            print(features)
+            if actual_class is not None:
+                result = "%s / %d (%.1f Hz)" % (result, actual_class,
+                                                self.targets[actual_class])
+            print(result)
+            if features is not None:
+                print(features)
 
 
 ###############################################################################
@@ -435,10 +441,11 @@ def new_decoder_model(decoder, buffer_shape, **kwargs):
 
 
 class DecoderModel(object):
-    def __init__(self, buffer_shape, **kwargs):
+    def __init__(self, buffer_shape, task_state=None, **kwargs):
         self.buffer = np.zeros(buffer_shape)
         self.cursor = 0
         self.enabled = True
+        self.task_state = task_state
 
     def start(self):
         """Start and initialize the decoder to accept data."""
@@ -448,6 +455,18 @@ class DecoderModel(object):
     def stop(self):
         """Stop the decoder from accepting new data."""
         self.enabled = False
+
+    def check_state(self):
+        """
+        Check if the task state has entered or left a rest state and handles
+        accordingly.
+        """
+        if self.task_state is not None:
+            state_change = self.task_state.get_state()
+            if state_change == TrialState.RestExpiry:
+                self.start()
+            elif state_change == TrialState.TrialExpiry:
+                self.stop()
 
     def buffer_data(self, data):
         """
@@ -491,8 +510,9 @@ class DecoderModel(object):
 
 
 class FixedTimeDecoderModel(DecoderModel):
-    def __init__(self, buffer_shape, window_length, **kwargs):
-        super(FixedTimeDecoderModel, self).__init__(buffer_shape)
+    def __init__(self, buffer_shape, task_state=None, window_length=768,
+                 **kwargs):
+        super(FixedTimeDecoderModel, self).__init__(buffer_shape, task_state)
         self.window_length = window_length
         self.decode_now = False
 
@@ -510,8 +530,9 @@ class FixedTimeDecoderModel(DecoderModel):
 
 
 class ContinuousDecoderModel(DecoderModel):
-    def __init__(self, buffer_shape, step_size, trial_limit=1, **kwargs):
-        super(ContinuousDecoderModel, self).__init__(buffer_shape)
+    def __init__(self, buffer_shape, task_state=None, step_size=32,
+                 trial_limit=768, **kwargs):
+        super(ContinuousDecoderModel, self).__init__(buffer_shape, task_state)
         self.step_size = step_size
         self.trial_limit = trial_limit
         self.last_mark = 0
@@ -615,8 +636,16 @@ def new_hsd(decoder_type, strategy_type, **kwargs):
     return NewHarmonicSumDecision(decoder_state, threshold_strategy, **kwargs)
 
 
-def new_fixed_time_hsd(**kwargs):
-    """Default fixed time HSD decoder setup."""
+def new_fixed_time_threshold_hsd(**kwargs):
+    """Fixed time HSD decoder setup with thresholding."""
     window_length = kwargs.get('window_length', 3*256)
     kwargs['window_length'] = window_length
-    return new_hsd(FixedTimeDecoder, NoThreshold, **kwargs)
+
+    def peak_ratio(sample):
+        sorted_scores = np.sort(sample)
+        return 1 - np.mean(sorted_scores[0:3]/sorted_scores[3])
+    kwargs['reduction_fcn'] = peak_ratio
+    threshold = kwargs.get('threshold', 0.4)
+    kwargs['threshold'] = threshold
+
+    return new_hsd(FixedTimeDecoder, AbsoluteThreshold, **kwargs)
