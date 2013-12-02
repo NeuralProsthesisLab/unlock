@@ -121,9 +121,6 @@ class TimedStimulus(UnlockModel):
         Updates the stimulus to the next state in the presentation
         sequence if the trial time is exceeded.
 
-        Note: the usage of "trial" here is incorrect. a trial is defined by the
-         experimental paradigm, this is simply the refresh or display rate
-
         A value of Trigger.Start is returned at the start of the sequence.
         """
         trigger_value = Trigger.Null
