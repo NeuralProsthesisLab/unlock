@@ -1,5 +1,4 @@
-
-# Copyright (c) James Percent, Byron Galbraith and Unlock contributors.
+# Copyright (c) Byron Galbraith, James Percent and Unlock contributors.
 # All rights reserved.
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -29,6 +28,8 @@
 from unlock.decode.classify.classify import UnlockClassifier
 from unlock.util import TrialState
 import numpy as np
+from sklearn import lda
+import time
 
 
 class HarmonicSumDecision(UnlockClassifier):
@@ -152,6 +153,7 @@ class HarmonicSumDecisionDiagnostic(UnlockClassifier):
 
         self.enabled = True
         self.classify_now = False
+        self.target_label = None
 
         self.fft_params()
 
@@ -197,31 +199,453 @@ class HarmonicSumDecisionDiagnostic(UnlockClassifier):
         command contains a data matrix of samples assumed to be an ndarray of
          shape (samples, electrodes+)
         """
+        if self.classify_now:
+            return self.decode()
+
         if not self.enabled or not command.is_valid():
-            return command
+            return
 
         samples = command.matrix[:, 0:self.electrodes]
         s = samples.shape[0]
         self.buffer[self.cursor:self.cursor+s, :] = samples
         self.cursor += s
 
-        if self.cursor >= self.n_samples or self.classify_now:
-            x = self.buffer[0:self.cursor]
-            #if self.filters is not None:
-            #    x = self.filters.apply(x)
-            x = x[:, 1:4]# - x[:, 6].reshape((len(x), 1))
-            x -= np.mean(x, axis=0)
-            y = np.abs(np.fft.rfft(self.window * x, n=self.nfft, axis=0))
-            sums = np.zeros(len(self.targets))
-            for i in range(len(self.targets)):
-                sums[i] = np.sum(y[self.harmonics[i], :])
-            d = np.argmax(sums)
-            np.set_printoptions(precision=2)
-            print("%s: %d (%.1f Hz)" % (self.label, d+1, self.targets[d]),
-                sums / np.max(sums), self.cursor)
-            ## TODO: roll any leftover samples to the beginning of the buffer
-            self.cursor = 0
-            self.classify_now = False
-            #command.decision = d + 1
+        if self.cursor >= self.n_samples:
+            return self.decode()
+
+    def decode(self):
+        log = {
+            'targets': self.targets,
+            'fs': self.fs,
+            'n_samples': self.n_samples,
+            'nfft': self.nfft,
+            'n_harmonics': self.nHarmonics,
+            'feature_width': 2,
+            'channel_weights': [0, 1, 1, 1, 0, 0, 0, 0],
+            'feature_method': 'fft',
+            'classify_method': 'argmax of sums',
+        }
+        x = self.buffer[0:self.cursor]
+        log['data'] = x
+        #if self.filters is not None:
+        #    x = self.filters.apply(x)
+        x = x[:, 1:4]  # - x[:, 6].reshape((len(x), 1))
+        x -= np.mean(x, axis=0)
+        y = np.abs(np.fft.rfft(self.window * x, n=self.nfft, axis=0))
+        sums = np.zeros(len(self.targets))
+        for i in range(len(self.targets)):
+            sums[i] = np.sum(y[self.harmonics[i], :])
+        log['sums'] = sums
+        d = np.argmax(sums)
+        log['class_label'] = d
+        if self.target_label is not None:
+            log['target_label'] = self.target_label
+        np.set_printoptions(precision=2)
+        print("%s: %d (%.1f Hz)" % (self.label, d+1, self.targets[d]),
+            sums / np.max(sums), self.cursor)
+        ## TODO: roll any leftover samples to the beginning of the buffer
+        self.cursor = 0
+        self.classify_now = False
+        np.savez("%s-%d" % (self.label, time.time()), **log)
+        #command.decision = d + 1
+        return "%s: %.1f Hz" % (self.label, self.targets[d])
+
+
+###############################################################################
+# New Harmonic Sum Decision Decoder
+###############################################################################
+SetResultHandler = 0
+LogResultHandler = 1
+PrintResultHandler = 2
+
+
+class NewHarmonicSumDecision(UnlockClassifier):
+    """
+    Harmonic Sum Decision (HSD) computes the frequency power spectrum of EEG
+    data over one or more electrodes then sums the amplitudes of target
+    frequencies and their harmonics. The target with the highest sum is chosen
+    as the attended frequency.
+    """
+    def __init__(self, model, threshold_strategy, fs=256, n_electrodes=8,
+                 result_handlers=(), targets=(12.0, 13.0, 14.0, 15.0),
+                 target_window=0.1, nfft=2048, n_harmonics=1, label='HSD',
+                 selected_channels=None, **kwargs):
+        super(NewHarmonicSumDecision, self).__init__()
+
+        self.model = model
+        self.threshold_strategy = threshold_strategy
+
+        self.fs = fs
+        self.n_electrodes = n_electrodes
+        self.targets = targets
+        self.target_window = target_window
+        self.nfft = nfft
+        self.n_harmonics = n_harmonics
+        self.label = label
+
+        self.selected_channels = selected_channels
+        if selected_channels is None:
+            self.selected_channels = range(self.n_electrodes)
+
+        self.result_handlers = set()
+        for rh in result_handlers:
+            handler = {
+                SetResultHandler: self.set_result,
+                LogResultHandler: self.log_result,
+                PrintResultHandler: self.print_result
+            }.get(rh)
+            self.result_handlers.add(handler)
+
+        self.actual_class = None
+        self.harmonics = list()
+        freq_step = self.fs / self.nfft
+        freqs = freq_step * np.arange(self.nfft/2 + 1)
+        for i, target in enumerate(self.targets):
+            harmonic_idx = list()
+            for harmonic in range(1, self.n_harmonics+1):
+                idx = np.where(np.logical_and(
+                    freqs > harmonic * target - self.target_window,
+                    freqs < harmonic * target + self.target_window))[0]
+                harmonic_idx.append(idx)
+            self.harmonics.append(harmonic_idx)
+
+    def start(self):
+        self.model.start()
+
+    def stop(self):
+        self.model.stop()
+
+    def extract_features(self, x):
+        """
+        The features used by HSD are the summed magnitudes of one or more
+        harmonics of the target frequencies across one or more channels of
+        recorded data.
+        """
+        y = x[:, self.selected_channels]
+        y -= np.mean(y, axis=0)
+        y = np.abs(np.fft.rfft(y, n=self.nfft, axis=0))
+        scores = np.zeros(len(self.targets))
+        for i in range(len(self.targets)):
+            score = 0
+            for harmonic in self.harmonics[i]:
+                score += np.mean(y[harmonic, :])
+            scores[i] = score
+        return scores
+
+    def decode(self, scores):
+        """
+        Find the largest frequency magnitude and determine if it meets
+        threshold criteria.
+        """
+        winner = np.argmax(scores)
+        accept, confidence = self.threshold_strategy.evaluate(scores)
+
+        if accept:
+            return winner, confidence
+
+    def classify(self, command):
+        """
+        Buffer incoming data samples from the command object, then determine if
+        a decision has been reached and handle accordingly.
+        Must return the command object with or without modification.
+        """
+        self.model.check_state()
+
+        if command.is_valid():
+            self.model.buffer_data(command.matrix[:, 0:self.n_electrodes])
+
+        if self.model.is_ready():
+            scores = self.extract_features(self.model.get_data())
+            result = self.decode(scores)
+
+            if result is None:
+                predicted_class = None
+                confidence = 1.0
+            else:
+                predicted_class = result[0]
+                confidence = result[1]
+
+            for handler in self.result_handlers:
+                handler(predicted_class, command=command, features=scores,
+                        actual_class=self.actual_class, confidence=confidence)
+
+            self.model.handle_result(result)
 
         return command
+
+    def set_result(self, predicted_class, command=None, **kwargs):
+        """
+        Pass the result of the classifier on to the command object to perform
+        a system action.
+        """
+        if command is not None and predicted_class is not None:
+            command.decision = predicted_class + 1
+
+    def log_result(self, predicted_class, actual_class=None, features=None,
+                   confidence=None, **kwargs):
+        """
+        Save the results of the classifier, HSD parameters, and raw data used
+        to a file.
+        """
+        log = dict(
+            targets=self.targets,
+            fs=self.fs,
+            nfft=self.nfft,
+            n_harmonics=self.n_harmonics,
+            selected_channels=self.selected_channels,
+            data=self.model.get_data(),
+            predicted_class=predicted_class,
+            actual_class=actual_class,
+            features=features,
+            confidence=confidence
+        )
+        np.savez("%s-%d" % (self.label, time.time()), **log)
+
+    def print_result(self, predicted_class, actual_class=None, features=None,
+                     confidence=None, **kwargs):
+        """
+        Print the results of the HSD decoder to the console.
+        """
+        if predicted_class is None:
+            print("%s: no decision" % self.label)
+        else:
+            np.set_printoptions(precision=2)
+            result = "%s: %d (%.1f Hz)" % (self.label, predicted_class,
+                                           self.targets[predicted_class])
+            if confidence is not None:
+                result = "%s [%.2f]" % (result, confidence)
+
+            if actual_class is not None:
+                result = "%s / %d (%.1f Hz)" % (result, actual_class,
+                                                self.targets[actual_class])
+            print(result)
+            if features is not None:
+                print(features)
+
+
+###############################################################################
+# Decoder States
+###############################################################################
+FixedTimeDecoder = 0
+ContinuousDecoder = 1
+
+
+def new_decoder_model(decoder, buffer_shape, **kwargs):
+    """Decoder State Factory"""
+    if decoder == FixedTimeDecoder:
+        return FixedTimeDecoderModel(buffer_shape, **kwargs)
+    elif decoder == ContinuousDecoder:
+        return ContinuousDecoderModel(buffer_shape, **kwargs)
+    else:
+        raise NotImplementedError("HSD decoder type not implemented")
+
+
+class DecoderModel(object):
+    def __init__(self, buffer_shape, task_state=None, **kwargs):
+        self.buffer = np.zeros(buffer_shape)
+        self.cursor = 0
+        self.enabled = True
+        self.task_state = task_state
+
+    def start(self):
+        """Start and initialize the decoder to accept data."""
+        self.enabled = True
+        self.cursor = 0
+
+    def stop(self):
+        """Stop the decoder from accepting new data."""
+        self.enabled = False
+
+    def check_state(self):
+        """
+        Check if the task state has entered or left a rest state and handles
+        accordingly.
+        """
+        if self.task_state is not None:
+            state_change = self.task_state.get_state()
+            if state_change == TrialState.RestExpiry:
+                self.start()
+            elif state_change == TrialState.TrialExpiry:
+                self.stop()
+
+    def buffer_data(self, data):
+        """
+        Determines how to buffer incoming data samples. By default, samples
+        are added from the beginning of the buffer until it is full, then
+        further samples cause the early samples to be discarded.
+        data is assumed to have a shape of (n_samples, n_channels)
+        """
+        if not self.enabled:
+            return
+
+        n_samples = data.shape[0]
+        if self.cursor + n_samples >= self.buffer.shape[0]:
+            shift = self.cursor + n_samples - self.buffer.shape[0]
+            self.buffer = np.roll(self.buffer, -shift, axis=0)
+            self.buffer[-n_samples:] = data
+            self.cursor = self.buffer.shape[0]
+        else:
+            self.buffer[self.cursor:self.cursor+n_samples] = data
+            self.cursor += n_samples
+
+    def get_data(self):
+        """
+        Returns the buffered data according to the cursor position.
+        """
+        return self.buffer[0:self.cursor]
+
+    def is_ready(self):
+        """
+        Returns a boolean indicating whether or not to run the decoder on the
+        accumulated data.
+        """
+        raise NotImplementedError
+
+    def handle_result(self, result):
+        """
+        Any state updates or actions that are required after the decoder has
+        run.
+        """
+        raise NotImplementedError
+
+
+class FixedTimeDecoderModel(DecoderModel):
+    def __init__(self, buffer_shape, task_state=None, window_length=768,
+                 **kwargs):
+        super(FixedTimeDecoderModel, self).__init__(buffer_shape, task_state)
+        self.window_length = window_length
+        self.decode_now = False
+
+    def stop(self):
+        self.enabled = False
+        if self.cursor >= 0.9*self.window_length:
+            self.decode_now = True
+
+    def is_ready(self):
+        return self.cursor >= self.window_length or self.decode_now
+
+    def handle_result(self, result):
+        self.decode_now = False
+        self.cursor = 0
+
+
+class ContinuousDecoderModel(DecoderModel):
+    def __init__(self, buffer_shape, task_state=None, step_size=32,
+                 trial_limit=768, **kwargs):
+        super(ContinuousDecoderModel, self).__init__(buffer_shape, task_state)
+        self.step_size = step_size
+        self.trial_limit = trial_limit
+        self.last_mark = 0
+
+    def is_ready(self):
+        return self.cursor >= self.last_mark + self.step_size
+
+    def handle_result(self, result):
+        if result is not None or self.cursor >= self.trial_limit:
+            self.last_mark = 0
+            self.cursor = 0
+        else:
+            self.last_mark = self.cursor + self.step_size
+
+
+###############################################################################
+# Threshold Strategies
+###############################################################################
+NoThreshold = 0
+AbsoluteThreshold = 1
+LDAThreshold = 2
+
+
+def new_threshold_strategy(strategy, **kwargs):
+    """Threshold Strategy Factory"""
+    if strategy == NoThreshold:
+        return NoThresholdStrategy()
+    elif strategy == AbsoluteThreshold:
+        return AbsoluteThresholdStrategy(**kwargs)
+    elif strategy == LDAThreshold:
+        return LDAThresholdStrategy(**kwargs)
+    else:
+        raise NotImplementedError("HSD threshold strategy not implemented")
+
+
+class ThresholdStrategy(object):
+    def evaluate(self, sample):
+        """
+        Returns whether or not the provided sample passes a threshold test and
+        the associated confidence of that decision.
+        """
+        raise NotImplementedError
+
+
+class NoThresholdStrategy(ThresholdStrategy):
+    """Accepts everything"""
+    def evaluate(self, sample):
+        return True, 1.0
+
+
+class AbsoluteThresholdStrategy(ThresholdStrategy):
+    """Accepts everything greater than or equal to a set value."""
+    def __init__(self, threshold=0, reduction_fcn=np.mean, **kwargs):
+        self.threshold = threshold
+        self.reduction_fcn = reduction_fcn
+
+    def evaluate(self, sample):
+        return self.reduction_fcn(sample) >= self.threshold, 1.0
+
+
+class LDAThresholdStrategy(ThresholdStrategy):
+    """
+    Uses an LDA classifier to determine the threshold boundary. LDA predictions
+    above a provided confidence level are accepted. Training data must be
+    supplied to the classifier.
+    """
+    def __init__(self, x=(0, 1), y=(0, 1), min_confidence=0.5,
+                 reduction_fcn=np.mean, **kwargs):
+        self.min_confidence = min_confidence
+        self.clf = lda.LDA()
+        self.clf.fit(x, y)
+        self.reduction_fcn = reduction_fcn
+
+    def evaluate(self, sample):
+        confidence = self.clf.predict_proba(self.reduction_fcn(sample))[0, 1]
+        return confidence >= self.min_confidence, confidence
+
+
+###############################################################################
+# Global Creation Method
+###############################################################################
+def new_hsd(decoder_type, strategy_type, **kwargs):
+    """HSD Decoder Factory"""
+
+    ## NOTE: model/strategy objects should be created elsewhere to avoid having
+    ## an unwieldly kwargs dict being passed around to everyone.
+    fs = kwargs.get('fs', 256)
+    trial_length = kwargs.get('trial_length', 3)
+    n_electrodes = kwargs.get('n_electrodes', 8)
+    buffer_shape = (fs * (trial_length + 1), n_electrodes)
+    result_handlers = kwargs.get('result_handlers', (SetResultHandler,
+                                                     PrintResultHandler))
+
+    kwargs['fs'] = fs
+    kwargs['trial_length'] = trial_length
+    kwargs['n_electrodes'] = n_electrodes
+    kwargs['result_handlers'] = result_handlers
+
+    decoder_state = new_decoder_model(decoder_type, buffer_shape, **kwargs)
+    threshold_strategy = new_threshold_strategy(strategy_type, **kwargs)
+    return NewHarmonicSumDecision(decoder_state, threshold_strategy, **kwargs)
+
+
+def new_fixed_time_threshold_hsd(**kwargs):
+    """Fixed time HSD decoder setup with thresholding."""
+    window_length = kwargs.get('window_length', 3*256)
+    kwargs['window_length'] = window_length
+
+    def peak_ratio(sample):
+        sorted_scores = np.sort(sample)
+        return 1 - np.mean(sorted_scores[0:3]/sorted_scores[3])
+    kwargs['reduction_fcn'] = peak_ratio
+    threshold = kwargs.get('threshold', 0.4)
+    kwargs['threshold'] = threshold
+
+    return new_hsd(FixedTimeDecoder, AbsoluteThreshold, **kwargs)
