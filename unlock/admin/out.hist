@@ -1,0 +1,50 @@
+    1  cd Documents/
+    2  cd unlock/
+    3  git branch --set-upstream master origin/master
+    4  exit
+    5  git pull origin master
+    6  git stash
+    7  git config --global user.email "djsmith@bu.edu"
+    8  git config --global user.name "djsmith17"
+    9  git stash
+   10  git pull origin master
+   11  cd unlick
+   12  cd unlock
+   13  /c/Python33/python.exe ./unlock_runtime.py 
+   14  /c/Python33/python.exe ./unlock_runtime.py 
+   15  /c/Python33/python.exe ./unlock_runtime.py 
+   16  /c/Python33/python.exe ./unlock_runtime.py 
+   17  /c/Python33/python.exe ./unlock_runtime.py 
+   18  /c/Python33/python.exe ./unlock_runtime.py  -n
+   19  echo $PYTHON_PATH
+   20  echo $PYTHONPATH
+   21  /c/Python33/python.exe
+   22  pip install flask
+   23  /c/Python33/Scripts/pip.exe install flask
+   24  mkdir admin
+   25  cd admin
+   26  git add admin
+   27  cd ..
+   28  git add admin
+   29  cd admin
+   30  ls
+   31  vi hello.py
+   32  /c/Python33/python.exe hello.py
+   33  /c/Python33/python.exe hello.py
+   34  /c/Python33/python.exe hello.py
+   35  /c/Python33/python.exe hello.py
+   36  /c/Python33/python.exe hello.py
+   37  /c/Python33/python.exe hello.py
+   38  /c/Python33/python.exe hello.py
+   39  /c/Python33/python.exe hello.py
+   40  /c/Python33/python.exe hello.py
+   41  /c/Python33/python.exe hello.py
+   42  git status
+   43  ls
+   44  git status .
+   45  git add hello.py
+   46  git commit hello.py
+   47  git commit hello.py
+   48  git push origin master
+   49  git push origin master
+   50  history >out.hist
