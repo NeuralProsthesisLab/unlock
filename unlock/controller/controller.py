@@ -393,8 +393,8 @@ class EEGControllerFragment(UnlockControllerFragment):
         # out
         task_state = stimuli.state
 
-        args = {'task_state': task_state, 'targets': freqs, 'duration': 3,
-                'fs': 256, 'electrodes': 5}
+        args = {'task_state': task_state, 'targets': freqs, 'trial_length': 3,
+                'fs': 256, 'n_electrodes': 8}
         ssvep_command_receiver = decoder.create_receiver(args,
                         classifier_type=UnlockClassifier.HarmonicSumDecision)
 
@@ -422,6 +422,88 @@ class EEGControllerFragment(UnlockControllerFragment):
             reversal=False)
         stimuli.add_stimulus(stimulus)
         return EEGControllerFragment(command_receiver, stimuli, [fs], canvas.batch)
+
+    @staticmethod
+    def create_dual_ssvep(canvas, command_receiver, frequency, color='ry'):
+        if color == 'ry':
+            color1 = (255, 0, 0)
+            color2 = (255, 255, 0)
+        else:
+            color1 = (0, 0, 0)
+            color2 = (255, 255, 255)
+
+        stimuli = TimedStimuli.create(3, 1)
+        stimulus = TimedStimulus.create(frequency * 2)
+        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+            stimulus, canvas, SpritePositionComputer.West, width=300,
+            height=300, xfreq=2, yfreq=2, color_on=color1, color_off=color2,
+            reversal=False)
+        stimuli.add_stimulus(stimulus)
+        stimulus2 = TimedStimulus.create(frequency * 2)
+        fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+            stimulus2, canvas, SpritePositionComputer.East, width=300,
+            height=300, xfreq=2, yfreq=2, color_on=color1, color_off=color2,
+            reversal=False)
+        stimuli.add_stimulus(stimulus2)
+        return EEGControllerFragment(command_receiver, stimuli, [fs, fs2], canvas.batch)
+
+    @staticmethod
+    def create_quad_ssvep(canvas, command_receiver, frequency, color='bw'):
+
+        if color == 'ry':
+            color1 = (255, 0, 0)
+            color2 = (255, 255, 0)
+        else:
+            color1 = (0, 0, 0)
+            color2 = (255, 255, 255)
+
+        width = 500
+        height = 100
+        xf = 5
+        yf = 1
+
+        stimuli = TimedStimuli.create(3.0, 1.0)
+        views = []
+
+        freqs = [12.0, 13.0, 14.0, 15.0]
+
+        stimulus1 = TimedStimulus.create(freqs[0] * 2)
+        fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+            stimulus1, canvas, SpritePositionComputer.North, width=width,
+            height=height, xfreq=xf, yfreq=yf, color_on=color1,
+            color_off=color2,
+            reversal=False)
+        stimuli.add_stimulus(stimulus1)
+        views.append(fs1)
+
+        stimulus2 = TimedStimulus.create(freqs[1] * 2)
+        fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+            stimulus2, canvas, SpritePositionComputer.South, width=width,
+            height=height, xfreq=xf, yfreq=yf, color_on=color1,
+            color_off=color2,
+            reversal=False)
+        stimuli.add_stimulus(stimulus2)
+        views.append(fs2)
+
+        stimulus3 = TimedStimulus.create(freqs[2] * 2)
+        fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+            stimulus3, canvas, SpritePositionComputer.West, width=width,
+            height=height, xfreq=xf, yfreq=yf, color_on=color1,
+            color_off=color2,
+            reversal=False, rotation=90)
+        stimuli.add_stimulus(stimulus3)
+        views.append(fs3)
+
+        stimulus4 = TimedStimulus.create(freqs[3] * 2)
+        fs4 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+            stimulus4, canvas, SpritePositionComputer.East, width=width,
+            height=height, xfreq=xf, yfreq=yf, color_on=color1,
+            color_off=color2,
+             reversal=False, rotation=90)
+        stimuli.add_stimulus(stimulus4)
+        views.append(fs4)
+
+        return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
 
     @staticmethod
     def create_msequence(canvas, signal, timer, color='bw'):

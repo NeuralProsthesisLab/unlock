@@ -5,6 +5,7 @@ import inspect
 import logging
 import os
 
+
 class PygletLabel(UnlockView):
     def __init__(self, model, canvas, text, x, y, color=(255,255,255,255)):
         super(PygletLabel, self).__init__()
@@ -45,7 +46,7 @@ class PygletTextLabel(PygletLabel):
         super(PygletTextLabel, self).__init__(model, canvas, text, x, y, color)
         self.font = font
         self.size = size
-        if width != None and height != None:
+        if width is not None and height is not None:
             self.label = pyglet.text.Label(self.text, font_name=self.font, font_size=self.size,
                                         x=self.canvas.x+self.x, y=self.canvas.y+self.y,
                                         anchor_x=anchor_x, anchor_y=anchor_y, color=self.color, width=width, height=height,
@@ -58,8 +59,20 @@ class PygletTextLabel(PygletLabel):
             
         self.label.text = text
         self.logger = logging.getLogger(__name__)
-        
-        
+
+
+class PygletDynamicTextLabel(PygletTextLabel):
+    def __init__(self, model, canvas, text, x, y, size=48):
+        super(PygletDynamicTextLabel, self).__init__(model, canvas, text, x, y,
+                                                     size=size)
+
+    def render(self):
+        change, text = self.model.get_state()
+
+        if change and self.label is not None:
+            self.label.text = text
+
+
 class PygletHTMLTextLabel(PygletLabel):
     def __init__(self, model, canvas, text, x, y, anchor_x='center', anchor_y='center', font='Helvetica', size=18,
                  color=(255,255,255,255), group=None):
@@ -70,7 +83,8 @@ class PygletHTMLTextLabel(PygletLabel):
                                     group=group,batch=self.canvas.batch)
         self.label.color = self.color
         self.logger = logging.getLogger(__name__)
-        
+
+
 class DynamicPositionPygletTextLabel(PygletTextLabel):
     def __init__(self,  model, canvas, text, x, y, anchor_x='center', anchor_y='center', font='Helvetica', size=48,
                  color=(255,255,255,255), group=None):
@@ -111,5 +125,3 @@ class BellRingTextLabelDecorator(UnlockView):
             self.text_label.label.text = self.text_label.text
         else:
             self.text_label.label.text = ''
-            
-         
