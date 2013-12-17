@@ -85,33 +85,34 @@ class TimerState(object):
         self.duration = float(duration)
 
         
-class TrialState():
+class TrialState(object):
     Unchanged = 0
     TrialExpiry = 1
     RestExpiry = 2
 
     def __init__(self, trial_timer, rest_timer, run_state):
+        super(TrialState, self).__init__()
         self.trial_timer = trial_timer
         self.rest_timer = rest_timer
         self.run_state = run_state
         self.active_timer = self.trial_timer
 
         self.state_change = False
-        self.last_change = self.Unchanged
+        self.last_change = TrialState.Unchanged
 
         def state_change_fn():
-            change_value = self.Unchanged
+            change_value = TrialState.Unchanged
             if self.active_timer.is_complete():
                 if self.run_state.is_running():
                     self.run_state.rest()
                     self.active_timer = self.rest_timer
-                    change_value = self.TrialExpiry
+                    change_value = TrialState.TrialExpiry
                 elif self.run_state.is_resting():
                     self.run_state.run()
                     self.active_timer = self.trial_timer
-                    change_value = self.RestExpiry
+                    change_value = TrialState.RestExpiry
                 self.active_timer.begin_timer()
-            if change_value != self.Unchanged:
+            if change_value != TrialState.Unchanged:
                 self.state_change = True
                 self.last_change = change_value
             return self.run_state.state, change_value
