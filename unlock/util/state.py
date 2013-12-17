@@ -53,8 +53,8 @@ class RunState(object):
         
     def is_stopped(self):
         return self.state == RunState.Stopped
-
-
+        
+        
 class TimerState(object):
     """
     A timer based off the variable time deltas coming from the system.
@@ -127,20 +127,20 @@ class TrialState():
         self.last_change = TrialState.Unchanged
         self.run_state.run()
         self.active_timer.begin_timer()
-
+        
     def stop(self):
         self.run_state.stop()
         
     def is_stopped(self):
         return self.run_state.is_stopped()
-
+        
     def get_state(self):
         if self.state_change:
             self.state_change = False
             ret = self.last_change
             self.last_change = TrialState.Unchanged
             return ret
-
+            
     @staticmethod
     def create(stimuli_duration, rest_duration, run_state=RunState()):
         trial_timer = TimerState(stimuli_duration)
@@ -152,6 +152,7 @@ class SequenceState(object):
     def __init__(self, sequence, value_transformer_fn=lambda x: x):
         self.sequence = sequence
         self.value_transformer_fn = value_transformer_fn
+        self.index = 0
         
     def start(self):
         self.index = 0
@@ -173,3 +174,4 @@ class SequenceState(object):
     def is_end(self):
         if self.index+1 == len(self.sequence):
             return True
+            
