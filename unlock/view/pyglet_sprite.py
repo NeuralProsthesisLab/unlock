@@ -41,10 +41,6 @@ class SpritePositionComputer(object):
             SpritePositionComputer.NorthWest: self.northwest,
             SpritePositionComputer.Center: self.center,
         }.get(position, self.center)()
-        print("width, height = ", self.width, self.height)
-        print("box_width, box_height = ", self.box_width, self.box_height)        
-        print ("X, y = ", self.x, self.y)
-        print("x0, y0 = ", self.x0, self.y0)
         self.x += self.x0
         self.y += self.y0
                 
