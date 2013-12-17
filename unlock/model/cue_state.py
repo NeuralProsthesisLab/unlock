@@ -235,6 +235,7 @@ class MultipleSequentialTimedStimuliCueState(UnlockModel):
         self.stimuli = []
         self.trigger = None
         self.stimulus = None
+        
     def add_stimulus(self, trigger, stimulus):
         self.stimuli.append((trigger, stimulus))
 

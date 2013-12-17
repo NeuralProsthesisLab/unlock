@@ -342,7 +342,7 @@ class NewHarmonicSumDecision(UnlockClassifier):
 
         if accept:
             return winner, confidence
-
+            
     def classify(self, command):
         """
         Buffer incoming data samples from the command object, then determine if

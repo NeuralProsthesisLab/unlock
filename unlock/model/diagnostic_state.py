@@ -93,17 +93,14 @@ class VepDiagnosticState(UnlockModel):
     ChannelDown = 3
     ChannelUp = 4
 
-    def __init__(self, scope, stimuli, frequencies=(10,), decoders=None,
-                 continuous=True):
+    def __init__(self, scope, stimuli, decoders, frequencies):
         super(VepDiagnosticState, self).__init__()
-
         self.scope = scope
         self.stimuli = stimuli
         self.frequencies = frequencies
         self.cursor = 0
         rate = 1 / (self.frequencies[self.cursor] * 2)
         self.stimuli.model.stimuli[0].time_state.set_duration(rate)
-        self.continuous = continuous
         self.decoders = decoders
         if decoders is None:
             self.decoders = list()
@@ -117,6 +114,7 @@ class VepDiagnosticState(UnlockModel):
         self.feedback_results = list()
 
     def trial_start(self):
+        print ("TRIAL START ")
         self.stimuli.model.start()
         for decoder in self.decoders:
             decoder.start()
@@ -124,64 +122,18 @@ class VepDiagnosticState(UnlockModel):
         self.feedback_results = list()
 
     def trial_stop(self):
+        print ("TRIAL STop")
         self.stimuli.model.stop()
         for decoder in self.decoders:
             decoder.stop()
         self.feedback_change = True
 
     def process_command(self, command):
-        if self.continuous:
-            self.handle_continuous_command(command)
-        else:
-            self.handle_discrete_command(command)
-
-    def handle_continuous_command(self, command):
-        """
-        For continuous usage, allow changes to the scope and stimuli
-        frequencies at any event. The stimuli can also be started and stopped
-        by the user.
-        """
-        if command.selection:
-            if self.stimuli.model.state.is_stopped():
-                self.trial_start()
-            else:
-                self.trial_stop()
-
-        if command.decision is not None:
-            self.handle_decision(command.decision)
-
-        self.update_decoders(command)
-
-    def handle_discrete_command(self, command):
-        """
-        For discrete usage, only allow changes when a trial is not underway.
-        Handle the transition between trial and output.
-        """
-        if not self.stimuli.model.state.is_stopped():
-            if self.trial_count == 0:
-                # this is a hack to get around the current setup where the
-                # stimuli starts immediately
-                self.trial_stop()
-            elif self.stimuli.model.state.last_change == TrialState.TrialExpiry:
-                # there is an occasional delay apparently that can happen when
-                # using actual devices which causes this state to be missed
-                # i.e. it goes to rest, then the next rest state, resulting in
-                # an Unchanged response, before this check happens. A better
-                # method would preserve the value until it was queried.
-                self.trial_stop()
-                self.update_decoders(command)
-            else:
-                self.update_decoders(command)
-                return
-
-        if command.selection:
-            self.trial_count += 1
-            self.trial_start()
-
-        if command.decision is not None:
-            self.handle_decision(command.decision)
+        raise Exception("Base class")
+        return None
 
     def handle_decision(self, decision):
+        print ("HANDLE DECISION")
         if decision == DiagnosticState.FrequencyUp:
             self.cursor += 1
             if self.cursor >= len(self.frequencies):
@@ -208,12 +160,14 @@ class VepDiagnosticState(UnlockModel):
                 self.scope.model.change_display_channel(1)
 
     def update_decoders(self, command):
+        print ("UPDATE DECODERS")
         for decoder in self.decoders:
             result = decoder.classify(command)
             if result is not None:
                 self.feedback_results.append(result)
 
     def get_state(self):
+        print("GET STATE")
         if self.feedback_change:
             text = ','.join(self.feedback_results)
             if text != '':
@@ -222,3 +176,71 @@ class VepDiagnosticState(UnlockModel):
             return True, text
         else:
             return False, ''
+
+
+class ContinuousVepDiagnosticState(VepDiagnosticState):
+    def __init__(self, scope, stimuli, frequencies, decoders):
+        super(ContinuousVepDiagnosticState, self).__init__(scope, stimuli, decoders, frequencies)
+
+    def process_command(self, command):
+        """
+        For continuous usage, allow changes to the scope and stimuli
+        frequencies at any event. The stimuli can also be started and stopped
+        by the user.
+        """
+        if command.selection:
+            if self.stimuli.model.state.is_stopped():
+                self.trial_start()
+            else:
+                self.trial_stop()
+
+        if command.decision is not None:
+            self.handle_decision(command.decision)
+
+        self.update_decoders(command)
+        #return True
+    
+
+class DiscreteVepDiagnosticState(VepDiagnosticState):
+    def __init__(self, scope, stimuli, decoders, frequencies):
+        super(DiscreteVepDiagnosticState, self).__init__(scope, stimuli, decoders, frequencies)
+        
+    def process_command(self, command):
+        """
+        For discrete usage, only allow changes when a trial is not underway.
+        Handle the transition between trial and output.
+        """
+        print("PROCESS COMMAND")
+        if not self.stimuli.model.state.is_stopped():
+            print("HACK STIMULLI state is stopped")
+            if self.trial_count == 0:
+                print(" trial count == 0")
+                # this is a hack to get around the current setup where the
+                # stimuli starts immediately
+                self.trial_stop()
+            elif self.stimuli.model.state.last_change == TrialState.TrialExpiry:
+                print (" Trial expiry ")
+                # there is an occasional delay apparently that can happen when
+                # using actual devices which causes this state to be missed
+                # i.e. it goes to rest, then the next rest state, resulting in
+                # an Unchanged response, before this check happens. A better
+                # method would preserve the value until it was queried.
+                self.trial_stop()
+                self.update_decoders(command)
+            else:
+                print (" ELSE UPDATE DECODERS ")
+                self.update_decoders(command)
+                return #True
+
+        if command.selection:
+            print ("Command selection ")
+            self.trial_count += 1
+            self.trial_start()
+
+        if command.decision is not None:
+            print("Command . decision not none")
+            self.handle_decision(command.decision)
+            
+        #return True
+    
+    
