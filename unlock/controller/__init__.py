@@ -291,6 +291,10 @@ class UnlockControllerFactory(object):
         stimuli.add_stimulus(stimulus3)
         #stimuli.add_stimulus(stimulus)
         #stimuli.add_stimulus(stimulus1)
+        width = 300
+        height = 300
+        xfreq = 2
+        yfreq = 2
 
         canvas = UnlockControllerFactory.create_canvas(window.height, window.width)
         #  XXX - houston we have a bug somewhere.  If you uncomment the creation of these 2 objects
@@ -298,19 +302,19 @@ class UnlockControllerFactory(object):
         #        correctly.  hopefully it is not a pyglet bug.
         #
         #fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus, canvas,
-        #    SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color1,
+        #    SpritePositionComputer.East, width=300, height=300, xfreq=2, yfreq=2, color_on=color1,
         #    color_off=color2, reversal=False)
-        #    
+        ##    
         #fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus1, canvas,
-        #    SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color3,
+        #    SpritePositionComputer.West, width=300, height=300, xfreq=2, yfreq=2, color_on=color3,
         #    color_off=color4, reversal=False)
-
+        
         fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus2, canvas,
-            SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color1,
+            SpritePositionComputer.Center, width=width, height=height, xfreq=xfreq, yfreq=yfreq, color_on=color1,
             color_off=color2, reversal=False)
             
         fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus3, canvas,
-            SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color3,
+            SpritePositionComputer.Center, width=width, height=height, xfreq=xfreq, yfreq=yfreq, color_on=color3,
             color_off=color4, reversal=False)
             
         views = [fs2, fs3]
