@@ -83,8 +83,12 @@ class TimerState(object):
 
     def set_duration(self, duration):
         self.duration = float(duration)
-
         
+ 
+# XXX this can be refactored.  there is no need for a rest state.  this can be implemented such
+#     that the trials are 'stacked'.  then rests can be stacked with trials abstractly.  this
+#     would help to optimize cases that have no rest condition; currently a bunch of statements are
+#     processed to handle that case.
 class TrialState(object):
     Unchanged = 0
     TrialExpiry = 1
@@ -96,10 +100,10 @@ class TrialState(object):
         self.rest_timer = rest_timer
         self.run_state = run_state
         self.active_timer = self.trial_timer
-
+        
         self.state_change = False
         self.last_change = TrialState.Unchanged
-
+        
         def state_change_fn():
             change_value = TrialState.Unchanged
             if self.active_timer.is_complete():
