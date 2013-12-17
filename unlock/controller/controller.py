@@ -73,7 +73,7 @@ class UnlockController(object):
         return self.standalone
         
     def render(self):
-        print("Render =======================================================================")
+        #print("Render =======================================================================")
         self.window.render()
         
         

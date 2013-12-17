@@ -272,48 +272,48 @@ class UnlockControllerFactory(object):
         return UnlockCommandConnectedFragment(command_receiver, stimuli, views, canvas.batch)
         
     @staticmethod
-    def create_standalone_ssvep_diagnostic(window, decoder, trials=30, rest_duration=1,
+    def create_standalone_ssvep_diagnostic(window, decoder, trials=1, rest_duration=1,
         indicate_duration=3, output_file='collector', frequencies=[12.0, 13.0, 14.0, 15.0], color='ry'):
         
-        if color == 'ry':
-            color1 = (255, 0, 0)
-            color2 = (255, 255, 0)
-        else:
-            color1 = (0, 0, 0)
-            color2 = (255, 255, 255)
+        color1 = (255, 0, 0)
+        color2 = (255, 255, 0)
+        color3 = (0, 0, 0)
+        color4 = (255, 255, 255)
                 
 
         stimulus = TimedStimulus.create(frequencies[0] * 2)
-        #stimulus1 = TimedStimulus.create(frequencies[1] * 2)        
-        #stimulus2 = TimedStimulus.create(frequencies[2] * 2)        
-        #stimulus3 = TimedStimulus.create(frequencies[3] * 2)
+        stimulus1 = TimedStimulus.create(frequencies[1] * 2)        
+        stimulus2 = TimedStimulus.create(frequencies[2] * 2)        
+        stimulus3 = TimedStimulus.create(frequencies[3] * 2)
         
         stimuli = SequentialTimedStimuli.create(3.0)
-        stimuli.add_stimulus(stimulus)
+        stimuli.add_stimulus(stimulus2)
+        stimuli.add_stimulus(stimulus3)
+        #stimuli.add_stimulus(stimulus)
         #stimuli.add_stimulus(stimulus1)
-        #stimuli.add_stimulus(stimulus2)
-        #stimuli.add_stimulus(stimulus3)
 
         canvas = UnlockControllerFactory.create_canvas(window.height, window.width)
+        #  XXX - houston we have a bug somewhere.  If you uncomment the creation of these 2 objects
+        #        weird behavior ensusues.  particularly, the last 2 fs created will not render
+        #        correctly.  hopefully it is not a pyglet bug.
+        #
+        #fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus, canvas,
+        #    SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color1,
+        #    color_off=color2, reversal=False)
+        #    
+        #fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus1, canvas,
+        #    SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color3,
+        #    color_off=color4, reversal=False)
 
-        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus, canvas,
+        fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus2, canvas,
             SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color1,
             color_off=color2, reversal=False)
             
-        #fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus1, canvas,
-        #    SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color1,
-        #    color_off=color2, reversal=False)
+        fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus3, canvas,
+            SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color3,
+            color_off=color4, reversal=False)
             
-        #fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus2, canvas,
-        #    SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color1,
-        #    color_off=color2, reversal=False)
-            
-        #fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus3, canvas,
-        #    SpritePositionComputer.Center, width=600, height=100, xfreq=2, yfreq=2, color_on=color1,
-        #    color_off=color2, reversal=False)
-        
-        #views = [fs, fs1, fs2, fs3]
-        views = [fs]
+        views = [fs2, fs3]
             
         ssvep_command_receiver = decoder.create_receiver({}, classifier_type=UnlockClassifier.HarmonicSumDecision)
         command_connected_fragment = UnlockCommandConnectedFragment(ssvep_command_receiver, stimuli,
