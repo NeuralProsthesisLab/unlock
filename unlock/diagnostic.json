@@ -1,5 +1,5 @@
 {
-    "main" : "VepDiagnostic",
+    "main" : "SsvepDiagnostic",
     "signal" : "random",
     "mac_addr" : "0x61,0x9c,0x58,0x80,0x07,0x00",
     "com_port" : "COM3",
@@ -9,24 +9,8 @@
     "decoder" : "inline",
     "controllers" : [
         {
-            "name" : "VepDiagnostic",
+            "name" : "SsvepDiagnostic",
             "args" : {
-                "diagnostic" : {
-                    "continuous" : false,
-                    "frequencies" : [11, 12, 13, 14, 15, 16]
-                },
-                "stimulus" : {
-
-                },
-                "scope" : {
-                    "fs" : 256,
-                    "duration" : 3,
-                    "n_channels" : 8,
-                    "freq_range" : [10, 17],
-                    "labels" : [10, 11, 12, 13, 14, 15, 16, 17],
-                    "display_channels" : [2],
-                    "nfft" : 2048
-                }
             }
         }
     ],
