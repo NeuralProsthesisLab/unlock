@@ -36,8 +36,7 @@ import logging.config
 
 from unlock import context
 from unlock.decode import CommandReceiverFactory, InlineDecoder, MultiProcessDecoder
-from unlock.controller import PygletWindow, Dashboard, FastPad, Canvas, \
-    Calibrate, GridSpeak, GridCursor, Collector
+from unlock.controller import PygletWindow, UnlockDashboard, UnlockControllerFactory, Canvas
 from optparse import OptionParser
 
 
@@ -51,53 +50,36 @@ class UnlockFactory(context.PythonConfig):
         self.window = None
         self.calibrator = None
         self.stimuli = None
+        
+    @context.Object(lazy_init=True)
+    def inline(self):
+        # XXX - fix crimes against nature
         if 'receiver' in self.args.keys():
             self.receiver = CommandReceiverFactory.map_factory_method(self.args['receiver'])
         else:
             self.receiver = CommandReceiverFactory.Classified
             
-        if 'mac_addr' in self.args.keys():
-            self.mac_addr = [int(value,0) for value in [x.strip() for x in self.args['mac_addr'].split(',')]]
-
-        if 'com_port' in self.args.keys():
-            self.com_port = self.args['com_port']
-    
-    @context.Object(lazy_init=True)
-    def HarmonicSumDecision(self):
-        # XXX - add self.args[HarmonicSumDecision]
-        self.classifier = HarmonicSumDecision(freqs, 3.0, 500, 8)
-        return self.classifier
-
-    @context.Object(lazy_init=True)
-    def FacialEMGDetector(self):
-        # XXX - add self.args[HarmonicSumDecision]
-        #rms_thresholds, channels=2, window_size=22050):        
-        self.classifier = HarmonicSumDecision(freqs, 3.0, 500, 8)        
-    
-    @context.Object(lazy_init=True)
-    def inline(self):
-        self.decoder = InlineDecoder(self.receiver, self.signal, self.timer)
-        return self.decoder
-    
+        decoder = InlineDecoder(self.receiver, self.signal, self.timer)
+        return decoder
+        
     @context.Object(lazy_init=True)
     def multiprocess(self):
-        self.decoder = MultiProcessDecoder(self.args)
-        return self.decoder
-    
+        decoder = MultiProcessDecoder(self.args)
+        return decoder
+        
     @context.Object(lazy_init=True)        
     def ssvep(self):
-        from unlock.controller import EEGControllerFragment
-        canvas = Canvas.create(self.window.width, self.window.height)
-        stimuli = EEGControllerFragment.create_ssvep(canvas, self.decoder)
+        canvas = UnlockControllerFactory.create_canvas(self.window.width, self.window.height)
+        stimuli = UnlockControllerFactory.create_quad_ssvep(canvas, self.decoder)
         return stimuli
-
+     
     @context.Object(lazy_init=True)
     def nidaq(self):
         from unlock.decode import acquire
         self.timer = acquire.create_timer()
         signal = acquire.create_nidaq_signal(self.timer)
         if not signal.start():
-            raise RuntimeError('Failed to start Nation Instruments DAQ')
+            raise RuntimeError('Failed to start National Instruments DAQ')
         return signal
         #for j in range(50):
         #	ret = daq.acquire()
@@ -112,20 +94,6 @@ class UnlockFactory(context.PythonConfig):
         #        
         
     @context.Object(lazy_init=True)        
-    def semg(self):
-        from unlock.controller import FacialEMGDetectorFragment
-        stimuli = FacialEMGDetectorFragment.create_semg(self.decoder, None)
-        self.command_receiver = stimuli.command_receiver
-        return stimuli
-        
-    #@context.Object(lazy_init=True)        
-    #def none(self):
-    #    from unlock.controller import FacialEMGDetectorFragment
-    #    stimuli = FacialEMGDetectorFragment.create_semg(self.decoder, None)
-    #    self.command_receiver = stimuli.command_receiver
-    #    return stimuli
-            
-    @context.Object(lazy_init=True)        
     def audio(self):
         from unlock.decode import acquire
         self.timer = acquire.create_timer()
@@ -138,33 +106,43 @@ class UnlockFactory(context.PythonConfig):
         
     @context.Object(lazy_init=True)    
     def enobio(self):
-        from unlock.decode import acquire
-        if self.mac_addr is None:
+        mac_addr = None
+        if 'mac_addr' in self.args.keys():
+            mac_addr = [int(value,0) for value in [x.strip() for x in self.args['mac_addr'].split(',')]]
+        
+        if mac_addr is None:
             print('enobio requires a mac address; none set')
             raise RuntimeError('enobio requires a mac address; none set')
-            
+        
+        from unlock.decode import acquire
+        # XXX - h4x0r        
         self.timer = acquire.create_timer()
         signal = acquire.create_nonblocking_enobio_signal(self.timer)
-        if not signal.open(self.mac_addr):
+        if not signal.open(mac_addr):
             print('enobio did not open')
             raise RuntimeError('enobio did not open')
         if not signal.start():
             print('enobio device did not start streaming')                                 
             raise RuntimeError('enobio device did not start streaming')                       
         return signal
-    
+        
     @context.Object(lazy_init=True)    
     def mobilab(self):
-        from unlock.decode import acquire
-        if self.com_port is None:
+        com_port = None
+        if 'com_port' in self.args.keys():
+            com_port = self.args['com_port']
+            
+        if com_port is None:
             print('mobilab requires a com port; none set')
             raise RuntimeError('mobilab requires a com port; none set')
-
+            
         analog_channels_bitmask = 1+2+4+8+16+32+64+128
+        from unlock.decode import acquire    
+        # XXX - h4x0r
         self.timer = acquire.create_timer()
         signal = acquire.create_nonblocking_mobilab_signal(
-            self.timer, analog_channels_bitmask, 0, self.com_port)
-        
+            self.timer, analog_channels_bitmask, 0, com_port)
+            
         if not signal.start():
             print('mobilab device did not start streaming') 
             raise RuntimeError('mobilab device did not start streaming')                       
@@ -173,8 +151,11 @@ class UnlockFactory(context.PythonConfig):
     @context.Object(lazy_init=True)
     def file(self):
         from unlock.decode import acquire
+        # XXX - h4x0r        
         self.timer = acquire.create_timer()
-        signal = acquire.MemoryResidentFileSignal('analysis/data/valid/emg_signal_1380649383_tongue_c.5_r.5_i1.txt', self.timer, channels=17)
+        raise Exception("FIX ME")
+        signal = acquire.MemoryResidentFileSignal('analysis/data/valid/emg_signal_1380649383_tongue_c.5_r.5_i1.txt',
+            self.timer, channels=17)
         if not signal.start():
             print('file signal failed to start; filename = ', self.args['filename'])
             raise RuntimeError('file signal failed to start')
@@ -191,62 +172,52 @@ class UnlockFactory(context.PythonConfig):
             
     @context.Object(lazy_init=True)
     def PygletWindow(self):
-        return PygletWindow(self.decoder, self.args['fullscreen'],
-                            self.args['fps'], self.args['vsync'])
+        return PygletWindow(self.decoder, self.args['fullscreen'], self.args['fps'],
+            self.args['vsync'])
+    # XXX     
+    #@context.Object(lazy_init=True)
+    #def CalibrateFacialEMGDetector(self):
+    #    raise Exception("FIX ME")
+    #    self.calibrator, calibrator = Calibrate.create_smg_calibrator(self.window,
+    #        self.command_receiver, **self.args['CalibrateFacialEMGDetector'])
+    #    return calibrator
+    #        
+    #@context.Object(lazy_init=True)
+    #def FacialEMGCollector(self):
+    #    return Collector.create_mouth_based_emg_collector(self.window, self.decoder, self.stimuli,
+    #        **self.args['FacialEMGCollector'])
+    #       
+    #@context.Object(lazy_init=True)
+    #def FastPad(self):
+    #    return FastPad.create_fastpad(self.window, self.decoder, self.stimuli, **self.args['FastPad'])
+    #        
+    #@context.Object(lazy_init=True)
+    #def GridSpeak(self):
+    #    raise Exception("FIX ME")
+    #    return GridSpeak.create_gridspeak(self.window, self.decoder, self.stimuli,
+    #        **self.args['GridSpeak'])
+    #        
+    #@context.Object(lazy_init=True)
+    #def GridCursor(self):
+    #    raise Exception("FIX ME")        
+    #    return GridCursor.create_gridcursor(self.window, self.decoder, self.stimuli,
+    #        **self.args['GridCursor'])
+    #        
+    #@context.Object(lazy_init=True)
+    #def TimeScope(self):
+    #    return UnlockControllerFactory.create_time_scope(self.window, self.decoder, self.stimuli,
+    #        **self.args['TimeScope'])
+    #        
+    #@context.Object(lazy_init=True)
+    #def FrequencyScope(self):
+    #    return UnlockControllerFactory.create_frequency_scope(self.window, self.decoder, self.stimuli,
+    #        **self.args['FrequencyScope'])
             
     @context.Object(lazy_init=True)
-    def CalibrateFacialEMGDetector(self):
-        self.calibrator, calibrator = Calibrate.create_smg_calibrator(
-            self.window, self.command_receiver,
-            **self.args['CalibrateFacialEMGDetector'])
-        return calibrator
-            
-    @context.Object(lazy_init=True)
-    def FacialEMGCollector(self):
-        return Collector.create_mouth_based_emg_collector(
-            self.window, self.decoder, self.stimuli,
-            **self.args['FacialEMGCollector'])
-           
-    @context.Object(lazy_init=True)
-    def FastPad(self):
-        return FastPad.create_fastpad(
-            self.window, self.decoder, self.stimuli, **self.args['FastPad'])
-            
-    @context.Object(lazy_init=True)
-    def GridSpeak(self):
-        return GridSpeak.create_gridspeak(
-            self.window, self.decoder, self.stimuli, **self.args['GridSpeak'])
-            
-    @context.Object(lazy_init=True)
-    def GridCursor(self):
-        return GridCursor.create_gridcursor(
-            self.window, self.decoder, self.stimuli, **self.args['GridCursor'])
-            
-    @context.Object(lazy_init=True)
-    def TimeScope(self):
-        from unlock.controller import TimeScope
-        return TimeScope.create_time_scope(
-            self.window, self.decoder, self.stimuli, **self.args['TimeScope'])
-            
-    @context.Object(lazy_init=True)
-    def FrequencyScope(self):
-        from unlock.controller import FrequencyScope
-        return FrequencyScope.create_frequency_scope(
-            self.window, self.decoder, self.stimuli,
-            **self.args['FrequencyScope'])
-            
-    @context.Object(lazy_init=True)
-    def VepDiagnostic(self):
-        from unlock.controller import Diagnostic
-        return Diagnostic.create_vep_diagnostic(
-            self.window, self.decoder, **self.args['VepDiagnostic'])
-            
-    @context.Object(lazy_init=True)
-    def EmgDiagnostic(self):
-        from unlock.controller import Diagnostic
-        return Diagnostic.create_vep_diagnostic(
-            self.window, self.decoder, **self.args['EmgDiagnostic'])
-            
+    def SsvepDiagnostic(self):
+        return UnlockControllerFactory.create_standalone_ssvep_diagnostic(self.window, self.decoder,
+            **self.args['SsvepDiagnostic'])
+        
     @context.Object(lazy_init=True)
     def Dashboard(self):
         args = self.args['Dashboard']
@@ -255,8 +226,8 @@ class UnlockFactory(context.PythonConfig):
             controller = getattr(self, controller_attr)
             controllers.append(controller())
         args.pop('controllers')
-        return Dashboard.create_dashboard(self.window, controllers, self.decoder, self.stimuli,
-                                          self.calibrator, **args)
+        return UnlockControllerFactory.create_dashboard(self.window, controllers, self.decoder, self.stimuli,
+            self.calibrator, **args)
             
             
 class UnlockRuntime(object):
@@ -325,7 +296,6 @@ class UnlockRuntime(object):
             self.__create_controllers__()
             
         except:
-            print('UnlockRuntime: WARNING logging has not been setup yet')
             print('UnlockRuntime: FATAL failed to initialize correctly')
             if parser:
                 parser.print_help()
@@ -337,7 +307,6 @@ class UnlockRuntime(object):
         with open(self.conf, 'rt') as file_descriptor:
             json_string = file_descriptor.read()
             args = json.loads(json_string)
-            
         return args            
          
     def __create_controllers__(self):
@@ -347,22 +316,11 @@ class UnlockRuntime(object):
         self.factory = UnlockFactory(self.args)
         self.app_ctx = context.ApplicationContext(self.factory)
     
-        # XXX - need to integrate the json config into the context.
-        #if self.args['receiver'] == 'delta':
-        #    
-        #else:
         if self.args['decoder'] == 'inline':
             self.factory.signal = self.app_ctx.get_object(self.args['signal'])
             
         self.factory.decoder = self.app_ctx.get_object(self.args['decoder'])
         
-        #if 'receiver' in self.args.keys() and self.args['receiver'] == 'multiprocess':
-         #   pass #MultiProcessDecoder()
-        #else:
-        #    signal = self.app_ctx.get_object(self.args['signal'])
-        #    self.factory.decoder = InlineDecoder(signal)
-
-            
         self.factory.window = self.app_ctx.get_object('PygletWindow')
         if 'stimuli' in self.args.keys():
             self.factory.stimuli = self.app_ctx.get_object(self.args['stimuli'])
@@ -373,8 +331,6 @@ class UnlockRuntime(object):
         # System.  It follows the standard Python JSON logging config; see
         # http://docs.python.org/2/howto/logging-cookbook.html for more details.        
         if 'logging' in self.args:
-            #import sys
-            #print("Arages = ", self.args['logging'], file=sys.stderr)
             logging.config.dictConfig(self.args['logging'])
         else:
             logging.basicConfig(level=log_level)
