@@ -80,16 +80,16 @@ class TimedStimuli(UnlockModel):
             self.pause()
             
         return ret
-    
+            
     def get_state(self):
         raise NotImplementedError()
-    
+        
     @staticmethod
     def create(stimuli_duration, rest_duration=0):
         trial_state = TrialState.create(stimuli_duration, rest_duration)
         return TimedStimuli(trial_state)
             
-
+            
 class SequentialTimedStimuli(UnlockModel):
     """ Manages multiple timed, sequential and sequence-based stimuli. """
     def __init__(self, state):
@@ -99,7 +99,7 @@ class SequentialTimedStimuli(UnlockModel):
         self.stimulus = None
         self.pos = 0
         self.logger = logging.getLogger(__name__)
-        
+            
     def add_stimulus(self, stimulus):
         if self.stimulus == None:
             self.stimulus = stimulus
@@ -111,12 +111,14 @@ class SequentialTimedStimuli(UnlockModel):
             
     def pause(self):
         self.stimulus.stop()
-        self.pos += (self.pos + 1) % len(self.stimuli) 
+        self.pos = (self.pos + 1) % len(self.stimuli)
+        print("PAUSED , pos = ", self.pos)
         self.stimulus = self.stimuli[self.pos]
-        
+            
     def stop(self):
         self.state.stop()
         self.stimulus.stop()
+        self.stimulus = self.stimuli[0]
             
     def process_command(self, command):
         if self.state.is_stopped():
@@ -129,7 +131,6 @@ class SequentialTimedStimuli(UnlockModel):
             
         ret = Trigger.Null
         state, change_value = self.state.update_state(command.delta)
-#        self.logger.debug("state, change value ", state, change_value)
         if state == RunState.Running:
             sequence_start_trigger = False
             sequence_start_trigger = self.stimulus.process_command(command)
@@ -139,20 +140,21 @@ class SequentialTimedStimuli(UnlockModel):
             self.start()
             
         elif change_value == TrialState.TrialExpiry:
+            print("Trial exiry... ")
             self.pause()
             
         return ret
-    
+            
     def get_state(self):
         raise NotImplementedError()
-    
+            
     @staticmethod
     def create(stimuli_duration, rest_duration=0):
+        # XXX this, and above, can be optimized in the case that rest_duration = 0
         trial_state = TrialState.create(stimuli_duration, rest_duration)
         return SequentialTimedStimuli(trial_state)
             
-            
-        
+          
 class TimedStimulus(UnlockModel):
     """
     Emits a sequence of values at fixed time interval.
