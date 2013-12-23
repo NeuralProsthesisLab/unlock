@@ -38,7 +38,7 @@ from unlock.decode import CommandReceiverFactory, UnlockClassifier
 
 class UnlockControllerFactory(object):
     """
-    The ControllerFactory is the entry point for creating any externally accessible component
+    UnlockControllerFactory is the entry point for creating any externally accessible component
     of the controller package.
     """
     def __init__(self):
