@@ -130,7 +130,7 @@ class UnlockControllerFragment(UnlockController):
     """
     A controller fragment is a controller that can be 'mixedin' with other fragments.  It is not
     intended to be a stand alone controller.  For a stand alone controller use/subclass
-    UnlockController.
+    UnlockController or UnlockControllerChain.
     """
     def __init__(self, model, views, batch):
         super(UnlockControllerFragment, self).__init__(None, None, None, None, None, None)
@@ -147,25 +147,22 @@ class UnlockControllerFragment(UnlockController):
     def keyboard_input(self, command):
         if self.model is not None:
             self.model.process_command(command)
-    
+            
     def activate(self):
         if self.model is not None:
             self.model.start()
-        
+            
     def deactivate(self):
         if self.model is not None:
             self.model.stop()
         return self.standalone
          
-   
+            
 class UnlockCommandConnectedFragment(UnlockControllerFragment):
     def __init__(self, command_receiver, timed_stimuli, views, batch):
         assert timed_stimuli is not None
         super(UnlockCommandConnectedFragment, self).__init__(timed_stimuli, views, batch)
         self.command_receiver = command_receiver
-        
-    def update_state(self, command):
-         return self.model.process_command(command)
         
     def keyboard_input(self,command):
         pass
@@ -181,7 +178,7 @@ class UnlockCalibratedControllerFragment(UnlockControllerFragment):
         else:
             self.initialized = True            
         #self.logger = logging.getLogger(__name__)
-
+        
     def initialize(self):
         self.calibrator.activate()
         self.initialized = True
@@ -286,7 +283,7 @@ class Canvas(object):
         
     def xcenter(self):
         return self.width / 2 + self.x
-    
+        
     def ycenter(self):
         return self.height / 2 + self.y
             
