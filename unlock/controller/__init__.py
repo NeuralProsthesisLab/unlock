@@ -283,8 +283,8 @@ class UnlockControllerFactory(object):
 
         stimulus = TimedStimulus.create(frequencies[0] * 2)
         stimulus1 = TimedStimulus.create(frequencies[1] * 2)        
-        stimulus2 = TimedStimulus.create(frequencies[2] * 2)        
-        stimulus3 = TimedStimulus.create(frequencies[3] * 2)
+        stimulus2 = TimedStimulus.create(frequencies[0] * 2)        
+        stimulus3 = TimedStimulus.create(frequencies[1] * 2)
         
         stimuli = SequentialTimedStimuli.create(3.0)
         stimuli.add_stimulus(stimulus2)

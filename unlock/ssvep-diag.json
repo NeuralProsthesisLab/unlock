@@ -1,8 +1,8 @@
 {
     "main" : "SsvepDiagnostic",
-    "signal" : "random",
+    "signal" : "mobilab",
     "mac_addr" : "0x61,0x9c,0x58,0x80,0x07,0x00",
-    "com_port" : "COM3",
+    "com_port" : "COM6",
     "fullscreen" : false,
     "fps" : false,
     "vsync" : false,
