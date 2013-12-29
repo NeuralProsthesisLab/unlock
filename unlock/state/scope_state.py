@@ -27,10 +27,10 @@
 
 import numpy as np
 import scipy.signal as sig
-from unlock.model.model import UnlockModel
+from unlock.state.state import UnlockState
 
 
-class TimeScopeState(UnlockModel):
+class TimeScopeState(UnlockState):
     def __init__(self, n_channels=1, fs=256, duration=2):
         super(TimeScopeState, self).__init__()
         self.n_channels = n_channels
@@ -87,7 +87,7 @@ class TimeScopeState(UnlockModel):
                 self.yshift = shift
 
 
-class FrequencyScopeState(UnlockModel):
+class FrequencyScopeState(UnlockState):
     def __init__(self, n_channels=1, fs=256, duration=2, nfft=None,
                  freq_range=None, display_channels=None, labels=None):
         super(FrequencyScopeState, self).__init__()

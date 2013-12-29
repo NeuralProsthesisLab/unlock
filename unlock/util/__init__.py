@@ -30,5 +30,4 @@ from unlock.util.misc import *
 from unlock.util.observable import *
 from unlock.util.saferef import *
 from unlock.util.sockets import *
-from unlock.util.state import *
 from unlock.util.signal import *

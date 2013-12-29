@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model import TimedStimulus, TimedStimuli
+from unlock.state import TimedStimulus, TimedStimuli
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer
 from unlock.decode import UnlockClassifier, PygletKeyboardCommand, HarmonicSumDecision, RootMeanSquare
 from unlock.decode import CommandReceiverFactory, RawInlineSignalReceiver,ClassifiedCommandReceiver
@@ -51,6 +51,7 @@ class UnlockController(object):
         
     def poll_signal(self, delta):
         command = self.command_receiver.next_command(delta)
+
         if 'stop' in command.__dict__:
             self.window.handle_stop_request()
         else:
@@ -79,7 +80,8 @@ class UnlockController(object):
         
 class UnlockControllerChain(UnlockController):
     def __init__(self, window, command_receiver, controllers, name, icon,
-                 poll_signal_frequency=1.0/512.0, standalone=False):
+        poll_signal_frequency=1.0/512.0, standalone=False):
+        
         assert controllers != None and len(controllers) > 0
             
         views = []
@@ -92,14 +94,13 @@ class UnlockControllerChain(UnlockController):
                 batches = batches.union(controller.batches)
                 
         super(UnlockControllerChain, self).__init__(window, views, batches,
-                                                    command_receiver, poll_signal_frequency,
-                                                    standalone=standalone)
+            command_receiver, poll_signal_frequency, standalone=standalone)
         self.controllers = controllers
         self.name = name
         self.icon = icon
         self.standalone = standalone
         self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(UnlockControllerChain)),
-                                      'resource', self.icon)
+            'resource', self.icon)
             
     def update_state(self, command):
         for controller in self.controllers:

@@ -25,14 +25,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.util import TimerState, Trigger
-from unlock.model.model import UnlockModel
+from unlock.state.state import UnlockState, TimerState
+from unlock.util import Trigger
 from random import Random
     
 
-class CueStateMachine(UnlockModel):
+class CueStateMachine(UnlockState):
     def __init__(self, rand, trials, cue_states, rest_state, indicate_state):
-        super(UnlockModel, self).__init__()
+        super(CueStateMachine, self).__init__()
         self.cue_states = cue_states
         self.rest_state = rest_state
         self.indicate_state = indicate_state
@@ -86,7 +86,7 @@ class CueStateMachine(UnlockModel):
         indicate_state.transition_fn = state_machine.indicate_rest
  #       rest_state.start()
         return state_machine
-    
+        
     @staticmethod 
     def create_sequential_cue_indicate_rest(cue_states, rest_state, indicate_state, trials=10):
         state_machine = CueStateMachine(None, trials, cue_states, rest_state, indicate_state)
@@ -104,9 +104,9 @@ class CueStateMachine(UnlockModel):
         rest_state.transition_fn = state_machine.rest_cue
 #        rest_state.start()
         return state_machine
-    
-  
-class CueState(UnlockModel):
+        
+        
+class CueState(UnlockState):
     def __init__(self, trigger, trial_time_state, transition_fn=None):
         super(CueState, self).__init__()
         self.state = False
@@ -198,7 +198,7 @@ class DynamicPositionCueState(CueState):
         return DynamicPositionCueState(state_id, time_state, screen_height, height, screen_width, width, radius)
         
         
-class TimedStimulusCueState(UnlockModel):
+class TimedStimulusCueState(UnlockState):
     def __init__(self, timed_stimulus):
         super(TimedStimulusCueState, self).__init__()
         self.timed_stimulus = timed_stimulus
@@ -227,7 +227,7 @@ class TimedStimulusCueState(UnlockModel):
 
 # XXX - this should be refactored.  this should decorate the TimedStimulusCueState
 #       with multiple sequenctial timed stimuli.
-class MultipleSequentialTimedStimuliCueState(UnlockModel):
+class MultipleSequentialTimedStimuliCueState(UnlockState):
     
     def __init__(self):
         super(MultipleSequentialTimedStimuliCueState, self).__init__()

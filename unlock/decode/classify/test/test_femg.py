@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from unlock.decode.classify import FacialEMGDetector
-from unlock.util.state import SequenceState
+from unlock.state import SequenceState
 from unlock.decode import acquire
 from unlock.decode import GeneratedSignalReceiver, ClassifiedCommandReceiver
 from unlock.util import RMSSignalGenerator

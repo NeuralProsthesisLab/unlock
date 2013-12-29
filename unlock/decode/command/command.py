@@ -43,7 +43,7 @@ class Command(object):
         self.json = json
         
     def is_valid(self):
-        return True
+        return False
         
     @staticmethod
     def serialize(command):

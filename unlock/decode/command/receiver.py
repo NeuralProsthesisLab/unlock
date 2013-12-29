@@ -25,7 +25,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.util import DatagramWrapper, RunState
+from unlock.util import DatagramWrapper
+from unlock.state import RunState
 from unlock.decode.classify import UnlockClassifier
 from unlock.decode.command import RawSignalCommand, Command
 import socket
@@ -143,7 +144,7 @@ class ClassifiedCommandReceiver(CommandReceiver):
     def next_command(self, delta):
         command = self.command_receiver.next_command(delta)
         if self.is_running() is not True:
-            return Command()
+            return Command(delta)
             
         assert command != None
         classified_command = self.classifier.classify(command)
