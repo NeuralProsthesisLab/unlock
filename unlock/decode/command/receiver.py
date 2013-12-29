@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.util import DatagramWrapper
+from unlock.util import DatagramWrapper, RunState
 from unlock.decode.classify import UnlockClassifier
 from unlock.decode.command import RawSignalCommand, Command
 import socket
@@ -35,15 +35,25 @@ import numpy as np
 
 
 class CommandReceiver(object):
-    def __init__(self):
-        super(CommandReceiver, self).__init__()        
-    
-    def next_command(self, *args, **kwargs):
-        raise NotImplementedError("Every CommandReceiver must implement the next_command method")
+    def __init__(self, state=None):
+        super(CommandReceiver, self).__init__()
+        if state is None:
+            state = RunState()
+            state.run()
+            
+        self.state = state
+        
+    def is_running(self):
+        return self.state.is_running() is True
+        
+    def start(self):
+        self.state.run()
         
     def stop(self):
+        self.state.stop()
+    
+    def next_command(self, *args, **kwargs):
         pass
-            
             
 class CommandSenderInterface(object):
     def send(self, command):
@@ -123,7 +133,7 @@ class InlineCommandReceiver(CommandReceiver):
     def put(self, command):
         self.Q.append(command)
             
-            
+
 class ClassifiedCommandReceiver(CommandReceiver):
     def __init__(self, command_receiver, classifier):
         super(ClassifiedCommandReceiver, self).__init__()
