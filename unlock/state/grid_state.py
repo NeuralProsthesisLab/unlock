@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model.model import UnlockModel
+from unlock.state.state import UnlockState
 
 
 class GridStateChange(object):
@@ -38,7 +38,7 @@ class GridStateChange(object):
         self.step_value = step_value
         
         
-class GridState(UnlockModel):
+class GridState(UnlockState):
     IncrementYCursor = 1
     DecrementYCursor = 2
     DecrementXCursor = 3

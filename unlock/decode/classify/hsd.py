@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from unlock.decode.classify.classify import UnlockClassifier
-from unlock.util import TrialState
+from unlock.state import TrialState
 import numpy as np
 from sklearn import lda
 import time
