@@ -378,10 +378,12 @@ class NewHarmonicSumDecision(UnlockClassifier):
         Pass the result of the classifier on to the command object to perform
         a system action.
         """
+        # XXX - ohh G0d?
         if command is not None and predicted_class is not None:
             # h4x0r callback on decision.  need to talk about how this fits into the framework. %
             command.set_decision(predicted_class + 1)
-            
+        elif command is not None:
+            command.set_decision(-1)
 
     def log_result(self, predicted_class, actual_class=None, features=None,
                    confidence=None, **kwargs):
