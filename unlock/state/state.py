@@ -47,7 +47,21 @@ class UnlockState(object):
     def get_state(self):
         return self.state
         
+    def process_command(self, command):
+        ''' Subclass hook '''
+        pass
         
+class UnlockStateChain(UnlockState):
+    def __init__(self, states):
+        super(UnlockStateChain, self).__init__()
+        self.states = states
+        
+    def process_command(self, command):
+        for state in self.states:
+            if state is not None:
+                self.state.process_command(command)
+                
+                
 class AlternatingBinaryState(UnlockState):
     def __init__(self, hold_duration=300):
         self.hold_duration = hold_duration
