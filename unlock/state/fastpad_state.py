@@ -1,6 +1,6 @@
-from unlock.model.model import UnlockModel
+from unlock.state.state import UnlockState
 
-class FastPadModel(UnlockModel):
+class FastPadState(UnlockState):
     UP = 1
     DOWN = 2
     LEFT = 3
@@ -8,6 +8,7 @@ class FastPadModel(UnlockModel):
     SELECT_TIME = 2
     def __init__(self):
        # Initialize the state
+        super(FastPadState, self).__init__()
         self.previous_mode = "CURSOR"
         self.mode = "CURSOR"
         self.currButton = None
@@ -29,20 +30,20 @@ class FastPadModel(UnlockModel):
         Raises an Exception if anything goes wrong.
         """
         self.noop = False
-        if command.decision == FastPadModel.LEFT:
+        if command.decision == FastPadState.LEFT:
             
             self.mode = "CURSOR"
             self.button = self.currButton.left
                     
-        elif command.decision == FastPadModel.RIGHT:
+        elif command.decision == FastPadState.RIGHT:
             self.mode = "CURSOR"
             self.button = self.currButton.right
             
-        elif command.decision == FastPadModel.UP:
+        elif command.decision == FastPadState.UP:
             self.mode = "CURSOR"
             self.button = self.currButton.up
             
-        elif command.decision == FastPadModel.DOWN:
+        elif command.decision == FastPadState.DOWN:
             self.mode = "CURSOR"
             self.button = self.currButton.down
             
@@ -60,7 +61,7 @@ class FastPadModel(UnlockModel):
                 self.selTime += command.delta
                 
                 # Should we select self item?
-                if self.selTime >= FastPadModel.SELECT_TIME:
+                if self.selTime >= FastPadState.SELECT_TIME:
                     
                     self.selTime = 0
                     self.mode = "CURSOR"

@@ -25,9 +25,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model import CueStateMachine, CueState
+from unlock.state import CueStateMachine, CueState, TrialState, Trigger
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator
-from unlock.util import TrialState, Trigger
 from unlock.controller import Canvas, UnlockControllerFragment, UnlockControllerChain
 
 import numpy as np

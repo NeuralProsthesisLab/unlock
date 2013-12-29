@@ -25,16 +25,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.util import TrialState, TimerState, RunState, Trigger, SequenceState
-from unlock.model.model import UnlockModel
+from unlock.state.state import UnlockState, TrialState, TimerState, RunState, SequenceState
+from unlock.util import Trigger
 
 import logging
 
 
-class TimedStimuli(UnlockModel):
+class TimedStimuli(UnlockState):
     """ Manages multiple timed, sequence-based stimuli. """
     def __init__(self, state):
-        super(UnlockModel, self).__init__()
+        super(TimedStimuli, self).__init__()
         self.state = state
         self.stimuli = list()
         self.logger = logging.getLogger(__name__)
@@ -90,10 +90,10 @@ class TimedStimuli(UnlockModel):
         return TimedStimuli(trial_state)
             
             
-class SequentialTimedStimuli(UnlockModel):
+class SequentialTimedStimuli(UnlockState):
     """ Manages multiple timed, sequential and sequence-based stimuli. """
     def __init__(self, state):
-        super(UnlockModel, self).__init__()
+        super(SequentialTimedStimuli, self).__init__()
         self.state = state
         self.stimuli = list()
         self.stimulus = None
@@ -155,7 +155,7 @@ class SequentialTimedStimuli(UnlockModel):
         return SequentialTimedStimuli(trial_state)
             
           
-class TimedStimulus(UnlockModel):
+class TimedStimulus(UnlockState):
     """
     Emits a sequence of values at fixed time interval.
     time_state: manages the time (when to emit the next value)

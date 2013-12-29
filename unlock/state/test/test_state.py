@@ -1,4 +1,4 @@
-from unlock.util import RunState, TimerState, TrialState
+from unlock.state import RunState, TimerState, TrialState
 
 import time
 import unittest
