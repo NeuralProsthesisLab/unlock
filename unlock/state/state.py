@@ -25,8 +25,109 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import numpy as np
+import logging
 import time
 
+class UnlockState(object):
+    def __init__(self, state=None):
+        super(UnlockState, self).__init__()
+        self.state = state
+        self.running = False
+        
+    def start(self):
+        self.running = True
+        
+    def stop(self):
+        self.running = False
+        
+    def is_stopped(self):
+        return self.running
+        
+    def get_state(self):
+        return self.state
+        
+        
+class AlternatingBinaryState(UnlockState):
+    def __init__(self, hold_duration=300):
+        self.hold_duration = hold_duration
+        self.state = True
+        self.count = 0
+        
+    def get_state(self):
+        ret = self.state
+        self.count += 1
+        if self.count % self.hold_duration == 0:
+            self.state = not self.state
+        return ret
+            
+            
+class OfflineData(UnlockState):
+    def __init__(self, output_file_prefix, cache_size=1):
+        super(OfflineData, self).__init__()
+        self.output_file_prefix = output_file_prefix
+        self.file_handle = None
+        self.logger = logging.getLogger(__name__)
+        self.cache = list(range(cache_size))
+        self.cache_size = cache_size
+        self.current = 0
+        
+    def process_command(self, command):
+        assert self.file_handle != None
+        np.savetxt(self.file_handle, command.matrix, fmt='%d', delimiter='\t')
+        self.cache[self.current] = command.matrix
+        self.current = 0 if (self.current % self.cache_size) == 0 else self.current + 1        
+        
+    def get_state(self):
+        raise NotImplementedError()
+
+    def start(self):
+        assert self.file_handle == None
+        self.file_handle = open("%s_%d.txt" % (self.output_file_prefix, time.time()), 'wb')
+            
+    def stop(self):
+        assert self.file_handle != None
+        self.file_handle.flush()
+        self.file_handle.close()
+        self.file_handle = None
+        
+class OfflineTrialData(UnlockState):
+    def __init__(self, output_file_prefix, cache_size=1):
+        super(OfflineTrialData, self).__init__()
+        self.output_file_prefix = output_file_prefix
+        self.file_handle = None
+        self.logger = logging.getLogger(__name__)
+        self.cache = list(range(cache_size))
+        self.cache_size = cache_size
+        self.current = 0
+        
+    def process_command(self, command):
+        assert self.file_handle != None
+        if not command.is_valid():
+            return
+                
+        np.savetxt(self.file_handle, command.matrix, fmt='%d', delimiter='\t')
+        self.cache[self.current] = command.matrix
+        self.current = 0 if (self.current % self.cache_size) == 0 else self.current + 1        
+        
+    def get_state(self):
+        raise NotImplementedError()
+
+    def start(self):
+        assert self.file_handle == None
+        self.file_handle = open("%s_%d.txt" % (self.output_file_prefix, time.time()), 'wb')
+            
+    def stop(self):
+        assert self.file_handle != None
+        self.file_handle.flush()
+        self.file_handle.close()
+        self.file_handle = None
+    
+    
+class NonBlockingOfflineData(UnlockState):
+    def __init__(self):
+        raise NotImplementedError()
+        
 
 class RunState(object):
     Stopped = 0
@@ -179,4 +280,4 @@ class SequenceState(object):
     def is_end(self):
         if self.index+1 == len(self.sequence):
             return True
-            
+           

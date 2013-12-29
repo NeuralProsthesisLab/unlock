@@ -26,9 +26,9 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from unlock.controller.controller import *
 
-from unlock.model import HierarchyGridState, FastPadModel, ControllerGridState, FrequencyScopeState, \
+from unlock.state import HierarchyGridState, FastPadState, ControllerGridState, FrequencyScopeState, \
     TimeScopeState, ContinuousVepDiagnosticState, DiscreteVepDiagnosticState, TimedStimulus, \
-    TimedStimuli, OfflineData, SequentialTimedStimuli
+    TimedStimuli, OfflineTrialData, SequentialTimedStimuli
 
 from unlock.view import GridSpeakView, HierarchyGridView, FastPadView, GridView, FrequencyScopeView, \
     TimeScopeView, PygletDynamicTextLabel, PygletTextLabel, SpritePositionComputer, FlickeringPygletSprite
@@ -91,7 +91,7 @@ class UnlockControllerFactory(object):
         
     @staticmethod
     def create_fastpad_fragment(canvas):
-        fastpad_model = FastPadModel()            
+        fastpad_model = FastPadState()            
         fastpad_view = FastPadView(fastpad_model, canvas)
         assert canvas != None
         fastpad = FastPad(fastpad_model, [fastpad_view], canvas.batch)        
@@ -320,10 +320,11 @@ class UnlockControllerFactory(object):
         views = [fs2, fs3]
             
         ssvep_command_receiver = decoder.create_receiver({}, classifier_type=UnlockClassifier.HarmonicSumDecision)
+        ssvep_command_receiver.stop()
         command_connected_fragment = UnlockCommandConnectedFragment(ssvep_command_receiver, stimuli,
             views, canvas.batch)
             
-        offline_data = OfflineData(output_file)
+        offline_data = OfflineTrialData(output_file)
         collector = UnlockControllerFragment(offline_data, [], canvas.batch)
         
         def keyboard_input(self, command):

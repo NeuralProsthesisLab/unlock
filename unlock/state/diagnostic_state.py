@@ -25,11 +25,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model.model import UnlockModel
-from unlock.util import TrialState
+from unlock.state.state import UnlockState, TrialState
 
 
-class FacialEmgDiagnosticState(UnlockModel):
+class FacialEmgDiagnosticState(UnlockState):
     Up = 'UP'
     Down = 'Down'
     Left = 'Left'
@@ -79,7 +78,7 @@ class FacialEmgDiagnosticState(UnlockModel):
             self.text = FacialEmgDiagnosticState.Right
             
             
-class VepDiagnosticState(UnlockModel):
+class VepDiagnosticState(UnlockState):
     """
     The diagnostic model supports two modes of operation: continuous and
      discrete. In the continuous mode, the stimuli is always flickering and the
