@@ -135,13 +135,16 @@ class InlineCommandReceiver(CommandReceiver):
             
 
 class ClassifiedCommandReceiver(CommandReceiver):
-    def __init__(self, command_receiver, classifier):
-        super(ClassifiedCommandReceiver, self).__init__()
+    def __init__(self, command_receiver, classifier, state=None):
+        super(ClassifiedCommandReceiver, self).__init__(state=state)
         self.command_receiver = command_receiver
         self.classifier = classifier
         
     def next_command(self, delta):
         command = self.command_receiver.next_command(delta)
+        if self.is_running() is not True:
+            return Command()
+            
         assert command != None
         classified_command = self.classifier.classify(command)
         assert classified_command != None
@@ -183,7 +186,7 @@ class RawInlineSignalReceiver(CommandReceiver):
             c_data = self.signal.getdata(samples)
             
             raw_data_vector = np.array(c_data)
-            
+            # XXX - h4x0r
             assert raw_data_vector.size % self.signal.channels() == 0
             if raw_data_vector[-1] == 0:
                 raw_data_vector[-1] = self.timer.elapsedMicroSecs()
