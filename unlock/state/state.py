@@ -55,6 +55,10 @@ class UnlockStateChain(UnlockState):
     def __init__(self, states):
         super(UnlockStateChain, self).__init__()
         self.states = states
+        self.start = None
+        self.stop = None
+        self.is_stopped = None
+        self.get_state = None
         
     def process_command(self, command):
         for state in self.states:
