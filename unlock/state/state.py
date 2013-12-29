@@ -71,12 +71,14 @@ class OfflineData(UnlockState):
         self.cache = list(range(cache_size))
         self.cache_size = cache_size
         self.current = 0
+
+    def cache(self, command):
+        self.cache[self.current] = command.matrix
+        self.current = 0 if (self.current % self.cache_size) == 0 else self.current + 1        
         
     def process_command(self, command):
         assert self.file_handle != None
         np.savetxt(self.file_handle, command.matrix, fmt='%d', delimiter='\t')
-        self.cache[self.current] = command.matrix
-        self.current = 0 if (self.current % self.cache_size) == 0 else self.current + 1        
         
     def get_state(self):
         raise NotImplementedError()
@@ -91,39 +93,26 @@ class OfflineData(UnlockState):
         self.file_handle.close()
         self.file_handle = None
         
-class OfflineTrialData(UnlockState):
+        
+class OfflineTrialData(OfflineData):
     def __init__(self, output_file_prefix, cache_size=1):
-        super(OfflineTrialData, self).__init__()
-        self.output_file_prefix = output_file_prefix
-        self.file_handle = None
-        self.logger = logging.getLogger(__name__)
-        self.cache = list(range(cache_size))
-        self.cache_size = cache_size
-        self.current = 0
+        super(OfflineTrialData, self).__init__(output_file_prefix, cache_size)
+        self.commands = []
         
     def process_command(self, command):
         assert self.file_handle != None
         if not command.is_valid():
             return
-                
-        np.savetxt(self.file_handle, command.matrix, fmt='%d', delimiter='\t')
-        self.cache[self.current] = command.matrix
-        self.current = 0 if (self.current % self.cache_size) == 0 else self.current + 1        
         
-    def get_state(self):
-        raise NotImplementedError()
-
-    def start(self):
-        assert self.file_handle == None
-        self.file_handle = open("%s_%d.txt" % (self.output_file_prefix, time.time()), 'wb')
+        if command.decision is not None:
+            for i in self.commands:        
+                np.savetxt(self.file_handle, command.matrix, fmt='%d', delimiter='\t')
+                self.cache(command)
+                self.commands = []
+        else:
+            self.commands.append(command)
+                
             
-    def stop(self):
-        assert self.file_handle != None
-        self.file_handle.flush()
-        self.file_handle.close()
-        self.file_handle = None
-    
-    
 class NonBlockingOfflineData(UnlockState):
     def __init__(self):
         raise NotImplementedError()
