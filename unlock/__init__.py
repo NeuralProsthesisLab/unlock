@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from unlock.util import *
-from unlock.model import *
+from unlock.state import *
 from unlock.view import *
 from unlock.controller import *
 from unlock.context import *

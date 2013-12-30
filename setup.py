@@ -32,7 +32,7 @@ import shutil
 packages = ['unlock', 
             'unlock.context', 'unlock.context.test',
             'unlock.controller', 'unlock.controller.test', 
-            'unlock.model', 'unlock.model.test',
+            'unlock.state', 'unlock.state.test',
             'unlock.decode', 'unlock.decode.acquire', 'unlock.decode.classify', 
             'unlock.util', 'unlock.util.test',
             'unlock.view', 'unlock.view.test']
@@ -43,7 +43,7 @@ package_data = {
                                        'resource/emg.jpg', 'resource/IRCodes.txt', 'resource/LazerToggle.png', 'resource/LazerToggleS.png',
                                        'resource/rsz_analyzer.jpg', 'resource/scope.png', 'resource/tv.png'],
                 'unlock.context.test' : ['app-ctx.xml'], 
-                 'unlock.model' : [],
+                 'unlock.state' : [],
 # win-x86 libs find acquire-c++/boost/win-x86/lib | grep -v -e lib$  -e gd | sed s/^/\'/ | sed s/$/\',/
                 'unlock.decode' : ['acquire/boost_atomic-vc100-mt-1_54.dll', 'acquire/boost_chrono-vc100-mt-1_54.dll',
                                    'acquire/boost_date_time-vc100-mt-1_54.dll', 'acquire/boost_python3-vc100-mt-1_54.dll',

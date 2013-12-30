@@ -32,7 +32,7 @@ class RMSSignalGenerator(object):
     '''
         Generates simulated device samples.  Each invocation of the
         generate method returns a table of samples.  The generate method determines sample values
-        by consulting an unlock.util.SequenceState.  The state returns a tuple of True/False values,
+        by consulting an unlock.state.SequenceState.  The state returns a tuple of True/False values,
         one foreach channel.  A state channel value that is True results in sample value, for the
         corresponding channel, that is above the threshold; a False value results in value above
         the min, but below the threshold.
@@ -40,7 +40,7 @@ class RMSSignalGenerator(object):
         channels:   number of channels
         minmax:     list of tuples denoting the min and max values of a channel
         thresholds: list of channel thresholds
-        state:      an unlock.util.SequenceState.  provides a means to dynamically configure
+        state:      an unlock.state.SequenceState.  provides a means to dynamically configure
                     which channels of a given set of samples are above/below threshold values
         samples:    default number of samples per request
     '''            
@@ -82,7 +82,7 @@ class RMSSignalGenerator(object):
             
 if __name__ == '__main__':
     # example 
-    from unlock.util.state import SequenceState
+    from unlock.state import SequenceState
     channels = 4
     minmax = [(0,10), (-10, 10), (9,100), (0,7)]
     thresholds = [ 8, 5, 80, 5]
