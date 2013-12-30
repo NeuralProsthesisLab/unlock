@@ -325,7 +325,8 @@ class UnlockControllerFactory(object):
             views, canvas.batch)
             
         offline_data = OfflineTrialData(output_file)
-        collector = UnlockControllerFragment(offline_data, [], canvas.batch)
+        
+        collector = UnlockControllerFragment(offline_data, [], None)
         
         def keyboard_input(self, command):
             pass    
