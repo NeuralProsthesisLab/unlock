@@ -158,7 +158,7 @@ class UnlockControllerFragment(UnlockController):
             self.model.stop()
         return self.standalone
          
-            
+       
 class UnlockCommandConnectedFragment(UnlockControllerFragment):
     def __init__(self, command_receiver, timed_stimuli, views, batch):
         assert timed_stimuli is not None
