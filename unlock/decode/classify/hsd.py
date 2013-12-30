@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from unlock.decode.classify.classify import UnlockClassifier
-from unlock.util import TrialState
+from unlock.state import TrialState
 import numpy as np
 from sklearn import lda
 import time
@@ -342,7 +342,7 @@ class NewHarmonicSumDecision(UnlockClassifier):
 
         if accept:
             return winner, confidence
-
+            
     def classify(self, command):
         """
         Buffer incoming data samples from the command object, then determine if
@@ -378,8 +378,12 @@ class NewHarmonicSumDecision(UnlockClassifier):
         Pass the result of the classifier on to the command object to perform
         a system action.
         """
+        # XXX - ohh G0d?
         if command is not None and predicted_class is not None:
-            command.decision = predicted_class + 1
+            # h4x0r callback on decision.  need to talk about how this fits into the framework. %
+            command.set_decision(predicted_class + 1)
+        elif command is not None:
+            command.set_decision(-1)
 
     def log_result(self, predicted_class, actual_class=None, features=None,
                    confidence=None, **kwargs):

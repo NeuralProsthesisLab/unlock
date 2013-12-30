@@ -26,6 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from unlock.util import DatagramWrapper
+from unlock.state import RunState
 from unlock.decode.classify import UnlockClassifier
 from unlock.decode.command import RawSignalCommand, Command
 import socket
@@ -35,15 +36,25 @@ import numpy as np
 
 
 class CommandReceiver(object):
-    def __init__(self):
-        super(CommandReceiver, self).__init__()        
-    
-    def next_command(self, *args, **kwargs):
-        raise NotImplementedError("Every CommandReceiver must implement the next_command method")
+    def __init__(self, state=None):
+        super(CommandReceiver, self).__init__()
+        if state is None:
+            state = RunState()
+            state.run()
+            
+        self.state = state
+        
+    def is_running(self):
+        return self.state.is_running() is True
+        
+    def start(self):
+        self.state.run()
         
     def stop(self):
+        self.state.stop()
+    
+    def next_command(self, *args, **kwargs):
         pass
-            
             
 class CommandSenderInterface(object):
     def send(self, command):
@@ -123,15 +134,18 @@ class InlineCommandReceiver(CommandReceiver):
     def put(self, command):
         self.Q.append(command)
             
-            
+
 class ClassifiedCommandReceiver(CommandReceiver):
-    def __init__(self, command_receiver, classifier):
-        super(ClassifiedCommandReceiver, self).__init__()
+    def __init__(self, command_receiver, classifier, state=None):
+        super(ClassifiedCommandReceiver, self).__init__(state=state)
         self.command_receiver = command_receiver
         self.classifier = classifier
         
     def next_command(self, delta):
         command = self.command_receiver.next_command(delta)
+        if self.is_running() is not True:
+            return Command(delta)
+            
         assert command != None
         classified_command = self.classifier.classify(command)
         assert classified_command != None
@@ -173,7 +187,7 @@ class RawInlineSignalReceiver(CommandReceiver):
             c_data = self.signal.getdata(samples)
             
             raw_data_vector = np.array(c_data)
-            
+            # XXX - h4x0r
             assert raw_data_vector.size % self.signal.channels() == 0
             if raw_data_vector[-1] == 0:
                 raw_data_vector[-1] = self.timer.elapsedMicroSecs()
