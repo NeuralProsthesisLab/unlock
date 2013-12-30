@@ -1,6 +1,6 @@
 
 from .. import ApplicationContext, XMLConfig, PythonConfig, Object
-from unlock.util import TimerState, RunState, TrialState
+from unlock.state import TimerState, RunState, TrialState
 import context
 
 import time
@@ -16,7 +16,7 @@ class TrialStateFactory(PythonConfig):
         
     @Object(context.PROTOTYPE)
     def RunState(self):
-        return unlock.util.RunState()
+        return RunState()
             
     @Object(context.PROTOTYPE)
     def TimerState(self):
@@ -44,8 +44,8 @@ class ContextTests(unittest.TestCase):
         trial_state.start()
         start = time.time()
         state, change = trial_state.update_state(0)
-        self.assertEquals(unlock.util.RunState.Running, state)
-        self.assertEquals(unlock.util.TrialState.Unchanged, change)
+        self.assertEquals(RunState.Running, state)
+        self.assertEquals(TrialState.Unchanged, change)
         self.assertEquals(1.0, trial_state.time_state.trial_duration)
         self.assertEquals(1.0, trial_state.time_state.rest_duration)                
     
@@ -59,8 +59,8 @@ class ContextTests(unittest.TestCase):
         trial_state.start()
         start = time.time()
         state, change = trial_state.update_state(0)
-        self.assertEquals(unlock.util.RunState.Running, state)
-        self.assertEquals(unlock.util.TrialState.Unchanged, change)
+        self.assertEquals(RunState.Running, state)
+        self.assertEquals(TrialState.Unchanged, change)
         self.assertEquals(1.0, trial_state.time_state.trial_duration)
         self.assertEquals(1.0, trial_state.time_state.rest_duration)        
             

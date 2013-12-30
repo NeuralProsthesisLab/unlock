@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model import TimedStimulus, TimedStimuli
+from unlock.state import TimedStimulus, TimedStimuli
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer
 from unlock.decode import UnlockClassifier, PygletKeyboardCommand, HarmonicSumDecision, RootMeanSquare
 from unlock.decode import CommandReceiverFactory, RawInlineSignalReceiver,ClassifiedCommandReceiver
@@ -35,29 +35,169 @@ import time
 import os
 
 
-class Canvas(object):
-    def __init__(self, batch, width, height, xoffset=0, yoffset=0):
-        self.batch = batch
-        self.width = width
-        self.height = height
-        self.x = xoffset
-        self.y = yoffset
-        
-    def center(self):
-        return self.xcenter(), self.ycenter()
-        
-    def xcenter(self):
-        return self.width / 2 + self.x
-    
-    def ycenter(self):
-        return self.height / 2 + self.y
-        
-    @staticmethod
-    def create(width, height, xoffset=0, yoffset=0):
-        batch = pyglet.graphics.Batch()
-        return Canvas(batch, width, height, xoffset, yoffset)
+class UnlockController(object):
+    def __init__(self, window, views, batches, command_receiver, poll_signal_frequency,
+                 standalone=False):
+        super(UnlockController, self).__init__()
+        self.window = window
+        self.views = views
+        self.batches = set([])
+        if batches != None:
+            self.batches = self.batches.union(batches)
             
+        self.command_receiver = command_receiver
+        self.standalone = standalone
+        self.poll_signal_frequency = poll_signal_frequency
+        
+    def poll_signal(self, delta):
+        command = self.command_receiver.next_command(delta)
+
+        if 'stop' in command.__dict__:
+            self.window.handle_stop_request()
+        else:
+            self.update_state(command)
+            self.render()
+
+    def update_state(self, command):
+        ''' Subclass hook '''
+        pass
+        
+    def keyboard_input(self, command):
+        self.update_state(command)
+        self.render()
+        
+    def activate(self):
+        self.window.activate_controller(self)
+        
+    def deactivate(self):
+        self.window.deactivate_controller()
+        return self.standalone
+        
+    def render(self):
+        #print("Render =======================================================================")
+        self.window.render()
+        
+        
+class UnlockControllerChain(UnlockController):
+    def __init__(self, window, command_receiver, controllers, name, icon,
+        poll_signal_frequency=1.0/512.0, standalone=False):
+        
+        assert controllers != None and len(controllers) > 0
             
+        views = []
+        batches = set([])
+        for controller in controllers:
+            if controller.views != None:
+                views.extend(controller.views)    
+                    
+            if controller.batches != None:
+                batches = batches.union(controller.batches)
+                
+        super(UnlockControllerChain, self).__init__(window, views, batches,
+            command_receiver, poll_signal_frequency, standalone=standalone)
+        self.controllers = controllers
+        self.name = name
+        self.icon = icon
+        self.standalone = standalone
+        self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(UnlockControllerChain)),
+            'resource', self.icon)
+            
+    def update_state(self, command):
+        for controller in self.controllers:
+            controller.update_state(command)
+                
+    def keyboard_input(self, command):
+        for controller in self.controllers:
+            controller.keyboard_input(command)
+        self.render()
+        
+    def activate(self):
+        for controller in self.controllers:
+            controller.activate()
+        super(UnlockControllerChain, self).activate()
+        
+    def deactivate(self):
+        for controller in self.controllers:
+            controller.deactivate()
+            
+        self.window.deactivate_controller()            
+        return self.standalone
+        
+    def render(self):
+        super(UnlockControllerChain, self).render()
+       
+        
+class UnlockControllerFragment(UnlockController):
+    """
+    A controller fragment is a controller that can be 'mixedin' with other fragments.  It is not
+    intended to be a stand alone controller.  For a stand alone controller use/subclass
+    UnlockController or UnlockControllerChain.
+    """
+    def __init__(self, model, views, batch):
+        super(UnlockControllerFragment, self).__init__(None, None, None, None, None, None)
+        self.model = model
+        self.views = views
+        self.batches.add(batch)
+        self.poll_signal = None
+        self.render = None
+        
+    def update_state(self, command):    
+        if command is not None and command.is_valid() and self.model is not None:
+            self.model.process_command(command)
+            
+    def keyboard_input(self, command):
+        if self.model is not None:
+            self.model.process_command(command)
+            
+    def activate(self):
+        if self.model is not None:
+            self.model.start()
+            
+    def deactivate(self):
+        if self.model is not None:
+            self.model.stop()
+        return self.standalone
+         
+       
+class UnlockCommandConnectedFragment(UnlockControllerFragment):
+    def __init__(self, command_receiver, timed_stimuli, views, batch):
+        assert timed_stimuli is not None
+        super(UnlockCommandConnectedFragment, self).__init__(timed_stimuli, views, batch)
+        self.command_receiver = command_receiver
+        
+    def keyboard_input(self,command):
+        pass
+        
+        
+class UnlockCalibratedControllerFragment(UnlockControllerFragment):
+    def __init__(self, window, model, views, batch, calibrator=None):
+        super(CalibratedControllerFragment, self).__init__(model, views, batch)
+        self.window = window
+        self.calibrator = calibrator
+        if calibrator != None:
+            self.initialized = False
+        else:
+            self.initialized = True            
+        #self.logger = logging.getLogger(__name__)
+        
+    def initialize(self):
+        self.calibrator.activate()
+        self.initialized = True
+        
+    def poll_signal_interceptor(self, delta):
+        if not self.initialized:
+            self.initialize()
+            return
+        self.poll_signal(delta)
+        
+        
+class UnlockDashboard(UnlockCalibratedControllerFragment):
+    def __init__(self, window, model, views, batch, controllers, calibrator):
+        super(Dashboard, self).__init__(window, model, views, batch, calibrator)
+        self.controllers = controllers
+        self.logger = logging.getLogger(__name__)
+        
+        
 class PygletWindow(pyglet.window.Window):
     def __init__(self, decoder, fullscreen=False, show_fps=True, vsync=False):
         super(PygletWindow, self).__init__(fullscreen=fullscreen, vsync=vsync)
@@ -130,438 +270,22 @@ class PygletWindow(pyglet.window.Window):
     def start(self):
         pyglet.app.run()
             
-            
-class UnlockController(object):
-    def __init__(self, window, views, batches, command_receiver, poll_signal_frequency,
-                 standalone=False):
-        super(UnlockController, self).__init__()
-        self.window = window
-        self.views = views
-        self.batches = set([])
-        if batches != None:
-            self.batches = self.batches.union(batches)
-            
-        self.command_receiver = command_receiver
-        self.standalone = standalone
-        self.poll_signal_frequency = poll_signal_frequency
-        
-    def poll_signal(self, delta):
-        command = self.command_receiver.next_command(delta)
-        if 'stop' in command.__dict__:
-            self.window.handle_stop_request()
-        else:
-            self.update_state(command)
-            self.render()
-
-    def update_state(self, command):
-        ''' Subclass hook '''
-        pass
-        
-    def keyboard_input(self, command):
-        self.update_state(command)
-        self.render()
-        
-    def activate(self):
-        self.window.activate_controller(self)
-        
-    def deactivate(self):
-        self.window.deactivate_controller()
-        return self.standalone
-        
-    def render(self):
-        self.window.render()
-        
-        
-class UnlockControllerChain(UnlockController):
-    def __init__(self, window, command_receiver, controllers, name, icon,
-                 poll_signal_frequency=1.0/512.0, standalone=False):
-        assert controllers != None and len(controllers) > 0
-            
-        views = []
-        batches = set([])
-        for controller in controllers:
-            if controller.views != None:
-                views.extend(controller.views)    
-                    
-            if controller.batches != None:
-                batches = batches.union(controller.batches)
-                
-        super(UnlockControllerChain, self).__init__(window, views, batches,
-                                                    command_receiver, poll_signal_frequency,
-                                                    standalone=standalone)
-        self.controllers = controllers
-        self.name = name
-        self.icon = icon
-        self.standalone = standalone
-        self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(UnlockControllerChain)),
-                                      'resource', self.icon)
-            
-    def update_state(self, command):
-        for controller in self.controllers:
-            controller.update_state(command)
-                
-    def keyboard_input(self, command):
-        for controller in self.controllers:
-            controller.keyboard_input(command)
-        self.render()
-        
-    def activate(self):
-        for controller in self.controllers:
-            controller.activate()
-        super(UnlockControllerChain, self).activate()
-        
-    def deactivate(self):
-        for controller in self.controllers:
-            controller.deactivate()
-            
-        self.window.deactivate_controller()            
-        return self.standalone
-        
-    def render(self):
-        super(UnlockControllerChain, self).render()
-       
-        
-class UnlockControllerFragment(UnlockController):
-    '''
-    A controller fragment is part of a controller that can be mixed in with other fragments, but
-    cannot be a standalone fragment.
-    '''
-    def __init__(self, model, views, batch, standalone=False):
-        super(UnlockControllerFragment, self).__init__(None, None, None, None, None, None)
-        self.model = model
-        self.views = views
-        self.batches.add(batch)
-        self.standalone = standalone
-        self.poll_signal = None
-        self.render = None
-        
-    def update_state(self, command):    
-        if command is not None and command.is_valid() and self.model is not None:
-            self.model.process_command(command)
-            
-    def keyboard_input(self, command):
-        if self.model is not None:
-            self.model.process_command(command)
-    
-    def activate(self):
-        if self.model is not None:
-            self.model.start()
-        
-    def deactivate(self):
-        if self.model is not None:
-            self.model.stop()
-        return self.standalone
-         
-            
-class CalibratedControllerFragment(UnlockControllerFragment):
-    def __init__(self, window, model, views, batch, calibrator=None):
-        super(CalibratedControllerFragment, self).__init__(model, views, batch)
-        self.window = window
-        self.calibrator = calibrator
-        if calibrator != None:
-            self.initialized = False
-        else:
-            self.initialized = True            
-        #self.logger = logging.getLogger(__name__)
-
-    def initialize(self):
-        self.calibrator.activate()
-        self.initialized = True
-        
-    def poll_signal_interceptor(self, delta):
-        if not self.initialized:
-            self.initialize()
-            return
-        self.poll_signal(delta)
-        
           
-#class UnstimulatedFragment(UnlockControllerFragment):
-#    def __init__(self, command_receiver):
-#        super(UnstimulatedFragment, self).__init__(None, [], None)
-#        self.command_receiver = command_receiver
-#        
-#    def update_state(self, command):
-#        pass
-#        
-#    def keyboard_input(self, command):
-#        pass
-#        
-#    def activate(self):
-#        pass
-#        
-#    def deactivate(self):
-#        pass
-#        
-#    @staticmethod
-#    def create_semg(decoder):
-#        command_receiver = decoder.create_receiver({}, classifier_type=UnlockClassifier.Unclassified)
-#        return UnstimulatedFragment(command_receiver)
+class Canvas(object):
+    def __init__(self, batch, width, height, xoffset=0, yoffset=0):
+        self.batch = batch
+        self.width = width
+        self.height = height
+        self.x = xoffset
+        self.y = yoffset
         
-#           
-#class FacialEMGDetectorFragment(UnlockControllerFragment):
-#    def __init__(self, command_receiver):
-#        super(FacialEMGDetectorFragment, self).__init__(None, [], None)
-#        self.command_receiver = command_receiver
-#        
-#    def update_state(self, command):
-#        pass
-#        
-#    def keyboard_input(self, command):
-#        pass
-#        
-#    def activate(self):
-#        pass
-#        
-#    def deactivate(self):
-#        pass
-#        
-#    @staticmethod
-#    def create_semg(decoder, thresholds):
-#        command_receiver = decoder.create_receiver({}, classifier_type=UnlockClassifier.FacialEMGDetector)
-#        return FacialEMGDetectorFragment(command_receiver)
-#        
-#        
-class EEGControllerFragment(UnlockControllerFragment):
-    def __init__(self, command_receiver, timed_stimuli, views, batch):
-        assert timed_stimuli is not None
-        super(EEGControllerFragment, self).__init__(timed_stimuli, views, batch)
-        self.command_receiver = command_receiver
+    def center(self):
+        return self.xcenter(), self.ycenter()
         
-    def update_state(self, command):
-         return self.model.process_command(command)
+    def xcenter(self):
+        return self.width / 2 + self.x
         
-    def keyboard_input(self,command):
-        pass
-        
-    @staticmethod
-    def create_ssvep(canvas, decoder, color='bw'):
-
-        if color == 'ry':
-            color1 = (255, 0, 0)
-            color2 = (255, 255, 0)
-        else:
-            color1 = (0, 0, 0)
-            color2 = (255, 255, 255)
-
-        width = 500
-        height = 100
-        xf = 5
-        yf = 1
-        
-        stimuli = TimedStimuli.create(3.0, 1.0)
-        views = []
-        
-        freqs = [12.0, 13.0, 14.0, 15.0]
-        
-        stimulus1 = TimedStimulus.create(freqs[0] * 2)
-        fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus1, canvas, SpritePositionComputer.North, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-            reversal=False)
-        stimuli.add_stimulus(stimulus1)
-        views.append(fs1)
-        
-        stimulus2 = TimedStimulus.create(freqs[1] * 2)
-        fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus2, canvas, SpritePositionComputer.South, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-            reversal=False)
-        stimuli.add_stimulus(stimulus2)
-        views.append(fs2)
-        
-        stimulus3 = TimedStimulus.create(freqs[2] * 2)
-        fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus3, canvas, SpritePositionComputer.West, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-            reversal=False, rotation=90)
-        stimuli.add_stimulus(stimulus3)
-        views.append(fs3)
-        
-        stimulus4 = TimedStimulus.create(freqs[3] * 2)
-        fs4 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus4, canvas, SpritePositionComputer.East, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-             reversal=False, rotation=90)
-        stimuli.add_stimulus(stimulus4)
-        views.append(fs4)
-
-        # TODO: this should be created at this level and passed in, not pulled
-        # out
-        task_state = stimuli.state
-
-        args = {'task_state': task_state, 'targets': freqs, 'trial_length': 3,
-                'fs': 256, 'n_electrodes': 8}
-        ssvep_command_receiver = decoder.create_receiver(args,
-                        classifier_type=UnlockClassifier.HarmonicSumDecision)
-
-        eb_args = {'task_state': task_state, 'eog_channels': [4],
-                   'strategy': 'count', 'rms_threshold': 4000}
-        command_receiver = decoder.create_receiver(eb_args,
-                        classifier_type=UnlockClassifier.EyeBlinkDetector,
-                        chained_classifier=ssvep_command_receiver)
-        return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
-        
-    @staticmethod
-    def create_single_ssvep(canvas, command_receiver, frequency, color='ry'):
-        if color == 'ry':
-            color1 = (255, 0, 0)
-            color2 = (255, 255, 0)
-        else:
-            color1 = (0, 0, 0)
-            color2 = (255, 255, 255)
-
-        stimuli = TimedStimuli.create(3, 1)
-        stimulus = TimedStimulus.create(frequency * 2)
-        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus, canvas, SpritePositionComputer.Center, width=300,
-            height=300, xfreq=2, yfreq=2, color_on=color1, color_off=color2,
-            reversal=False)
-        stimuli.add_stimulus(stimulus)
-        return EEGControllerFragment(command_receiver, stimuli, [fs], canvas.batch)
-
-    @staticmethod
-    def create_dual_ssvep(canvas, command_receiver, frequency, color='ry'):
-        if color == 'ry':
-            color1 = (255, 0, 0)
-            color2 = (255, 255, 0)
-        else:
-            color1 = (0, 0, 0)
-            color2 = (255, 255, 255)
-
-        stimuli = TimedStimuli.create(3, 1)
-        stimulus = TimedStimulus.create(frequency * 2)
-        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus, canvas, SpritePositionComputer.West, width=300,
-            height=300, xfreq=2, yfreq=2, color_on=color1, color_off=color2,
-            reversal=False)
-        stimuli.add_stimulus(stimulus)
-        stimulus2 = TimedStimulus.create(frequency * 2)
-        fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus2, canvas, SpritePositionComputer.East, width=300,
-            height=300, xfreq=2, yfreq=2, color_on=color1, color_off=color2,
-            reversal=False)
-        stimuli.add_stimulus(stimulus2)
-        return EEGControllerFragment(command_receiver, stimuli, [fs, fs2], canvas.batch)
-
-    @staticmethod
-    def create_quad_ssvep(canvas, command_receiver, frequency, color='bw'):
-
-        if color == 'ry':
-            color1 = (255, 0, 0)
-            color2 = (255, 255, 0)
-        else:
-            color1 = (0, 0, 0)
-            color2 = (255, 255, 255)
-
-        width = 500
-        height = 100
-        xf = 5
-        yf = 1
-
-        stimuli = TimedStimuli.create(3.0, 1.0)
-        views = []
-
-        freqs = [12.0, 13.0, 14.0, 15.0]
-
-        stimulus1 = TimedStimulus.create(freqs[0] * 2)
-        fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus1, canvas, SpritePositionComputer.North, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-            reversal=False)
-        stimuli.add_stimulus(stimulus1)
-        views.append(fs1)
-
-        stimulus2 = TimedStimulus.create(freqs[1] * 2)
-        fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus2, canvas, SpritePositionComputer.South, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-            reversal=False)
-        stimuli.add_stimulus(stimulus2)
-        views.append(fs2)
-
-        stimulus3 = TimedStimulus.create(freqs[2] * 2)
-        fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus3, canvas, SpritePositionComputer.West, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-            reversal=False, rotation=90)
-        stimuli.add_stimulus(stimulus3)
-        views.append(fs3)
-
-        stimulus4 = TimedStimulus.create(freqs[3] * 2)
-        fs4 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus4, canvas, SpritePositionComputer.East, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-             reversal=False, rotation=90)
-        stimuli.add_stimulus(stimulus4)
-        views.append(fs4)
-
-        return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
-
-    @staticmethod
-    def create_msequence(canvas, signal, timer, color='bw'):
-        raise Exception("This was not maintained through changes and needs some love before it is ready to run again..")
-        rate = 30.0
-        width = 300
-        height = 300
-        fx = 4
-        fy = 4
-        
-        if color == 'ry':
-            color1 = (255, 0, 0)
-            color2 = (255, 255, 0)
-        else:
-            color1 = (255, 255, 255)
-            color2 = (0, 0, 0)
-        
-        seq1 = (1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1)
-        seq2 = (0,0,1,1,1,0,0,1,0,1,0,1,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1)
-        seq3 = (0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0)
-        seq4 = (0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,1,1,1,0,1,1,0,1,0,0,1,1,0)
-        
-        stimuli = TimedStimuli.create(4.0)
-        views = []
-        
-        stimulus1 = TimedStimulus.create(rate, sequence=seq1)
-        fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus1, canvas, SpritePositionComputer.North, width=width,
-            height=height, xfreq=fx, yfreq=fy, color_on=color1,
-            color_off=color2)
-        stimuli.add_stimulus(stimulus1)
-        views.append(fs1)
-        
-        stimulus2 = TimedStimulus.create(rate, sequence=seq2)
-        fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus2, canvas, SpritePositionComputer.South, width=width,
-            height=height, xfreq=fx, yfreq=fy, color_on=color1,
-            color_off=color2)
-        stimuli.add_stimulus(stimulus2)
-        views.append(fs2)
-        
-        stimulus3 = TimedStimulus.create(rate, sequence=seq3)
-        fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus3, canvas, SpritePositionComputer.West, width=width,
-            height=height, xfreq=fx, yfreq=fy, color_on=color1,
-            color_off=color2)
-        stimuli.add_stimulus(stimulus3)
-        views.append(fs3)
-        
-        stimulus4 = TimedStimulus.create(rate, sequence=seq4)
-        fs4 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus4, canvas, SpritePositionComputer.East, width=width,
-            height=height, xfreq=fx, yfreq=fy, color_on=color1,
-            color_off=color2)
-        stimuli.add_stimulus(stimulus4)
-        views.append(fs4)
-        
-        command_receiver = RawInlineSignalReceiver(signal, timer)
-        return EEGControllerFragment(command_receiver, stimuli, views, canvas.batch)
+    def ycenter(self):
+        return self.height / 2 + self.y
             
-            
+          
