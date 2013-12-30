@@ -25,10 +25,8 @@ class SpritePositionComputer(object):
         self.x0 = canvas.x
         self.y0 = canvas.y
         self.angle = abs(radians(rotation))
-        self.box_width = (image_width * cos(self.angle) +
-                          image_height * sin(self.angle))
-        self.box_height = (image_width * sin(self.angle) +
-                           image_height * cos(self.angle))
+        self.box_width = (image_width * cos(self.angle) + image_height * sin(self.angle))
+        self.box_height = (image_width * sin(self.angle) + image_height * cos(self.angle))
         self.center()
         
     def compute(self, position):
@@ -43,6 +41,10 @@ class SpritePositionComputer(object):
             SpritePositionComputer.NorthWest: self.northwest,
             SpritePositionComputer.Center: self.center,
         }.get(position, self.center)()
+#        print("X, y", self.x, self.y)
+#        print("X, y", self.x0, self.y0)
+#        print("width, height", self.width, self.height)
+#        print("box_width, box_height", self.box_width, self.box_height)
         self.x += self.x0
         self.y += self.y0
                 
@@ -79,8 +81,8 @@ class SpritePositionComputer(object):
         self.y = self.height  - self.box_height/2
         
     def center(self):
-        self.x = self.width / 2
-        self.y = self.height / 2    
+        self.x = self.width / 2 + self.box_width
+        self.y = self.height / 2  - self.box_height
             
            
 class PygletSprite(UnlockView):
@@ -108,9 +110,9 @@ class PygletSprite(UnlockView):
         return PygletSprite(model, canvas, abstract_image, int(x), int(y), rotation)
            
     @staticmethod
-    def create_checkered_box_texture_region(width=600, height=100, xfreq=6, yfreq=1,
-                xduty=0.5, yduty=0.5, xuneven=False, yuneven=False,
-                color_on=(0,0,0), color_off=(255,255,255)):
+    def create_checkered_box_texture_region(width=600, height=100, xfreq=6, yfreq=1, xduty=0.5,
+        yduty=0.5, xuneven=False, yuneven=False, color_on=(0,0,0), color_off=(255,255,255)):
+        
         """
         Creates a checkerboard image
         :param size: image width and height
@@ -118,7 +120,9 @@ class PygletSprite(UnlockView):
         :param duty_cycles: ratio of 'on' to 'off' in the x and y directions
         :param uneven: is the last cycle only half-width or -height?
         :param colors: 'on' and 'off' rgb values
-        """        
+        """
+        
+        print ("width, height, xfreq, yfreq, xduty, yduty, color_on, color_off", width, height, xfreq, yfreq, xduty, yduty, color_on, color_off)
         if xuneven:
             xfreq -= 0.5
             
@@ -150,20 +154,19 @@ class PygletSprite(UnlockView):
                 line_on_string += color_off * x_extra
                 line_off_string += color_on * x_extra
                 
-        buffer = (line_on_string * cycle_on_height +
+        buf = (line_on_string * cycle_on_height +
                   line_off_string * cycle_off_height) * int(yfreq)
         if yuneven:
-            buffer += line_on_string * cycle_off_height
+            buf += line_on_string * cycle_off_height
                 
-        h_extra = width*height - len(buffer)/3
+        h_extra = width*height - len(buf)/3
         if h_extra > 0:
             if yuneven:
-                buffer += line_on_string * (h_extra / width)
+                buf += line_on_string * (h_extra / width)
             else:
-                buffer += line_off_string * (h_extra / width)
-                
-        texture = pyglet.image.ImageData(width, height, 'RGB',
-                                      array.array('B',buffer).tostring())
+                buf += line_off_string * (h_extra / width)
+    
+        texture = pyglet.image.ImageData(width, height, 'RGB', array.array('B',buf).tobytes())
         texture_region = texture.get_texture().get_transform(flip_y=True)
         return texture_region
             
@@ -193,10 +196,11 @@ class FlickeringPygletSprite(PygletSprite):
             self.sprite.sprite.visible = False
             self.reversed_sprite.visible = False
         else:
-            self.logger.debug("FlickeringPygletSprite, x,y = ", self.sprite.sprite.x, self.sprite.sprite.y, " rotation ", self.sprite.sprite.rotation, " visible = ", state)
+            #print("FlickeringPygletSprite, x,y = ", self.sprite.sprite.x, self.sprite.sprite.y, " rotation ", self.sprite.sprite.rotation, " visible = ", state)
             self.sprite.sprite.visible = state
             self.reversed_sprite.sprite.visible = not state
-            
+        #print('flickeringsprit state = ', state)
+        
     @staticmethod
     def create_flickering_checkered_box_sprite(model, canvas, position=SpritePositionComputer.Center, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
             xduty=0.5, yduty=0.5, xoffset=0, yoffset=0, xuneven=False, yuneven=False, color_on=(0,0,0), color_off=(255,255,255), reversal=True):
@@ -210,3 +214,5 @@ class FlickeringPygletSprite(PygletSprite):
             reversed_sprite = PygletSprite.create_checkered_box_sprite(model, canvas, position, rotation, width, height, xfreq, yfreq,
                                                           xduty, yduty, xoffset, yoffset, xuneven, yuneven, (0,0,0), (0,0,0))
         return FlickeringPygletSprite(sprite, reversed_sprite, canvas.batch)
+        
+        

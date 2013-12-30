@@ -25,9 +25,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.model import CueStateMachine, CueState
+from unlock.state import CueStateMachine, CueState, TrialState, Trigger
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer, PygletTextLabel, BellRingTextLabelDecorator
-from unlock.util import TrialState, Trigger
 from unlock.controller import Canvas, UnlockControllerFragment, UnlockControllerChain
 
 import numpy as np
@@ -37,9 +36,9 @@ import time
 import os
 
 
-class Calibrate(UnlockControllerFragment):
+class FourwayCalibrationController(UnlockControllerFragment):
     def __init__(self, window, classifier, cue_state, views, batch):
-        super(Calibrate, self).__init__(cue_state, views, batch)
+        super(CalibrationController, self).__init__(cue_state, views, batch)
         self.cue_state = cue_state
         self.window = window
         self.classifier = classifier
@@ -53,15 +52,15 @@ class Calibrate(UnlockControllerFragment):
     def update_state(self, command):  
         if not command.is_valid():
             return
-
+            
         cue_trigger = self.cue_state.process_command(command)
         if self.last != None and cue_trigger == Trigger.Indicate:
             # XXX - this is a bit weird.  if you look at Byron's femg.FacialEMGDetector, it just
             #       looks for electrode thresholds, so for calibration purposes it only makes
             #       sense to get a threshold for each electrode.
             #
-            #       Another way to do this would be to numerically incorporate all electrode values
-            #       recorded during a given task.
+            #       Seems like another way to do this would be to numerically incorporate all
+            #       electrode values recorded during a given task.
             if self.last == Trigger.Left:
                 lefts = self.thresholds[Trigger.Left]
                 self.thresholds[Trigger.Left] = np.concatenate((lefts, command.data_matrix[:, 0]))                
@@ -73,9 +72,8 @@ class Calibrate(UnlockControllerFragment):
                 self.thresholds[Trigger.Right] = np.concatenate((rights, command.data_matrix[:, 2]))
             elif self.last == Trigger.Select:
                 selects = self.thresholds[Trigger.Select]
-#                print("data matrix = ", command.data_matrix, " selection electrod = ", command.data_matrix[:, 3])
                 self.thresholds[Trigger.Select] = np.concatenate((selects, command.data_matrix[:, 3]))
-
+                
         if cue_trigger == Trigger.Left:
             self.last = Trigger.Left
         elif cue_trigger == Trigger.Right:
@@ -94,57 +92,13 @@ class Calibrate(UnlockControllerFragment):
             self.window.deactivate_controller()
             
     def calibrate(self):
-        #print("Left ", np.array(self.thresholds[Trigger.Left]))
         left =  np.mean(np.array(self.thresholds[Trigger.Left]))
-        #print("Bottom ", np.array(self.thresholds[Trigger.Forward]))
         bottom = np.mean(np.array(self.thresholds[Trigger.Forward]))
-        #print("Right ", np.array(self.thresholds[Trigger.Right]))
         right =  np.mean(np.array(self.thresholds[Trigger.Right]))
-        #print("Select ", np.array(self.thresholds[Trigger.Select]))
         select = np.mean(np.array(self.thresholds[Trigger.Select]))
         self.classifier.thresholds = np.array([left, bottom, right, select])
-        #print ("Threholds = ", self.classifier.thresholds)
         
     def keyboard_input(self, command):
         pass
     
-    @staticmethod
-    def create_smg_calibrator(window, command_receiver, trials=4, cue_duration=.5,
-                              rest_duration=1, indicate_duration=1, standalone=False):
-        canvas = Canvas.create(window.width, window.height)
-        cues = [Trigger.Left, Trigger.Right, Trigger.Forward, Trigger.Select]
-        cue_states = []
-        for cue in cues:
-            cue_states.append(CueState.create(cue, cue_duration))
-        rest_state = CueState.create(Trigger.Rest, rest_duration)
-
-        indicate_state = CueState.create(Trigger.Indicate, indicate_duration)        
-        cue_state = CueStateMachine.create_sequential_cue_indicate_rest(cue_states, rest_state,
-                                                                        indicate_state,trials=trials)
-        
-        left = PygletTextLabel(cue_state.cue_states[0], canvas, 'left', canvas.width / 2.0,
-                               canvas.height / 2.0)
-        right = PygletTextLabel(cue_state.cue_states[1], canvas, 'right', canvas.width / 2.0,
-                                canvas.height / 2.0)
-        forward = PygletTextLabel(cue_state.cue_states[2], canvas, 'forward', canvas.width / 2.0,
-                                  canvas.height / 2.0)
-#        back = PygletTextLabel(cue_state.cue_states[3], canvas, 'back', canvas.width / 2.0,
- #                              canvas.height / 2.0)
-        select = PygletTextLabel(cue_state.cue_states[3], canvas, 'select', canvas.width / 2.0,
-                                 canvas.height / 2.0)
-        
-        rest_text = PygletTextLabel(cue_state.rest_state, canvas, '+', canvas.width / 2.0,
-                                    canvas.height / 2.0)
-        
-        
-        indicate_text = PygletTextLabel(cue_state.indicate_state, canvas, '',
-                                                       canvas.width / 2.0, canvas.height / 2.0)
-        indicate = BellRingTextLabelDecorator(indicate_text)
-        
-        calibrate = Calibrate(window, command_receiver.classifier, cue_state, [left, right, forward, select, rest_text, indicate],
-                              canvas.batch)
-        view_chain = calibrate.views
-        controller_chain = UnlockControllerChain(window, command_receiver.command_receiver,
-                                                 [calibrate], 'Calibrate', 'scope.png',
-                                                 standalone=standalone)
-        return calibrate, controller_chain
+  
