@@ -38,8 +38,7 @@ from unlock import context
 from unlock.decode import CommandReceiverFactory, InlineDecoder, MultiProcessDecoder
 from unlock.controller import PygletWindow, UnlockDashboard, UnlockControllerFactory, Canvas
 from optparse import OptionParser
-
-
+from sqlalchemy import create_engine
 class UnlockFactory(context.PythonConfig):
     def __init__(self, args):
         super(UnlockFactory, self).__init__()
@@ -234,7 +233,7 @@ class UnlockRuntime(object):
     def __init__(self):
         """Initializes the UnlockRuntime."""
         self.conf = None
-        self.log = None
+        self.logger = None
         
         try:
             args = None
@@ -258,7 +257,7 @@ class UnlockRuntime(object):
             parser.add_option('-n', '--fullscreen', default=None, action='store_true', dest='fullscreen', metavar='FULLSCREEN', help=fullscreen_help)
             parser.add_option('-f', '--fps', default=None, action='store_true', dest='fps', metavar='FPS', help=fps_help)
             parser.add_option('-v', '--vsync', default=None, action='store_true', dest='vsync', metavar='VSYNC', help=vsync_help)
-            parser.add_option('-l', '--logging-level', type=str, dest='loglevel', metavar='LEVEL', help=loglevel_help)
+            parser.add_option('-l', '--logging-level', type=str, dest='loglevel', default=None, metavar='LEVEL', help=loglevel_help)
             parser.add_option('-s', '--signal', dest='signal', default=None, type=str, metavar='SIGNAL', help=signal_help)
             parser.add_option('-t', '--stimuli', type=str, dest='stimuli', default=None, metavar='STIMULI', help=stimuli_help)
             parser.add_option('-m', '--mac-addr', dest='mac_addr', default=None, type=str, metavar='MAC-ADDR', help=mac_addr_help)
@@ -266,6 +265,7 @@ class UnlockRuntime(object):
             parser.add_option('-r', '--receiver', dest='receiver', default=None, type=str, metavar='RECEIVER', help=receiver_help)
             parser.add_option('-d', '--decoder', dest='decoder', default=None, type=str, metavar='DECODER', help=decoder_help)
             valid_levels = {'debug': logging.DEBUG, 'info': logging.INFO, 'warn': logging.WARN, 'error': logging.ERROR, 'critical': logging.CRITICAL}
+            self.loglevel = logging.INFO
             (options, args) = parser.parse_args()
         except Exception as e:
             raise e
@@ -291,12 +291,25 @@ class UnlockRuntime(object):
                 self.args['receiver'] = options.receiver
             if options.decoder is not None:
                 self.args['decoder'] = options.decoder
+            if options.loglevel is not None:
+                # Config file settings override this command line parameter
+                self.loglevel = valid_levels[options.loglevel]
                 
             self.__configure_logging__()
+            self.logger.info('Logging setup successfully completed')
+            database = self.args['database']
+            self.__configure_persistence__(database['host'], database['user'],database['name'],
+                database['port'], database['addr'])            
+            self.logger.info('Database setup successfully completed')                
             self.__create_controllers__()
+            self.logger.info('Unlock setup successfully completed')                
             
         except:
-            print('UnlockRuntime: FATAL failed to initialize correctly')
+            if self.logger == None:
+                print('UnlockRuntime: FATAL failed to initialize correctly')
+            else:
+                self.logger.fatal('failed to initialize correctly')
+                
             if parser:
                 parser.print_help()
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -325,7 +338,11 @@ class UnlockRuntime(object):
         if 'stimuli' in self.args.keys():
             self.factory.stimuli = self.app_ctx.get_object(self.args['stimuli'])
         self.main = self.app_ctx.get_object(self.args['main'])
-            
+        
+    def __configure_persistence__(self, host, name, user, port, addr):
+        self.engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (user, addr, host, port, name))
+        return self.engine
+        
     def __configure_logging__(self):
         # The Logging-Config object determines the configuration of the logging
         # System.  It follows the standard Python JSON logging config; see
@@ -333,11 +350,15 @@ class UnlockRuntime(object):
         if 'logging' in self.args:
             logging.config.dictConfig(self.args['logging'])
         else:
-            logging.basicConfig(level=log_level)
+            logging.basicConfig(level=self.loglevel)
             
+        self.logger = logging.getLogger(__name__)
+                
     def start(self):
         """Starts the UnlockRuntime."""
+        
         self.main.activate()
+        self.logger.info('Starting Unlock...')                        
         self.main.window.start()
         self.main.window.close()
         
