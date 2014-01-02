@@ -25,10 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.state import TimedStimulus, TimedStimuli
-from unlock.view import FlickeringPygletSprite, SpritePositionComputer
-from unlock.bci import UnlockDecoder, PygletKeyboardCommand, HarmonicSumDecision, RootMeanSquare
-from unlock.bci import CommandReceiverFactory, RawInlineSignalReceiver,ClassifiedCommandReceiver
+from unlock.bci import PygletKeyboardCommand
 import pyglet
 import inspect
 import time
