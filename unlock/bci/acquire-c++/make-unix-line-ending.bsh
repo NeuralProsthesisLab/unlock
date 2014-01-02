@@ -1,0 +1,9 @@
+#!/bin/bash
+if [ -z "$1" ] ; then
+	echo "usage: make-unix-line-ending.bsh <filename>"
+	exit 1
+fi
+
+echo "Fixing $1"
+tr '\015' '\012' <$1 >$1
+
