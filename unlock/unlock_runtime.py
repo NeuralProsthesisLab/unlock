@@ -58,7 +58,7 @@ class UnlockFactory(context.PythonConfig):
         if 'receiver' in self.args.keys():
             self.receiver = CommandReceiverFactory.map_factory_method(self.args['receiver'])
         else:
-            self.receiver = CommandReceiverFactory.Classified
+            self.receiver = CommandReceiverFactory.Decoded
             
         bci_wrapper = InlineBciWrapper(self.receiver, self.signal, self.timer)
         return bci_wrapper
@@ -252,7 +252,7 @@ class UnlockRuntime(object):
             stimuli_help = 'sets the system to use a shared stimuli; valid values are: ssvep, msequence and semg'
             mac_addr_help = 'a comma separated list of hexadecimal values that are required to connect to some signaling devices;for example -m "0x1,0x2,0x3,0x4,0x5,0x6"'
             com_port_help = 'the COM port associated with some data acquisition devices; e.g. -p COM3'
-            receiver_help = 'sets the type of receiver; valid values include delta, raw, classified and datagram'
+            receiver_help = 'sets the type of receiver; valid values include delta, raw, decoded and datagram'
             bci_wrapper_help = 'sets the type of bci_wrapper; valid values include inline and multiprocess'
             conf = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'conf.json')
             parser.add_option('-c', '--conf', type=str, dest='conf', default=conf, metavar='CONF', help=conf_help)
