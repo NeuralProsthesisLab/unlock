@@ -1,0 +1,7 @@
+*.pyc
+*.tmp
+*~
+*#
+*komodoproject
+.idea
+*.obj
