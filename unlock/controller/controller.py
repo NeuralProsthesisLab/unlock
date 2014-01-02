@@ -27,8 +27,8 @@
 
 from unlock.state import TimedStimulus, TimedStimuli
 from unlock.view import FlickeringPygletSprite, SpritePositionComputer
-from unlock.decode import UnlockClassifier, PygletKeyboardCommand, HarmonicSumDecision, RootMeanSquare
-from unlock.decode import CommandReceiverFactory, RawInlineSignalReceiver,ClassifiedCommandReceiver
+from unlock.bci import UnlockDecoder, PygletKeyboardCommand, HarmonicSumDecision, RootMeanSquare
+from unlock.bci import CommandReceiverFactory, RawInlineSignalReceiver,ClassifiedCommandReceiver
 import pyglet
 import inspect
 import time

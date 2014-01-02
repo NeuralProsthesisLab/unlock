@@ -35,10 +35,12 @@ import logging
 import logging.config
 
 from unlock import context
-from unlock.decode import CommandReceiverFactory, InlineDecoder, MultiProcessDecoder
+from unlock.bci import CommandReceiverFactory, InlineBciWrapper, MultiProcessBciWrapper
 from unlock.controller import PygletWindow, UnlockDashboard, UnlockControllerFactory, Canvas
 from optparse import OptionParser
 from sqlalchemy import create_engine
+
+
 class UnlockFactory(context.PythonConfig):
     def __init__(self, args):
         super(UnlockFactory, self).__init__()
@@ -58,23 +60,23 @@ class UnlockFactory(context.PythonConfig):
         else:
             self.receiver = CommandReceiverFactory.Classified
             
-        decoder = InlineDecoder(self.receiver, self.signal, self.timer)
-        return decoder
+        bci_wrapper = InlineBciWrapper(self.receiver, self.signal, self.timer)
+        return bci_wrapper
         
     @context.Object(lazy_init=True)
     def multiprocess(self):
-        decoder = MultiProcessDecoder(self.args)
-        return decoder
+        bci_wrapper = MultiProcessBciWrapper(self.args)
+        return bci_wrapper
         
     @context.Object(lazy_init=True)        
     def ssvep(self):
         canvas = UnlockControllerFactory.create_canvas(self.window.width, self.window.height)
-        stimuli = UnlockControllerFactory.create_quad_ssvep(canvas, self.decoder)
+        stimuli = UnlockControllerFactory.create_quad_ssvep(canvas, self.bci_wrapper)
         return stimuli
      
     @context.Object(lazy_init=True)
     def nidaq(self):
-        from unlock.decode import acquire
+        from unlock.bci import acquire
         self.timer = acquire.create_timer()
         signal = acquire.create_nidaq_signal(self.timer)
         if not signal.start():
@@ -94,7 +96,7 @@ class UnlockFactory(context.PythonConfig):
         
     @context.Object(lazy_init=True)        
     def audio(self):
-        from unlock.decode import acquire
+        from unlock.bci import acquire
         self.timer = acquire.create_timer()
         signal = acquire.AudioSignal()
         
@@ -113,7 +115,7 @@ class UnlockFactory(context.PythonConfig):
             print('enobio requires a mac address; none set')
             raise RuntimeError('enobio requires a mac address; none set')
         
-        from unlock.decode import acquire
+        from unlock.bci import acquire
         # XXX - h4x0r        
         self.timer = acquire.create_timer()
         signal = acquire.create_nonblocking_enobio_signal(self.timer)
@@ -136,7 +138,7 @@ class UnlockFactory(context.PythonConfig):
             raise RuntimeError('mobilab requires a com port; none set')
             
         analog_channels_bitmask = 1+2+4+8+16+32+64+128
-        from unlock.decode import acquire    
+        from unlock.bci import acquire    
         # XXX - h4x0r
         self.timer = acquire.create_timer()
         signal = acquire.create_nonblocking_mobilab_signal(
@@ -149,7 +151,7 @@ class UnlockFactory(context.PythonConfig):
         
     @context.Object(lazy_init=True)
     def file(self):
-        from unlock.decode import acquire
+        from unlock.bci import acquire
         # XXX - h4x0r        
         self.timer = acquire.create_timer()
         raise Exception("FIX ME")
@@ -162,7 +164,7 @@ class UnlockFactory(context.PythonConfig):
             
     @context.Object(lazy_init=True)
     def random(self):
-        from unlock.decode import acquire
+        from unlock.bci import acquire
         self.timer = acquire.create_timer()
         signal = acquire.create_random_signal(self.timer)
         signal.open([])
@@ -171,7 +173,7 @@ class UnlockFactory(context.PythonConfig):
             
     @context.Object(lazy_init=True)
     def PygletWindow(self):
-        return PygletWindow(self.decoder, self.args['fullscreen'], self.args['fps'],
+        return PygletWindow(self.bci_wrapper, self.args['fullscreen'], self.args['fps'],
             self.args['vsync'])
     # XXX     
     #@context.Object(lazy_init=True)
@@ -183,38 +185,38 @@ class UnlockFactory(context.PythonConfig):
     #        
     #@context.Object(lazy_init=True)
     #def FacialEMGCollector(self):
-    #    return Collector.create_mouth_based_emg_collector(self.window, self.decoder, self.stimuli,
+    #    return Collector.create_mouth_based_emg_collector(self.window, self.bci_wrapper, self.stimuli,
     #        **self.args['FacialEMGCollector'])
     #       
     #@context.Object(lazy_init=True)
     #def FastPad(self):
-    #    return FastPad.create_fastpad(self.window, self.decoder, self.stimuli, **self.args['FastPad'])
+    #    return FastPad.create_fastpad(self.window, self.bci_wrapper, self.stimuli, **self.args['FastPad'])
     #        
     #@context.Object(lazy_init=True)
     #def GridSpeak(self):
     #    raise Exception("FIX ME")
-    #    return GridSpeak.create_gridspeak(self.window, self.decoder, self.stimuli,
+    #    return GridSpeak.create_gridspeak(self.window, self.bci_wrapper, self.stimuli,
     #        **self.args['GridSpeak'])
     #        
     #@context.Object(lazy_init=True)
     #def GridCursor(self):
     #    raise Exception("FIX ME")        
-    #    return GridCursor.create_gridcursor(self.window, self.decoder, self.stimuli,
+    #    return GridCursor.create_gridcursor(self.window, self.bci_wrapper, self.stimuli,
     #        **self.args['GridCursor'])
     #        
     #@context.Object(lazy_init=True)
     #def TimeScope(self):
-    #    return UnlockControllerFactory.create_time_scope(self.window, self.decoder, self.stimuli,
+    #    return UnlockControllerFactory.create_time_scope(self.window, self.bci_wrapper, self.stimuli,
     #        **self.args['TimeScope'])
     #        
     #@context.Object(lazy_init=True)
     #def FrequencyScope(self):
-    #    return UnlockControllerFactory.create_frequency_scope(self.window, self.decoder, self.stimuli,
+    #    return UnlockControllerFactory.create_frequency_scope(self.window, self.bci_wrapper, self.stimuli,
     #        **self.args['FrequencyScope'])
             
     @context.Object(lazy_init=True)
     def SsvepDiagnostic(self):
-        return UnlockControllerFactory.create_standalone_ssvep_diagnostic(self.window, self.decoder,
+        return UnlockControllerFactory.create_standalone_ssvep_diagnostic(self.window, self.bci_wrapper,
             **self.args['SsvepDiagnostic'])
         
     @context.Object(lazy_init=True)
@@ -225,7 +227,7 @@ class UnlockFactory(context.PythonConfig):
             controller = getattr(self, controller_attr)
             controllers.append(controller())
         args.pop('controllers')
-        return UnlockControllerFactory.create_dashboard(self.window, controllers, self.decoder, self.stimuli,
+        return UnlockControllerFactory.create_dashboard(self.window, controllers, self.bci_wrapper, self.stimuli,
             self.calibrator, **args)
             
             
@@ -251,7 +253,7 @@ class UnlockRuntime(object):
             mac_addr_help = 'a comma separated list of hexadecimal values that are required to connect to some signaling devices;for example -m "0x1,0x2,0x3,0x4,0x5,0x6"'
             com_port_help = 'the COM port associated with some data acquisition devices; e.g. -p COM3'
             receiver_help = 'sets the type of receiver; valid values include delta, raw, classified and datagram'
-            decoder_help = 'sets the type of decoder; valid values include inline and multiprocess'
+            bci_wrapper_help = 'sets the type of bci_wrapper; valid values include inline and multiprocess'
             conf = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'conf.json')
             parser.add_option('-c', '--conf', type=str, dest='conf', default=conf, metavar='CONF', help=conf_help)
             parser.add_option('-n', '--fullscreen', default=None, action='store_true', dest='fullscreen', metavar='FULLSCREEN', help=fullscreen_help)
@@ -263,7 +265,7 @@ class UnlockRuntime(object):
             parser.add_option('-m', '--mac-addr', dest='mac_addr', default=None, type=str, metavar='MAC-ADDR', help=mac_addr_help)
             parser.add_option('-p', '--com-port', dest='com_port', default=None, type=str, metavar='COM-PORT', help=com_port_help)
             parser.add_option('-r', '--receiver', dest='receiver', default=None, type=str, metavar='RECEIVER', help=receiver_help)
-            parser.add_option('-d', '--decoder', dest='decoder', default=None, type=str, metavar='DECODER', help=decoder_help)
+            parser.add_option('-d', '--bci_wrapper', dest='bci_wrapper', default=None, type=str, metavar='BCI_WRAPPER', help=bci_wrapper_help)
             valid_levels = {'debug': logging.DEBUG, 'info': logging.INFO, 'warn': logging.WARN, 'error': logging.ERROR, 'critical': logging.CRITICAL}
             self.loglevel = logging.INFO
             (options, args) = parser.parse_args()
@@ -289,8 +291,8 @@ class UnlockRuntime(object):
                 self.args['stimuli'] = options.stimuli
             if options.receiver is not None:
                 self.args['receiver'] = options.receiver
-            if options.decoder is not None:
-                self.args['decoder'] = options.decoder
+            if options.bci_wrapper is not None:
+                self.args['bci_wrapper'] = options.bci_wrapper
             if options.loglevel is not None:
                 # Config file settings override this command line parameter
                 self.loglevel = valid_levels[options.loglevel]
@@ -329,10 +331,10 @@ class UnlockRuntime(object):
         self.factory = UnlockFactory(self.args)
         self.app_ctx = context.ApplicationContext(self.factory)
     
-        if self.args['decoder'] == 'inline':
+        if self.args['bci_wrapper'] == 'inline':
             self.factory.signal = self.app_ctx.get_object(self.args['signal'])
             
-        self.factory.decoder = self.app_ctx.get_object(self.args['decoder'])
+        self.factory.bci_wrapper = self.app_ctx.get_object(self.args['bci_wrapper'])
         
         self.factory.window = self.app_ctx.get_object('PygletWindow')
         if 'stimuli' in self.args.keys():
