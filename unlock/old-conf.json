@@ -7,7 +7,7 @@
     "fps" : true,
     "vsync" : false,
     "stimuli" : "ssvep",
-    "decoder" : "inline",
+    "bci_wrapper" : "inline",
     "controllers" : [
         {
             "name" : "FastPad",

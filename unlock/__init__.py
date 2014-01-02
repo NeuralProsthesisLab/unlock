@@ -30,6 +30,6 @@ from unlock.state import *
 from unlock.view import *
 from unlock.controller import *
 from unlock.context import *
-from unlock.decode import *
+from unlock.bci import *
 from unlock import unlock_runtime
 
