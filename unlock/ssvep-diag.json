@@ -11,6 +11,13 @@
         {
             "name" : "SsvepDiagnostic",
             "args" : {
+                "trials" : 1,
+                "rest_duration" : 1,
+                "indicate_duration" : 3,
+                "output_file" : "ssvep-diag-12-13-14-15-hz",
+                "frequencies" : [12.0, 13.0, 14.0, 15.0],
+                "color" : [255, 0,0],
+                "color1" : [255, 255, 0]
             }
         }
     ],
