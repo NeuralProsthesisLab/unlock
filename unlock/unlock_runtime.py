@@ -218,6 +218,12 @@ class UnlockFactory(context.PythonConfig):
     def SsvepDiagnostic(self):
         return UnlockControllerFactory.create_standalone_ssvep_diagnostic(self.window, self.bci_wrapper,
             **self.args['SsvepDiagnostic'])
+    
+    @context.Object(lazy_init=True)
+    def SingleSsvepDiagnostic(self):
+        print ("args = ", self.args['SingleSsvepDiagnostic'], self.args['SingleSsvepDiagnostic'])
+        return UnlockControllerFactory.create_single_standalone_ssvep_diagnostic(self.window, self.bci_wrapper,
+            **self.args['SingleSsvepDiagnostic'])
         
     @context.Object(lazy_init=True)
     def Dashboard(self):
@@ -358,7 +364,6 @@ class UnlockRuntime(object):
                 
     def start(self):
         """Starts the UnlockRuntime."""
-        
         self.main.activate()
         self.logger.info('Starting Unlock...')                        
         self.main.window.start()
