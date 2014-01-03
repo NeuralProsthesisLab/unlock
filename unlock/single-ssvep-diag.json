@@ -1,0 +1,62 @@
+{
+    "main" : "SingleSsvepDiagnostic",
+    "signal" : "random",
+    "mac_addr" : "0x61,0x9c,0x58,0x80,0x07,0x00",
+    "com_port" : "COM6",
+    "fullscreen" : false,
+    "fps" : false,
+    "vsync" : false,
+    "bci_wrapper" : "inline",
+    "controllers" : [
+        {
+            "name" : "SingleSsvepDiagnostic",
+            "args" : {
+                "frequency" : 14,
+                "output_file" : "single-ssvep-diag-14hz",
+                "color" : [0, 0, 0],
+                "color1" : [255, 255, 255]
+            }
+        }
+    ],
+    
+    "database" : {
+        "host" : "ec2-54-204-43-139.compute-1.amazonaws.com",
+        "name" : "dps7g4lruchrr",
+        "user" : "wltunqpopbqexa",
+        "port" : 5432,
+        "addr" : "EddWJaobEc8L1X-HvByJL3hODi"
+    },
+    
+    "logging": {
+        "version": 1,
+        "disable_existing_loggers": false,
+        "formatters": {
+            "simple": {
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            }
+        },
+     
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "level": "DEBUG",
+                "formatter": "simple",
+                "stream": "ext://sys.stdout"
+            },
+            
+            "file_handler": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "formatter": "simple",
+                "filename": "unlock.log",
+                "maxBytes": 10485760,
+                "backupCount": 20,
+                "encoding": "utf8"
+            }
+        },
+        
+        "root": {
+            "level": "INFO",
+            "handlers": ["console", "file_handler"]
+        }
+    }
+}
