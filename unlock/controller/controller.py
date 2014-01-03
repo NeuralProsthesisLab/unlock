@@ -130,16 +130,20 @@ class UnlockControllerFragment(UnlockController):
     intended to be a stand alone controller.  For a stand alone controller use/subclass
     UnlockController or UnlockControllerChain.
     """
-    def __init__(self, model, views, batch):
+    def __init__(self, model, views, batch, check_command_validity=False):
         super(UnlockControllerFragment, self).__init__(None, None, None, None, None, None)
         self.model = model
         self.views = views
         self.batches.add(batch)
+        self.check_command_validity = check_command_validity
         self.poll_signal = None
         self.render = None
         
-    def update_state(self, command):    
-        if command is not None and command.is_valid() and self.model is not None:
+    def update_state(self, command):
+        if command is not None and self.model is not None:
+            if self.check_command_validity and not command.is_valid():
+                return
+                
             self.model.process_command(command)
             
     def keyboard_input(self, command):
