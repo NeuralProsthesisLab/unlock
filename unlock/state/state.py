@@ -96,8 +96,15 @@ class OfflineData(UnlockState):
         
     def process_command(self, command):
         assert self.file_handle != None
-        np.savetxt(self.file_handle, command.matrix, fmt='%d', delimiter='\t')
-        
+        #print("am here", dir(command))
+        if command.is_valid():    
+            np.savetxt(self.file_handle, command.matrix, fmt='%d', delimiter='\t')
+        #else:
+            #XXX - hack for test
+        #    a = np.array([0,0,0,0,0,0])
+        #    a = np.hstack(a)
+        #    np.savetxt(self.file_handle, a, fmt='%d', delimiter='\t')
+        #print("AFGTER = ", command.matrix)
     def get_state(self):
         raise NotImplementedError()
 

@@ -28,7 +28,7 @@ from unlock.controller.controller import *
 
 from unlock.state import HierarchyGridState, FastPadState, ControllerGridState, FrequencyScopeState, \
     TimeScopeState, ContinuousVepDiagnosticState, DiscreteVepDiagnosticState, TimedStimulus, \
-    TimedStimuli, OfflineTrialData, SequentialTimedStimuli
+    TimedStimuli, OfflineTrialData, OfflineData, SequentialTimedStimuli
 
 from unlock.view import GridSpeakView, HierarchyGridView, FastPadView, GridView, FrequencyScopeView, \
     TimeScopeView, PygletDynamicTextLabel, PygletTextLabel, SpritePositionComputer, FlickeringPygletSprite
@@ -290,11 +290,11 @@ class UnlockControllerFactory(object):
         views = [fs]
             
         ssvep_command_receiver = bci_wrapper.create_receiver({}, decoder_type=UnlockDecoder.HarmonicSumDecision)
-        ssvep_command_receiver.stop()
+        #ssvep_command_receiver.stop()
         command_connected_fragment = UnlockCommandConnectedFragment(ssvep_command_receiver, stimulus,
             views, canvas.batch)
             
-        offline_data = OfflineTrialData(output_file)
+        offline_data = OfflineData(output_file)
         
         collector = UnlockControllerFragment(offline_data, [], None)
         
