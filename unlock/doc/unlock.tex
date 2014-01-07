@@ -41,7 +41,7 @@ Development of the Unlock framework is funded by the Adaptive Brain-Computer Int
 
 The infrastructure Unlock provides can be logically separated into two distinct layers: the application layer and the BCI layer.  These layers can in turn be further decomposed.
 
- The BCI layer is defined by the signal-processing chain~\cite{signalprocessing}.  The signal-processing chain includes signal acquisition and reconstruction, feature extraction and decoding, and command generation~\cite{neuraleng}.  Many BCI systems also include a stimulation component, which is actually processed at the application layer; however, logically, the stimulation component is part of the BCI.
+The BCI layer is defined by the signal-processing chain~\cite{signalprocessing}.  The signal-processing chain includes signal acquisition and reconstruction, feature extraction and decoding, and command generation~\cite{neuraleng}.  Many BCI systems also include a stimulation component, which is actually processed at the application layer; however, logically, the stimulation component is part of the BCI.
 
 For example, a paradigm based on Visually Evoked Potentials (VEP), flashes a graphical sequence at the user, which is subsequently interpreted in the signal-processing chain~\cite{vep}.  But the actual flashing is handled at the application layer.
 
@@ -66,15 +66,15 @@ Figure~\ref{bci-pipeline-fig} depicts the data flow through Unlock.
 
 \section{Installation}
 \subsection{Windoze}
-Currently Unlock only supports Windows 7 - this was, quite painfully, required due to the nature of the users.  But  Further we believe most of the users of the system will not be programmers.  While the projects aim is to reach out to people.
-
- required.  Since It was originally written
-by James Percent, but significantly extended by Nguyen Hoang Giang.
-
-The windows installer was written in Go [1] (note, for Go related internet searches add the term
-golang).  The reason Go was chosen is because we wanted to have a binary file that users can
-download and execute without knowing the details of any of Unlock's dependencies, which there are
-a few.
+%Currently Unlock only supports Windows 7 - this was, quite painfully, required due to the nature of the users.  But  Further we believe most of the users of the system will not be programmers.  While the projects aim is to reach out to people.
+%
+% required.  Since It was originally written
+%by James Percent, but significantly extended by Nguyen Hoang Giang.
+%
+%The windows installer was written in Go [1] (note, for Go related internet searches add the term
+%golang).  The reason Go was chosen is because we wanted to have a binary file that users can
+%download and execute without knowing the details of any of Unlock's dependencies, which there are
+%a few.
 \subsection{Linux}
 \subsection{Mac OSX}
 
@@ -85,31 +85,13 @@ a few.
 
 In Section~\ref{overviewsec} we defined the signal-processing chain to be signal acquisition and reconstruction, feature extraction and decoding, and command generation.
 
-Signal acquistion is handled by code written in C++.  The C++ layer is dynamically linked into the Python runtime using Boost Python~\cite{boostpython}.  The signal acquisition module exports a single polymorphic interface inspired by UNIX device files, and several factory methods for creating the signal acquistion infrastructure.
+Most of the signal acquistion code is written in C++.  The C++ layer is dynamically linked into the Python runtime using Boost Python~\cite{boostpython}.  The C++ signal acquisition module exports a single polymorphic interface inspired by UNIX device files, and several factory methods for creating the signal acquisition infrastructure.
 
-Unlock supports two modes of acquisition: blocking acquistion and non-blocking acquistion.  Blocking acquisition is is simply a thin wrapper around the device interface.  It will block on a I/O descriptor until a write is available.
+Unlock supports two modes of acquisition: blocking acquisition and non-blocking acquisition.  Blocking acquisition is is simply a thin wrapper around the device interface.  It will block on a I/O descriptor until a write is available.
 
-We will discuss Unlock's application layer in detail in Section~\ref{applicationsec}.  But at this time it is important to understand at least one aspect: application layer is essentially a graphics event loop.  And as such it is sensitive to timing issues.
+We will discuss Unlock's application layer in detail in Section~\ref{applicationsec}.  But at this time it is important to understand at least one aspect: application layer is essentially a graphics event loop that gets called by the OS for each screen refresh.  Blocking on each screen refresh can cause all kinds of problems.  In fact, blocking based acquisition is only supported for device testing purposes. 
 
-For this reason, Unlock supports a nonblocking acquisition mode.  This is especially important for stimulation as some of the paradigms are very senstive to timing issues.
-
- creates a platform independent C++ thread, using Boost Thread~\cite{boostthread}.  It transfers data using a lock-free algorithm from the acquisition thread to the Python event loop thread.
-
-We will discuss Unlock's application layer in detail in Section~\ref{applicationsec}.  But at this time it is important to understand at least one aspect of it.  The Unlock application layer is essentially a graphics event loop, so it gets called for each screen painting.
-
-For this reason, blocking based acquistion is only recommended for device testing purposes.  Blocking the event loop is not good.
-
-The unlock application layer is a thin wrapper around
-
- supported for all devices, at this time, but it is only recommended for testing.  
-
-Each device is exported through Boost Python and can be maniupated in Python code as if it were a native Python object.
-
-The system supports two modes of acquisition; nonblocking-based and block-based signal acquistion.  All devices can be run in either mode.  
-
-Data acquition systems can be opened and closed; when open the data can be aquired from the device.  The polymorhpic type of the signal acquisition base allows for many extention patterns to applied to the signal acquistion process.
-
-To keep the layering coherent, we have co-located application level BCI code with the signal-processing chain BCI code.
+To acquire the signal without blocking, Unlock supports a nonblocking acquisition mode.  To accomplish this, Unlock creates a platform independent C++ thread that transfers data between the two threads using a lock-free algorithm.
 
 \subsection{Application Layer}
 
