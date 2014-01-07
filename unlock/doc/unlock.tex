@@ -93,10 +93,11 @@ We will discuss Unlock's application layer in detail in Section~\ref{application
 
 To acquire the signal without blocking, Unlock supports a nonblocking acquisition mode.  To accomplish this, Unlock creates a platform independent C++ thread that transfers data between the two threads using a lock-free algorithm.
 
-\subsection{Application Layer}
+\subsection{Application Layer}\label{applicationsec}
 
 The Unlock application programming layer is a model-view-controller (MVC)~\cite{mvc, mvc2} inspired framework for graphical user interface (GUI) development.  Commands flow through the BCI layer to a control layer that interprets the state changes and sends the changes to visualization module.
 
+\subsection{Building Unlock for Development}
 \subsection{Example}
 
 \begin{thebibliography}{99}
