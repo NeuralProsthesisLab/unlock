@@ -1,6 +1,6 @@
 {
     "main" : "SingleSsvepDiagnostic",
-    "signal" : "random",
+    "signal" : "mobilab",
     "mac_addr" : "0x61,0x9c,0x58,0x80,0x07,0x00",
     "com_port" : "COM6",
     "fullscreen" : false,
@@ -11,8 +11,8 @@
         {
             "name" : "SingleSsvepDiagnostic",
             "args" : {
-                "frequency" : 14,
-                "output_file" : "single-ssvep-diag-14hz",
+                "frequency" : 18,
+                "output_file" : "mobilab-single-ssvep-diag-18hz",
                 "color" : [0, 0, 0],
                 "color1" : [255, 255, 255]
             }
