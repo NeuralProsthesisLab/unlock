@@ -47,11 +47,11 @@ For example, a paradigm based on Visually Evoked Potentials (VEP), flashes a gra
 
 We'll talk in more detail about the BCI layer in Section~\ref{bcisec}, but for now there is one important take away.  At each point in the pipeline we just discussed, the system is designed so that you can easily decorate, replace or otherwise manipulate the data flow.  Each step in the pipeline is encapsulated under an interface contract.
 
-The application layer is model-view-controller (MVC)~\ref{mvc, mvc1} inspired.  Don't worry too much if you're not familar with MVC.  It's just a way of structuring graphical user interfaces (GUIs).  
+The application layer is model-view-controller (MVC)~\ref{mvc, mvc1} inspired.  Don't worry too much if you're not familar with MVC.  It's just a logical framework for structuring graphical user interfaces (GUIs).  
 
-The basic idea is that each application consists of three types of objects: models, views and controllers.  The controllers accept user input (in this case BCI commands) and pass the inputs to the correct models.  Models handle state information (business logic if you will).  Finally views observe the state objects (models) and render themselves based on the current state.
+The basic idea is that each application consists of three types of objects: models, views and controllers.  The controllers accept user input (in this case BCI commands) and pass the inputs to the correct models.  Models handle state transformation (the business logic if you will).  Finally, views observe the state objects (models) and render themselves based on the current state of the world.
 
-If you think about it this also creates a pipeline in the application layer.  The take away here is that these components are also encapsulated under interfaces.
+If you think about it, this also creates a pipeline in the application layer.  The take away here is that these components are also encapsulated under interfaces.
 
 Figure~\ref{bci-pipeline-fig} depicts the data flow through Unlock.
 
