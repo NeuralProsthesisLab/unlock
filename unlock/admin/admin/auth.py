@@ -3,8 +3,6 @@ from flask import request, Response, render_template, url_for
 from admin import app
 from sqlalchemy import create_engine
 
-#app = Flask(__name__)
-
 host = 'ec2-54-204-43-139.compute-1.amazonaws.com'
 name = 'dps7g4lruchrr'
 user = 'wltunqpopbqexa'
@@ -47,6 +45,13 @@ def secret_page():
 	except Exception as e:
 		print("Exception = ", dir(e), e, e.__doc__)
 
+@app.route("/webgl-demo")
+def webgl():
+	try:
+		return render_template('webgl-demo.html')
+	except Exception as e:
+		print("Exception = ", dir(e), e, e.__doc__)	
+
 @app.route("/")
 def hello():
     return "Hello World!"
@@ -58,6 +63,3 @@ def ttol():
 	# yous a do your business here...
 	return str(dir(unlock))
 		
-
-#if __name__ == "__main__":
-#    app.run()
