@@ -39,5 +39,6 @@ References
 ------------
 
 [1] -   CELEST Capstone Project 1: [Adaptive Brain-Computer Interactions](http://celest.bu.edu/about-us/capstone-projects/adaptive-brain-computer-interactions.)
+
 [2] -   Bauer, G. and Gerstenbrand, F. and Rumpl, E. Varieties of the locked-in syndrome. Journal
         of Neurology.  1979.
