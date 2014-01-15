@@ -20,5 +20,5 @@ samplingRate = time.size / time[-1]
 plt.specgram(signal, Fs=samplingRate)
 plt.xlabel('Time (s)')
 plt.ylabel('Frequency (Hz)')
-plt.colorbar().set_label('Amplitude')
+plt.colorbar().set_label('Amplitude (Frequency power)')
 plt.show()
