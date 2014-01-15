@@ -22,8 +22,9 @@ fin.close()
 time,signal = np.array(time),np.array(signal)
 
 fft = np.fft.fft(signal)
+sampleSpacing = time[-1] / time.size
 
-freq = np.fft.fftfreq(signal.size)
+freq = np.fft.fftfreq(signal.size, sampleSpacing)
 power = 10*np.log10(np.abs(fft)**2)
 
 plt.plot(freq, power)
