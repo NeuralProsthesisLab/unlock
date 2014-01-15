@@ -20,7 +20,7 @@ to know every corner of Unlock to create a new decoding algorithm or add a langu
 new acquisition device or create a new application.  
 
 These could be different people with different skill sets, and we want them to be able to dive into
-their area and be productive quickly.  One of the problems with BCI technology is that it is
+their area and be productive quickly.  One of the challenges with BCI technology is that it is
 inherently cross-disciplinary; therefore, we want to lessen this burden as much as possible.
 
 To support this goal, we need great documentation.  The documentation needs to be encapsulated too.
