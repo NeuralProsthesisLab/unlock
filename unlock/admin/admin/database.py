@@ -26,6 +26,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from sqlalchemy import create_engine
 
+def create_engine():
+    db = database.DatabaseConnection()
+    engine = db.create_engine()
+    return db
+
+
 class DatabaseConnection(object):
     def __init__(self, host='ec2-54-204-43-139.compute-1.amazonaws.com', name = 'dps7g4lruchrr',
                 user = 'wltunqpopbqexa', port = '5432', addr = 'EddWJaobEc8L1X-HvByJL3hODi'):
