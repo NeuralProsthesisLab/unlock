@@ -78,9 +78,6 @@ def webgl():
 	except Exception as e:
 		print("Exception = ", dir(e), e, e.__doc__)	
 
-@app.route("/")
-def hello():
-    return "Hello World!"
 
 @app.route("/hitmehard")
 def ttol():
