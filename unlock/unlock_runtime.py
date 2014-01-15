@@ -260,6 +260,7 @@ class UnlockRuntime(object):
             com_port_help = 'the COM port associated with some data acquisition devices; e.g. -p COM3'
             receiver_help = 'sets the type of receiver; valid values include delta, raw, decoded and datagram'
             bci_wrapper_help = 'sets the type of bci_wrapper; valid values include inline and multiprocess'
+            unrecorded_help = 'turns off recording'
             conf = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'conf.json')
             parser.add_option('-c', '--conf', type=str, dest='conf', default=conf, metavar='CONF', help=conf_help)
             parser.add_option('-n', '--fullscreen', default=None, action='store_true', dest='fullscreen', metavar='FULLSCREEN', help=fullscreen_help)
@@ -272,6 +273,7 @@ class UnlockRuntime(object):
             parser.add_option('-p', '--com-port', dest='com_port', default=None, type=str, metavar='COM-PORT', help=com_port_help)
             parser.add_option('-r', '--receiver', dest='receiver', default=None, type=str, metavar='RECEIVER', help=receiver_help)
             parser.add_option('-d', '--bci_wrapper', dest='bci_wrapper', default=None, type=str, metavar='BCI_WRAPPER', help=bci_wrapper_help)
+            parser.add_option('-u', '--unrecorded', default=None, action='store_true', dest='unrecorded', metavar='UNRECORDED', help=unrecorded_help)
             valid_levels = {'debug': logging.DEBUG, 'info': logging.INFO, 'warn': logging.WARN, 'error': logging.ERROR, 'critical': logging.CRITICAL}
             self.loglevel = logging.INFO
             (options, args) = parser.parse_args()
@@ -302,6 +304,8 @@ class UnlockRuntime(object):
             if options.loglevel is not None:
                 # Config file settings override this command line parameter
                 self.loglevel = valid_levels[options.loglevel]
+            if options.unrecorded is not None:
+                self.args['unrecorded'] = options.unrecorded
                 
             self.__configure_logging__()
             self.logger.info('Logging setup successfully completed')
@@ -348,8 +352,9 @@ class UnlockRuntime(object):
         self.main = self.app_ctx.get_object(self.args['main'])
         
     def __configure_persistence__(self, host, name, user, port, addr):
-        self.engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (user, addr, host, port, name))
-        return self.engine
+        if 'unrecorded' in self.args:
+            self.engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (user, addr, host, port, name))
+            return self.engine
         
     def __configure_logging__(self):
         # The Logging-Config object determines the configuration of the logging

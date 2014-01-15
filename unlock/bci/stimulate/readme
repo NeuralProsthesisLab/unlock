@@ -1,0 +1,2 @@
+Currently the VEP stimulation we use is in the view directory.  It needs to get decoupled from
+the application infrastructure and moved here.
