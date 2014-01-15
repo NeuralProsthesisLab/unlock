@@ -196,10 +196,10 @@ class FlickeringPygletSprite(PygletSprite):
             self.sprite.sprite.visible = False
             self.reversed_sprite.visible = False
         else:
-            #print("FlickeringPygletSprite, x,y = ", self.sprite.sprite.x, self.sprite.sprite.y, " rotation ", self.sprite.sprite.rotation, " visible = ", state)
+            print("FlickeringPygletSprite, x,y = ", self.sprite.sprite.x, self.sprite.sprite.y, " rotation ", self.sprite.sprite.rotation, " visible = ", state)
             self.sprite.sprite.visible = state
             self.reversed_sprite.sprite.visible = not state
-        #print('flickeringsprit state = ', state)
+        print('flickeringsprit state = ', state)
         
     @staticmethod
     def create_flickering_checkered_box_sprite(model, canvas, position=SpritePositionComputer.Center, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
