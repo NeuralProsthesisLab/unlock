@@ -1,0 +1,28 @@
+<html>
+<head>
+<title>the title</title>
+   <script type="text/javascript" 
+   src="/jquery/jquery-1.3.2.min.js"></script>
+   <script type="text/javascript" language="javascript">
+  $(document).ready(function() {
+      $("#driver").click(function(event){
+          $.post( 
+             "/jquery/result.php",
+             { name: "Zara" },
+             function(data) {
+                $('#stage').html(data);
+             }
+
+          );
+      });
+   });
+   </script>
+</head>
+<body>
+   <p>Click on the button to load result.html file:</p>
+   <div id="stage" style="background-color:blue;">
+          STAGE
+   </div>
+   <input type="button" id="driver" value="Load Data" />
+</body>
+</html>
