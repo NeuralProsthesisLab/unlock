@@ -80,6 +80,7 @@ type UnlockInstallConf struct {
 	SQLAlchemyZipName string	
 	SQLAlchemyPackageName string
 	SQLAlchemyDirectory string
+	ScikitlearnPackageName string
 }
  
 func ParseConf(confFile string) UnlockInstallConf {
