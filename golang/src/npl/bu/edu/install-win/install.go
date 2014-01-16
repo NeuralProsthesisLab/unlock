@@ -473,7 +473,7 @@ func main() {
     var conf = createConf()
     
     installPython(conf.BaseUrl, conf.PythonPathEnvVar, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
-    installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
+    //installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
     installBinPackage(conf.BaseUrl, conf.ScipyPackageName, `scipy`)
 	installNumPy(conf.BaseUrl, conf.NumpyPackageName)
     //installEasyInstall(conf.BaseUrl, conf.PythonPath)
@@ -494,7 +494,10 @@ func main() {
     installPySerial26(conf.PythonPath, conf.BaseUrl, conf.PyserialZipName, conf.PyserialPackageName, conf.PyserialDirectory)
     installBinPackage(conf.BaseUrl, conf.PyAudioPackageName, `pyaudio`)
     installBinPackage(conf.BaseUrl, conf.PyWinPackageName, `pywin`)
-	
+	installZippedPythonPackage(conf.PythonPath, conf.BaseUrl, conf.FlaskPackageName, conf.FlaskDirectory, conf.FlaskDirectory);
+    installBinPackage(conf.BaseUrl, conf.PsycopgPackageName, `psycopg`)
+  	installZippedPythonPackage(conf.PythonPath, conf.BaseUrl, conf.SQLAlchemyPackageName, conf.SQLAlchemyDirectory, conf.SQLAlchemyDirectory);
+    
 	// Skip install unlock software for development option
 	if *devOption == false {
         installUnlock(conf.PythonPath, conf.BaseUrl, conf.UnlockZipName, conf.UnlockPackageName, conf.UnlockPackageDirectory)
