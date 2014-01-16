@@ -376,7 +376,11 @@ func createConf() unlockconf.UnlockInstallConf {
             `unlock.exe`, `vcredist_2010_x86.exe`, `pyaudio-0.2.7.py33.exe`, `pywin32-218.win32-py3.3.exe`,
             `unlock-x86.exe`, `unlock-x86-64.exe`,
             `uninstall-win.exe`, `uninstall.bat`,
-            `Scipy-stack-13.10.11.win32-py3.3.exe`}
+            `Scipy-stack-13.10.11.win32-py3.3.exe`,
+            `Flask-0.10.zip`,
+            `psycopg2-2.5.1.win32-py3.3-pg9.2.4-release.exe`,
+            `SQLAlchemy-0.9.0b1.zip`,
+            }
     } else {
         return unlockconf.ParseConf(*confFile)
     }    

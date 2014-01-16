@@ -35,5 +35,8 @@
         "UnlockExeX64PackageName" : "unlock-x86-64.exe",
         "UnlockUninstallerPackageName" : "uninstall-win.exe",
         "UnlockUninstallerBatFile" : "uninstall.bat",
-        "ScipyPackageName" : "Scipy-stack-13.10.11.win32-py3.3.exe"
+        "ScipyPackageName" : "Scipy-stack-13.10.11.win32-py3.3.exe",
+		"FlaskPackageName" : "Flask-0.10.zip",
+		"PsycopgPackageName" : "psycopg2-2.5.1.win32-py3.3-pg9.2.4-release.exe",
+		"SQLAlchemyPackageName" : "SQLAlchemy-0.9.0b1.zip"
 }
