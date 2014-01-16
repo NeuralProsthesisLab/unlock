@@ -78,7 +78,6 @@ type UnlockInstallConf struct {
 	PsycopgPackageName string
 	SQLAlchemyPackageName string
 	SQLAlchemyDirectory string
-	
 }
  
 func ParseConf(confFile string) UnlockInstallConf {
