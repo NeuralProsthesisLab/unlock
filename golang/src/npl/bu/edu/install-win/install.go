@@ -475,7 +475,7 @@ func main() {
     var conf = createConf()
     
     installPython(conf.BaseUrl, conf.PythonPathEnvVar, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
-    //installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
+    installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
     installBinPackage(conf.BaseUrl, conf.ScipyPackageName, `scipy`)
 	installNumPy(conf.BaseUrl, conf.NumpyPackageName)
     //installEasyInstall(conf.BaseUrl, conf.PythonPath)
