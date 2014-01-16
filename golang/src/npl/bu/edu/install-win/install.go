@@ -378,8 +378,10 @@ func createConf() unlockconf.UnlockInstallConf {
             `uninstall-win.exe`, `uninstall.bat`,
             `Scipy-stack-13.10.11.win32-py3.3.exe`,
             `Flask-0.10.zip`,
+            `Flask-0.10`,
             `psycopg2-2.5.1.win32-py3.3-pg9.2.4-release.exe`,
             `SQLAlchemy-0.9.0b1.zip`,
+            `SQLAlchemy-0.9.0b1`,
             }
     } else {
         return unlockconf.ParseConf(*confFile)
