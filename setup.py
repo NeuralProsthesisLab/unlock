@@ -31,9 +31,9 @@ import shutil
 
 packages = ['unlock', 
             'unlock.context', 'unlock.context.test',
-            'unlock.controller', 'unlock.controller.test', 
+            'unlock.controller',
             'unlock.state', 'unlock.state.test',
-            'unlock.bci', 'unlock.bci.acquire', 'unlock.bci.classify', 
+            'unlock.bci', 'unlock.bci.acquire', 'unlock.bci.decode', 'unlock.bci.command', 'unlock.bci.test',
             'unlock.util', 'unlock.util.test',
             'unlock.view', 'unlock.view.test']
 
