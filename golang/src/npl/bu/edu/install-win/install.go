@@ -383,7 +383,8 @@ func createConf() unlockconf.UnlockInstallConf {
             `psycopg2-2.5.1.win32-py3.3-pg9.2.4-release.exe`,
             `SQLAlchemy-0.9.0b1.zip`,
             `SQLAlchemy-0.9.0b1`,
-            `SQLAlchemy-0.9.0b1`,            
+            `SQLAlchemy-0.9.0b1`,
+            `scikit-learn-0.14.1.win32-py3.3.exe`,
             }
     } else {
         return unlockconf.ParseConf(*confFile)
@@ -475,7 +476,7 @@ func main() {
     var conf = createConf()
     
     installPython(conf.BaseUrl, conf.PythonPathEnvVar, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
-    installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
+    //installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
     installBinPackage(conf.BaseUrl, conf.ScipyPackageName, `scipy`)
 	installNumPy(conf.BaseUrl, conf.NumpyPackageName)
     //installEasyInstall(conf.BaseUrl, conf.PythonPath)
@@ -499,6 +500,7 @@ func main() {
 	installZippedPythonPackage(conf.PythonPath, conf.BaseUrl, conf.FlaskZipName, conf.FlaskPackageName, conf.FlaskDirectory);
     installBinPackage(conf.BaseUrl, conf.PsycopgPackageName, `psycopg`)
   	installZippedPythonPackage(conf.PythonPath, conf.BaseUrl, conf.SQLAlchemyZipName, conf.SQLAlchemyPackageName, conf.SQLAlchemyDirectory);
+    installBinPackage(conf.BaseUrl, conf.ScikitlearnPackageName, `scikit-learn`)
     
 	// Skip install unlock software for development option
 	if *devOption == false {
