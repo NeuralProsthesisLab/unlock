@@ -74,8 +74,11 @@ type UnlockInstallConf struct {
     UnlockUninstallerBatFile string
     ScipyPackageName string
 	FlaskPackageName string
+	FlaskDirectory string
 	PsycopgPackageName string
 	SQLAlchemyPackageName string
+	SQLAlchemyDirectory string
+	
 }
  
 func ParseConf(confFile string) UnlockInstallConf {
