@@ -36,9 +36,11 @@
         "UnlockUninstallerPackageName" : "uninstall-win.exe",
         "UnlockUninstallerBatFile" : "uninstall.bat",
         "ScipyPackageName" : "Scipy-stack-13.10.11.win32-py3.3.exe",
-		"FlaskPackageName" : "Flask-0.10.zip",
+		"FlaskZipName" : "Flask-0.10.zip",		
+		"FlaskPackageName" : "Flask-0.10",
 		"FlaskPackageDirectory" : "Flask-0.10",		
 		"PsycopgPackageName" : "psycopg2-2.5.1.win32-py3.3-pg9.2.4-release.exe",
-		"SQLAlchemyPackageName" : "SQLAlchemy-0.9.0b1.zip",
+		"SQLAlchemyZipName" : "SQLAlchemy-0.9.0b1.zip",		
+		"SQLAlchemyPackageName" : "SQLAlchemy-0.9.0b1",
 		"SQLAlchemyDirectory" : "SQLAlchemy-0.9.0b1"
 }
