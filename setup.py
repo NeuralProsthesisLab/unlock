@@ -39,7 +39,7 @@ packages = ['unlock',
 
 package_data = {
                 'unlock' : ['conf.json', 'README.md'],
-                'unlock.controller' : ['resource/analyzer.jpg', 'resource/Arrow.png', 'resource/ArrowSel.png', 'resource/emg-100x100.jpg',
+                'unlock.controller' : ['resource/analyzer.jpg', 'resource/Arrow.png', 'resource/ArrowSel.png', 'resource/collector.png', 'resource/emg-100x100.jpg',
                                        'resource/emg.jpg', 'resource/IRCodes.txt', 'resource/LazerToggle.png', 'resource/LazerToggleS.png',
                                        'resource/rsz_analyzer.jpg', 'resource/scope.png', 'resource/tv.png'],
                 'unlock.context.test' : ['app-ctx.xml'], 
