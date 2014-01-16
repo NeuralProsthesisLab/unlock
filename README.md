@@ -5,9 +5,9 @@
 **Unlock** is a framework for programming brain-computer interfaces.  Development of the Unlock
 framework is funded by the Adaptive Brain-Computer Interactions (ABCI) Capstone Project~\cite{abci}.
 
-Our goal is to develop BCI technology to help individuals suffering from locked-in syndrome (LIS)[2]
-communicate.  LIS is characterized by an almost complete inability to communicate.  With current
-technology, unfortunately, we cannot achieve this goal.
+Our goal is to develop BCI technology to help individuals suffering from locked-in syndrome [2]
+communicate.  Locked-in syndrome is characterized by an almost complete inability to communicate.
+With current technology, unfortunately, we cannot achieve this goal.
 
 We think, if more smart people are able to painlessly collaborate, then we have a better shot at
 accomplishing this goal.  Therefore, our [simple] strategy is to focus on providing an awesome
