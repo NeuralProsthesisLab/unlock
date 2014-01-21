@@ -81,6 +81,7 @@ type UnlockInstallConf struct {
 	SQLAlchemyPackageName string
 	SQLAlchemyDirectory string
 	ScikitlearnPackageName string
+	NidaqPackageName string
 }
  
 func ParseConf(confFile string) UnlockInstallConf {
