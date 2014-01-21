@@ -66,46 +66,111 @@ Figure~\ref{bci-pipeline-fig} depicts the data flow through Unlock.
 
 \section{Installation}
 
-We want to make installation as easy as possible.  One piece of achieving that goal is 
+In the next three sections we describe the installation procedures for Unlock installation on Windows, Linux and Mac OSX.  
+
 \subsection{Windows}
 
-We want to make installatioon as easy as possible.  One
+Many signal acquistion devices work exclusively with Windows.  Additionally, many of the potential users of Unlock may only have access to Windows computers.  These circumstances led to Windows being the first platform supported by Unlock.
 
-\subsubsection{x86-64}
+To make installation on Windows as easy as possible, we decided a binary, clickable installer was the solution that would best suite the community.  There were many ways to proceed, but, ultimately, we decided to write the installer in Go~\cite{golang}.  
 
-We want Unlock installation to be very easy.  One piece of achieving this goal is to make installation as painless as we can.  Therefore we 
+The Unlock installer is not much more than a package manager for handling dependencies.  Unlock, not unlike many other frameworks, has many depdendcies.  These dependencies include:
+\begin{itemize}
+\item Avbin10;
+\item Flask-0.10;
+\item Numpy 1.7.1;
+\item Psycopg2 2.5.1;
+\item Pyaudio 0.2.7;
+\item Pyglet 1.2alpha;
+\item Pyserial 2.6;
+\item Python 3.3.2;
+\item Pywin32 2.1.8;
+\item Scikit-learn 0.14.1;
+\item Scipy-stack 13.10.11;
+\item Scons 2.3.0;
+\item SQLAlchemy 0.9.0b1;
+\item Visual C++ redistribution 2010.
+\end{itemize}
 
-A lot of the users of the Unlock and some of the initial devices we used for data collection were available on Windows.  Therefore, we 
+There are additional dependencies based the hardware acquisition device in use.  Unlock supports three acquisition devices.  The National Instruments DAQ, Neural Electronics Enobio, and gtec MOBILab.  
 
-\subsection{Developer Installation}
+Unfortunately, at the time of this writing, Unlock's C++ layer is built as a single dynamic-link library (dll).  This means all of these dependencies need to be availlable for Unlock to run.  
 
-The Windows installer was written in Go~\cite{golang}
-%Currently Unlock only supports Windows 7 - this was, quite painfully, required due to the nature of the users.  But  Further we believe most of the users of the system will not be programmers.  While the projects aim is to reach out to people.
-%
-% required.  Since It was originally written
-%by James Percent, but significantly extended by Nguyen Hoang Giang.
-%
-%The windows installer was written in Go [1] (note, for Go related internet searches add the term
-%golang).  The reason Go was chosen is because we wanted to have a binary file that users can
-%download and execute without knowing the details of any of Unlock's dependencies, which there are
-%a few.
+Fortuntely, Unlock manages all but the NI DAQ driver code.  The NI DAQ dependencies are quazi installed by Unlock, but may require some manual effort.  
+
+The Unlock installer will start the NI DAQ downloader, which should kick off the installer after the download and extraction complete.  But it runs asyncrhonously to the Unlock installer; the Unlock installer exists without knowing if the NI DAQ installer completed successfully or not; if something happens, go to~\cite{nidaq} and follow the instructions for downloading and installing the NI DAQ.
+
+Most of the dependencies are Python packages.  We played with standard Python packaging systems, such as Pip~\cite{pip} for installing these, but, unfortunately, at the time of this writing, none of these support transitive closure over dependencies.  This makes packaging imperative and error prone.  
+
+Luckily we found~\cite{winpythonpackages}; it has most Python packages as Windows binaries that include their dependencies.  Where ever possible we use the binary package from~\cite{winpythonpackages}.  
+
+We are watching Pip and may revisit using the Pip packages in the future.  That said, Pip would still be wrapped by the Go executable.
+
+\subsubsection{Developer Installation}
+
+At this time only developer-based installation is supported.  A developer-based install requires a few steps:
+\begin{itemize}
+\item install Git Bash;
+\item setup a Github account;
+\item clone the Github repo;
+\item run the binary installer for your architecture (only x86-64 is supported right now).
+\item install NI DAQ
+\item edit Unlock's config
+\item run Unlock to test
+\end{itemize}
+
+Go to~\cite{gitbash} for Git Bash download and installation instructions.  
+
+After Git Bash is setup we need to create a Github account~\cite{github} and follow the instructions for setting up an ssh key~\cite{sshkey}.  Next, fork the repo.
+
+After we have your Github account setup we can clone the repo.  This takes a few minutes because we commited all of Unlock's dependencies to the repo.  *Stark* this is generally bad form.  But we are OK with bad form for two related reasons: 1) we are poor and do not have a real server, 2) we care more about keeping everything together more than repo download speed.
+
+To clone the repo run the following command from the Git Bash command.exe:
+\begin{verbatim}  
+  $ git clone git@github.com:jpercent/unlock.git
+\end{verbatim}
+
+Note, git@github.com:jpercent/unlock.git is my fork of the project.  If you want to commit to my fork that's fine, send me email and I'll add you.  But it's probably better to commit to your own fork.  If you want to push changes upstream, then you make a pull request.  
+
+Then change directory to the repo.  To do so type:
+\begin{verbatim}
+  $ cd unlock/
+\end{verbatim}
+
+Then run the installer for a development installation:
+\begin{verbatim}
+  $ golang/bin/install-win-x86-64.exe -dev=true -repo=`pwd`
+\end{verbatim}
+
+Note, the quotes around pwd are back ticks; they tell Bash to execute the command that gets the current working directory.  There should almost immediately be several installers that will ask you questions.  Please accept the defaults on everything.  
+
+Watch the task bar.  Some versions of Windows will bring up access control dialogs; sometimes they come up in the background.  Additionally, at least one of the installers has a dialog that comes up asyncrhonously and in the background, so keep your eyes peeled for dialogs waiting in the background.  They should be flashing on the task bar.
+
+That should be all there is to it.  To test it run the following command:
+
+\begin{verbatim}
+  $ export PYTHONPATH=`pwd`
+  $ cd unlock/
+  $ /c/Python33/python.exe unlock_runtime.py
+\end{verbatim} 
+
+If you have an issue, please send me an email directly.  Please include the file named unlock-install.log in the email and a description of the real-time symtom(s).  
+ 
 \subsection{Linux}
 \subsection{Mac OSX}
-
-\section{Usage}
-
-\section{Software}
+\section{Internals}
 \subsection{BCI Layer}\label{bcisec}
 
 In Section~\ref{overviewsec} we defined the signal-processing chain to be signal acquisition and reconstruction, feature extraction and decoding, and command generation.
 
-Most of the signal acquistion code is written in C++.  The C++ layer is dynamically linked into the Python runtime using Boost Python~\cite{boostpython}.  The C++ signal acquisition module exports a single polymorphic interface inspired by UNIX device files, and several factory methods for creating the signal acquisition infrastructure.
+Most of the signal acquistion code is written in C++.  The C++ layer is dynamically linked to the Python runtime using Boost Python~\cite{boostpython}.  The C++ signal acquisition module exports a single polymorphic interface inspired by UNIX device files, and several factory methods for creating the signal acquisition infrastructure.
 
 Unlock supports two modes of acquisition: blocking acquisition and non-blocking acquisition.  Blocking acquisition is is simply a thin wrapper around the device interface.  It will block on a I/O descriptor until a write is available.
 
-We will discuss Unlock's application layer in detail in Section~\ref{applicationsec}.  But at this time it is important to understand at least one aspect.  The application layer is essentially a graphics event loop that gets called by the OS for each screen refresh.  Blocking on each screen refresh can cause all kinds of problems.  In fact, blocking-based acquisition is only supported for device testing purposes. 
+We will discuss Unlock's application layer in detail in Section~\ref{applicationsec}.  But at this time it is important to understand one aspect.  The application layer is essentially a graphics event loop; looping through the application layer code at each screen refresh.  To acquire the signal on the same thread as the graphics event loop is problematic: blocking on each screen refresh can cause all kinds of problems.  In fact, blocking-based acquisition is only supported for device testing purposes. 
 
 To acquire the signal without blocking, Unlock supports a nonblocking acquisition mode.  In nonblocking mode, Unlock creates a platform independent C++ thread that manages and buffers the signal data.  The graphics event loop sychronizes with the signal acquisition thread using a lock-free algorithm.  The method makes use of a ring buffer and processor level atomic instructions to cohently reserve blocks of virtual memory addresses across cores.
+
 \subsection{Application Layer}\label{applicationsec}
 
 The Unlock application programming layer is a model-view-controller (MVC)~\cite{mvc, mvc2} inspired framework for graphical user interface (GUI) development.  Commands flow through the BCI layer to a control layer that interprets the state changes and sends the changes to visualization module.
@@ -117,17 +182,20 @@ The Unlock application programming layer is a model-view-controller (MVC)~\cite{
 \bibitem{lis}  Bauer, G. and Gerstenbrand, F. and Rumpl, E. Varieties of the locked-in syndrome. Journal of Neurology.  1979.
 \bibitem{signalprocessing}  Sippi, C.,  Sippi, P., Computer Dictionary and Handbook. 1972. 
 \bibitem{neuraleng}  He B., Gao S., Yuan H., and Wolpaw, J.  Neural Engineering, Chapter 2, Brain–Computer Interfaces.  2013.
-\bibitem{abci} CELEST Capstone Project 1: Adaptive Brain-Computer Interactions.  http:\/\/celest.bu.edu/about-us/capstone-projects/adaptive-brain-computer-interactions.
+\bibitem{abci} CELEST Capstone Project 1: Adaptive Brain-Computer Interactions.  http://celest.bu.edu/about-us/capstone-projects/adaptive-brain-computer-interactions.
 \bibitem{mvc}  Reenskaug, T. A note on DynaBook requirements. Xerox PARC.  1979.
 \bibitem{vep} O’Shea, R. P., Roeber, U., Bach, M. Evoked potentials: Vision.  Encyclopedia of Perception. 2010.
-\bibitem{boostpython} Boost Python.  http:\/\/www.boost.org/doc/libs/1\_54\_0/libs/python/doc/.
-\bibitem {npl} Unlock.  http:\/\/github.com/NeuralProsthesisLab/unlock.
+\bibitem{boostpython} Boost Python.  http://www.boost.org/doc/libs/1\_54\_0/libs/python/doc/.
+\bibitem {npl} Unlock.  http://github.com/jpercent/unlock.
+\bibitem{golang} Go.  http://golang.org.
+\bibitem{winpythonpackages}  Christoph Gohlke.  http://www.lfd.uci.edu/~gohlke/pythonlibs/.  Laboratory for Fluorescence Dynamics, University of California, Irvine.
+\bibitem{pip} PIP.  https://github.com/pypa/pip.
+\bibitem{nidaq} NI DAQ.  http://www.ni.com/dataacquisition/nidaqmx.htm.
 \bibitem{pubsub} Eugster, P.  Felber, P.  Guerraoui, R.  Anne-Marie Kermarrec, A.  The many faces of publish/subscribe.  ACM Computing Surveys (CSUR) Surveys Homepage table of contents archive.  2003.
-Pages	114-131
-Publicaion Date	2003-06-01 (yyyy-mm-dd)
-Publisher	ACM New York, NY, USA 
-\bibitem{mobilab} Gtec MOBILab.  http:\/\/www.gtec.at/Products/Hardware-and-Accessories/g.MOBIlab-Specs-Features
-
+\bibitem{mobilab} Gtec MOBILab.  http://www.gtec.at/Products/Hardware-and-Accessories/g.MOBIlab-Specs-Features
+\bibitem{gitbash} Git Bash.  http://git-scm.com/download/win.
+\bibitem{github}  Github.  https://github.com.
+\bibitem{sshkey} Github SSH key Generation.  https://help.github.com/articles/generating-ssh-keys.
 \end{thebibliography}
 
 \end{document}
