@@ -65,7 +65,21 @@ Figure~\ref{bci-pipeline-fig} depicts the data flow through Unlock.
 %Unlock started, in 2011, as a Python script written by Sean Whatshisname for researching solid-state VEP %(SSVEP)[ssvepref].  In 2012, researching maximium length sequence decoding, Byron Galbraith rewrote Sean's %script into a program.  In 2013, Unlock was completely rewritten to be a programming framework.  The rewrite %was led by James Percent, with help from Byron, Nguyen Hoang Giang and other Unlock contributors. 
 
 \section{Installation}
-\subsection{Windoze}
+
+We want to make installation as easy as possible.  One piece of achieving that goal is 
+\subsection{Windows}
+
+We want to make installatioon as easy as possible.  One
+
+\subsubsection{x86-64}
+
+We want Unlock installation to be very easy.  One piece of achieving this goal is to make installation as painless as we can.  Therefore we 
+
+A lot of the users of the Unlock and some of the initial devices we used for data collection were available on Windows.  Therefore, we 
+
+\subsection{Developer Installation}
+
+The Windows installer was written in Go~\cite{golang}
 %Currently Unlock only supports Windows 7 - this was, quite painfully, required due to the nature of the users.  But  Further we believe most of the users of the system will not be programmers.  While the projects aim is to reach out to people.
 %
 % required.  Since It was originally written
@@ -89,10 +103,9 @@ Most of the signal acquistion code is written in C++.  The C++ layer is dynamica
 
 Unlock supports two modes of acquisition: blocking acquisition and non-blocking acquisition.  Blocking acquisition is is simply a thin wrapper around the device interface.  It will block on a I/O descriptor until a write is available.
 
-We will discuss Unlock's application layer in detail in Section~\ref{applicationsec}.  But at this time it is important to understand at least one aspect: application layer is essentially a graphics event loop that gets called by the OS for each screen refresh.  Blocking on each screen refresh can cause all kinds of problems.  In fact, blocking based acquisition is only supported for device testing purposes. 
+We will discuss Unlock's application layer in detail in Section~\ref{applicationsec}.  But at this time it is important to understand at least one aspect.  The application layer is essentially a graphics event loop that gets called by the OS for each screen refresh.  Blocking on each screen refresh can cause all kinds of problems.  In fact, blocking-based acquisition is only supported for device testing purposes. 
 
-To acquire the signal without blocking, Unlock supports a nonblocking acquisition mode.  To accomplish this, Unlock creates a platform independent C++ thread that transfers data between the two threads using a lock-free algorithm.
-
+To acquire the signal without blocking, Unlock supports a nonblocking acquisition mode.  In nonblocking mode, Unlock creates a platform independent C++ thread that manages and buffers the signal data.  The graphics event loop sychronizes with the signal acquisition thread using a lock-free algorithm.  The method makes use of a ring buffer and processor level atomic instructions to cohently reserve blocks of virtual memory addresses across cores.
 \subsection{Application Layer}\label{applicationsec}
 
 The Unlock application programming layer is a model-view-controller (MVC)~\cite{mvc, mvc2} inspired framework for graphical user interface (GUI) development.  Commands flow through the BCI layer to a control layer that interprets the state changes and sends the changes to visualization module.
@@ -109,6 +122,10 @@ The Unlock application programming layer is a model-view-controller (MVC)~\cite{
 \bibitem{vep} O’Shea, R. P., Roeber, U., Bach, M. Evoked potentials: Vision.  Encyclopedia of Perception. 2010.
 \bibitem{boostpython} Boost Python.  http:\/\/www.boost.org/doc/libs/1\_54\_0/libs/python/doc/.
 \bibitem {npl} Unlock.  http:\/\/github.com/NeuralProsthesisLab/unlock.
+\bibitem{pubsub} Eugster, P.  Felber, P.  Guerraoui, R.  Anne-Marie Kermarrec, A.  The many faces of publish/subscribe.  ACM Computing Surveys (CSUR) Surveys Homepage table of contents archive.  2003.
+Pages	114-131
+Publicaion Date	2003-06-01 (yyyy-mm-dd)
+Publisher	ACM New York, NY, USA 
 \bibitem{mobilab} Gtec MOBILab.  http:\/\/www.gtec.at/Products/Hardware-and-Accessories/g.MOBIlab-Specs-Features
 
 \end{thebibliography}
