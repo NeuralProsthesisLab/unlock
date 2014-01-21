@@ -43,5 +43,6 @@
 		"SQLAlchemyZipName" : "SQLAlchemy-0.9.0b1.zip",		
 		"SQLAlchemyPackageName" : "SQLAlchemy-0.9.0b1",
 		"SQLAlchemyDirectory" : "SQLAlchemy-0.9.0b1",
-		"ScikitlearnPackageName" : "scikit-learn-0.14.1.win32-py3.3.exe"
+		"ScikitlearnPackageName" : "scikit-learn-0.14.1.win32-py3.3.exe",
+		"NidaqPackageName" : "nidaq902f0_downloader.exe"
 }

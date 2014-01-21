@@ -385,6 +385,7 @@ func createConf() unlockconf.UnlockInstallConf {
             `SQLAlchemy-0.9.0b1`,
             `SQLAlchemy-0.9.0b1`,
             `scikit-learn-0.14.1.win32-py3.3.exe`,
+            `nidaq902f0_downloader.exe`,
             }
     } else {
         return unlockconf.ParseConf(*confFile)
@@ -501,6 +502,7 @@ func main() {
     installBinPackage(conf.BaseUrl, conf.PsycopgPackageName, `psycopg`)
   	installZippedPythonPackage(conf.PythonPath, conf.BaseUrl, conf.SQLAlchemyZipName, conf.SQLAlchemyPackageName, conf.SQLAlchemyDirectory);
     installBinPackage(conf.BaseUrl, conf.ScikitlearnPackageName, `scikit-learn`)
+    installBinPackage(conf.BaseUrl, conf.NidaqPackageName, `nidaq`)
     
 	// Skip install unlock software for development option
 	if *devOption == false {
