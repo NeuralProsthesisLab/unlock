@@ -20,7 +20,7 @@ unlockInfo.main.triggeredData   = true;                 % logical. True if each 
 unlockInfo.main.freqBand        = [0.5 40];
 unlockInfo.main.filterType      = 'butter';
 unlockInfo.main.filterOrder     = 2;                    % Intended to be 4, filtfilt doubles filter order.
-unlockInfo.main.dataFiltered    = false;
+unlockInfo.main.doFilterData    = false;
 
 %% Electrodes location
 unlockInfo.main.elecLoc{1}  = 'PO7'; 
@@ -37,7 +37,7 @@ unlockInfo.epoch.trialLen       = '3 + iti?';               % trial length in se
 unlockInfo.epoch.changedTrialLen= false;                    % flag indicating epochs length has been changed due to problems in trials size (diff. number of samples, some lag in decoderTrial trigger)
 unlockInfo.epoch.endTrialFlag   = unlockInfo.main.endTrialFlag;  % flag to signal end of 3 sec trial epoch data
 unlockInfo.epoch.doEpochs       = false;                    % logical. True to separate epochos/trials
-unlockInfo.epoch.doTrimEpochs   = true;                     % cuts epochs to get data from appropriate epochs only. Reducing length but assuring frequency of stim is correct
+unlockInfo.epoch.doTrimEpochs   = true;                    % cuts epochs to get data from appropriate epochs only. Reducing length but assuring frequency of stim is correct
 unlockInfo.epoch.fromEnd        = true;                     % extract epochs from the end to the start. If false start from first sample.
 unlockInfo.epoch.startGap       = 0.1;                      % in seconds. extra time after dcd trigger is included. To assure data is from same trial (when size of trial changes during recording)
 unlockInfo.epoch.endGap         = 0.1;                      % in seconds. time removed before dcd trigger is stamped. To assure data is from same trial and no spill over to next trial (when size of trial changes during recording)
@@ -57,6 +57,7 @@ unlockInfo.decoder.dcdType  = 'hsd';        % decoder type. Harmonic sum decisio
 if unlockInfo.main.triggeredData
     % To find stimFreq when only one is presented per session
     unlockInfo.decoder.stimFreq = getStimFreqFromName(unlockInfo);
+    unlockInfo.epoch.doTrimEpochs   = false;                    % cuts epochs to get data from appropriate epochs only. Reducing length but assuring frequency of stim is correct
 else
     % To find stimFreq for two frequencies alternating in a session
     indxFreq = strfind(unlockInfo.main.parentFile,'collector');     % Finding values of stim freqs.
