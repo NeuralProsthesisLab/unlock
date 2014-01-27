@@ -31,16 +31,16 @@ import shutil
 
 packages = ['unlock', 
             'unlock.context', 'unlock.context.test',
-            'unlock.controller', 'unlock.controller.test', 
+            'unlock.controller',
             'unlock.state', 'unlock.state.test',
-            'unlock.bci', 'unlock.bci.acquire', 'unlock.bci.classify', 
+            'unlock.bci', 'unlock.bci.acquire', 'unlock.bci.decode', 'unlock.bci.command', 'unlock.bci.test',
             'unlock.util', 'unlock.util.test',
             'unlock.view', 'unlock.view.test']
 
 package_data = {
                 'unlock' : ['conf.json', 'README.md'],
-                'unlock.controller' : ['resource/analyzer.jpg', 'resource/Arrow.png', 'resource/ArrowSel.png', 'resource/emg-100x100.jpg',
-                                       'resource/emg.jpg', 'resource/IRCodes.txt', 'resource/LazerToggle.png', 'resource/LazerToggleS.png',
+                'unlock.controller' : ['resource/analyzer.jpg', 'resource/Arrow.png', 'resource/ArrowSel.png', 'resource/collector.png', 'resource/emg-100x100.jpg',
+                                       'resource/emg.jpg', 'gridcursor.png', 'gridspeak.png', 'resource/IRCodes.txt', 'resource/LazerToggle.png', 'resource/LazerToggleS.png',
                                        'resource/rsz_analyzer.jpg', 'resource/scope.png', 'resource/tv.png'],
                 'unlock.context.test' : ['app-ctx.xml'], 
                  'unlock.state' : [],
