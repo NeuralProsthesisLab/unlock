@@ -32,7 +32,14 @@ from admin import app
 @app.route("/scope")
 def render_scope():
 	try:
-		return render_template('scope.html')
+		return render_template('scope1.html')
+	except Exception as e:
+		print("Exception = ", dir(e), e, e.__doc__)		
+
+@app.route("/scope2")
+def render_scope2():
+	try:
+		return render_template('scope2.html')
 	except Exception as e:
 		print("Exception = ", dir(e), e, e.__doc__)		
 	
