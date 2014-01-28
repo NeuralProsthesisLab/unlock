@@ -45,7 +45,7 @@ class Command(object):
         
     def is_valid(self):
         return False
-    
+        
     def set_ready_value(self, ready_value):
         self.is_ready = ready_value
         
