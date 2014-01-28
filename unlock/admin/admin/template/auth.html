@@ -71,9 +71,25 @@
            <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
            </div>
          </form>
+        <script>var graph = new Rickshaw.Graph( {
+  element: document.querySelector('#graph'),
+  series: [
+    {
+      color: 'steelblue',
+      data: [ { x: 0, y: 23}, { x: 1, y: 15 }, { x: 2, y: 79 } ]
+    }, {
+      color: 'lightblue',
+      data: [ { x: 0, y: 30}, { x: 1, y: 20 }, { x: 2, y: 64 } ]
+    }
+  ]
+} );
+
+graph.render();</script>
+
       </div>
     
     <script src="static/js/jquery-1.10.2.min.js"></script>
     <script src="static/js/bootstrap.min.js"></script>
+    <script src="static/js/rickshaw.js"></script>    
   </body>
 </html>
