@@ -44,40 +44,35 @@ from sqlalchemy import create_engine
 class UnlockFactory(context.PythonConfig):
     def __init__(self, config):
         super(UnlockFactory, self).__init__()
-        self.logger = logging.getLogger(__name__)
         self.config = config
-        self.mac_addr = None
-        self.com_port = None
-        self.window = None
-        self.calibrator = None
-        self.stimuli = None
         self.receiver_factory = UnlockCommandReceiverFactory()
         self.decoder_factory = UnlockDecoderFactory()
+        self.logger = logging.getLogger(__name__)
         
     @context.Object(lazy_init=True)
-    def inline(self):
-        # XXX - fix crimes against nature
-        if 'receiver' in self.config.keys():
-            self.receiver = self.config['receiver']
-        else:
-            self.receiver = 'inline'
+    def inline(self, signal, timer):
+        decoder_args = self.config['bci']['decoder']
+        buffering_decoder = self.config['bci']['buffering_decoder']
+        threshold_decoder = self.config['bci']['threshold_decoder']
+        decoder = self.create_decoder(decoder_args, buffering_decoder, threshold_decoder)
             
-        bci_wrapper = InlineBciWrapper(self.receiver, self.signal, self.timer)
-        return bci_wrapper
-    
-    @context.Object(lazy_init=True)
-    def create_decoder(decoder_type):
-        self.decoder_type = self.decoder_factory.map_decoder(self.config['bci']['decision_type'])
-        print("Decoder ", self.config['bci']['decoder'])
-        import sys
-        sys.exit(0)
-        self.decoder = self.decoder_factory.create_decoder(self.decoder_type, self.config['bci']['decoder'])
-    
-    @context.Object(lazy_init=True)
-    def create_command_receiver(self):
-        self.command_receiver = self.receiver_factory.create_receiver(self.receiver_type,
-            self.signal, self.timer, self.decoder)
-        self.command_receiver.stop()
+        receiver_type = self.config['bci']['receiver']
+        receiver = self.create_receiver(receiver_type, signal,timer, decoder)
+        receiver = self.factory.create_receiver(decoder)        
+        bci = InlineBciWrapper(receiver, signal, timer)
+        return bci
+        
+    def create_decoder(decoder, buffering_decoder, threshold_decoder):
+        decoder['buffering_decoder'] = buffering_decoder['name']
+        decoder['buffering_decoder_args'] = buffering_decoder['args']
+        decoder['threshold_deocoder'] = threshold_decoder['name']
+        decoder['threshold_decoder_args'] = threshold_decoder['args']
+        return self.decoder_factory.create_decoder(**decoder)
+        
+    def create_receiver(self, receiver_type, signal, timer, decoder):
+        receiver = self.receiver_factory.create_receiver(receiver_type, signal, timer, decoder)
+        receiver.stop()
+        return receiver        
         
     @context.Object(lazy_init=True)
     def multiprocess(self):
@@ -114,8 +109,7 @@ class UnlockFactory(context.PythonConfig):
     def audio(self):
         from unlock.bci import acquire
         self.timer = acquire.create_timer()
-        signal = acquire.AudioSignal()
-        
+        signal = acquire.AudioSignal()        
         if not signal.start():
             raise RuntimeError('failed to start audio signal')
             
@@ -123,16 +117,10 @@ class UnlockFactory(context.PythonConfig):
         
     @context.Object(lazy_init=True)    
     def enobio(self):
-        mac_addr = None
-        if 'mac_addr' in self.config.keys():
-            mac_addr = [int(value,0) for value in [x.strip() for x in self.config['mac_addr'].split(',')]]
-        
-        if mac_addr is None:
-            print('enobio requires a mac address; none set')
-            raise RuntimeError('enobio requires a mac address; none set')
+        assert 'mac_addr' in self.config['signal']
+        mac_addr = [int(value,0) for value in [x.strip() for x in self.config['signal']['mac_addr'].split(',')]]        
         
         from unlock.bci import acquire
-        # XXX - h4x0r        
         self.timer = acquire.create_timer()
         signal = acquire.create_nonblocking_enobio_signal(self.timer)
         if not signal.open(mac_addr):
@@ -145,17 +133,11 @@ class UnlockFactory(context.PythonConfig):
         
     @context.Object(lazy_init=True)    
     def mobilab(self):
-        com_port = None
-        if 'com_port' in self.config.keys():
-            com_port = self.config['com_port']
-            
-        if com_port is None:
-            print('mobilab requires a com port; none set')
-            raise RuntimeError('mobilab requires a com port; none set')
+        assert 'com_Port' in self.config['signal']        
+        com_port = self.config['signal']['com_port']
             
         analog_channels_bitmask = 1+2+4+8+16+32+64+128
         from unlock.bci import acquire    
-        # XXX - h4x0r
         self.timer = acquire.create_timer()
         signal = acquire.create_nonblocking_mobilab_signal(
             self.timer, analog_channels_bitmask, 0, com_port)
@@ -168,7 +150,6 @@ class UnlockFactory(context.PythonConfig):
     @context.Object(lazy_init=True)
     def file(self):
         from unlock.bci import acquire
-        # XXX - h4x0r        
         self.timer = acquire.create_timer()
         raise Exception("FIX ME")
         signal = acquire.MemoryResidentFileSignal('analysis/data/valid/emg_signal_1380649383_tongue_c.5_r.5_i1.txt',
@@ -177,7 +158,7 @@ class UnlockFactory(context.PythonConfig):
             print('file signal failed to start; filename = ', self.config['filename'])
             raise RuntimeError('file signal failed to start')
         return signal
-            
+        
     @context.Object(lazy_init=True)
     def random(self):
         from unlock.bci import acquire
@@ -186,50 +167,15 @@ class UnlockFactory(context.PythonConfig):
         signal.open([])
         signal.start()
         return signal
-            
+        
     @context.Object(lazy_init=True)
     def pyglet_window(self):
-        return PygletWindow(self.bci_wrapper, self.config['fullscreen'], self.config['fps'],
+        assert 'fullscreen' in self.config['pyglet'] and 'fps' in self.config['pyglet'] and \
+                'vsync' in self.config['vsync']
+                
+        return PygletWindow(self.bci, self.config['pyglet']['fullscreen'], self.config['pyglet']['fps'],
             self.config['vsync'])
-    # XXX     
-    #@context.Object(lazy_init=True)
-    #def CalibrateFacialEMGDetector(self):
-    #    raise Exception("FIX ME")
-    #    self.calibrator, calibrator = Calibrate.create_smg_calibrator(self.window,
-    #        self.command_receiver, **self.config['CalibrateFacialEMGDetector'])
-    #    return calibrator
-    #        
-    #@context.Object(lazy_init=True)
-    #def FacialEMGCollector(self):
-    #    return Collector.create_mouth_based_emg_collector(self.window, self.bci_wrapper, self.stimuli,
-    #        **self.config['FacialEMGCollector'])
-    #       
-    #@context.Object(lazy_init=True)
-    #def FastPad(self):
-    #    return FastPad.create_fastpad(self.window, self.bci_wrapper, self.stimuli, **self.config['FastPad'])
-    #        
-    #@context.Object(lazy_init=True)
-    #def GridSpeak(self):
-    #    raise Exception("FIX ME")
-    #    return GridSpeak.create_gridspeak(self.window, self.bci_wrapper, self.stimuli,
-    #        **self.config['GridSpeak'])
-    #        
-    #@context.Object(lazy_init=True)
-    #def GridCursor(self):
-    #    raise Exception("FIX ME")        
-    #    return GridCursor.create_gridcursor(self.window, self.bci_wrapper, self.stimuli,
-    #        **self.config['GridCursor'])
-    #        
-    #@context.Object(lazy_init=True)
-    #def TimeScope(self):
-    #    return UnlockControllerFactory.create_time_scope(self.window, self.bci_wrapper, self.stimuli,
-    #        **self.config['TimeScope'])
-    #        
-    #@context.Object(lazy_init=True)
-    #def FrequencyScope(self):
-    #    return UnlockControllerFactory.create_frequency_scope(self.window, self.bci_wrapper, self.stimuli,
-    #        **self.config['FrequencyScope'])
-            
+
     @context.Object(lazy_init=True)
     def ssvep_diagnostic(self):
         return UnlockControllerFactory.create_standalone_ssvep_diagnostic(self.window, self.bci_wrapper,
@@ -260,6 +206,7 @@ class UnlockRuntime(object):
         self.logger = None
         
         try:
+            
             args = None
             options = None
             parser = None
@@ -293,48 +240,17 @@ class UnlockRuntime(object):
             valid_levels = {'debug': logging.DEBUG, 'info': logging.INFO, 'warn': logging.WARN, 'error': logging.ERROR, 'critical': logging.CRITICAL}
             self.loglevel = logging.INFO
             (options, args) = parser.parse_args()
+            
         except Exception as e:
+            print("UnlockRuntime.__init__: FATAL failed to parse command line parameters ")
             raise e
             
         try:
-            self.conf = options.conf
-            self.config = self.__parse_conf__()
-            if options.fullscreen is not None:
-                self.config['fullscreen'] = options.fullscreen
-            if options.fps is not None:
-                self.config['fps'] = options.fps
-            if options.signal is not None:
-                self.config['signal'] = options.signal
-            if options.vsync is not None:
-                self.config['vsync'] = options.vsync
-            if options.mac_addr is not None:
-                self.config['mac_addr'] = options.mac_addr
-            if options.com_port is not None:
-                self.config['com_port'] = options.com_port
-            if options.stimuli is not None:
-                self.config['stimuli'] = options.stimuli
-            if options.receiver is not None:
-                self.config['receiver'] = options.receiver
-            if options.bci_wrapper is not None:
-                self.config['bci_wrapper'] = options.bci_wrapper
-            if options.loglevel is not None:
-                # Config file settings override this command line parameter
-                self.loglevel = valid_levels[options.loglevel]
-            if options.unrecorded is not None:
-                self.config['unrecorded'] = options.unrecorded
-                
-            self.__configure_logging__()
-            self.logger.info('Logging setup successfully completed')
-            database = self.config['database']
-            self.__configure_persistence__(database['host'], database['user'],database['name'],
-                database['port'], database['addr'])            
-            self.logger.info('Database setup successfully completed')                
-            self.__create_controllers__()
-            self.logger.info('Unlock setup successfully completed')                
-            
+            self.setup_config(options)
+            self.configure()
         except:
             if self.logger == None:
-                print('UnlockRuntime: FATAL failed to initialize correctly')
+                print('UnlockRuntime: FATAL failed to initialize correctly; did not complete logging setup')
             else:
                 self.logger.fatal('failed to initialize correctly')
                 
@@ -343,37 +259,63 @@ class UnlockRuntime(object):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)
             sys.exit(1)
-         
-    def __parse_conf__(self):
+            
+    def setup_config(self, options):
+        self.conf = options.conf
+        self.config = self.parse_config()
+            
+        assert 'signal' in self.config.keys()
+        assert 'bci' in self.config.keys()
+        assert 'pyglet' in self.config.keys()
+        assert 'main' in self.config.keys()
+        assert 'controllers' in self.config.keys()
+        
+        if options.fullscreen is not None:
+            self.config['pyglet']['fullscreen'] = options.fullscreen
+        if options.fps is not None:
+            self.config['pyglet']['fps'] = options.fps
+        if options.vsync is not None:
+            self.config['pyglet']['vsync'] = options.vsync
+            
+        if options.signal is not None:
+            self.config['signal'] = options.signal
+        if options.mac_addr is not None:
+            self.config['signal']['mac_addr'] = options.mac_addr
+        if options.com_port is not None:
+            self.config['signal']['com_port'] = options.com_port
+            
+        if options.stimuli is not None:
+            self.config['stimuli'] = options.stimuli
+            
+        if options.receiver is not None:
+            self.config['bci']['receiver'] = options.receiver
+        if options.bci_wrapper is not None:
+            self.config['bci']['wrapper'] = options.bci_wrapper
+            
+        if options.loglevel is not None:
+            # Config file settings override this command line parameter
+            self.loglevel = valid_levels[options.loglevel]
+            
+        if options.unrecorded is not None:
+            self.config['unrecorded'] = options.unrecorded
+            
+    def parse_config(self):
         with open(self.conf, 'rt') as file_descriptor:
             json_string = file_descriptor.read()
             config = json.loads(json_string)
         return config            
-         
-    def __create_controllers__(self):
-        for controller in self.config['controllers']:
-            self.config[controller['name']] = controller['args']
-        
-        self.factory = UnlockFactory(self.config)
-        self.app_ctx = context.ApplicationContext(self.factory)
-    
-        if self.config['bci_wrapper'] == 'inline':
-            self.factory.signal = self.app_ctx.get_object(self.config['signal'])
-            self.decoder = self.app_ctx.get_object(self.config['decoder'])
             
-        self.factory.bci_wrapper = self.app_ctx.get_object(self.config['bci_wrapper'])
+    def configure(self):
+        self.configure_logging()
+        self.logger.info('Logging setup successfully completed')
         
-        self.factory.window = self.app_ctx.get_object('PygletWindow')
-        if 'stimuli' in self.config.keys():
-            self.factory.stimuli = self.app_ctx.get_object(self.config['stimuli'])
-        self.main = self.app_ctx.get_object(self.config['main'])
+        self.configure_persistence()
+        self.logger.info('Database setup successfully completed')                
         
-    def __configure_persistence__(self, host, name, user, port, addr):
-        if 'unrecorded' in self.config:
-            self.engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (user, addr, host, port, name))
-            return self.engine
-        
-    def __configure_logging__(self):
+        self.create_unlock()        
+        self.logger.info('Unlock setup successfully completed')                
+            
+    def configure_logging(self):
         # The Logging-Config object determines the configuration of the logging
         # System.  It follows the standard Python JSON logging config; see
         # http://docs.python.org/2/howto/logging-cookbook.html for more details.        
@@ -383,6 +325,31 @@ class UnlockRuntime(object):
             logging.basicConfig(level=self.loglevel)
             
         self.logger = logging.getLogger(__name__)
+         
+    def configure_persistence(self):
+        db = self.config['database']
+        if 'unrecorded' in self.config:
+            self.engine = create_engine('postgresql://%s:%s@%s:%s/%s' % \
+                (db['host'], db['user'],db['name'], db['port'], db['addr']))
+                
+    def create_unlock(self):
+        for controller in self.config['controllers']:
+            # xxx - this is a hack to get rid of the name?
+            self.config[controller['name']] = controller['args']
+        
+        self.factory = UnlockFactory(self.config)
+        
+        context = app_context.ApplicationContext(self.factory)
+        self.factory.context = context
+        
+        self.signal = self.context.get_object(self.config['bci']['signal']['type'])
+        self.factory.bci = self.context.get_object(self.config['bci']['wrapper'])
+        self.factory.window = self.app_ctx.get_object('pyglet_window')
+        
+        if 'stimuli' in self.config.keys():
+            self.factory.stimuli = self.app_ctx.get_object(self.config['stimuli'])
+            
+        self.main = self.app_ctx.get_object(self.config['main'])
                 
     def start(self):
         """Starts the UnlockRuntime."""
