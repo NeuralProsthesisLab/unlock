@@ -33,16 +33,19 @@ from sqlalchemy import create_engine
 from unlock import unlock_runtime
 from subprocess import Popen
 
+import sys
+import traceback
+
 class UnlockRunner(object):
-    def __init__(self, python_path='c:\\Python33\\python.exe',
-            unlock_runtime_path='../unlock_runtime.py', *args): #=['-c', '../ssvep-diag.json']):
+    def __init__(self, python_path='c:\\Python33\\python.exe', unlock_runtime_path='../unlock_runtime.py',
+        *args): #=['-c', '../ssvep-diag.json']):
         
         super(UnlockRunner, self).__init__()
         self.python_path = python_path
         self.unlock_runtime_path = unlock_runtime_path
         self.args = args
         self.p = None
-        print 'args ', args, ' *args '
+        print('args ', args, ' *args ')
     def start(self):
         popen_args = [self.python_path, self.unlock_runtime_path, self.args] #'-c', '../ssvep-diag.json'])
         popen_args.expand(args)
@@ -53,19 +56,19 @@ class UnlockRunner(object):
         self.p.wait()
         self.p = None
     
-    
-
-
 @app.route('/unlock-ssvep-diag')
 def start():
     try:
 #        print("params = ", request.args)
-        dbConnection = database.create_engine()
+#        dbConnection = database.create_engine()
 #        if request.args.get('conf')
         runner = UnlockRunner(args=['-c', '../ssvep-diag.json'])
         runner.start()
         runner.wait()
         return render_template('unlock.html')
     except Exception as e:
-        print("Exception = ", dir(e), e, e.__doc__)
-        return e.__doc__
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)
+        
+#        print("Exception = ", dir(e), e, e.__doc__)
+        return e.__doc__ #exc_traceback
