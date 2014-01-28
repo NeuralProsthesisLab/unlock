@@ -24,8 +24,87 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 from unlock.bci.decode.decode import *
-from unlock.bci.decode.hsd import *
-from unlock.bci.decode.rms import *
+from unlock.bci.decode.harmonic import *
 from unlock.bci.decode.femg import *
 from unlock.bci.decode.eyeblink import *
+
+    
+class UnlockDecoderFactory(object):
+    def create_decoder(self, decoder, **kwargs):
+        func = {
+            'harmonic_sum' : self.create_harmonic_sum_decision,
+            'eyeblink_detector' : self.create_eyeblink_detector,
+            'facial_emg' : self.create_facial_emg_detector,
+            'fixed_time' : self.create_fixed_time_buffering,
+            'continuous_time' : self.create_continuous_time_buffering,
+            'absolute' : self.create_absolute_threshold,
+            'lda' : self.create_lda_threshold,
+            'unknown' : self.unknown
+        }.get(decoder, self.unknown)
+        if func is None:
+            raise Exception("Undefined Decoder: "+str(decoder)+" kwargs = "+str(kwargs))
+        print ("DECODER >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", decoder, kwargs, "<<<<<<<<<<<<<<<<<<<<<<<<<< FUNC = ", func)
+        return func(**kwargs)
+    
+    def create_harmonic_sum_decision(self, buffering_decoder=None, buffering_decoder_args=None, threshold_decoder=None,
+        threshold_decoder_args=None, fs=256, trial_length=3, n_electrodes=8, targets=(12.0, 13.0, 14.0, 15.0), target_window=0.1, nfft=2048,
+        n_harmonics=1, selected_channels=None):
+        
+        assert buffering_decoder is not None and threshold_decoder is not None
+        
+        trial_state_decoder = TrialStateControlledDecoder(None)
+        print ("HERE>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        buffering_decoder_args['buffer_shape'] = (fs * (trial_length + 1), n_electrodes)
+        buffering_decoder = self.create_decoder(buffering_decoder, **buffering_decoder_args)
+        print("THERE>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", 'decoder ', threshold_decoder, 'args ', threshold_decoder_args)
+        threshold_decoder = self.create_decoder(threshold_decoder, **threshold_decoder_args)
+        
+        feature_extractor = HarmonicFeatureExtractor(fs, n_electrodes, targets, target_window, nfft,
+            n_harmonics, selected_channels)
+        
+        decider = ScoringHarmonicSumDecision(threshold_decoder, targets)
+        
+        decoder_chain = UnlockDecoderChain()
+        decoder_chain.add(trial_state_decoder)
+        decoder_chain.add(buffering_decoder)
+        decoder_chain.add(feature_extractor)
+        decoder_chain.add(decider)
+        
+        return decoder_chain
+
+    def create_fixed_time_buffering(self, buffer_shape=None, window_length=768):
+        assert buffer_shape is not None        
+        return FixedTimeBufferingDecoder(buffer_shape, window_length)
+    
+    def create_continuous_time_buffering(self, buffer_shape=None, step_size=32, trial_limit=768):
+        assert buffer_shape is not None
+        return ContinuousTimeBufferingDecoder(buffer_shape, step_size, trial_limit)
+    
+    def create_absolute_threshold(self, threshold=0, reduction_fcn='np.mean'):
+        return AbsoluteThresholdDecoder(threshold, reduction_fcn)
+        
+    def create_lda_threshold(self, x=(0, 1), y=(0, 1), min_confidence=0.5, reduction_fcn='np.mean'):
+        return LdaThresholdDecoder(x, y, min_confidence, reduction_fcn)
+        
+    def create_eyeblink_detector(self):
+        return EyeBlinkDetector()
+        
+    def create_facial_emg_detector(self):
+        return None
+        #return EmgDetector()
+        
+    def unknown(self, **kwargs):
+#        self.create_harmonic_sum_decision()
+        raise("Unsupported")
+
+    #
+    #def new_fixed_time_threshold_hsd(slot_size_secs=3, samples_per_second=256, threshold=0.4):
+    #    """Fixed time HSD decoder setup with thresholding."""
+    #    window_length = slot_size_secs * samples_per_second
+    #    def peak_ratio(sample):
+    #        sorted_scores = np.sort(sample)
+    #        return 1 - np.mean(sorted_scores[0:3]/sorted_scores[3])
+    #    reduction_fcn = peak_ratio
+    #    return new_hsd(FixedTimeDecoder, AbsoluteThreshold, **kwargs)

@@ -55,7 +55,7 @@ class EyeBlinkDetector(UnlockDecoder):
         self.rms_window = 50
         self.sample_buffer = np.zeros(self.rms_window)
         
-    def classify(self, command):
+    def decode(self, command):
         if not command.is_valid():
             return command
             
@@ -168,3 +168,5 @@ class BlinkCountStrategy:
                 return ret
             else:
                 self.reset()
+                
+                
