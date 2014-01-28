@@ -77,7 +77,7 @@ class FacialEMGDetector(UnlockDecoder):
     def reset(self):
         self.window.fill(0)
         
-    def classify(self, command):
+    def decode(self, command):
         """
         1. Compute RMS of incoming samples
         2. Place RMS values in a buffer
@@ -108,7 +108,7 @@ class FacialEMGDetector(UnlockDecoder):
                 if decision is not None:
                     command.decision = decision
         except Exception as e:
-            print('Exception in FacialEMGDetector.classify: ', e)
+            print('Exception in FacialEMGDetector.decode: ', e)
             
         return command
     
