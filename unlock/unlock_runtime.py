@@ -50,27 +50,29 @@ class UnlockFactory(context.PythonConfig):
         self.logger = logging.getLogger(__name__)
         
     @context.Object(lazy_init=True)
-    def inline(self, signal, timer):
+    def inline(self):
+        # XXX - this is a hack because the context doesn't support keyword args.
+        assert self.signal is not None and self.timer is not None
+        
         decoder_args = self.config['bci']['decoder']
         buffering_decoder = self.config['bci']['buffering_decoder']
         threshold_decoder = self.config['bci']['threshold_decoder']
         decoder = self.create_decoder(decoder_args, buffering_decoder, threshold_decoder)
             
         receiver_type = self.config['bci']['receiver']
-        receiver = self.create_receiver(receiver_type, signal,timer, decoder)
-        receiver = self.factory.create_receiver(decoder)        
-        bci = InlineBciWrapper(receiver, signal, timer)
+        receiver = self.create_receiver(receiver_type, self.signal, self.timer, decoder)
+        bci = InlineBciWrapper(receiver, self.signal, self.timer)
         return bci
         
-    def create_decoder(decoder, buffering_decoder, threshold_decoder):
-        decoder['buffering_decoder'] = buffering_decoder['name']
-        decoder['buffering_decoder_args'] = buffering_decoder['args']
-        decoder['threshold_deocoder'] = threshold_decoder['name']
-        decoder['threshold_decoder_args'] = threshold_decoder['args']
-        return self.decoder_factory.create_decoder(**decoder)
+    def create_decoder(self, decoder, buffering_decoder, threshold_decoder):
+        decoder['args']['buffering_decoder'] = buffering_decoder['name']
+        decoder['args']['buffering_decoder_args'] = buffering_decoder['args']
+        decoder['args']['threshold_decoder'] = threshold_decoder['name']
+        decoder['args']['threshold_decoder_args'] = threshold_decoder['args']
+        return self.decoder_factory.create_decoder(decoder['name'], **decoder['args'])
         
     def create_receiver(self, receiver_type, signal, timer, decoder):
-        receiver = self.receiver_factory.create_receiver(receiver_type, signal, timer, decoder)
+        receiver = self.receiver_factory.create_receiver(receiver_type, signal=signal, timer=timer, decoder=decoder)
         receiver.stop()
         return receiver        
         
@@ -171,10 +173,10 @@ class UnlockFactory(context.PythonConfig):
     @context.Object(lazy_init=True)
     def pyglet_window(self):
         assert 'fullscreen' in self.config['pyglet'] and 'fps' in self.config['pyglet'] and \
-                'vsync' in self.config['vsync']
+                'vsync' in self.config['pyglet']
                 
         return PygletWindow(self.bci, self.config['pyglet']['fullscreen'], self.config['pyglet']['fps'],
-            self.config['vsync'])
+            self.config['pyglet']['vsync'])
 
     @context.Object(lazy_init=True)
     def ssvep_diagnostic(self):
@@ -184,7 +186,7 @@ class UnlockFactory(context.PythonConfig):
     @context.Object(lazy_init=True)
     def single_ssvep_diagnostic(self):
         print ("config = ", self.config['single_ssvep_diagnostic'], self.config['single_ssvep_diagnostic'])
-        return UnlockControllerFactory.create_single_standalone_ssvep_diagnostic(self.window, self.bci_wrapper,
+        return UnlockControllerFactory.create_single_standalone_ssvep_diagnostic(self.window, self.bci.receiver,
             **self.config['single_ssvep_diagnostic'])
         
     @context.Object(lazy_init=True)
@@ -264,8 +266,9 @@ class UnlockRuntime(object):
         self.conf = options.conf
         self.config = self.parse_config()
             
-        assert 'signal' in self.config.keys()
+
         assert 'bci' in self.config.keys()
+        assert 'signal' in self.config['bci'].keys()
         assert 'pyglet' in self.config.keys()
         assert 'main' in self.config.keys()
         assert 'controllers' in self.config.keys()
@@ -338,19 +341,17 @@ class UnlockRuntime(object):
             self.config[controller['name']] = controller['args']
         
         self.factory = UnlockFactory(self.config)
-        
-        context = app_context.ApplicationContext(self.factory)
-        self.factory.context = context
-        
-        self.signal = self.context.get_object(self.config['bci']['signal']['type'])
+        self.context = context.ApplicationContext(self.factory)
+        self.factory.context = self.context
+        self.factory.signal = self.context.get_object(self.config['bci']['signal']['type'])
         self.factory.bci = self.context.get_object(self.config['bci']['wrapper'])
-        self.factory.window = self.app_ctx.get_object('pyglet_window')
+        self.factory.window = self.context.get_object('pyglet_window')
         
         if 'stimuli' in self.config.keys():
-            self.factory.stimuli = self.app_ctx.get_object(self.config['stimuli'])
+            self.factory.stimuli = self.context.get_object(self.config['stimuli'])
             
-        self.main = self.app_ctx.get_object(self.config['main'])
-                
+        self.main = self.context.get_object(self.config['main'])
+            
     def start(self):
         """Starts the UnlockRuntime."""
         self.main.activate()
