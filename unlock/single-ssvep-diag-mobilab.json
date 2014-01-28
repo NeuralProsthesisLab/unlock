@@ -1,15 +1,35 @@
 {
-    "main" : "SingleSsvepDiagnostic",
-    "signal" : "mobilab",
-    "mac_addr" : "0x61,0x9c,0x58,0x80,0x07,0x00",
-    "com_port" : "COM6",
-    "fullscreen" : true,
-    "fps" : false,
-    "vsync" : false,
-    "bci_wrapper" : "inline",
+    "main" : "single_ssvep_diagnostic",
+
+    "pyglet" : {
+        "fullscreen" : true,
+        "fps" : false,
+        "vsync" : false,
+    },
+    
+    "signal" : {
+        "type" : "mobilab",
+        "com_port" : "COM6"
+    },
+    "bci" : {
+        "wrapper" : "inline",
+        "receiver" : "decoded",
+        "decision_type" : "harmonic_sum",
+        "decoder" : {
+            "buffering_type" : "fixed",
+            "thresholding_type" : "absolute",
+            "fs" : 256,
+            "n_electrodes" : 8,
+            "targets" : [12.0, 13.0, 14.0, 15.0],
+            "target_window" : 0.1,
+            "nfft" : 2048,
+            "n_harmonics" : 1
+        }
+    },
+ 
     "controllers" : [
         {
-            "name" : "SingleSsvepDiagnostic",
+            "name" : "single_ssvep_diagnostic",
             "args" : {
                 "frequency" : 18,
                 "output_file" : "mobilab-single-ssvep-diag-18hz",
@@ -18,7 +38,7 @@
             }
         }
     ],
-    
+        
     "database" : {
         "host" : "ec2-54-204-43-139.compute-1.amazonaws.com",
         "name" : "dps7g4lruchrr",
