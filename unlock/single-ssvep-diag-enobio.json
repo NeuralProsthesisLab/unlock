@@ -1,33 +1,50 @@
 {
-    "main" : "single_ssvep_diagnostic",
+   "main" : "single_ssvep_diagnostic",
     
     "pyglet" : {
         "fullscreen" : true,
         "fps" : false,
-        "vsync" : false,
+        "vsync" : false
     },
     
-    "signal" : {
-        "type" : "enobio",
-        "mac_addr" : "0x61,0x9c,0x58,0x80,0x07,0x00",        
-    },
     
     "bci" : {
         "wrapper" : "inline",
         "receiver" : "decoded",
-        "decision_type" : "harmonic_sum",
+        
+        "signal" : {
+            "type" : "random"
+        },
+                
+        "buffering_decoder" : {
+            "name" : "fixed_time",
+            "args" : {
+                "window_length" : 768            
+            }
+        },
+    
+        "threshold_decoder" : {
+            "name" : "absolute",
+            "args" : {
+                "threshold" : 0,
+                "reduction_fcn" : "np.mean"
+            } 
+        },
+
         "decoder" : {
-            "buffering_type" : "fixed",
-            "thresholding_type" : "absolute",
-            "fs" : 256,
-            "n_electrodes" : 8,
-            "targets" : [12.0, 13.0, 14.0, 15.0],
-            "target_window" : 0.1,
-            "nfft" : 2048,
-            "n_harmonics" : 1
+            "name" : "harmonic_sum",
+            "args" : {
+                "fs" : 256,
+                "trial_length" : 3,
+                "n_electrodes" : 8,
+                "targets" : [12.0, 13.0, 14.0, 15.0],
+                "target_window" : 0.1,
+                "nfft" : 2048,
+                "n_harmonics" : 1
+            }
         }
     },
- 
+    
     "controllers" : [
         {
             "name" : "single_ssvep_diagnostic",
