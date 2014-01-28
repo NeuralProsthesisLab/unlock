@@ -267,7 +267,7 @@ class UnlockControllerFactory(object):
 
         canvas = UnlockControllerFactory.create_canvas(window.height, window.width)
         fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus, canvas,
-            SpritePositionComputer.East, width=300, height=300, xfreq=2, yfreq=2, color_on=color,
+            SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color,
             color_off=color1, reversal=False)
         views = [fs]
 
