@@ -28,7 +28,8 @@
 from unlock.util import DatagramWrapper
 from unlock.state import RunState
 from unlock.bci.decode import UnlockDecoder
-from unlock.bci.command import RawSignalCommand, Command
+
+from unlock.bci.command.command import RawSignalCommand, Command
 import socket
 import pickle
 import json
@@ -135,11 +136,11 @@ class InlineCommandReceiver(CommandReceiver):
         self.Q.append(command)
             
 
-class DecodedCommandReceiver(CommandReceiver):
-    def __init__(self, command_receiver, classifier, state=None):
-        super(DecodedCommandReceiver, self).__init__(state=state)
+class DecodingCommandReceiver(CommandReceiver):
+    def __init__(self, command_receiver, decoder, state=None):
+        super(DecodingCommandReceiver, self).__init__(state=state)
         self.command_receiver = command_receiver
-        self.classifier = classifier
+        self.decoder = decoder
         
     def next_command(self, delta):
         command = self.command_receiver.next_command(delta)
@@ -147,9 +148,9 @@ class DecodedCommandReceiver(CommandReceiver):
             return Command(delta)
             
         assert command != None
-        classified_command = self.classifier.classify(command)
-        assert classified_command != None
-        return classified_command
+        decoded_command = self.decoder.decoder(command)
+        assert decoded_command != None
+        return decoded_command
         
         
 class FileSignalReceiver(CommandReceiver):
@@ -254,83 +255,45 @@ class GeneratedSignalReceiver(CommandReceiver):
         #print("data matrix = ", raw_command.data_matrix)
         return raw_command
             
-            
-class MultiProcessCommandReceiver(CommandReceiver):
-    def __init__(self, classifier, classifier_args, args):
-        super(MultiProcessCommandReceiver, self).__init__()        
-        self.Q = Queue()
-        self.args = args
-        self.args['decoder'] = 'inline'
-        self.process = Process(target=remote_receive_next_command, args=(self.Q, classifier, classifier_args, self.args))
-        self.process.start()
+#
+# The code below is used for running the acquisition and decoding in a separate process.
+# It was hacked in when we were trying to figure out why the system was not working; leaving the
+# code here because it worked, but we are not using it and it would have to be ported/maintained
+# through iterations.
+#
+#class MultiProcessCommandReceiver(CommandReceiver):
+#    def __init__(self, classifier, classifier_args, args):
+#        super(MultiProcessCommandReceiver, self).__init__()        
+#        self.Q = Queue()
+#        self.args = args
+#        self.args['decoder'] = 'inline'
+#        self.process = Process(target=remote_receive_next_command, args=(self.Q, classifier, classifier_args, self.args))
+#        self.process.start()
+#        
+#    def next_command(self, delta):
+#        return self.Q.get()
+#        
+#    def stop(self):
+#        self.process.terminate()
+#        self.process.join()
+#        
+##@staticmethod 
+#def remote_receive_next_command(Q, classifier, classifier_args, args):
+#    from unlock import unlock_runtime
+#    import unlock.context
+#    factory = unlock_runtime.UnlockFactory(args)
+#    app_ctx = unlock.context.ApplicationContext(factory)
+#    assert args['decoder'] == 'inline'
+#    factory.signal = app_ctx.get_object(args['signal'])
+#    factory.decoder = app_ctx.get_object(args['decoder'])
+#    command_receiver = factory.decoder.create_receiver(classifier_args, classifier)
+#    import time
+#    start = time.time()
+#    while True:
+#        command = command_receiver.next_command(time.time() - start)
+#        # can't pickle the C++ object
+#        command.timer = None
+#        Q.put(command)
+#        
+#            
         
-    def next_command(self, delta):
-        return self.Q.get()
-        
-    def stop(self):
-        self.process.terminate()
-        self.process.join()
-        
-#@staticmethod 
-def remote_receive_next_command(Q, classifier, classifier_args, args):
-    from unlock import unlock_runtime
-    import unlock.context
-    factory = unlock_runtime.UnlockFactory(args)
-    app_ctx = unlock.context.ApplicationContext(factory)
-    assert args['decoder'] == 'inline'
-    factory.signal = app_ctx.get_object(args['signal'])
-    factory.decoder = app_ctx.get_object(args['decoder'])
-    command_receiver = factory.decoder.create_receiver(classifier_args, classifier)
-    import time
-    start = time.time()
-    while True:
-        command = command_receiver.next_command(time.time() - start)
-        # can't pickle the C++ object
-        command.timer = None
-        Q.put(command)
-        
-            
-class CommandReceiverFactory(object):
-    Delta=0
-    Raw=1
-    Decoded=2
-    Datagram=3
-    Inline=4
-    Multiprocess=5
-    
-    @staticmethod
-    def map_factory_method(string):
-        map_ = {'delta': CommandReceiverFactory.Delta, 'raw': CommandReceiverFactory.Raw,
-                'decoded': CommandReceiverFactory.Decoded, 'datagram': CommandReceiverFactory.Datagram,
-                'inline': CommandReceiverFactory.Inline, 'multiprocess': CommandReceiverFactory.Multiprocess}
-        return map_[string]
-                
-    @staticmethod
-    def create(factory_method=None, signal=None, timer=None, decoder=None,
-               source=None, chained_receiver=None):
-        #print ("RECATE command ", signal)
-        if factory_method == CommandReceiverFactory.Delta or factory_method is None:
-            return DeltaCommandReceiver()
-        elif factory_method == CommandReceiverFactory.Raw:
-            return RawInlineSignalReceiver(signal, timer)
-        elif factory_method == CommandReceiverFactory.Decoded:
-            if chained_receiver is None:
-                from unlock.bci.acquire import MemoryResidentFileSignal
-                # XXX - this is a quick hack, but this should be refactored.  Perhaps the base command
-                #       receiver construction should happen in the main factory and be injected
-                if type(signal) == MemoryResidentFileSignal:
-                    print("creating memory resident file signal")
-                    chained_receiver = FileSignalReceiver(signal, timer)
-                else:
-                    chained_receiver = RawInlineSignalReceiver(signal, timer)
-            return DecodedCommandReceiver(chained_receiver, decoder)
-        elif factory_method == CommandReceiverFactory.Datagram:
-            return DatagramCommandReceiver(source)
-        elif factory_method == CommandReceiverFactory.Inline:
-            return InlineCommandReceiver()
-        elif factory_method == CommandReceiverFactory.Multiprocess:
-            return MultiProcessCommandReceiver(DecodedCommandReceiver(RawInlineSignalReceiver(signal, timer), decoder))
-        else:
-            raise LookupError('CommandReceiver does not support the factory method identified by '+str(factory_method))
-            
-            
