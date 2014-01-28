@@ -33,7 +33,7 @@ from unlock.state import HierarchyGridState, FastPadState, ControllerGridState, 
 from unlock.view import GridSpeakView, HierarchyGridView, FastPadView, GridView, FrequencyScopeView, \
     TimeScopeView, PygletDynamicTextLabel, PygletTextLabel, SpritePositionComputer, FlickeringPygletSprite
     
-from unlock.bci import CommandReceiverFactory, UnlockDecoder
+from unlock.bci import UnlockCommandReceiverFactory, UnlockDecoder
 
 
 class UnlockControllerFactory(object):
@@ -44,12 +44,10 @@ class UnlockControllerFactory(object):
     def __init__(self):
         super(ControllerFactory, self).__init__()
         
-    @staticmethod
     def create_canvas(width, height, xoffset=0, yoffset=0):        
         batch = pyglet.graphics.Batch()
         return Canvas(batch, width, height, xoffset, yoffset)
         
-    @staticmethod
     def create_gridspeak_fragment(canvas):
         grid_model = HierarchyGridState(2)
         gridspeak_view = GridSpeakView(None,grid_model, canvas)
@@ -57,7 +55,6 @@ class UnlockControllerFactory(object):
         gridspeak = UnlockControllerFragment(grid_model, [gridspeak_view], canvas.batch)
         return gridspeak
         
-    @staticmethod
     def create_gridspeak(window, bci_wrapper, base=None, color='bw'):
         canvas = Canvas.create(window.width, window.height)        
         gridspeak = UnlockControllerFactory.create_gridspeak_fragment(canvas)
@@ -68,8 +65,7 @@ class UnlockControllerFactory(object):
                                                  [base, gridspeak] , 'GridSpeak', 'gridspeak.png',
                                                  standalone=False)
         return controller_chain
-
-    @staticmethod
+        
     def create_gridcursor_fragment(canvas):
         grid_model = HierarchyGridState(2)
         grid_view = HierarchyGridView(grid_model, canvas)
@@ -77,7 +73,6 @@ class UnlockControllerFactory(object):
         gridcursor = UnlockControllerFragment(grid_model, [grid_view], canvas.batch)
         return gridcursor
         
-    @staticmethod
     def create_gridcursor(window, bci_wrapper, base=None, color='bw'):
         canvas = Canvas.create(window.width, window.height)        
         gridcursor = UnlockControllerFactory.create_gridcursor_fragment(canvas)
@@ -89,7 +84,6 @@ class UnlockControllerFactory(object):
             'GridCursor', 'gridcursor.png', standalone=False)
         return controller_chain
         
-    @staticmethod
     def create_fastpad_fragment(canvas):
         fastpad_model = FastPadState()            
         fastpad_view = FastPadView(fastpad_model, canvas)
@@ -97,7 +91,6 @@ class UnlockControllerFactory(object):
         fastpad = FastPad(fastpad_model, [fastpad_view], canvas.batch)        
         return fastpad
         
-    @staticmethod
     def create_fastpad(window, bci_wrapper, base=None, color='bw'):
         canvas = Canvas.create(window.width, window.height)
         if base == None:
@@ -110,7 +103,6 @@ class UnlockControllerFactory(object):
             'FastPad', 'fastpad.png', standalone=False)
         return controller_chain
             
-    @staticmethod
     def create_time_scope_fragment(canvas, **kwargs):
         scope_model = TimeScopeState(**kwargs)
         scope_view = TimeScopeView(scope_model, canvas)
@@ -118,7 +110,6 @@ class UnlockControllerFactory(object):
         scope = UnlockControllerFragment(scope_model, [scope_view], canvas.batch)
         return scope
         
-    @staticmethod
     def create_time_scope(window, bci_wrapper, base=None, **kwargs):
         canvas = Canvas.create(window.width, window.height)        
         scope = TimeScope.create_time_scope_fragment(canvas, **kwargs)
@@ -132,7 +123,6 @@ class UnlockControllerFactory(object):
             'time-128x128.jpg', standalone=False)
         return controller_chain
         
-    @staticmethod
     def create_frequency_scope_fragment(canvas, **kwargs):
         scope_model = FrequencyScopeState(**kwargs)
         scope_view = FrequencyScopeView(scope_model, canvas, labels=scope_model.labels)
@@ -140,7 +130,6 @@ class UnlockControllerFactory(object):
         scope = UnlockControllerFragment(scope_model, [scope_view], canvas.batch)
         return scope
         
-    @staticmethod
     def create_frequency_scope(window, bci_wrapper, base=None, **kwargs):
         canvas = Canvas.create(window.width, window.height)
         scope = UnlockControllerFragment.create_frequency_scope_fragment(canvas, **kwargs)
@@ -154,7 +143,6 @@ class UnlockControllerFactory(object):
             'frequency-128x128.jpg', standalone=False)
         return controller_chain
         
-    @staticmethod
     def create_dashboard_fragment(window, canvas, controllers, calibrator):
         if not controllers:
             raise ValueError
@@ -169,7 +157,6 @@ class UnlockControllerFactory(object):
         
         return UnlockDashboard(window, grid_state, [grid_view], canvas.batch, controllers, calibrator)
         
-    @staticmethod
     def create_dashboard(window, controllers, bci_wrapper, base=None, calibrator=None, color='bw'):
         canvas = Canvas.create(window.width, window.height)
         if base == None:
@@ -183,7 +170,6 @@ class UnlockControllerFactory(object):
         dashboard_chain.poll_signal = dashboard.poll_signal_interceptor
         return dashboard_chain
         
-    @staticmethod
     def create_diagnostic(window, bci_wrapper, **kwargs):
         print ("kwargs = ", kwargs)
             
@@ -200,7 +186,6 @@ class UnlockControllerFactory(object):
             'Diagnostic', 'frequency2-128x128.png', standalone=False)
         return controller_chain
         
-    @staticmethod
     def create_quad_ssvep(canvas, bci_wrapper, color='bw'):
         if color == 'ry':
             color1 = (255, 0, 0)
@@ -271,13 +256,10 @@ class UnlockControllerFactory(object):
         
         return UnlockCommandConnectedFragment(command_receiver, stimuli, views, canvas.batch)
         
-    @staticmethod
-    def create_single_standalone_ssvep_diagnostic(window, bci_wrapper, output_file='collector', frequency=14.0, color=(255, 255, 0), color1=(255, 0, 0)):
+    def create_single_standalone_ssvep_diagnostic(window, command_receiver, output_file='collector',
+        frequency=14.0, color=(255, 255, 0), color1=(255, 0, 0)):
                  
-        stimulus = TimedStimulus.create(frequency * 2)
-        
-        #stimuli = TimedStimuli.create(3.0)
-        #stimuli.add_stimulus(stimulus)
+        stimulus = TimedStimulus.create(frequency * 2)    
         width = 300
         height = 300
         xfreq = 2
@@ -288,10 +270,8 @@ class UnlockControllerFactory(object):
             SpritePositionComputer.East, width=300, height=300, xfreq=2, yfreq=2, color_on=color,
             color_off=color1, reversal=False)
         views = [fs]
-            
-        ssvep_command_receiver = bci_wrapper.create_receiver({}, decoder_type=UnlockDecoder.HarmonicSumDecision)
-        #ssvep_command_receiver.stop()
-        command_connected_fragment = UnlockCommandConnectedFragment(ssvep_command_receiver, stimulus,
+
+        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimulus,
             views, canvas.batch)
             
         offline_data = OfflineData(output_file)
@@ -306,8 +286,7 @@ class UnlockControllerFactory(object):
             [command_connected_fragment, collector], 'Collector', 'collector.png', standalone=True)
             
         return controller_chain
-
-    @staticmethod
+        
     def create_standalone_ssvep_diagnostic(window, bci_wrapper, trials=1, rest_duration=1,
         indicate_duration=3, output_file='collector', frequencies=[12.0, 13.0, 14.0, 15.0],
             color=(255, 255, 0), color1=(255, 0, 0), color2=(0,0,0), color3=(255,255,255)):
@@ -368,7 +347,6 @@ class UnlockControllerFactory(object):
             
         return controller_chain
  
-    @staticmethod
     def create_eeg_emg_collector(window, bci_wrapper, stimuli=None, trials=10, cue_duration=.5,
                          rest_duration=1, indicate_duration=1, output_file='collector', standalone=False):
         raise Exception("Old code that is no longer supported")
@@ -416,7 +394,6 @@ class UnlockControllerFactory(object):
                                                  standalone=standalone)
         return controller_chain
             
-    @staticmethod
     def create_facial_emg_collector(window, bci_wrapper, stimuli=None, trials=10, cue_duration=.5,
                          rest_duration=1, indicate_duration=1, output_file='collector', standalone=False):
         raise Exception("Old code that is no longer supported")        
@@ -463,9 +440,9 @@ class UnlockControllerFactory(object):
                                                  standalone=standalone)
         return controller_chain
             
-    @staticmethod
     def create_calibration_fragment(window, command_receiver, trials=4, cue_duration=.5,
-                              rest_duration=1, indicate_duration=1, standalone=False):
+        rest_duration=1, indicate_duration=1, standalone=False):
+        
         raise Exception("Old code that is no longer supported")        
         canvas = Canvas.create(window.width, window.height)
         cues = [Trigger.Left, Trigger.Right, Trigger.Forward, Trigger.Select]
@@ -504,4 +481,5 @@ class UnlockControllerFactory(object):
                                                  [calibrate], 'Calibrate', 'scope.png',
                                                  standalone=standalone)
         return calibrate, controller_chain
-        
+            
+            
