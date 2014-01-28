@@ -66,9 +66,9 @@ func install(command string, packageName string, failOnError bool) {
     log.Println("command = "+ command)
     result := runCommand(command, `Failed to install `+packageName, failOnError)
     if result {
-        fmt.Println(`Success`)
+        log.Println(`Success`)
     } else {
-        fmt.Println(`Failure`)
+        log.Println(`Failure`)
     }
 }
 
@@ -318,12 +318,13 @@ func installNumPy(baseUrl string, numpyPath string) {
     var cwd = getWorkingDirectoryAbsolutePath()
     install(cwd+"\\"+numpyPath, `numpy`, true)*/
     
-    installBinPackage(baseUrl, numpyPath, `numpy`)
+    installBinPackage(baseUrl, numpyPath, `numpy`, true)
 }
 
-func installBinPackage(baseUrl string, fileName string, packageName string) {
+func installBinPackage(baseUrl string, fileName string, packageName string, failOnError bool) {
     downloadedFile := downloadAndWriteFile(baseUrl + fileName, fileName)
-    install(downloadedFile, packageName, true)
+    
+    install(downloadedFile, packageName, failOnError)
 }
 
 func installPySerial26(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
@@ -335,7 +336,7 @@ func installAvbin(baseUrl string, avbin string) {
     var cwd = getWorkingDirectoryAbsolutePath()
     install(cwd+"\\"+avbin, `avbin`, true)*/
     
-    installBinPackage(baseUrl, avbin, `avbin`)
+    installBinPackage(baseUrl, avbin, `avbin`, true)
     
     // XXX - last minute hack
     data, err1 := ioutil.ReadFile(`C:\Windows\System32\avbin.dll`)
@@ -477,8 +478,8 @@ func main() {
     var conf = createConf()
     
     installPython(conf.BaseUrl, conf.PythonPathEnvVar, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
-    installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`)
-    installBinPackage(conf.BaseUrl, conf.ScipyPackageName, `scipy`)
+    installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`, false)
+    installBinPackage(conf.BaseUrl, conf.ScipyPackageName, `scipy`, true)
 	installNumPy(conf.BaseUrl, conf.NumpyPackageName)
     //installEasyInstall(conf.BaseUrl, conf.PythonPath)
     //installPip(conf.EasyInstallPath)
@@ -496,13 +497,13 @@ func main() {
 
     installPyglet12alpha(conf.PythonPath, conf.BaseUrl, conf.PygletZipName, conf.PygletPackageName, conf.PygletDirectory)
     installPySerial26(conf.PythonPath, conf.BaseUrl, conf.PyserialZipName, conf.PyserialPackageName, conf.PyserialDirectory)
-    installBinPackage(conf.BaseUrl, conf.PyAudioPackageName, `pyaudio`)
-    installBinPackage(conf.BaseUrl, conf.PyWinPackageName, `pywin`)
+    installBinPackage(conf.BaseUrl, conf.PyAudioPackageName, `pyaudio`, true)
+    installBinPackage(conf.BaseUrl, conf.PyWinPackageName, `pywin`, true)
 	installZippedPythonPackage(conf.PythonPath, conf.BaseUrl, conf.FlaskZipName, conf.FlaskPackageName, conf.FlaskDirectory);
-    installBinPackage(conf.BaseUrl, conf.PsycopgPackageName, `psycopg`)
+    installBinPackage(conf.BaseUrl, conf.PsycopgPackageName, `psycopg`, true)
   	installZippedPythonPackage(conf.PythonPath, conf.BaseUrl, conf.SQLAlchemyZipName, conf.SQLAlchemyPackageName, conf.SQLAlchemyDirectory);
-    installBinPackage(conf.BaseUrl, conf.ScikitlearnPackageName, `scikit-learn`)
-    installBinPackage(conf.BaseUrl, conf.NidaqPackageName, `nidaq`)
+    installBinPackage(conf.BaseUrl, conf.ScikitlearnPackageName, `scikit-learn`, true)
+    installBinPackage(conf.BaseUrl, conf.NidaqPackageName, `nidaq`, false)
     
 	// Skip install unlock software for development option
 	if *devOption == false {
