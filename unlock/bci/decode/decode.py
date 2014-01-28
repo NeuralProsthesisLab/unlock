@@ -1,4 +1,4 @@
-# Copyright (c) James Percent, Byron Galbraith and Unlock contributors.
+# Copyright (c) James Percent, Byron Galibrith and Unlock contributors.
 # All rights reserved.
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -26,35 +26,216 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import unlock.bci
+import numpy as np
+from sklearn import lda
 
 
 class UnlockDecoder(object):
-    HarmonicSumDecision = 0
-    EyeBlinkDetector = 1
-    FacialEMGDetector = 2
-    UnknownDecoder = 3
-
     def __init__(self, task_state=None):
         super(UnlockDecoder, self).__init__()
         self.task_state = task_state
+        self.started = False
         
-    def classify(self, command):
+    def decode(self, command):
+        ''' You do your business here '''
         return command
+        
+    def update(self, command):
+        ''' And you do more business here '''
+        return command
+        
+    def start(self):
+        self.started = True
+        
+    def stop(self):
+        self.started = False
         
     def reset(self):
         pass
+        
+        
+class UnlockDecoderChain(UnlockDecoder):
+    def __init__(self):
+        self.decoders = []
     
-    @staticmethod
-    def create(decoder, kwargs):
-        if decoder == UnlockDecoder.HarmonicSumDecision or decoder is None:
-            return unlock.bci.hsd.new_fixed_time_threshold_hsd(**kwargs)
-        elif decoder == UnlockDecoder.EyeBlinkDetector:
-            return unlock.bci.EyeBlinkDetector(**kwargs)
-        elif decoder == UnlockDecoder.FacialEMGDetector:
-            return unlock.bci.FacialEMGDetector(**kwargs)
-        elif decoder == UnlockDecoder.UnknownDecoder:
-            return unlock.bci.UnlockDecoder(**kwargs)
+    def add(self, decoder):
+        self.decoders.append(decoder)
+
+    def decode(self, command):
+        for decoder in self.decoders:
+            command = decoder.decode(command)
+            if not command.is_ready():
+                return command
+            
+        for decoder in self.decoders:
+            command = decoder.update(command)
+            
+    def start(self):
+        for decoder in decoders:
+            decoder.start()
+            
+    def stop(self):
+        for decoder in decoders:
+            decoder.stop()
+            
+    def reset(self):
+        for decoder in decoders:
+            self.decoder.reset()
+            
+            
+class TrialStateControlledDecoder(UnlockDecoder):
+    def __init__(self, task_state):
+        self.task_state = task_state
+        
+    def decode(self, command):
+        """
+        Check if the task state has entered or left a rest state and handles
+        accordingly.
+        """
+        if self.task_state is not None:
+            state_change = self.task_state.get_state()
+            if state_change == TrialState.RestExpiry:
+                self.start()
+            elif state_change == TrialState.TrialExpiry:
+                self.stop()
+        return command
+        
+        
+class BufferedDecoder(UnlockDecoder):
+    def __init__(self, buffer_shape):
+        super(BufferedDecoder, self).__init__()
+        self.buffer = np.zeros(buffer_shape)
+        self.cursor = 0
+        
+    def decode(self, command):
+        """
+        Determines how to buffer incoming data samples. By default, samples
+        are added from the beginning of the buffer until it is full, then
+        further samples cause the early samples to be discarded.
+        data is assumed to have a shape of (n_samples, n_channels)
+        """
+        if not command.is_valid() or not self.started:
+            return command
+        
+        data = command.matrix[:, 0:self.n_electrodes]
+            
+        n_samples = data.shape[0]
+        if self.cursor + n_samples >= self.buffer.shape[0]:
+            shift = self.cursor + n_samples - self.buffer.shape[0]
+            self.buffer = np.roll(self.buffer, -shift, axis=0)
+            self.buffer[-n_samples:] = data
+            self.cursor = self.buffer.shape[0]
         else:
-            raise Exception("Undefined Decoder: ", decoder, " kwargs = ", kwargs)
+            self.buffer[self.cursor:self.cursor+n_samples] = data
+            self.cursor += n_samples
+        
+        command.is_ready(self.is_ready())
+        return command
             
+    def get_data(self):
+        """
+        Returns the buffered data according to the cursor position.
+        """
+        return self.buffer[0:self.cursor]
+        
+    def is_ready(self):
+        """
+        Returns a boolean indicating whether or not to run the decoder on the
+        accumulated data.
+        """
+        raise NotImplementedError
+        
+    def handle_result(self, result):
+        """
+        Any state updates or actions that are required after the decoder has
+        run.
+        """
+        raise NotImplementedError
+        
+        
+class FixedTimeBufferingDecoder(BufferedDecoder):
+    def __init__(self, buffer_shape, window_length):
+        super(FixedTimeBufferingDecoder, self).__init__(buffer_shape)
+        self.window_length = window_length
+        self.decode_now = False
+        
+    def decode(self, command):
+        command = super(FixedTimeBufferingDecoder, self).decode(command)
+        return command
+        
+    def stop(self):
+        self.started = False
+        if self.cursor >= 0.9*self.window_length:
+            self.decode_now = True
             
+    def is_ready(self):
+        return self.cursor >= self.window_length or self.decode_now
+        
+    def update(self, command):
+        self.decode_now = False
+        self.cursor = 0
+        return command
+        
+        
+class ContinuousBufferingDecoder(BufferedDecoder):
+    def __init__(self, buffer_shape, step_size=32, trial_limit=768):
+        super(ContinuousBufferingDecoder, self).__init__(buffer_shape)
+        self.step_size = step_size
+        self.trial_limit = trial_limit
+        self.last_mark = 0
+        
+    def deocde(self, command):
+        command = super(ContinuousBufferingDecoder, self).decode(command)
+        return command
+        
+    def is_ready(self):
+        return self.cursor >= self.last_mark + self.step_size
+        
+    def update(self, command):
+        if command.result is not None or self.cursor >= self.trial_limit:
+            self.last_mark = 0
+            self.cursor = 0
+        else:
+            self.last_mark = self.cursor + self.step_size
+        return command
+        
+        
+class NoThresholdDecoder(UnlockDecoder):
+    """Accepts everything"""
+    def decode(self, command):
+        assert hasattr(command, 'scores')
+        command.accept, command.confidence = True, 1.0
+        return command
+        
+        
+class AbsoluteThresholdDecoder(UnlockDecoder):
+    """Accepts everything greater than or equal to a set value."""
+    def __init__(self, threshold=0, reduction_fcn='np.mean'):
+        self.threshold = threshold
+        self.reduction_fcn = eval(reduction_fcn)
+        
+    def decode(self, command):
+        assert hasattr(command, 'scores')
+        command.accept, command.confidence = self.reduction_fcn(scores) >= self.threshold, 1.0
+        return command
+        
+        
+class LDAThresholdDecoder(UnlockDecoder):
+    """
+    Uses an LDA decoder to determine the threshold boundary. LDA predictions
+    above a provided confidence level are accepted. Training data must be
+    supplied to the decoder.
+    """
+    def __init__(self, x=(0, 1), y=(0, 1), min_confidence=0.5, reduction_fcn='np.mean'):
+        self.min_confidence = min_confidence
+        self.clf = lda.LDA()
+        self.clf.fit(x, y)
+        self.reduction_fcn = eval(reduction_fcn)
+        
+    def decode(self, command):
+        assert hasattr(command, 'scores')        
+        command.confidence = self.clf.predict_proba(self.reduction_fcn(command.scores))[0, 1]
+        command.accept = confidence >= self.min_confidence
+        return command
+        
+        

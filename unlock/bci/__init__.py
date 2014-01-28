@@ -36,16 +36,27 @@ from unlock.bci.decode import *
 from unlock.bci.command import *
 
 
-from unlock.bci.command.receiver import CommandReceiverFactory, CommandReceiver
+#from unlock.bci.command.receiver import CommandReceiverFactory, CommandReceiver
 #from unlock.bci.decode import UnlockDecoder
 from multiprocessing import Process, Queue
     
-# XXX - this is awful
-
-class InlineBciWrapper(object):
-    def __init__(self, factory_method, signal, timer):
+class BCIWrapper(object):
+    def __init__(self):
+        super(BCIWrapper, self).__init__()
+        
+    def start(self):
+        pass
+        
+    def stop(self):
+        pass
+        
+    def create_receiver(self):
+        pass
+        
+class InlineBciWrapper(BCIWrapper):
+    def __init__(self, receiver, signal, timer):
         super(InlineBciWrapper, self).__init__()
-        self.factory_method = factory_method
+        self.receiver = receiver
         self.signal = signal
         self.timer = timer
         
@@ -55,13 +66,6 @@ class InlineBciWrapper(object):
         
     def stop(self):
         raise Exception("Stop not supported")
-        
-    def create_receiver(self, args, decoder_type=None, chained_decoder=None):
-        decoder_obj = UnlockDecoder.create(decoder_type, args)
-        return CommandReceiverFactory.create(factory_method=self.factory_method, signal=self.signal,
-                                             timer=self.timer, decoder=decoder_obj,
-                                             chained_receiver=chained_decoder)
-        
         
 class MultiProcessBciWrapper(object):
     def __init__(self, args):
@@ -75,7 +79,8 @@ class MultiProcessBciWrapper(object):
             
     def stop(self):
         pass    
-        
+    
+    # XXX - fix me
     def create_receiver(self, args, decoder_type=None):
         self.mp_cmd_receiver = MultiProcessCommandReceiver(decoder_type, args, self.args)
         return self.mp_cmd_receiver

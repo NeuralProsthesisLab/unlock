@@ -91,8 +91,8 @@ class TimeScopeView(UnlockView):
                 for j in range(data_points-1):
                     y_points[[j*2, j*2+1]] = y[j:j+2]
                 trace.vertices[1::2] = y_points
-
-
+                    
+                    
 class FrequencyScopeView(UnlockView):
     def __init__(self, model, canvas, labels=None):
         """
@@ -174,3 +174,5 @@ class FrequencyScopeView(UnlockView):
                 for j in range(data_points-1):
                     y_points[[j*2, j*2+1]] = y[j:j+2]
                 trace.vertices[1::2] = y_points
+                
+                
