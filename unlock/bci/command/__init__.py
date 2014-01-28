@@ -1,4 +1,4 @@
-# Copyright (c) James Percent, Byron Galbraith and Unlock contributors.
+# Copyright (c) James Percent, Byron Galibrith and Unlock contributors.
 # All rights reserved.
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -25,6 +25,54 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from unlock.bci.command.command import *
 from unlock.bci.command.receiver import *
-
+from unlock.bci.command.command import *
+from unlock.bci.acquire import MemoryResidentFileSignal
+    
+class UnlockCommandReceiverFactory(object):
+    def __init__(self):
+        super(UnlockCommandReceiverFactory, self).__init__()
+        
+    def create_receiver(self, receiver_type='inline', **kwargs):
+        receiver_factory_method = {
+            'delta': self.create_delta_receiver,
+            'raw': self.create_raw_receiver,
+            'decoded': self.create_decoding_receiver,
+            'datagram': self.create_datagram_receiver,
+            'inline': self.create_inline_receiver,
+            'multiprocess':  self.create_multiprocess_receiver,
+        }.get(receiver_type, self.unknown)
+            
+        if receiver_factory_method is None:
+            raise LookupError('CommandReceiver does not support the factory method identified by '+str(factory_method))
+                
+        return receiver_factory_method(**kwargs)
+            
+    def create_delta_receiver(self):
+        return DeltaCommandReceiver()
+        
+    def create_raw_receiver(self, signal=None, timer=None):
+        if type(signal) == MemoryResidentFileSignal:
+            print("creating memory resident file signal")
+            receiver = FileSignalReceiver(signal, timer)
+        else:
+            receiver = RawInlineSignalReceiver(signal, timer)
+            
+        return receiver
+        
+    def create_datagram_receiver(self, source=None):
+        return DatagramCommandReceiver(source) 
+        
+    def create_decoding_receiver(self, signal=None, timer=None, decoder=None):
+        receiver = self.create_raw_receiver(signal, timer)
+        return DecodingCommandReceiver(receiver, decoder)       
+        
+    def create_inline_receiver(self):
+        return InlineCommandReceiver()
+        
+    def create_multiprocess_receiver(self, signal=None, timer=None, decoder=None):
+        receiver = self.create_decoding_receiver(signal, timer, decoder)
+        return MultiProcessCommandReceiver(receiver)
+        
+    def unknown(self, **kwargs):
+        raise("Unsupported")
