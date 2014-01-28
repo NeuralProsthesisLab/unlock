@@ -35,37 +35,53 @@ import logging
 import logging.config
 
 from unlock import context
-from unlock.bci import CommandReceiverFactory, InlineBciWrapper, MultiProcessBciWrapper
+from unlock.bci import UnlockCommandReceiverFactory, InlineBciWrapper, MultiProcessBciWrapper, UnlockDecoderFactory
 from unlock.controller import PygletWindow, UnlockDashboard, UnlockControllerFactory, Canvas
 from optparse import OptionParser
 from sqlalchemy import create_engine
 
 
 class UnlockFactory(context.PythonConfig):
-    def __init__(self, args):
+    def __init__(self, config):
         super(UnlockFactory, self).__init__()
         self.logger = logging.getLogger(__name__)
-        self.args = args
+        self.config = config
         self.mac_addr = None
         self.com_port = None
         self.window = None
         self.calibrator = None
         self.stimuli = None
+        self.receiver_factory = UnlockCommandReceiverFactory()
+        self.decoder_factory = UnlockDecoderFactory()
         
     @context.Object(lazy_init=True)
     def inline(self):
         # XXX - fix crimes against nature
-        if 'receiver' in self.args.keys():
-            self.receiver = CommandReceiverFactory.map_factory_method(self.args['receiver'])
+        if 'receiver' in self.config.keys():
+            self.receiver = self.config['receiver']
         else:
-            self.receiver = CommandReceiverFactory.Decoded
+            self.receiver = 'inline'
             
         bci_wrapper = InlineBciWrapper(self.receiver, self.signal, self.timer)
         return bci_wrapper
+    
+    @context.Object(lazy_init=True)
+    def create_decoder(decoder_type):
+        self.decoder_type = self.decoder_factory.map_decoder(self.config['bci']['decision_type'])
+        print("Decoder ", self.config['bci']['decoder'])
+        import sys
+        sys.exit(0)
+        self.decoder = self.decoder_factory.create_decoder(self.decoder_type, self.config['bci']['decoder'])
+    
+    @context.Object(lazy_init=True)
+    def create_command_receiver(self):
+        self.command_receiver = self.receiver_factory.create_receiver(self.receiver_type,
+            self.signal, self.timer, self.decoder)
+        self.command_receiver.stop()
         
     @context.Object(lazy_init=True)
     def multiprocess(self):
-        bci_wrapper = MultiProcessBciWrapper(self.args)
+        bci_wrapper = MultiProcessBciWrapper(self.config)
         return bci_wrapper
         
     @context.Object(lazy_init=True)        
@@ -108,8 +124,8 @@ class UnlockFactory(context.PythonConfig):
     @context.Object(lazy_init=True)    
     def enobio(self):
         mac_addr = None
-        if 'mac_addr' in self.args.keys():
-            mac_addr = [int(value,0) for value in [x.strip() for x in self.args['mac_addr'].split(',')]]
+        if 'mac_addr' in self.config.keys():
+            mac_addr = [int(value,0) for value in [x.strip() for x in self.config['mac_addr'].split(',')]]
         
         if mac_addr is None:
             print('enobio requires a mac address; none set')
@@ -130,8 +146,8 @@ class UnlockFactory(context.PythonConfig):
     @context.Object(lazy_init=True)    
     def mobilab(self):
         com_port = None
-        if 'com_port' in self.args.keys():
-            com_port = self.args['com_port']
+        if 'com_port' in self.config.keys():
+            com_port = self.config['com_port']
             
         if com_port is None:
             print('mobilab requires a com port; none set')
@@ -158,7 +174,7 @@ class UnlockFactory(context.PythonConfig):
         signal = acquire.MemoryResidentFileSignal('analysis/data/valid/emg_signal_1380649383_tongue_c.5_r.5_i1.txt',
             self.timer, channels=17)
         if not signal.start():
-            print('file signal failed to start; filename = ', self.args['filename'])
+            print('file signal failed to start; filename = ', self.config['filename'])
             raise RuntimeError('file signal failed to start')
         return signal
             
@@ -172,69 +188,69 @@ class UnlockFactory(context.PythonConfig):
         return signal
             
     @context.Object(lazy_init=True)
-    def PygletWindow(self):
-        return PygletWindow(self.bci_wrapper, self.args['fullscreen'], self.args['fps'],
-            self.args['vsync'])
+    def pyglet_window(self):
+        return PygletWindow(self.bci_wrapper, self.config['fullscreen'], self.config['fps'],
+            self.config['vsync'])
     # XXX     
     #@context.Object(lazy_init=True)
     #def CalibrateFacialEMGDetector(self):
     #    raise Exception("FIX ME")
     #    self.calibrator, calibrator = Calibrate.create_smg_calibrator(self.window,
-    #        self.command_receiver, **self.args['CalibrateFacialEMGDetector'])
+    #        self.command_receiver, **self.config['CalibrateFacialEMGDetector'])
     #    return calibrator
     #        
     #@context.Object(lazy_init=True)
     #def FacialEMGCollector(self):
     #    return Collector.create_mouth_based_emg_collector(self.window, self.bci_wrapper, self.stimuli,
-    #        **self.args['FacialEMGCollector'])
+    #        **self.config['FacialEMGCollector'])
     #       
     #@context.Object(lazy_init=True)
     #def FastPad(self):
-    #    return FastPad.create_fastpad(self.window, self.bci_wrapper, self.stimuli, **self.args['FastPad'])
+    #    return FastPad.create_fastpad(self.window, self.bci_wrapper, self.stimuli, **self.config['FastPad'])
     #        
     #@context.Object(lazy_init=True)
     #def GridSpeak(self):
     #    raise Exception("FIX ME")
     #    return GridSpeak.create_gridspeak(self.window, self.bci_wrapper, self.stimuli,
-    #        **self.args['GridSpeak'])
+    #        **self.config['GridSpeak'])
     #        
     #@context.Object(lazy_init=True)
     #def GridCursor(self):
     #    raise Exception("FIX ME")        
     #    return GridCursor.create_gridcursor(self.window, self.bci_wrapper, self.stimuli,
-    #        **self.args['GridCursor'])
+    #        **self.config['GridCursor'])
     #        
     #@context.Object(lazy_init=True)
     #def TimeScope(self):
     #    return UnlockControllerFactory.create_time_scope(self.window, self.bci_wrapper, self.stimuli,
-    #        **self.args['TimeScope'])
+    #        **self.config['TimeScope'])
     #        
     #@context.Object(lazy_init=True)
     #def FrequencyScope(self):
     #    return UnlockControllerFactory.create_frequency_scope(self.window, self.bci_wrapper, self.stimuli,
-    #        **self.args['FrequencyScope'])
+    #        **self.config['FrequencyScope'])
             
     @context.Object(lazy_init=True)
-    def SsvepDiagnostic(self):
+    def ssvep_diagnostic(self):
         return UnlockControllerFactory.create_standalone_ssvep_diagnostic(self.window, self.bci_wrapper,
-            **self.args['SsvepDiagnostic'])
+            **self.config['ssvep_diagnostic'])
     
     @context.Object(lazy_init=True)
-    def SingleSsvepDiagnostic(self):
-        print ("args = ", self.args['SingleSsvepDiagnostic'], self.args['SingleSsvepDiagnostic'])
+    def single_ssvep_diagnostic(self):
+        print ("config = ", self.config['single_ssvep_diagnostic'], self.config['single_ssvep_diagnostic'])
         return UnlockControllerFactory.create_single_standalone_ssvep_diagnostic(self.window, self.bci_wrapper,
-            **self.args['SingleSsvepDiagnostic'])
+            **self.config['single_ssvep_diagnostic'])
         
     @context.Object(lazy_init=True)
-    def Dashboard(self):
-        args = self.args['Dashboard']
+    def dashboard(self):
+        config = self.config['dashboard']
         controllers = []
-        for controller_attr in args['controllers']:
+        for controller_attr in config['controllers']:
             controller = getattr(self, controller_attr)
             controllers.append(controller())
-        args.pop('controllers')
+        config.pop('controllers')
         return UnlockControllerFactory.create_dashboard(self.window, controllers, self.bci_wrapper, self.stimuli,
-            self.calibrator, **args)
+            self.calibrator, **config)
             
             
 class UnlockRuntime(object):
@@ -282,34 +298,34 @@ class UnlockRuntime(object):
             
         try:
             self.conf = options.conf
-            self.args = self.__parse_conf__()
+            self.config = self.__parse_conf__()
             if options.fullscreen is not None:
-                self.args['fullscreen'] = options.fullscreen
+                self.config['fullscreen'] = options.fullscreen
             if options.fps is not None:
-                self.args['fps'] = options.fps
+                self.config['fps'] = options.fps
             if options.signal is not None:
-                self.args['signal'] = options.signal
+                self.config['signal'] = options.signal
             if options.vsync is not None:
-                self.args['vsync'] = options.vsync
+                self.config['vsync'] = options.vsync
             if options.mac_addr is not None:
-                self.args['mac_addr'] = options.mac_addr
+                self.config['mac_addr'] = options.mac_addr
             if options.com_port is not None:
-                self.args['com_port'] = options.com_port
+                self.config['com_port'] = options.com_port
             if options.stimuli is not None:
-                self.args['stimuli'] = options.stimuli
+                self.config['stimuli'] = options.stimuli
             if options.receiver is not None:
-                self.args['receiver'] = options.receiver
+                self.config['receiver'] = options.receiver
             if options.bci_wrapper is not None:
-                self.args['bci_wrapper'] = options.bci_wrapper
+                self.config['bci_wrapper'] = options.bci_wrapper
             if options.loglevel is not None:
                 # Config file settings override this command line parameter
                 self.loglevel = valid_levels[options.loglevel]
             if options.unrecorded is not None:
-                self.args['unrecorded'] = options.unrecorded
+                self.config['unrecorded'] = options.unrecorded
                 
             self.__configure_logging__()
             self.logger.info('Logging setup successfully completed')
-            database = self.args['database']
+            database = self.config['database']
             self.__configure_persistence__(database['host'], database['user'],database['name'],
                 database['port'], database['addr'])            
             self.logger.info('Database setup successfully completed')                
@@ -331,28 +347,29 @@ class UnlockRuntime(object):
     def __parse_conf__(self):
         with open(self.conf, 'rt') as file_descriptor:
             json_string = file_descriptor.read()
-            args = json.loads(json_string)
-        return args            
+            config = json.loads(json_string)
+        return config            
          
     def __create_controllers__(self):
-        for controller in self.args['controllers']:
-            self.args[controller['name']] = controller['args']
+        for controller in self.config['controllers']:
+            self.config[controller['name']] = controller['args']
         
-        self.factory = UnlockFactory(self.args)
+        self.factory = UnlockFactory(self.config)
         self.app_ctx = context.ApplicationContext(self.factory)
     
-        if self.args['bci_wrapper'] == 'inline':
-            self.factory.signal = self.app_ctx.get_object(self.args['signal'])
+        if self.config['bci_wrapper'] == 'inline':
+            self.factory.signal = self.app_ctx.get_object(self.config['signal'])
+            self.decoder = self.app_ctx.get_object(self.config['decoder'])
             
-        self.factory.bci_wrapper = self.app_ctx.get_object(self.args['bci_wrapper'])
+        self.factory.bci_wrapper = self.app_ctx.get_object(self.config['bci_wrapper'])
         
         self.factory.window = self.app_ctx.get_object('PygletWindow')
-        if 'stimuli' in self.args.keys():
-            self.factory.stimuli = self.app_ctx.get_object(self.args['stimuli'])
-        self.main = self.app_ctx.get_object(self.args['main'])
+        if 'stimuli' in self.config.keys():
+            self.factory.stimuli = self.app_ctx.get_object(self.config['stimuli'])
+        self.main = self.app_ctx.get_object(self.config['main'])
         
     def __configure_persistence__(self, host, name, user, port, addr):
-        if 'unrecorded' in self.args:
+        if 'unrecorded' in self.config:
             self.engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (user, addr, host, port, name))
             return self.engine
         
@@ -360,8 +377,8 @@ class UnlockRuntime(object):
         # The Logging-Config object determines the configuration of the logging
         # System.  It follows the standard Python JSON logging config; see
         # http://docs.python.org/2/howto/logging-cookbook.html for more details.        
-        if 'logging' in self.args:
-            logging.config.dictConfig(self.args['logging'])
+        if 'logging' in self.config:
+            logging.config.dictConfig(self.config['logging'])
         else:
             logging.basicConfig(level=self.loglevel)
             
