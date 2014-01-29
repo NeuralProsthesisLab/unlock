@@ -107,7 +107,7 @@ class HarmonicFeatureExtractor(UnlockDecoder):
         return command
         
         
-class ScoringHarmonicSumDecision(UnlockDecoder):
+class ScoredHarmonicSumDecision(UnlockDecoder):
     def __init__(self, threshold_decoder, targets):
         super(ScoringHarmonicSumDecision, self).__init__()
         self.threshold_decoder = threshold_decoder
