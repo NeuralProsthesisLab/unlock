@@ -97,7 +97,8 @@ class OfflineData(UnlockState):
     def process_command(self, command):
         assert self.file_handle != None
         #print("am here", dir(command))
-        if command.is_valid():    
+        if command.is_valid():
+            print("NOTHING IN THE FILE...")
             np.savetxt(self.file_handle, command.matrix, fmt='%d', delimiter='\t')
         #else:
             #XXX - hack for test
