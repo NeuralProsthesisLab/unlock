@@ -334,7 +334,7 @@ class UnlockControllerFactory(object):
         command_connected_fragment = UnlockCommandConnectedFragment(ssvep_command_receiver, stimuli,
             views, canvas.batch)
             
-        offline_data = OfflineTrialData(output_file)
+        offline_data = OfflineData(output_file)
         
         collector = UnlockControllerFragment(offline_data, [], None)
         
