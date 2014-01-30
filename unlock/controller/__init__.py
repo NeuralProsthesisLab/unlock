@@ -335,7 +335,7 @@ class UnlockControllerFactory(object):
 
         canvas = UnlockControllerFactory.create_canvas(window.height, window.width)
         fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus, canvas,
-            SpritePositionComputer.East, width=300, height=300, xfreq=2, yfreq=2, color_on=color,
+            SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color,
             color_off=color1, reversal=False)
         views = [fs]
 
@@ -355,66 +355,6 @@ class UnlockControllerFactory(object):
             
         return controller_chain
         
-    def create_standalone_ssvep_diagnostic(window, bci_wrapper, trials=1, rest_duration=1,
-        indicate_duration=3, output_file='collector', frequencies=[12.0, 13.0, 14.0, 15.0],
-            color=(255, 255, 0), color1=(255, 0, 0), color2=(0,0,0), color3=(255,255,255)):
-            
-        stimulus = TimedStimulus.create(frequencies[0] * 2)
-        stimulus1 = TimedStimulus.create(frequencies[1] * 2)        
-        stimulus2 = TimedStimulus.create(frequencies[2] * 2)        
-        stimulus3 = TimedStimulus.create(frequencies[3] * 2)
-            
-        stimuli = SequentialTimedStimuli.create(3.0)
-        stimuli.add_stimulus(stimulus2)
-        stimuli.add_stimulus(stimulus3)
-        stimuli.add_stimulus(stimulus)
-        stimuli.add_stimulus(stimulus1)
-        width = 300
-        height = 300
-        xfreq = 2
-        yfreq = 2
-        
-        canvas = UnlockControllerFactory.create_canvas(window.height, window.width)
-        #  XXX - houston we have a bug somewhere.  If you uncomment the creation of these 2 objects
-        #        weird behavior ensusues.  particularly, the last 2 fs created will not render
-        #        correctly.  hopefully it is not a pyglet bug.
-        #
-        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus, canvas,
-            SpritePositionComputer.East, width=300, height=300, xfreq=2, yfreq=2, color_on=color,
-            color_off=color1, reversal=False)
-        ##    
-        fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus1, canvas,
-            SpritePositionComputer.West, width=300, height=300, xfreq=2, yfreq=2, color_on=color2,
-            color_off=color3, reversal=False)
-        
-        fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus2, canvas,
-            SpritePositionComputer.Center, width=width, height=height, xfreq=xfreq, yfreq=yfreq, color_on=color,
-            color_off=color1, reversal=False)
-            
-        fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus3, canvas,
-            SpritePositionComputer.Center, width=width, height=height, xfreq=xfreq, yfreq=yfreq, color_on=color2,
-            color_off=color3, reversal=False)
-            
-        views = [fs, fs1, fs2, fs3]
-            
-        ssvep_command_receiver = bci_wrapper.create_receiver({}, decoder_type=UnlockDecoder.HarmonicSumDecision)
-        ssvep_command_receiver.stop()
-        command_connected_fragment = UnlockCommandConnectedFragment(ssvep_command_receiver, stimuli,
-            views, canvas.batch)
-            
-        offline_data = OfflineTrialData(output_file)
-        
-        collector = UnlockControllerFragment(offline_data, [], None)
-        
-        def keyboard_input(self, command):
-            pass    
-        collector.keyboard_input = keyboard_input
-        
-        controller_chain = UnlockControllerChain(window, command_connected_fragment.command_receiver,
-            [command_connected_fragment, collector], 'Collector', 'collector.png', standalone=True)
-            
-        return controller_chain
- 
     def create_eeg_emg_collector(window, bci_wrapper, stimuli=None, trials=10, cue_duration=.5,
                          rest_duration=1, indicate_duration=1, output_file='collector', standalone=False):
         raise Exception("Old code that is no longer supported")
