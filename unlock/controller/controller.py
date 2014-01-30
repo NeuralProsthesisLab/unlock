@@ -26,6 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from unlock.bci import PygletKeyboardCommand
+import logging
 import pyglet
 import inspect
 import time
@@ -159,7 +160,7 @@ class UnlockControllerFragment(UnlockController):
             self.model.stop()
         return self.standalone
          
-       
+            
 class UnlockCommandConnectedFragment(UnlockControllerFragment):
     def __init__(self, command_receiver, timed_stimuli, views, batch):
         assert timed_stimuli is not None
@@ -172,15 +173,14 @@ class UnlockCommandConnectedFragment(UnlockControllerFragment):
         
 class UnlockCalibratedControllerFragment(UnlockControllerFragment):
     def __init__(self, window, model, views, batch, calibrator=None):
-        super(CalibratedControllerFragment, self).__init__(model, views, batch)
+        super(UnlockCalibratedControllerFragment, self).__init__(model, views, batch)
         self.window = window
         self.calibrator = calibrator
         if calibrator != None:
             self.initialized = False
         else:
             self.initialized = True            
-        #self.logger = logging.getLogger(__name__)
-        
+            
     def initialize(self):
         self.calibrator.activate()
         self.initialized = True
@@ -194,7 +194,7 @@ class UnlockCalibratedControllerFragment(UnlockControllerFragment):
         
 class UnlockDashboard(UnlockCalibratedControllerFragment):
     def __init__(self, window, model, views, batch, controllers, calibrator):
-        super(Dashboard, self).__init__(window, model, views, batch, calibrator)
+        super(UnlockDashboard, self).__init__(window, model, views, batch, calibrator)
         self.controllers = controllers
         self.logger = logging.getLogger(__name__)
         

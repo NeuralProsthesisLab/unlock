@@ -45,9 +45,8 @@ class UnlockDecoderFactory(object):
         }.get(decoder, self.unknown)
         if func is None:
             raise Exception("Undefined Decoder: "+str(decoder)+" kwargs = "+str(kwargs))
-        print ("DECODER >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", decoder, kwargs, "<<<<<<<<<<<<<<<<<<<<<<<<<< FUNC = ", func)
         return func(**kwargs)
-    
+        
     def create_harmonic_sum_decision(self, buffering_decoder=None, buffering_decoder_args=None, threshold_decoder=None,
         threshold_decoder_args=None, fs=256, trial_length=3, n_electrodes=8, targets=(12.0, 13.0, 14.0, 15.0), target_window=0.1, nfft=2048,
         n_harmonics=1, selected_channels=None):
@@ -55,16 +54,14 @@ class UnlockDecoderFactory(object):
         assert buffering_decoder is not None and threshold_decoder is not None
         
         trial_state_decoder = TrialStateControlledDecoder(None)
-        print ("HERE>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         buffering_decoder_args['buffer_shape'] = (fs * (trial_length + 1), n_electrodes)
         buffering_decoder = self.create_decoder(buffering_decoder, **buffering_decoder_args)
-        print("THERE>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", 'decoder ', threshold_decoder, 'args ', threshold_decoder_args)
         threshold_decoder = self.create_decoder(threshold_decoder, **threshold_decoder_args)
         
         feature_extractor = HarmonicFeatureExtractor(fs, n_electrodes, targets, target_window, nfft,
             n_harmonics, selected_channels)
         
-        decider = ScoringHarmonicSumDecision(threshold_decoder, targets)
+        decider = ScoredHarmonicSumDecision(threshold_decoder, targets)
         
         decoder_chain = UnlockDecoderChain()
         decoder_chain.add(trial_state_decoder)
@@ -73,7 +70,7 @@ class UnlockDecoderFactory(object):
         decoder_chain.add(decider)
         
         return decoder_chain
-
+        
     def create_fixed_time_buffering(self, buffer_shape=None, window_length=768):
         assert buffer_shape is not None        
         return FixedTimeBufferingDecoder(buffer_shape, window_length)
@@ -93,18 +90,7 @@ class UnlockDecoderFactory(object):
         
     def create_facial_emg_detector(self):
         return None
-        #return EmgDetector()
         
     def unknown(self, **kwargs):
-#        self.create_harmonic_sum_decision()
         raise("Unsupported")
-
-    #
-    #def new_fixed_time_threshold_hsd(slot_size_secs=3, samples_per_second=256, threshold=0.4):
-    #    """Fixed time HSD decoder setup with thresholding."""
-    #    window_length = slot_size_secs * samples_per_second
-    #    def peak_ratio(sample):
-    #        sorted_scores = np.sort(sample)
-    #        return 1 - np.mean(sorted_scores[0:3]/sorted_scores[3])
-    #    reduction_fcn = peak_ratio
-    #    return new_hsd(FixedTimeDecoder, AbsoluteThreshold, **kwargs)
+        
