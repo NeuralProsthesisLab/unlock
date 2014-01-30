@@ -19,6 +19,7 @@
         "buffering_decoder" : {
             "name" : "fixed_time",
             "args" : {
+                'electrodes' : 8,
                 "window_length" : 768            
             }
         },
@@ -45,16 +46,7 @@
         }
     },
  
-    "controllers" : [
-        {
-            "name" : "scope",
-            "args" : {
-                "n_channels" : 1,
-                "fs" : 256,
-                "duration" : 2
-            }
-        },
-        
+    "controllers" : [        
         {  
             "name" : "single_ssvep_diagnostic",
             "args" : {
