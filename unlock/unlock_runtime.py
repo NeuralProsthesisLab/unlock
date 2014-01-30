@@ -188,17 +188,35 @@ class UnlockFactory(context.PythonConfig):
         print ("config = ", self.config['single_ssvep_diagnostic'], self.config['single_ssvep_diagnostic'])
         return UnlockControllerFactory.create_single_standalone_ssvep_diagnostic(self.window, self.bci.receiver,
             **self.config['single_ssvep_diagnostic'])
+            
+    @context.Object(lazy_init=True)
+    def gridspeak(self):
+        bci = self.inline()
+        return UnlockControllerFactory.create_gridspeak(self.window, bci.receiver)            
+        
+    @context.Object(lazy_init=True)
+    def gridcursor(self):
+        bci = self.inline()
+        return UnlockControllerFactory.create_gridcursor(self.window, bci.receiver)    
         
     @context.Object(lazy_init=True)
     def dashboard(self):
-        config = self.config['dashboard']
+        import sys
+        print("CONFIG", self.config)
+        config = self.config['controllers']
         controllers = []
-        for controller_attr in config['controllers']:
-            controller = getattr(self, controller_attr)
+
+        for controller_attr in config:
+            if controller_attr['name'] == 'dashboard':
+                continue
+                
+            controller = getattr(self, controller_attr['name'])
             controllers.append(controller())
-        config.pop('controllers')
-        return UnlockControllerFactory.create_dashboard(self.window, controllers, self.bci_wrapper, self.stimuli,
-            self.calibrator, **config)
+            
+        print("CONFIG", config, '      controllers      ', controllers)
+        #sys.exit(0)
+        bci = self.inline()
+        return UnlockControllerFactory.create_dashboard(self.window, controllers, bci.receiver)
             
             
 class UnlockRuntime(object):

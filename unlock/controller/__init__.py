@@ -28,7 +28,7 @@ from unlock.controller.controller import *
 
 from unlock.state import HierarchyGridState, FastPadState, ControllerGridState, FrequencyScopeState, \
     TimeScopeState, ContinuousVepDiagnosticState, DiscreteVepDiagnosticState, TimedStimulus, \
-    TimedStimuli, OfflineTrialData, OfflineData, SequentialTimedStimuli
+    TimedStimuli, OfflineTrialData, OfflineData, SequentialTimedStimuli, UnlockStateChain
 
 from unlock.view import GridSpeakView, HierarchyGridView, FastPadView, GridView, FrequencyScopeView, \
     TimeScopeView, PygletDynamicTextLabel, PygletTextLabel, SpritePositionComputer, FlickeringPygletSprite
@@ -48,42 +48,6 @@ class UnlockControllerFactory(object):
         batch = pyglet.graphics.Batch()
         return Canvas(batch, width, height, xoffset, yoffset)
         
-    def create_gridspeak_fragment(canvas):
-        grid_model = HierarchyGridState(2)
-        gridspeak_view = GridSpeakView(None,grid_model, canvas)
-        assert canvas != None
-        gridspeak = UnlockControllerFragment(grid_model, [gridspeak_view], canvas.batch)
-        return gridspeak
-        
-    def create_gridspeak(window, bci_wrapper, base=None, color='bw'):
-        canvas = Canvas.create(window.width, window.height)        
-        gridspeak = UnlockControllerFactory.create_gridspeak_fragment(canvas)
-        if base == None:
-            base = UnlockControllerFactory.create_quad_ssvep(canvas, bci_wrapper, color)
-            
-        controller_chain = UnlockControllerChain(window, base.command_receiver,
-                                                 [base, gridspeak] , 'GridSpeak', 'gridspeak.png',
-                                                 standalone=False)
-        return controller_chain
-        
-    def create_gridcursor_fragment(canvas):
-        grid_model = HierarchyGridState(2)
-        grid_view = HierarchyGridView(grid_model, canvas)
-        assert canvas != None
-        gridcursor = UnlockControllerFragment(grid_model, [grid_view], canvas.batch)
-        return gridcursor
-        
-    def create_gridcursor(window, bci_wrapper, base=None, color='bw'):
-        canvas = Canvas.create(window.width, window.height)        
-        gridcursor = UnlockControllerFactory.create_gridcursor_fragment(canvas)
-        if base == None:
-            base = UnlockControllerFactory.create_quad_ssvep(canvas,
-                bci_wrapper, color)
-            
-        controller_chain = UnlockControllerChain(window, base.command_receiver, [base, gridcursor],
-            'GridCursor', 'gridcursor.png', standalone=False)
-        return controller_chain
-        
     def create_fastpad_fragment(canvas):
         fastpad_model = FastPadState()            
         fastpad_view = FastPadView(fastpad_model, canvas)
@@ -99,11 +63,11 @@ class UnlockControllerFactory(object):
             
         assert base != None
         fastpad = UnlockControllerFactory.create_fastpad_fragment(canvas)
-        controller_chain = UnlockControllerChain(window, base.command_receiver, [base, fastpad] ,
+        controller_chain = UnlockControllerChain(window, base.command_receiver, [base, fastpad],
             'FastPad', 'fastpad.png', standalone=False)
         return controller_chain
-            
-    def create_time_scope_fragment(canvas, **kwargs):
+        
+    def create_time_scope_fragment(canvas, n_channels=1, fs=256, duration=2):
         scope_model = TimeScopeState(**kwargs)
         scope_view = TimeScopeView(scope_model, canvas)
         assert canvas is not None
@@ -143,10 +107,7 @@ class UnlockControllerFactory(object):
             'frequency-128x128.jpg', standalone=False)
         return controller_chain
         
-    def create_dashboard_fragment(window, canvas, controllers, calibrator):
-        if not controllers:
-            raise ValueError
-            
+    def create_dashboard_fragment(window, canvas, controllers, calibrator):      
         grid_state = ControllerGridState(controllers)
         icons = []
         for controller in controllers:
@@ -154,21 +115,128 @@ class UnlockControllerFactory(object):
             
         center_x, center_y = canvas.center()
         grid_view = GridView(grid_state, canvas, icons, center_x, center_y)
+        offline_data = OfflineData("dashboard")        
+        state = UnlockStateChain([grid_state, offline_data])
         
-        return UnlockDashboard(window, grid_state, [grid_view], canvas.batch, controllers, calibrator)
+        return UnlockDashboard(window, state, [grid_view], canvas.batch, controllers, calibrator)
         
-    def create_dashboard(window, controllers, bci_wrapper, base=None, calibrator=None, color='bw'):
-        canvas = Canvas.create(window.width, window.height)
-        if base == None:
-            base = UnlockControllerFactory.create_ssvep(canvas, bci_wrapper, color)
+    def create_quad_ssvep_stimulation(canvas, color):
+        if color == 'ry':
+            color1 = (255, 0, 0)
+            color2 = (255, 255, 0)
+        else:
+            color1 = (0, 0, 0)
+            color2 = (255, 255, 255)
+        width = 500
+        height = 100
+        
+        xf = 5
+        yf = 1
+        
+        stimuli = TimedStimuli.create(3.0, 1.0)
+        views = []
+        
+        freqs = [12.0, 13.0, 14.0, 15.0]
+        
+        stimulus1 = TimedStimulus.create(freqs[0] * 2)
+        fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+            stimulus1, canvas, SpritePositionComputer.North, width=width,
+            height=height, xfreq=xf, yfreq=yf, color_on=color1,
+            color_off=color2,
+            reversal=False)
+        stimuli.add_stimulus(stimulus1)
+        views.append(fs1)
+        
+        stimulus2 = TimedStimulus.create(freqs[1] * 2)
+        fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+            stimulus2, canvas, SpritePositionComputer.South, width=width,
+            height=height, xfreq=xf, yfreq=yf, color_on=color1,
+            color_off=color2,
+            reversal=False)
+        stimuli.add_stimulus(stimulus2)
+        views.append(fs2)
+        
+        stimulus3 = TimedStimulus.create(freqs[2] * 2)
+        fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+            stimulus3, canvas, SpritePositionComputer.West, width=width,
+            height=height, xfreq=xf, yfreq=yf, color_on=color1,
+            color_off=color2,
+            reversal=False, rotation=90)
+        stimuli.add_stimulus(stimulus3)
+        views.append(fs3)
+        
+        stimulus4 = TimedStimulus.create(freqs[3] * 2)
+        fs4 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
+            stimulus4, canvas, SpritePositionComputer.East, width=width,
+            height=height, xfreq=xf, yfreq=yf, color_on=color1,
+            color_off=color2,
+             reversal=False, rotation=90)
+        stimuli.add_stimulus(stimulus4)
+        views.append(fs4)
+        return stimuli, views
+        
+    def create_dashboard(window, controllers, command_receiver, calibrator=None, color='bw'):        
+        canvas = UnlockControllerFactory.create_canvas(window.width, window.height)
+        dashboard_fragment = UnlockControllerFactory.create_dashboard_fragment(window, canvas,
+            controllers, calibrator)
             
-        dashboard = UnlockControllerFactory.create_dashboard_fragment(window, canvas, controllers, calibrator)
-        dashboard_chain = UnlockControllerChain(window, base.command_receiver, [base, dashboard],
-            'Dashboard', '', standalone=True)
+        stimuli, views = UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color)        
+        
+        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimuli,
+            views, canvas.batch)
             
-        dashboard.poll_signal = dashboard_chain.poll_signal
-        dashboard_chain.poll_signal = dashboard.poll_signal_interceptor
+        dashboard_chain = UnlockControllerChain(window, command_connected_fragment.command_receiver,
+            [command_connected_fragment, dashboard_fragment], 'Dashboard', '', standalone=True)
+            
+        dashboard_fragment.poll_signal = dashboard_chain.poll_signal
+        dashboard_chain.poll_signal = dashboard_fragment.poll_signal_interceptor
         return dashboard_chain
+        
+    def create_gridspeak_fragment(canvas):
+        grid_model = HierarchyGridState(2)
+        gridspeak_view = GridSpeakView(None, grid_model, canvas)
+        assert canvas != None
+        offline_data = OfflineData("gridspeak")        
+        state = UnlockStateChain([grid_model, offline_data])
+        gridspeak = UnlockControllerFragment(state, [gridspeak_view], canvas.batch)
+        return gridspeak
+        
+    def create_gridspeak(window, command_receiver, color='bw'):
+        canvas = UnlockControllerFactory.create_canvas(window.width, window.height)
+        gridspeak_fragment = UnlockControllerFactory.create_gridspeak_fragment(canvas)
+            
+        stimuli, views = UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color)        
+        
+        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimuli,
+            views, canvas.batch)
+            
+        gridspeak_chain = UnlockControllerChain(window, command_connected_fragment.command_receiver,
+            [command_connected_fragment, gridspeak_fragment], 'Gridspeak', 'gridspeak.png', standalone=False)
+            
+        return gridspeak_chain
+        
+    def create_gridcursor_fragment(canvas):
+        grid_model = HierarchyGridState(2)
+        grid_view = HierarchyGridView(grid_model, canvas)
+        assert canvas != None
+        offline_data = OfflineData("gridcursor")        
+        state = UnlockStateChain([grid_model, offline_data])
+        gridcursor = UnlockControllerFragment(state, [grid_view], canvas.batch)
+        return gridcursor
+        
+    def create_gridcursor(window, command_receiver, color='bw'):
+        canvas = UnlockControllerFactory.create_canvas(window.width, window.height)
+        gridcursor_fragment = UnlockControllerFactory.create_gridcursor_fragment(canvas)
+            
+        stimuli, views = UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color)        
+        
+        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimuli,
+            views, canvas.batch)
+            
+        gridcursor_chain = UnlockControllerChain(window, command_connected_fragment.command_receiver,
+            [command_connected_fragment, gridcursor_fragment], 'Gridcursor', 'gridcursor.png', standalone=False)
+            
+        return gridcursor_chain        
         
     def create_diagnostic(window, bci_wrapper, **kwargs):
         print ("kwargs = ", kwargs)
@@ -193,9 +261,9 @@ class UnlockControllerFactory(object):
         else:
             color1 = (0, 0, 0)
             color2 = (255, 255, 255)
-
         width = 500
         height = 100
+
         xf = 5
         yf = 1
         
