@@ -55,15 +55,26 @@ class UnlockStateChain(UnlockState):
     def __init__(self, states):
         super(UnlockStateChain, self).__init__()
         self.states = states
-        self.start = None
-        self.stop = None
-        self.is_stopped = None
-        self.get_state = None
+        #self.start = None
+        #self.stop = None
+        #self.is_stopped = None
+        #self.get_state = None
+        #
+    def start(self):
+        print("STATES ", self.states)
+        for state in self.states:
+            if state is not None:
+                state.start()
+                
+    def stop(self):
+        for state in self.states:
+            if state is not None:
+                state.stop()                
         
     def process_command(self, command):
         for state in self.states:
             if state is not None:
-                self.state.process_command(command)
+                state.process_command(command)
                 
                 
 class AlternatingBinaryState(UnlockState):
@@ -95,11 +106,15 @@ class OfflineData(UnlockState):
         self.current = 0 if (self.current % self.cache_size) == 0 else self.current + 1        
         
     def process_command(self, command):
-        assert self.file_handle != None
+        if self.file_handle is None:
+            self.logger.warning("state not started")
+            return
+            
         #print("am here", dir(command))
         if command.is_valid():
             print("NOTHING IN THE FILE...")
             np.savetxt(self.file_handle, command.matrix, fmt='%d', delimiter='\t')
+            
         #else:
             #XXX - hack for test
         #    a = np.array([0,0,0,0,0,0])
@@ -110,11 +125,16 @@ class OfflineData(UnlockState):
         raise NotImplementedError()
 
     def start(self):
-        assert self.file_handle == None
-        self.file_handle = open("%s_%d.txt" % (self.output_file_prefix, time.time()), 'wb')
+        if self.file_handle is None:
+            self.file_handle = open("%s_%d.txt" % (self.output_file_prefix, time.time()), 'wb')
+        else:
+            self.logger.warning("starting already stared state machine")
             
     def stop(self):
-        assert self.file_handle != None
+        if self.file_handle is None:
+            self.logger.warning('state already stopped')
+            return
+            
         self.file_handle.flush()
         self.file_handle.close()
         self.file_handle = None

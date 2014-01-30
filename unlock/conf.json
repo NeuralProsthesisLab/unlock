@@ -1,5 +1,5 @@
 {
-    "main" : "single_ssvep_diagnostic",
+    "main" : "dashboard",
     
     "pyglet" : {
         "fullscreen" : true,
@@ -47,19 +47,34 @@
  
     "controllers" : [
         {
-            "name" : "scope",
+            "name" : "dashboard",
             "args" : {
                 "n_channels" : 1,
                 "fs" : 256,
                 "duration" : 2
+                
+             
+            }
+        },
+
+        {
+            "name" : "gridspeak",
+            "args" : {
             }
         },
         
+        {
+            "name" : "gridcursor",
+            "args" : {
+            }
+        },
+
+    
         {  
             "name" : "single_ssvep_diagnostic",
             "args" : {
                 "frequency" : 18,
-                "output_file" : "mobilab-single-ssvep-diag-18hz",
+                "output_file" : "random-dashboard",
                 "color" : [0, 0, 0],
                 "color1" : [255, 255, 255]
             }
