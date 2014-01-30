@@ -54,7 +54,7 @@ class HarmonicFeatureExtractor(UnlockDecoder):
         self.target_window = target_window
         self.nfft = nfft
         self.n_harmonics = n_harmonics
-
+        
         self.selected_channels = selected_channels
         if selected_channels is None:
             self.selected_channels = range(self.n_electrodes)
@@ -107,9 +107,9 @@ class HarmonicFeatureExtractor(UnlockDecoder):
         return command
         
         
-class ScoringHarmonicSumDecision(UnlockDecoder):
+class ScoredHarmonicSumDecision(UnlockDecoder):
     def __init__(self, threshold_decoder, targets):
-        super(ScoringHarmonicSumDecision, self).__init__()
+        super(ScoredHarmonicSumDecision, self).__init__()
         self.threshold_decoder = threshold_decoder
         self.targets = targets
         
@@ -128,7 +128,7 @@ class ScoringHarmonicSumDecision(UnlockDecoder):
             np.set_printoptions(precision=2)
             result_string = "ScoredHarmonicSumDecision: %d (%.1f Hz)" % (command.class_label,
                 self.targets[command.class_label])
-            
+                
             if command.confidence is not None:
                 result_string = "%s [%.2f]" % (result, confidence)
                 
