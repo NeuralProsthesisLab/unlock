@@ -47,6 +47,15 @@
  
     "controllers" : [
         {
+            "name" : "scope",
+            "args" : {
+                "n_channels" : 1,
+                "fs" : 256,
+                "duration" : 2
+            }
+        },
+        
+        {  
             "name" : "single_ssvep_diagnostic",
             "args" : {
                 "frequency" : 18,
