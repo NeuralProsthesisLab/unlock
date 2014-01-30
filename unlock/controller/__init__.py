@@ -238,125 +238,34 @@ class UnlockControllerFactory(object):
             
         return gridcursor_chain        
         
-    def create_diagnostic(window, bci_wrapper, **kwargs):
-        print ("kwargs = ", kwargs)
-            
-        canvas = UnlockControllerFactory.create_canvas(window.width, window.height)
-#        stimuli = UnlockControllerFactory.create_single_ssvep(canvas, command_receiver, 10.0, **kwargs['stimulus'])
-#        controllers.append(stimuli)
-                
-#        hsd = new_fixed_time_threshold_hsd(**kwargs)
-#        diagnostic = Diagnostic.create_vep_diagnostic_fragment(diagnostic_canvas, scope, stimuli,
-#            bci_wrappers, kwargs['diagnostic'])
-#        controllers.append(diagnostic)
-            
-        controller_chain = UnlockControllerChain(window, command_receiver, controllers,
-            'Diagnostic', 'frequency2-128x128.png', standalone=False)
-        return controller_chain
-        
-    def create_quad_ssvep(canvas, bci_wrapper, color='bw'):
-        if color == 'ry':
-            color1 = (255, 0, 0)
-            color2 = (255, 255, 0)
-        else:
-            color1 = (0, 0, 0)
-            color2 = (255, 255, 255)
-        width = 500
-        height = 100
-
-        xf = 5
-        yf = 1
-        
-        stimuli = TimedStimuli.create(3.0, 1.0)
-        views = []
-        
-        freqs = [12.0, 13.0, 14.0, 15.0]
-        
-        stimulus1 = TimedStimulus.create(freqs[0] * 2)
-        fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus1, canvas, SpritePositionComputer.North, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-            reversal=False)
-        stimuli.add_stimulus(stimulus1)
-        views.append(fs1)
-        
-        stimulus2 = TimedStimulus.create(freqs[1] * 2)
-        fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus2, canvas, SpritePositionComputer.South, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-            reversal=False)
-        stimuli.add_stimulus(stimulus2)
-        views.append(fs2)
-        
-        stimulus3 = TimedStimulus.create(freqs[2] * 2)
-        fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus3, canvas, SpritePositionComputer.West, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-            reversal=False, rotation=90)
-        stimuli.add_stimulus(stimulus3)
-        views.append(fs3)
-        
-        stimulus4 = TimedStimulus.create(freqs[3] * 2)
-        fs4 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus4, canvas, SpritePositionComputer.East, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-             reversal=False, rotation=90)
-        stimuli.add_stimulus(stimulus4)
-        views.append(fs4)
-
-        # XXX: this should be passed in, not pulled out
-        task_state = stimuli.state
-
-        args = {'task_state': task_state, 'targets': freqs, 'trial_length': 3,
-                'fs': 256, 'n_electrodes': 8}
-        ssvep_command_receiver = bci_wrapper.create_receiver(args,
-            decoder_type=UnlockDecoder.HarmonicSumDecision)
-
-        eb_args = {'task_state': task_state, 'eog_channels': [4],
-                   'strategy': 'count', 'rms_threshold': 4000}
-        command_receiver = bci_wrapper.create_receiver(eb_args,
-            decoder_type=UnlockDecoder.EyeBlinkDetector,
-            chained_decoder=ssvep_command_receiver)
-        
-        return UnlockCommandConnectedFragment(command_receiver, stimuli, views, canvas.batch)
-        
     def create_single_standalone_ssvep_diagnostic(window, command_receiver, output_file='collector',
-        frequency=14.0, color=(255, 255, 0), color1=(255, 0, 0)):
-                 
+            frequency=14.0, color=(255, 255, 0), color1=(255, 0, 0)):
+         
         stimulus = TimedStimulus.create(frequency * 2)    
         width = 300
         height = 300
         xfreq = 2
         yfreq = 2
-
+        
         canvas = UnlockControllerFactory.create_canvas(window.height, window.width)
         fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus, canvas,
             SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color,
             color_off=color1, reversal=False)
         views = [fs]
-
-        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimulus,
-            views, canvas.batch)
-            
+        
         offline_data = OfflineData(output_file)
         
-        collector = UnlockControllerFragment(offline_data, [], None)
-        
-        def keyboard_input(self, command):
-            pass    
-        collector.keyboard_input = keyboard_input
-        
+        state = UnlockStateChain([stimulus, offline_data])
+        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, state, views,
+            canvas.batch)
+            
         controller_chain = UnlockControllerChain(window, command_connected_fragment.command_receiver,
-            [command_connected_fragment, collector], 'Collector', 'collector.png', standalone=True)
+            [command_connected_fragment], 'Collector', 'collector.png', standalone=True)
             
         return controller_chain
         
     def create_eeg_emg_collector(window, bci_wrapper, stimuli=None, trials=10, cue_duration=.5,
-                         rest_duration=1, indicate_duration=1, output_file='collector', standalone=False):
+            rest_duration=1, indicate_duration=1, output_file='collector', standalone=False):
         raise Exception("Old code that is no longer supported")
         canvas = Canvas.create(window.width, window.height)
         cues = [Trigger.Left, Trigger.Right, Trigger.Up, Trigger.Down, Trigger.Select]
