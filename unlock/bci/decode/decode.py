@@ -57,29 +57,29 @@ class UnlockDecoder(object):
 class UnlockDecoderChain(UnlockDecoder):
     def __init__(self):
         self.decoders = []
-    
+        
     def add(self, decoder):
         self.decoders.append(decoder)
-
+        
     def decode(self, command):
         for decoder in self.decoders:
             command = decoder.decode(command)
             if not command.is_ready():
                 return command
-            
+                
         for decoder in self.decoders:
             command = decoder.update(command)
             
     def start(self):
-        for decoder in decoders:
+        for decoder in self.decoders:
             decoder.start()
             
     def stop(self):
-        for decoder in decoders:
+        for decoder in self.decoders:
             decoder.stop()
             
     def reset(self):
-        for decoder in decoders:
+        for decoder in self.decoders:
             self.decoder.reset()
             
             
@@ -102,9 +102,10 @@ class TrialStateControlledDecoder(UnlockDecoder):
         
         
 class BufferedDecoder(UnlockDecoder):
-    def __init__(self, buffer_shape):
+    def __init__(self, buffer_shape, electrodes):
         super(BufferedDecoder, self).__init__()
         self.buffer = np.zeros(buffer_shape)
+        self.electrodes = electrodes
         self.cursor = 0
         
     def decode(self, command):
@@ -117,7 +118,7 @@ class BufferedDecoder(UnlockDecoder):
         if not command.is_valid() or not self.started:
             return command
         
-        data = command.matrix[:, 0:self.n_electrodes]
+        data = command.matrix[:, 0:self.electrodes]
             
         n_samples = data.shape[0]
         if self.cursor + n_samples >= self.buffer.shape[0]:
@@ -129,7 +130,7 @@ class BufferedDecoder(UnlockDecoder):
             self.buffer[self.cursor:self.cursor+n_samples] = data
             self.cursor += n_samples
         
-        command.is_ready(self.is_ready())
+        command.set_ready_value(self.is_ready())
         return command
             
     def get_data(self):
@@ -154,8 +155,8 @@ class BufferedDecoder(UnlockDecoder):
         
         
 class FixedTimeBufferingDecoder(BufferedDecoder):
-    def __init__(self, buffer_shape, window_length):
-        super(FixedTimeBufferingDecoder, self).__init__(buffer_shape)
+    def __init__(self, buffer_shape, electrodes, window_length):
+        super(FixedTimeBufferingDecoder, self).__init__(buffer_shape, electrodes)
         self.window_length = window_length
         self.decode_now = False
         
@@ -179,7 +180,7 @@ class FixedTimeBufferingDecoder(BufferedDecoder):
         
 class ContinuousBufferingDecoder(BufferedDecoder):
     def __init__(self, buffer_shape, step_size=32, trial_limit=768):
-        super(ContinuousBufferingDecoder, self).__init__(buffer_shape)
+        super(ContinuousBufferingDecoder, self).__init__(buffer_shape, electrodes)
         self.step_size = step_size
         self.trial_limit = trial_limit
         self.last_mark = 0
