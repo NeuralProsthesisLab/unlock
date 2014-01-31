@@ -173,7 +173,7 @@ function dirs = initUnlockDirs
 host     = deblank(host);
 
 switch host
-    case 'cns-ws15'
+    case 'Salachos-Carbon'
         dirs.Code       = 'C:\Users\salacho\Documents\Code\Unlock';                 % Dir w/ data analysis Code
         dirs.helpers    = 'C:\Users\salacho\Documents\Code\helpers';                % Dir w/ helpers analysis Code
         dirs.DataIn     = 'C:\Users\salacho\Documents\Analysis\unlock';             % Dir w/ datafiles. Mapping server using SFTP Net Drive
