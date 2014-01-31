@@ -36,7 +36,9 @@ unlockInfo = setUnlockParams(unlockInfo);
 unlockData.data = unlockFiltData; disp('Just filtered the data!!!')
 
 %% Epoch data using the endTrialFlag
-[unlockEpochs,unlockInfo,dcdTgt,epochDcdTgt] = getUnlockEpochs(unlockData,unlockInfo);
+if unlockInfo.epoch.doEpochs
+    [unlockEpochs,unlockInfo,dcdTgt,epochDcdTgt] = getUnlockEpochs(unlockData,unlockInfo);
+end
 
 %% Getting decoder values
 onlinePerf = onlinePerform(dcdTgt,unlockInfo);
@@ -72,12 +74,12 @@ if unlockInfo.epoch.doEpochs
         unlockInfo.epoch.spect  = SpectInfo;
         
         %% Extracting epoch's spectrum features
-        featData = spectData;
-        [dataFeatures,unlockInfo] = extractFeat(featData,unlockInfo);
-        
+%         featData = spectData;
+%         [dataFeatures,unlockInfo] = extractFeat(featData,unlockInfo);
+%         
         %% Decode based on Oz
-        dcdData = spectData;
-        [dcdVals,unlockInfo] = decodeEpochs(dcdData,unlockInfo);
+%         dcdData = spectData;
+%         [dcdVals,unlockInfo] = decodeEpochs(dcdData,unlockInfo);
     end
     
     %% Epoch's Spectrograms
