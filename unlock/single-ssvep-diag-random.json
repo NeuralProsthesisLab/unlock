@@ -16,25 +16,25 @@
             "type" : "random"
         },
                 
-        "buffering_decoder" : {
-            "name" : "fixed_time",
-            "args" : {
-                'electrodes' : 8,
-                "window_length" : 768            
-            }
-        },
-    
-        "threshold_decoder" : {
-            "name" : "absolute",
-            "args" : {
-                "threshold" : 0,
-                "reduction_fcn" : "np.mean"
-            } 
-        },
-
         "decoder" : {
             "name" : "harmonic_sum",
             "args" : {
+                
+                "buffering_decoder" : {
+                    "name" : "fixed_time",
+                    "args" : {
+                        "window_length" : 768            
+                    }
+                },
+    
+                "threshold_decoder" : {
+                    "name" : "absolute",
+                    "args" : {
+                        "threshold" : 0,
+                        "reduction_fcn" : "np.mean"
+                    }
+                },
+                
                 "fs" : 256,
                 "trial_length" : 3,
                 "n_electrodes" : 8,
