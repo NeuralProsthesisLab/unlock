@@ -53,27 +53,19 @@ class UnlockFactory(context.PythonConfig):
     def inline(self):
         # XXX - this is a hack because the context doesn't support keyword args.
         assert self.signal is not None and self.timer is not None
-        
         decoder_args = self.config['bci']['decoder']
-        buffering_decoder = self.config['bci']['buffering_decoder']
-        threshold_decoder = self.config['bci']['threshold_decoder']
-        decoder = self.create_decoder(decoder_args, buffering_decoder, threshold_decoder)
+        decoder = self.create_decoder(decoder_args)
             
         receiver_type = self.config['bci']['receiver']
         receiver = self.create_receiver(receiver_type, self.signal, self.timer, decoder)
         bci = InlineBciWrapper(receiver, self.signal, self.timer)
         return bci
         
-    def create_decoder(self, decoder, buffering_decoder, threshold_decoder):
-        decoder['args']['buffering_decoder'] = buffering_decoder['name']
-        decoder['args']['buffering_decoder_args'] = buffering_decoder['args']
-        decoder['args']['threshold_decoder'] = threshold_decoder['name']
-        decoder['args']['threshold_decoder_args'] = threshold_decoder['args']
+    def create_decoder(self, decoder):
         return self.decoder_factory.create_decoder(decoder['name'], **decoder['args'])
         
     def create_receiver(self, receiver_type, signal, timer, decoder):
         receiver = self.receiver_factory.create_receiver(receiver_type, signal=signal, timer=timer, decoder=decoder)
-        receiver.stop()
         return receiver        
         
     @context.Object(lazy_init=True)
@@ -178,11 +170,6 @@ class UnlockFactory(context.PythonConfig):
         return PygletWindow(self.bci, self.config['pyglet']['fullscreen'], self.config['pyglet']['fps'],
             self.config['pyglet']['vsync'])
 
-    @context.Object(lazy_init=True)
-    def ssvep_diagnostic(self):
-        return UnlockControllerFactory.create_standalone_ssvep_diagnostic(self.window, self.bci_wrapper,
-            **self.config['ssvep_diagnostic'])
-    
     @context.Object(lazy_init=True)
     def single_ssvep_diagnostic(self):
         print ("config = ", self.config['single_ssvep_diagnostic'], self.config['single_ssvep_diagnostic'])
