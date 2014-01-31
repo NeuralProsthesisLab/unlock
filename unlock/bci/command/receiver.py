@@ -33,6 +33,7 @@ from unlock.bci.command.command import RawSignalCommand, Command
 import socket
 import pickle
 import json
+import logging
 import numpy as np
 
 
@@ -56,6 +57,7 @@ class CommandReceiver(object):
     
     def next_command(self, *args, **kwargs):
         pass
+            
             
 class CommandSenderInterface(object):
     def send(self, command):
@@ -135,20 +137,32 @@ class InlineCommandReceiver(CommandReceiver):
     def put(self, command):
         self.Q.append(command)
             
-
+            
 class DecodingCommandReceiver(CommandReceiver):
     def __init__(self, command_receiver, decoder, state=None):
         super(DecodingCommandReceiver, self).__init__(state=state)
+        self.logger = logging.getLogger(__name__)        
         self.command_receiver = command_receiver
         self.decoder = decoder
+    
+    def start(self):
+        super(DecodingCommandReceiver, self).start()
+        self.command_receiver.start()
+        self.decoder.start()
+        
+    def stop(self):
+        self.decoder.stop()
+        self.command_receiver.stop()        
+        super(DecodingCommandReceiver, self).stop()
         
     def next_command(self, delta):
         command = self.command_receiver.next_command(delta)
         if self.is_running() is not True:
+            self.logger.warning('DecodingCommandReceiver: poll while not running; returning empty command')
             return Command(delta)
             
         assert command != None
-        decoded_command = self.decoder.decoder(command)
+        decoded_command = self.decoder.decode(command)
         assert decoded_command != None
         return decoded_command
         
@@ -174,8 +188,8 @@ class FileSignalReceiver(CommandReceiver):
             
         assert raw_command != None
         return raw_command
-            
-            
+        
+        
 class RawInlineSignalReceiver(CommandReceiver):
     def __init__(self, signal, timer):
         super(RawInlineSignalReceiver, self).__init__()        
@@ -201,8 +215,8 @@ class RawInlineSignalReceiver(CommandReceiver):
             
         assert raw_command != None
         return raw_command
-            
-            
+        
+        
 class DeltaCommandReceiver(CommandReceiver):
     def __init__(self):
         super(DeltaCommandReceiver, self).__init__()
