@@ -49,7 +49,8 @@ class UnlockController(object):
         
     def poll_signal(self, delta):
         command = self.command_receiver.next_command(delta)
-
+        #print("TYPE COMMAND = ", type(command#))
+        
         if 'stop' in command.__dict__:
             self.window.handle_stop_request()
         else:
@@ -169,6 +170,16 @@ class UnlockCommandConnectedFragment(UnlockControllerFragment):
         
     def keyboard_input(self,command):
         pass
+        
+    def activate(self):
+        assert self.command_receiver != None
+        super(UnlockCommandConnectedFragment, self).activate()
+        self.command_receiver.start()
+        
+    def deactivate(self):
+        assert self.command_receiver != None        
+        self.command_receiver.stop()
+        super(UnlockCommandConnectedFragment, self).deactivate()
         
         
 class UnlockCalibratedControllerFragment(UnlockControllerFragment):
