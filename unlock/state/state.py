@@ -51,17 +51,13 @@ class UnlockState(object):
         ''' Subclass hook '''
         pass
         
+        
 class UnlockStateChain(UnlockState):
     def __init__(self, states):
         super(UnlockStateChain, self).__init__()
         self.states = states
-        #self.start = None
-        #self.stop = None
-        #self.is_stopped = None
-        #self.get_state = None
-        #
+        
     def start(self):
-        print("STATES ", self.states)
         for state in self.states:
             if state is not None:
                 state.start()
@@ -100,7 +96,7 @@ class OfflineData(UnlockState):
         self.cache = list(range(cache_size))
         self.cache_size = cache_size
         self.current = 0
-
+        
     def cache(self, command):
         self.cache[self.current] = command.matrix
         self.current = 0 if (self.current % self.cache_size) == 0 else self.current + 1        
@@ -156,13 +152,14 @@ class OfflineTrialData(OfflineData):
                 self.commands = []
         else:
             self.commands.append(command)
-                
+            
+            
             
 class NonBlockingOfflineData(UnlockState):
     def __init__(self):
         raise NotImplementedError()
         
-
+        
 class RunState(object):
     Stopped = 0
     Running = 1
@@ -204,7 +201,7 @@ class TimerState(object):
             self.reset = lambda t: t - self.duration
         self.elapsed = 0
         self.last_time = -1
-
+        
     def begin_timer(self):
         # TODO: smarter time adjustment strategy
         self.elapsed = self.reset(self.elapsed)
@@ -215,11 +212,11 @@ class TimerState(object):
         
     def is_complete(self):
         return self.elapsed >= self.duration
-
+        
     def set_duration(self, duration):
         self.duration = float(duration)
         
- 
+        
 # XXX this can be refactored.  there is no need for a rest state.  this can be implemented such
 #     that the trials are 'stacked'.  then rests can be stacked with trials abstractly.  this
 #     would help to optimize cases that have no rest condition; currently a bunch of statements are
@@ -314,4 +311,5 @@ class SequenceState(object):
     def is_end(self):
         if self.index+1 == len(self.sequence):
             return True
+           
            
