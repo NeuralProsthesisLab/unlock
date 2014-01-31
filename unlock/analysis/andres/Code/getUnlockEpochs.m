@@ -25,11 +25,11 @@ expTgts     = unlockInfo.decoder.stimFreq;
 stimLen     = unlockInfo.behav.stimLen;
 restLen     = unlockInfo.behav.restLen;
 
-
 trialLen    = (stimLen + restLen)*Fs;               % trial length in samples
 unlockInfo.epoch.trialSampLen = trialLen;           % do this here since later is it changed
 
 %% Extracting all epochs
+
 % For triggered epochs
 if unlockInfo.main.triggeredData
     epochIndx   = (find(eegEndTri));
@@ -96,8 +96,8 @@ end
 
 % Only for even epochs when 2 stimuli presented
 if ~numel(unlockInfo.decoder.stimFreq) == 1
-    if mod(nEpochs,2)
-        nEpochs = nEpochs - 1;       % Need even trials, the same for both stimulation frequencies
+    if mod(nEpochs,2)               % odd number of epochs
+        nEpochs = nEpochs - 1;      % Need even trials, the same for both stimulation frequencies
     end
 end
 unlockInfo.epoch.nEpochs = nEpochs;
