@@ -41,16 +41,16 @@ class Command(object):
         self.selection = selection
         self.data = data
         self.json = json
-        self.is_ready = True
+        self.ready = True
         
     def is_valid(self):
         return False
         
     def set_ready_value(self, ready_value):
-        self.is_ready = ready_value
+        self.ready = ready_value
         
     def is_ready(self):
-        return self.is_ready
+        return self.ready
         
     @staticmethod
     def serialize(command):
