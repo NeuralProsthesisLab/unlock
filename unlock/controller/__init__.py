@@ -254,8 +254,8 @@ class UnlockControllerFactory(object):
         views = [fs]
         
         offline_data = OfflineData(output_file)
-        
         state = UnlockStateChain([stimulus, offline_data])
+        
         command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, state, views,
             canvas.batch)
             
