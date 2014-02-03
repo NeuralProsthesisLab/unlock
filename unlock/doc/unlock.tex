@@ -47,7 +47,7 @@ For example, a paradigm based on Visually Evoked Potentials (VEP), flashes a gra
 
 We'll talk in more detail about the BCI layer in Section~\ref{bcisec}, but for now there is one important take away.  At each point in the pipeline we just discussed, the system is designed so that you can easily decorate, replace or otherwise manipulate the data flow.  Each step in the pipeline is encapsulated under an interface contract.
 
-The application layer is model-view-controller (MVC)~\ref{mvc, mvc1} inspired.  Don't worry too much if you're not familar with MVC.  It's just a logical framework for structuring graphical user interfaces (GUIs).  
+The application layer is model-view-controller (MVC)~\ref{mvc, mvc1} inspired.  Don't worry too much if you're not familiar with MVC.  It's just a logical framework for structuring graphical user interfaces (GUIs).  
 
 The basic idea is that each application consists of three types of objects: models, views and controllers.  The controllers accept user input (in this case BCI commands) and pass the inputs to the correct models.  Models handle state transformation (the business logic if you will).  Finally, views observe the state objects (models) and render themselves based on the current state of the world.
 
@@ -55,10 +55,10 @@ If you think about it, this also creates a pipeline in the application layer.  T
 
 Figure~\ref{bci-pipeline-fig} depicts the main components of Unlock.
 
-\begin{figure}[]
-\resizebox{\textwidth}{!}{\includegraphics{images/UnlockProjectSoftwareFramework.pdf}}
-\caption{\label{bci-pipeline-fig}  Data flow through Unlock}
-\end{figure}
+%\begin{figure}[]
+%\resizebox{\textwidth}{!}{\includegraphics{images/UnlockProjectSoftwareFramework.pdf}}
+%\caption{\label{bci-pipeline-fig}  Data flow through Unlock}
+%\end{figure}
 
 
 %\section{History}
@@ -70,11 +70,11 @@ In the next three sections we describe the installation procedures for Unlock in
 
 \subsection{Windows}
 
-Many signal acquistion devices work exclusively with Windows.  Additionally, many of the potential users of Unlock may only have access to Windows computers.  These circumstances led to Windows being the first platform supported by Unlock.
+Many signal acquisition devices work exclusively with Windows.  Additionally, many of the potential users of Unlock may only have access to Windows computers.  These circumstances led to Windows being the first platform supported by Unlock.
 
 To make installation on Windows as easy as possible, we decided a binary, clickable installer was the solution that would best suite the community.  There were many ways to proceed, but, ultimately, we decided to write the installer in Go~\cite{golang}.  
 
-The Unlock installer is not much more than a package manager for handling dependencies.  Unlock, not unlike many other frameworks, has many depdendcies.  These dependencies include:
+The Unlock installer is not much more than a package manager for handling dependencies.  Unlock, not unlike many other frameworks, has many dependencies.  These dependencies include:
 \begin{itemize}
 \item Avbin10;
 \item Flask-0.10;
@@ -94,11 +94,11 @@ The Unlock installer is not much more than a package manager for handling depend
 
 There are additional dependencies based the hardware acquisition device in use.  Unlock supports three acquisition devices.  The National Instruments DAQ, Neural Electronics Enobio, and gtec MOBILab.  
 
-Unfortunately, at the time of this writing, Unlock's C++ layer is built as a single dynamic-link library (dll).  This means all of these dependencies need to be availlable for Unlock to run.  
+Unfortunately, at the time of this writing, Unlock's C++ layer is built as a single dynamic-link library (dll).  This means all of these dependencies need to be available for Unlock to run.  
 
-Fortuntely, Unlock manages all but the NI DAQ driver code.  The NI DAQ dependencies are quazi installed by Unlock, but may require some manual effort.  
+Fortunately, Unlock manages all but the NI DAQ driver code.  The NI DAQ dependencies are quazi installed by Unlock, but may require some manual effort.  
 
-The Unlock installer will start the NI DAQ downloader, which should kick off the installer after the download and extraction complete.  But it runs asyncrhonously to the Unlock installer; the Unlock installer exists without knowing if the NI DAQ installer completed successfully or not; if something happens, go to~\cite{nidaq} and follow the instructions for downloading and installing the NI DAQ.
+The Unlock installer will start the NI DAQ downloader, which should kick off the installer after the download and extraction complete.  But it runs asynchronously to the Unlock installer; the Unlock installer exists without knowing if the NI DAQ installer completed successfully or not; if something happens, go to~\cite{nidaq} and follow the instructions for downloading and installing the NI DAQ.
 
 Most of the dependencies are Python packages.  We played with standard Python packaging systems, such as Pip~\cite{pip} for installing these, but, unfortunately, at the time of this writing, none of these support transitive closure over dependencies.  This makes packaging imperative and error prone.  
 
@@ -123,7 +123,7 @@ Go to~\cite{gitbash} for Git Bash download and installation instructions.
 
 After Git Bash is setup we need to create a Github account~\cite{github} and follow the instructions for setting up an ssh key~\cite{sshkey}.  Next, fork the repo.
 
-After we have your Github account setup we can clone the repo.  This takes a few minutes because we commited all of Unlock's dependencies to the repo.  *Stark* this is generally bad form.  But we are OK with bad form for two related reasons: 1) we are poor and do not have a real server, 2) we care more about keeping everything together more than repo download speed.
+After we have your Github account setup we can clone the repo.  This takes a few minutes because we committed all of Unlock's dependencies to the repo.  *Stark* this is generally bad form.  But we are OK with bad form for two related reasons: 1) we are poor and do not have a real server, 2) we care more about keeping everything together more than repo download speed.
 
 To clone the repo run the following command from the Git Bash command.exe:
 \begin{verbatim}  
@@ -144,7 +144,7 @@ Then run the installer for a development installation:
 
 Note, the quotes around pwd are back ticks; they tell Bash to execute the command that gets the current working directory.  There should almost immediately be several installers that will ask you questions.  Please accept the defaults on everything.  
 
-Watch the task bar.  Some versions of Windows will bring up access control dialogs; sometimes they come up in the background.  Additionally, at least one of the installers has a dialog that comes up asyncrhonously and in the background, so keep your eyes peeled for dialogs waiting in the background.  They should be flashing on the task bar.
+Watch the task bar.  Some versions of Windows will bring up access control dialogs; sometimes they come up in the background.  Additionally, at least one of the installers has a dialog that comes up asynchronously and in the background, so keep your eyes peeled for dialog boxes in the background.  They should be flashing on the task bar.
 
 That should be all there is to it.  To test it run the following command:
 
@@ -163,13 +163,21 @@ If you have an issue, please send me an email directly.  Please include the file
 
 In Section~\ref{overviewsec} we defined the signal-processing chain to be signal acquisition and reconstruction, feature extraction and decoding, and command generation.
 
-Most of the signal acquistion code is written in C++.  The C++ layer is dynamically linked to the Python runtime using Boost Python~\cite{boostpython}.  The C++ signal acquisition module exports a single polymorphic interface inspired by UNIX device files, and several factory methods for creating the signal acquisition infrastructure.
+\subsubsection{Stimulation}
+
+\subsubsection{Acquisition}
+
+Most of the signal acquisition code is written in C++.  The C++ layer is dynamically linked to the Python run-time using Boost Python~\cite{boostpython}.  The C++ signal acquisition module exports a single polymorphic interface inspired by UNIX device files, and several factory methods for creating the signal acquisition infrastructure.
 
 Unlock supports two modes of acquisition: blocking acquisition and non-blocking acquisition.  Blocking acquisition is is simply a thin wrapper around the device interface.  It will block on a I/O descriptor until a write is available.
 
 We will discuss Unlock's application layer in detail in Section~\ref{applicationsec}.  But at this time it is important to understand one aspect.  The application layer is essentially a graphics event loop; looping through the application layer code at each screen refresh.  To acquire the signal on the same thread as the graphics event loop is problematic: blocking on each screen refresh can cause all kinds of problems.  In fact, blocking-based acquisition is only supported for device testing purposes. 
 
-To acquire the signal without blocking, Unlock supports a nonblocking acquisition mode.  In nonblocking mode, Unlock creates a platform independent C++ thread that manages and buffers the signal data.  The graphics event loop sychronizes with the signal acquisition thread using a lock-free algorithm.  The method makes use of a ring buffer and processor level atomic instructions to cohently reserve blocks of virtual memory addresses across cores.
+To acquire the signal without blocking, Unlock supports a non-blocking acquisition mode.  In non-blocking mode, Unlock creates a platform independent C++ thread that manages and buffers the signal data.  The graphics event loop synchronizes with the signal acquisition thread using a lock-free algorithm.  The method makes use of a ring buffer and processor level atomic instructions to coherently reserve blocks of virtual memory addresses across cores.
+
+\subsubsection{Decoding}
+
+\subsubsection{Command Generation}
 
 \subsection{Application Layer}\label{applicationsec}
 
