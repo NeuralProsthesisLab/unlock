@@ -245,14 +245,14 @@ class UnlockControllerFactory(object):
     def create_single_standalone_ssvep_diagnostic(window, command_receiver, output_file='collector',
             frequency=14.0, color=(255, 255, 0), color1=(255, 0, 0)):
          
-        stimulus = TimedStimulus.create(frequency * 2)    
+        stimulus = UnlockStateFactory.create_wall_clock_timed_stimulus(frequency * 2)
         width = 300
         height = 300
         xfreq = 2
         yfreq = 2
         
         canvas = UnlockControllerFactory.create_canvas(window.height, window.width)
-        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus, canvas,
+        fs = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
             SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color,
             color_off=color1, reversal=False)
         views = [fs]
