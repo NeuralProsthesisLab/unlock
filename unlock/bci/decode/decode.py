@@ -27,6 +27,7 @@
 
 import unlock.bci
 import numpy as np
+from unlock.state import TrialState
 from sklearn import lda
 
 
@@ -179,7 +180,8 @@ class FixedTimeBufferingDecoder(BufferedDecoder):
         
         
 class ContinuousBufferingDecoder(BufferedDecoder):
-    def __init__(self, buffer_shape, step_size=32, trial_limit=768):
+    # XXX - untested
+    def __init__(self, buffer_shape, step_size=32, trial_limit=768, electrodes=8):
         super(ContinuousBufferingDecoder, self).__init__(buffer_shape, electrodes)
         self.step_size = step_size
         self.trial_limit = trial_limit
@@ -217,7 +219,7 @@ class AbsoluteThresholdDecoder(UnlockDecoder):
         
     def decode(self, command):
         assert hasattr(command, 'scores')
-        command.accept, command.confidence = self.reduction_fcn(scores) >= self.threshold, 1.0
+        command.accept, command.confidence = self.reduction_fcn(command.scores) >= self.threshold, 1.0
         return command
         
         
@@ -236,7 +238,7 @@ class LDAThresholdDecoder(UnlockDecoder):
     def decode(self, command):
         assert hasattr(command, 'scores')        
         command.confidence = self.clf.predict_proba(self.reduction_fcn(command.scores))[0, 1]
-        command.accept = confidence >= self.min_confidence
+        command.accept = command.confidence >= self.min_confidence
         return command
         
         
