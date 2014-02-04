@@ -146,10 +146,10 @@ class UnlockControllerFactory(object):
         views = []
 
         # XXX these should be injected
-        stimulus = timed_stimulus_factory_method.create(frequencies[0] * 2)
-        stimulus1 = timed_stimulus_factory_method.create(frequencies[1] * 2)
-        stimulus2 = timed_stimulus_factory_method.create(frequencies[2] * 2)
-        stimulus3 = timed_stimulus_factory_method.create(frequencies[3] * 2)
+        stimulus = timed_stimulus_factory_method(frequencies[0] * 2)
+        stimulus1 = timed_stimulus_factory_method(frequencies[1] * 2)
+        stimulus2 = timed_stimulus_factory_method(frequencies[2] * 2)
+        stimulus3 = timed_stimulus_factory_method(frequencies[3] * 2)
 
         stimuli.add_stimulus(stimulus)
         stimuli.add_stimulus(stimulus1)
