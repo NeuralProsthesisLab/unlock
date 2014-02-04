@@ -77,34 +77,6 @@ class CueStateMachine(UnlockState):
     def start(self):
         self.state.start()
         
-    @staticmethod 
-    def create_random_cue_indicate_rest(cue_states, rest_state, indicate_state, seed=42, trials=25):
-        state_machine = CueStateMachine(Random(seed), trials, cue_states, rest_state, indicate_state)
-        for cue_state in cue_states:
-            cue_state.transition_fn = state_machine.cue_indicate
-        rest_state.transition_fn = state_machine.rest_cue
-        indicate_state.transition_fn = state_machine.indicate_rest
- #       rest_state.start()
-        return state_machine
-        
-    @staticmethod 
-    def create_sequential_cue_indicate_rest(cue_states, rest_state, indicate_state, trials=10):
-        state_machine = CueStateMachine(None, trials, cue_states, rest_state, indicate_state)
-        for cue_state in cue_states:
-            cue_state.transition_fn = state_machine.cue_indicate
-        rest_state.transition_fn = state_machine.rest_cue
-        indicate_state.transition_fn = state_machine.indicate_rest
-        return state_machine
-        
-    @staticmethod
-    def create_random_cue_rest(cue_states, rest_state, seed=42, trials=25):
-        state_machine = CueStateMachine(Random(seed), trials, cue_states, rest_state, None)
-        for cue_state in cue_states:
-            cue_state.transition_fn = state_machine.cue_rest
-        rest_state.transition_fn = state_machine.rest_cue
-#        rest_state.start()
-        return state_machine
-        
         
 class CueState(UnlockState):
     def __init__(self, trigger, trial_time_state, transition_fn=None):
@@ -132,12 +104,6 @@ class CueState(UnlockState):
         if self.trial_time_state.is_complete():
             ret = self.transition_fn()
         return ret
-            
-    @staticmethod
-    def create(state_id, duration):
-        time_state = TimerState(duration)
-        return CueState(state_id, time_state)
-        
 
 
 # XXX - this could use a refactoring.  It was put together quickly on a deadline.  In particular, the views should not maintain
@@ -192,12 +158,7 @@ class DynamicPositionCueState(CueState):
             
         super(DynamicPositionCueState, self).start()
           
-    @staticmethod
-    def create(state_id, duration, screen_height, height, screen_width, width, radius=1):
-        time_state = TimerState(duration)
-        return DynamicPositionCueState(state_id, time_state, screen_height, height, screen_width, width, radius)
-        
-        
+
 class TimedStimulusCueState(UnlockState):
     def __init__(self, timed_stimulus):
         super(TimedStimulusCueState, self).__init__()
@@ -266,3 +227,4 @@ class MultipleSequentialTimedStimuliCueState(UnlockState):
             ret = trigger_value
             self.state = self.stimulus.get_state()            
         return ret
+
