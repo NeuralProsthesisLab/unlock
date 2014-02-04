@@ -83,13 +83,8 @@ class TimedStimuli(UnlockState):
             
     def get_state(self):
         raise NotImplementedError()
-        
-    @staticmethod
-    def create(stimuli_duration, rest_duration=0):
-        trial_state = TrialState.create(stimuli_duration, rest_duration)
-        return TimedStimuli(trial_state)
-            
-            
+
+
 class SequentialTimedStimuli(UnlockState):
     """ Manages multiple timed, sequential and sequence-based stimuli. """
     def __init__(self, state):
@@ -147,14 +142,8 @@ class SequentialTimedStimuli(UnlockState):
             
     def get_state(self):
         raise NotImplementedError()
-            
-    @staticmethod
-    def create(stimuli_duration, rest_duration=0):
-        # XXX this, and above, can be optimized in the case that rest_duration = 0
-        trial_state = TrialState.create(stimuli_duration, rest_duration)
-        return SequentialTimedStimuli(trial_state)
-            
-          
+
+
 class TimedStimulus(UnlockState):
     """
     Emits a sequence of values at fixed time interval.
@@ -206,10 +195,3 @@ class TimedStimulus(UnlockState):
             self.seq_state.step()
             
         return trigger_value
-            
-    @staticmethod
-    def create(rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x), repeat_count=1):
-        flick_rate = 1.0/rate
-        time_state = TimerState(flick_rate)
-        seq_state = SequenceState(sequence, value_transformer_fn)
-        return TimedStimulus(time_state, seq_state, repeat_count=repeat_count)
