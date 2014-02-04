@@ -50,9 +50,8 @@ class UnlockDecoderFactory(object):
     def create_harmonic_sum_decision(self, buffering_decoder=None, threshold_decoder=None,
             fs=256, trial_length=3, n_electrodes=8, targets=(12.0, 13.0, 14.0, 15.0),
             target_window=0.1, nfft=2048, n_harmonics=1, selected_channels=None):
-        
+
         assert buffering_decoder is not None and threshold_decoder is not None
-        
         trial_state_decoder = TrialStateControlledDecoder(None)
         buffering_decoder['args']['buffer_shape'] = (fs * (trial_length + 1), n_electrodes)
         buffering_decoder['args']['electrodes'] = n_electrodes
