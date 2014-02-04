@@ -28,10 +28,11 @@ from unlock.controller.controller import *
 
 from unlock.state import HierarchyGridState, FastPadState, ControllerGridState, FrequencyScopeState, \
     TimeScopeState, ContinuousVepDiagnosticState, DiscreteVepDiagnosticState, TimedStimulus, \
-    TimedStimuli, OfflineTrialData, OfflineData, SequentialTimedStimuli, UnlockStateChain
+    TimedStimuli, OfflineTrialData, OfflineData, SequentialTimedStimuli, UnlockStateChain, UnlockStateFactory
 
 from unlock.view import GridSpeakView, HierarchyGridView, FastPadView, GridView, FrequencyScopeView, \
-    TimeScopeView, PygletDynamicTextLabel, PygletTextLabel, SpritePositionComputer, FlickeringPygletSprite
+    TimeScopeView, PygletDynamicTextLabel, PygletTextLabel, SpritePositionComputer, FlickeringPygletSprite, \
+    UnlockViewFactory
     
 from unlock.bci import UnlockCommandReceiverFactory, UnlockDecoder
 
@@ -42,7 +43,7 @@ class UnlockControllerFactory(object):
     of the controller package.
     """
     def __init__(self):
-        super(ControllerFactory, self).__init__()
+        super(UnlockControllerFactory, self).__init__()
         
     def create_canvas(width, height, xoffset=0, yoffset=0):        
         batch = pyglet.graphics.Batch()
@@ -52,7 +53,7 @@ class UnlockControllerFactory(object):
         fastpad_model = FastPadState()            
         fastpad_view = FastPadView(fastpad_model, canvas)
         assert canvas != None
-        fastpad = FastPad(fastpad_model, [fastpad_view], canvas.batch)        
+        fastpad = UnlockControllerFragment(fastpad_model, [fastpad_view], canvas.batch)
         return fastpad
         
     def create_fastpad(window, bci_wrapper, base=None, color='bw'):
@@ -126,7 +127,9 @@ class UnlockControllerFactory(object):
     def create_wall_clock_timed_quad_ssvep_stimulation(canvas, color):
         UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color, UnlockStateFactory.create_wall_clock_timed_stimulus)
 
-    def create_quad_ssvep_stimulation(canvas, color, timed_stimulus_factory_method, rate):
+    def create_quad_ssvep_stimulation(canvas, color='bw', frequencies=[12.0, 13.0, 14.0, 15.0], stimuli_duration=3.0,
+                                      rest_duration=1.0, width=500, height=100, xfrequency=5, yfrequency=1,
+                                      timed_stimulus_factory_method=UnlockStateFactory.create_wall_clock_timed_stimulus):
         if color == 'ry':
             color1 = (255, 0, 0)
             color2 = (255, 255, 0)
@@ -136,49 +139,44 @@ class UnlockControllerFactory(object):
         width = 500
         height = 100
         
-        xf = 5
-        yf = 1
+        xfrequency = 5
+        yfrequency = 1
         
-        stimuli = TimedStimuli.create(3.0, 1.0)
+        stimuli = UnlockStateFactory.create_timed_stimuli(stimuli_duration, rest_duration)
         views = []
-        
-        freqs = [12.0, 13.0, 14.0, 15.0]
-        
-        stimulus1 = TimedStimulus.create(freqs[0] * 2)
-        fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus1, canvas, SpritePositionComputer.North, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-            reversal=False)
+
+        # XXX these should be injected
+        stimulus = timed_stimulus_factory_method.create(frequencies[0] * 2)
+        stimulus1 = timed_stimulus_factory_method.create(frequencies[1] * 2)
+        stimulus2 = timed_stimulus_factory_method.create(frequencies[2] * 2)
+        stimulus3 = timed_stimulus_factory_method.create(frequencies[3] * 2)
+
+        stimuli.add_stimulus(stimulus)
         stimuli.add_stimulus(stimulus1)
-        views.append(fs1)
-        
-        stimulus2 = TimedStimulus.create(freqs[1] * 2)
-        fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus2, canvas, SpritePositionComputer.South, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-            reversal=False)
         stimuli.add_stimulus(stimulus2)
-        views.append(fs2)
-        
-        stimulus3 = TimedStimulus.create(freqs[2] * 2)
-        fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus3, canvas, SpritePositionComputer.West, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-            reversal=False, rotation=90)
         stimuli.add_stimulus(stimulus3)
+
+        fs = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
+            SpritePositionComputer.North, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
+            color_on=color1, color_off=color2, reversal=False)
+
+        fs1 = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
+            SpritePositionComputer.South, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
+            color_on=color1, color_off=color2, reversal=False)
+
+        fs2 = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
+            SpritePositionComputer.West, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
+            color_on=color1, color_off=color2, reversal=False, rotation=90)
+
+        fs3 = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus3, canvas,
+            SpritePositionComputer.East, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
+            color_on=color1, color_off=color2, reversal=False, rotation=90)
+
+        views.append(fs)
+        views.append(fs1)
+        views.append(fs2)
         views.append(fs3)
-        
-        stimulus4 = TimedStimulus.create(freqs[3] * 2)
-        fs4 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(
-            stimulus4, canvas, SpritePositionComputer.East, width=width,
-            height=height, xfreq=xf, yfreq=yf, color_on=color1,
-            color_off=color2,
-             reversal=False, rotation=90)
-        stimuli.add_stimulus(stimulus4)
-        views.append(fs4)
+
         return stimuli, views
         
     def create_dashboard(window, controllers, command_receiver, calibrator=None, color='bw'):        
@@ -247,14 +245,14 @@ class UnlockControllerFactory(object):
     def create_single_standalone_ssvep_diagnostic(window, command_receiver, output_file='collector',
             frequency=14.0, color=(255, 255, 0), color1=(255, 0, 0)):
          
-        stimulus = TimedStimulus.create(frequency * 2)    
+        stimulus = UnlockStateFactory.create_wall_clock_timed_stimulus(frequency * 2)
         width = 300
         height = 300
         xfreq = 2
         yfreq = 2
         
         canvas = UnlockControllerFactory.create_canvas(window.height, window.width)
-        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus, canvas,
+        fs = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
             SpritePositionComputer.Center, width=300, height=300, xfreq=2, yfreq=2, color_on=color,
             color_off=color1, reversal=False)
         views = [fs]
