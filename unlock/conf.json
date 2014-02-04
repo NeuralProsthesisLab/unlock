@@ -19,16 +19,16 @@
         "buffering_decoder" : {
             "name" : "fixed_time",
             "args" : {
-                "window_length" : 768            
+                "window_length" : 768
             }
         },
-    
+
         "threshold_decoder" : {
             "name" : "absolute",
             "args" : {
                 "threshold" : 0,
                 "reduction_fcn" : "np.mean"
-            } 
+            }
         },
 
         "decoder" : {
@@ -40,7 +40,21 @@
                 "targets" : [12.0, 13.0, 14.0, 15.0],
                 "target_window" : 0.1,
                 "nfft" : 2048,
-                "n_harmonics" : 1
+                "n_harmonics" : 1,
+                "buffering_decoder" : {
+                   "name" : "fixed_time",
+                   "args" : {
+                       "window_length" : 768
+                   }
+                },
+
+                "threshold_decoder" : {
+                    "name" : "absolute",
+                    "args" : {
+                        "threshold" : 0,
+                        "reduction_fcn" : "np.mean"
+                    }
+                }
             }
         }
     },
