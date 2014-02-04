@@ -119,8 +119,14 @@ class UnlockControllerFactory(object):
         state = UnlockStateChain([grid_state, offline_data])
         
         return UnlockDashboard(window, state, [grid_view], canvas.batch, controllers, calibrator)
-        
-    def create_quad_ssvep_stimulation(canvas, color):
+
+    def create_frame_count_timed_quad_ssvep_stimulation(canvas, color):
+        UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color, UnlockStateFactory.create_frame_count_timed_stimulus)
+
+    def create_wall_clock_timed_quad_ssvep_stimulation(canvas, color):
+        UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color, UnlockStateFactory.create_wall_clock_timed_stimulus)
+
+    def create_quad_ssvep_stimulation(canvas, color, timed_stimulus_factory_method, rate):
         if color == 'ry':
             color1 = (255, 0, 0)
             color2 = (255, 255, 0)
