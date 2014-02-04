@@ -31,7 +31,8 @@ from unlock.state import HierarchyGridState, FastPadState, ControllerGridState, 
     TimedStimuli, OfflineTrialData, OfflineData, SequentialTimedStimuli, UnlockStateChain, UnlockStateFactory
 
 from unlock.view import GridSpeakView, HierarchyGridView, FastPadView, GridView, FrequencyScopeView, \
-    TimeScopeView, PygletDynamicTextLabel, PygletTextLabel, SpritePositionComputer, FlickeringPygletSprite
+    TimeScopeView, PygletDynamicTextLabel, PygletTextLabel, SpritePositionComputer, FlickeringPygletSprite, \
+    UnlockViewFactory
     
 from unlock.bci import UnlockCommandReceiverFactory, UnlockDecoder
 
@@ -42,7 +43,7 @@ class UnlockControllerFactory(object):
     of the controller package.
     """
     def __init__(self):
-        super(ControllerFactory, self).__init__()
+        super(UnlockControllerFactory, self).__init__()
         
     def create_canvas(width, height, xoffset=0, yoffset=0):        
         batch = pyglet.graphics.Batch()
@@ -52,7 +53,7 @@ class UnlockControllerFactory(object):
         fastpad_model = FastPadState()            
         fastpad_view = FastPadView(fastpad_model, canvas)
         assert canvas != None
-        fastpad = FastPad(fastpad_model, [fastpad_view], canvas.batch)        
+        fastpad = UnlockControllerFragment(fastpad_model, [fastpad_view], canvas.batch)
         return fastpad
         
     def create_fastpad(window, bci_wrapper, base=None, color='bw'):
@@ -143,30 +144,31 @@ class UnlockControllerFactory(object):
         
         stimuli = UnlockStateFactory.create_timed_stimuli(stimuli_duration, rest_duration)
         views = []
-        
-        stimulus = TimedStimulus.create(frequencies[0] * 2)
-        stimulus1 = TimedStimulus.create(frequencies[1] * 2)
-        stimulus2 = TimedStimulus.create(frequencies[2] * 2)
-        stimulus3 = TimedStimulus.create(frequencies[3] * 2)
+
+        # XXX these should be injected
+        stimulus = timed_stimulus_factory_method.create(frequencies[0] * 2)
+        stimulus1 = timed_stimulus_factory_method.create(frequencies[1] * 2)
+        stimulus2 = timed_stimulus_factory_method.create(frequencies[2] * 2)
+        stimulus3 = timed_stimulus_factory_method.create(frequencies[3] * 2)
 
         stimuli.add_stimulus(stimulus)
         stimuli.add_stimulus(stimulus1)
         stimuli.add_stimulus(stimulus2)
         stimuli.add_stimulus(stimulus3)
 
-        fs = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus, canvas,
+        fs = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
             SpritePositionComputer.North, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
             color_on=color1, color_off=color2, reversal=False)
 
-        fs1 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus, canvas,
+        fs1 = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
             SpritePositionComputer.South, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
             color_on=color1, color_off=color2, reversal=False)
 
-        fs2 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus, canvas,
+        fs2 = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
             SpritePositionComputer.West, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
             color_on=color1, color_off=color2, reversal=False, rotation=90)
 
-        fs3 = FlickeringPygletSprite.create_flickering_checkered_box_sprite(stimulus3, canvas,
+        fs3 = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus3, canvas,
             SpritePositionComputer.East, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
             color_on=color1, color_off=color2, reversal=False, rotation=90)
 
