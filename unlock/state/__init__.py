@@ -47,7 +47,7 @@ class UnlockStateFactory(object):
         return TimedStimulus(time_state, seq_state, repeat_count=repeat_count)
 
     def create_timed_stimuli(stimuli_duration, rest_duration=0):
-        trial_state = TrialState.create(stimuli_duration, rest_duration)
+        trial_state = UnlockStateFactory.create_trial_state(stimuli_duration, rest_duration)
         return TimedStimuli(trial_state)
 
     def create_sequential_timed_stimuli(stimuli_duration, rest_duration=0):
