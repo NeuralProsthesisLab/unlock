@@ -44,6 +44,10 @@ from sqlalchemy import create_engine
 class UnlockFactory(context.PythonConfig):
     def __init__(self, config):
         super(UnlockFactory, self).__init__()
+        self.signal = None
+        self.window = None
+        self.bci_wrapper = None
+        self.bci = None
         self.config = config
         self.receiver_factory = UnlockCommandReceiverFactory()
         self.decoder_factory = UnlockDecoderFactory()
@@ -184,7 +188,8 @@ class UnlockFactory(context.PythonConfig):
     @context.Object(lazy_init=True)
     def gridcursor(self):
         bci = self.inline()
-        return UnlockControllerFactory.create_gridcursor(self.window, bci.receiver)    
+        assert self.window
+        return UnlockControllerFactory.create_gridcursor(self.window, bci.receiver)
         
     @context.Object(lazy_init=True)
     def dashboard(self):
@@ -196,13 +201,14 @@ class UnlockFactory(context.PythonConfig):
         for controller_attr in config:
             if controller_attr['name'] == 'dashboard':
                 continue
-                
+
             controller = getattr(self, controller_attr['name'])
             controllers.append(controller())
-            
+
         print("CONFIG", config, '      controllers      ', controllers)
         #sys.exit(0)
         bci = self.inline()
+        assert self.window
         return UnlockControllerFactory.create_dashboard(self.window, controllers, bci.receiver)
             
             
