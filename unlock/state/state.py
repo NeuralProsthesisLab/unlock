@@ -303,13 +303,7 @@ class TrialState(object):
             self.last_change = TrialState.Unchanged
             return ret
             
-    @staticmethod
-    def create(stimuli_duration, rest_duration, run_state=RunState()):
-        trial_timer = TimerState(stimuli_duration)
-        rest_timer = TimerState(rest_duration)
-        return TrialState(trial_timer, rest_timer, run_state)
-        
-        
+
 class SequenceState(object):
     def __init__(self, sequence, value_transformer_fn=lambda x: x):
         self.sequence = sequence
