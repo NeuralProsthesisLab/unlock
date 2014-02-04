@@ -70,6 +70,7 @@ class UnlockDecoderChain(UnlockDecoder):
                 
         for decoder in self.decoders:
             command = decoder.update(command)
+        return command
             
     def start(self):
         for decoder in self.decoders:
