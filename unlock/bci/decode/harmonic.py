@@ -130,7 +130,7 @@ class ScoredHarmonicSumDecision(UnlockDecoder):
                 self.targets[command.class_label])
                 
             if command.confidence is not None:
-                result_string = "%s [%.2f]" % (result, confidence)
+                result_string = "%s [%.2f]" % (result_string, command.confidence)
                 
         else:
             command.class_label = -1
