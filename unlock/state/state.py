@@ -187,7 +187,7 @@ class RunState(object):
     def is_stopped(self):
         return self.state == RunState.Stopped
         
-        
+
 class TimerState(object):
     """
     A timer based off the variable time deltas coming from the system.
@@ -202,22 +202,47 @@ class TimerState(object):
             self.reset = lambda t: t - self.duration
         self.elapsed = 0
         self.last_time = -1
-        
+
     def begin_timer(self):
         # TODO: smarter time adjustment strategy
         self.elapsed = self.reset(self.elapsed)
         self.last_time = time.time()
-        
+
     def update_timer(self, delta):
         self.elapsed += delta
-        
+
     def is_complete(self):
         return self.elapsed >= self.duration
-        
+
     def set_duration(self, duration):
         self.duration = float(duration)
-        
-        
+
+
+class FrameCountTimerState(object):
+    """
+    A timer based off the variable time deltas coming from the system.
+    In the event the timer duration is small i.e. < 100ms, jitter in the delta
+    value can cause problems. Keeping the residual time instead of a full
+    reset has been shown to have better accuracy in this case.
+    """
+    def __init__(self, duration_in_frames):
+        assert duration_in_frames >= 1
+        self.duration = int(duration_in_frames)
+        self.elapsed = 0
+
+    def begin_timer(self):
+        self.elapsed = 0
+
+    def update_timer(self, delta):
+        self.elapsed += 1
+
+    def is_complete(self):
+        return self.elapsed >= self.duration
+
+    def set_duration(self, duration_in_frames):
+        self.duration = int(duration_in_frames)
+
+
 # XXX this can be refactored.  there is no need for a rest state.  this can be implemented such
 #     that the trials are 'stacked'.  then rests can be stacked with trials abstractly.  this
 #     would help to optimize cases that have no rest condition; currently a bunch of statements are
