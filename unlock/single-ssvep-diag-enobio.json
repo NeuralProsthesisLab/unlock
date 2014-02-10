@@ -13,7 +13,8 @@
         "receiver" : "decoded",
         
         "signal" : {
-            "type" : "random"
+            "type" : "enobio",
+            "mac_addr" : "0x61,0x9c,0x58,0x80,0x07,0x00"
         },
                 
         "buffering_decoder" : {

@@ -131,8 +131,8 @@ class UnlockFactory(context.PythonConfig):
         
     @context.Object(lazy_init=True)    
     def mobilab(self):
-        assert 'com_Port' in self.config['signal']        
-        com_port = self.config['signal']['com_port']
+        assert 'com_port' in self.config['bci']['signal']
+        com_port = self.config['bci']['signal']['com_port']
             
         analog_channels_bitmask = 1+2+4+8+16+32+64+128
         from unlock.bci import acquire    
@@ -354,6 +354,7 @@ class UnlockRuntime(object):
         self.factory = UnlockFactory(self.config)
         self.context = context.ApplicationContext(self.factory)
         self.factory.context = self.context
+        print(self.config['bci']['signal']['type'])
         self.factory.signal = self.context.get_object(self.config['bci']['signal']['type'])
         self.factory.bci = self.context.get_object(self.config['bci']['wrapper'])
         self.factory.window = self.context.get_object('pyglet_window')
