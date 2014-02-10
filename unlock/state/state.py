@@ -107,7 +107,8 @@ class OfflineData(UnlockState):
             return
             
         #print("am here", dir(command))
-        if command.is_valid():    
+        if command.is_valid():
+            print("NOTHING IN THE FILE...")
             np.savetxt(self.file_handle, command.matrix, fmt='%d', delimiter='\t')
             
         #else:

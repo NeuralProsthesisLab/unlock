@@ -13,7 +13,8 @@
         "receiver" : "decoded",
         
         "signal" : {
-            "type" : "random"
+            "type" : "mobilab",
+            "com_port" : "COM7"
         },
                 
         "buffering_decoder" : {
@@ -49,8 +50,8 @@
         {
             "name" : "single_ssvep_diagnostic",
             "args" : {
-                "frequency" : 18,
-                "output_file" : "mobilab-single-ssvep-diag-18hz",
+                "frequency" : 12,
+                "output_file" : "mobilab-single-ssvep-diag-12hz",
                 "color" : [0, 0, 0],
                 "color1" : [255, 255, 255]
             }

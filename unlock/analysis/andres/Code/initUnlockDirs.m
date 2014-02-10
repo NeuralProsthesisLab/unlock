@@ -29,7 +29,7 @@ switch host
         dirs.BCIparams  = '';                                                       % Add path where all BCIparams are located
         dirs.PTB        = 'C:\Users\salacho\Documents\MATLAB\toolbox\Psychtoolbox'; % Add path to PsychToolbox
         dirs.chronux    = 'C:\Users\salacho\Documents\MATLAB\toolbox\chronux';      % Add path to chronux toolbox
-    case 'WIN-9GPH0BCJN5Q'
+    case 'Salachos-Carbon'
         dirs.Code       = 'C:\Users\Administrator\Documents\BU\Speechlab\Unlock\Code\analysis'; % Dir w/ data analysis Code
         dirs.helpers    = '';                                                                   % Dir w/ helpers analysis Code
         dirs.DataIn     = 'C:\Users\Administrator\Documents\BU\Speechlab\Unlock\Data\raw';      % Dir w/ datafiles. Mapping server using SFTP Net Drive
