@@ -77,7 +77,13 @@ def webgl():
 		return render_template('webgl-demo.html')
 	except Exception as e:
 		print("Exception = ", dir(e), e, e.__doc__)	
-
+		
+@app.route("/random")
+def random():
+	try:
+		return render_template('random.html')
+	except Exception as e:
+		print("Exception = ", dir(e), e, e.__doc__)	
 
 @app.route("/hitmehard")
 def ttol():
