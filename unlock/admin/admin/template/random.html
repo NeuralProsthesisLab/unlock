@@ -1,0 +1,151 @@
+<html>
+	<head>
+	
+		<!-- SceneJS -->
+		<script src="static/js/scenejs/scenejs.js"></script>
+		
+	</head>
+	<body>
+
+		<!-- Draw flickering checkerboard -->
+		<script>
+		
+			// Enable debug (not working though)
+			SceneJS.setDebugConfigs({
+				webgl: {
+					logTrace: true
+				},
+				shading: {
+					logScripts: true
+				}
+			});
+
+			SceneJS.setConfigs({
+				pluginPath:"static/js/scenejs/plugins"
+			});
+
+			// Scene def
+			var scene = SceneJS.createScene({			
+				nodes:[
+				
+					// Root node
+					{
+						type:"flags",
+						id:"root",
+						
+						nodes:[
+						
+							// View matrix								
+							{					
+								type:"lookAt",
+								eye:{ z:3 },
+								
+								nodes:[		
+								
+									// Black squares
+									{
+										type:"material",
+										color:{ r:0.0, g:0.0, b:0.0 },
+										
+										nodes:[					
+											
+											// Top right
+											{
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													1,0,0,
+													1,1,0,													
+													0,0,0,
+													0,1,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											},
+
+											// Bottom left
+											{
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													0,-1,0,
+													0,0,0,													
+													-1,-1,0,
+													-1,0,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											}
+											
+										]
+									},
+
+									// White squares
+									{
+										type:"material",
+										color:{ r:1.0, g:1.0, b:1.0 },
+										
+										nodes:[					
+											
+											// Top left
+											{
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													0,0,0,
+													0,1,0,													
+													-1,0,0,
+													-1,1,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											},
+
+											// Bottom right
+											{
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													1,-1,0,
+													1,0,0,													
+													0,-1,0,
+													0,0,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											}
+											
+										]
+									}
+									
+								]							
+							} // ~View matrix
+							
+						]
+					} // ~Root node
+					
+				]				
+			}); // ~Scene def
+			
+			// Get flickering rate
+			var frate = location.search.match(/frate=\d+/);
+			if (frate != null) {				
+				frate = frate[0].match(/\d+/)[0];
+				
+				// Set flickering
+				scene.getNode("root", function (node) {
+					setInterval(function () {
+						node.setEnabled(!node.getEnabled());					
+					}, 1000/frate);
+				});
+			}			
+			
+		</script>
+		<!-- ~Draw flickering checkerboard -->
+		
+	</body>
+</html>
