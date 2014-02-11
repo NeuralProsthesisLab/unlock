@@ -10,6 +10,7 @@
     
     "bci" : {
         "wrapper" : "inline",
+        "stimuli" : "quad_ssvep",
         "receiver" : "decoded",
         
         "signal" : {
