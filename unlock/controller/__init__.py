@@ -99,7 +99,7 @@ class UnlockControllerFactory(object):
         canvas = Canvas.create(window.width, window.height)
         scope = UnlockControllerFragment.create_frequency_scope_fragment(canvas, **kwargs)
         if base is None:
-            command_receiver = CommandReceiverFactory.create(CommandReceiverFactory.Raw,
+            command_receiver = UnlockCommandReceiverFactory.create(UnlockCommandReceiverFactory.Raw,
                 bci_wrapper.signal, bci_wrapper.timer)
         else:
             command_receiver = base.command_receiver
@@ -107,7 +107,13 @@ class UnlockControllerFactory(object):
         controller_chain = UnlockControllerChain(window, command_receiver, [scope], 'FrequencyScope',
             'frequency-128x128.jpg', standalone=False)
         return controller_chain
-        
+
+    def create_command_connected_fragment(self, canvas, stimuli, command_receiver, color='bw'):
+
+        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimuli,
+            views, canvas.batch)
+        return command_connected_fragment
+
     def create_dashboard_fragment(window, canvas, controllers, calibrator):      
         grid_state = ControllerGridState(controllers)
         icons = []
@@ -120,6 +126,17 @@ class UnlockControllerFactory(object):
         state = UnlockStateChain([grid_state, offline_data])
         
         return UnlockDashboard(window, state, [grid_view], canvas.batch, controllers, calibrator)
+
+    def create_dashboard(window, canvas, controllers, command_connected_fragment, calibrator=None):
+        dashboard_fragment = UnlockControllerFactory.create_dashboard_fragment(window, canvas,
+            controllers, calibrator)
+
+        dashboard_chain = UnlockControllerChain(window, command_connected_fragment.command_receiver,
+            [command_connected_fragment, dashboard_fragment], 'Dashboard', '', standalone=True)
+
+        dashboard_fragment.poll_signal = dashboard_chain.poll_signal
+        dashboard_chain.poll_signal = dashboard_fragment.poll_signal_interceptor
+        return dashboard_chain
 
     def create_frame_count_timed_quad_ssvep_stimulation(canvas, color):
         UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color, UnlockStateFactory.create_frame_count_timed_stimulus)
@@ -178,24 +195,7 @@ class UnlockControllerFactory(object):
         views.append(fs3)
 
         return stimuli, views
-        
-    def create_dashboard(window, controllers, command_receiver, calibrator=None, color='bw'):        
-        canvas = UnlockControllerFactory.create_canvas(window.width, window.height)
-        dashboard_fragment = UnlockControllerFactory.create_dashboard_fragment(window, canvas,
-            controllers, calibrator)
-            
-        stimuli, views = UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color)        
-        
-        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimuli,
-            views, canvas.batch)
-            
-        dashboard_chain = UnlockControllerChain(window, command_connected_fragment.command_receiver,
-            [command_connected_fragment, dashboard_fragment], 'Dashboard', '', standalone=True)
-            
-        dashboard_fragment.poll_signal = dashboard_chain.poll_signal
-        dashboard_chain.poll_signal = dashboard_fragment.poll_signal_interceptor
-        return dashboard_chain
-        
+
     def create_gridspeak_fragment(canvas):
         grid_model = HierarchyGridState(2)
         gridspeak_view = GridSpeakView(None, grid_model, canvas)
