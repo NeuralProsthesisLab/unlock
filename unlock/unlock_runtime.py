@@ -46,26 +46,30 @@ class UnlockRuntime(object):
         """Initializes the UnlockRuntime."""
         self.conf = None
         self.logger = None
-        
+        self.loglevel = logging.INFO
+        self.valid_levels = {'debug': logging.DEBUG, 'info': logging.INFO, 'warn': logging.WARN, 'error': logging.ERROR, 'critical': logging.CRITICAL}
+
+        args = None
+        options = None
+        parser = None
+        usage = "usage: %prog [options]"
+
+
+        conf_help = 'path to the configuration; if not set the default is used'
+        fullscreen_help = 'makes the app run in fullscreen; overrides the config file setting'
+        fps_help = 'displays the frequency per second; overrides the config file setting'
+        vsync_help = 'turns vsync on; default is off'
+        loglevel_help = 'sets the root logging level; valid values are debug, info, warn, error and critical; default value is warn; overrides the config file setting'
+        signal_help = 'selects the signaling system; valid values are: random, mobilab, enobio and audio; default value is random; overrides the config file setting'
+        stimuli_help = 'sets the system to use a shared stimuli; valid values are: ssvep, msequence and semg'
+        mac_addr_help = 'a comma separated list of hexadecimal values that are required to connect to some signaling devices;for example -m "0x1,0x2,0x3,0x4,0x5,0x6"'
+        com_port_help = 'the COM port associated with some data acquisition devices; e.g. -p COM3'
+        receiver_help = 'sets the type of receiver; valid values include delta, raw, decoded and datagram'
+        bci_wrapper_help = 'sets the type of bci_wrapper; valid values include inline and multiprocess'
+        unrecorded_help = 'turns off recording'
+
         try:
-            
-            args = None
-            options = None
-            parser = None
-            usage = "usage: %prog [options]"
             parser = OptionParser(version="%prog 1.0", usage=usage)
-            conf_help = 'path to the configuration; if not set the default is used'
-            fullscreen_help = 'makes the app run in fullscreen; overrides the config file setting'
-            fps_help = 'displays the frequency per second; overrides the config file setting'
-            vsync_help = 'turns vsync on; default is off'
-            loglevel_help = 'sets the root logging level; valid values are debug, info, warn, error and critical; default value is warn; overrides the config file setting'
-            signal_help = 'selects the signaling system; valid values are: random, mobilab, enobio and audio; default value is random; overrides the config file setting'
-            stimuli_help = 'sets the system to use a shared stimuli; valid values are: ssvep, msequence and semg'
-            mac_addr_help = 'a comma separated list of hexadecimal values that are required to connect to some signaling devices;for example -m "0x1,0x2,0x3,0x4,0x5,0x6"'
-            com_port_help = 'the COM port associated with some data acquisition devices; e.g. -p COM3'
-            receiver_help = 'sets the type of receiver; valid values include delta, raw, decoded and datagram'
-            bci_wrapper_help = 'sets the type of bci_wrapper; valid values include inline and multiprocess'
-            unrecorded_help = 'turns off recording'
             conf = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'conf.json')
             parser.add_option('-c', '--conf', type=str, dest='conf', default=conf, metavar='CONF', help=conf_help)
             parser.add_option('-n', '--fullscreen', default=None, action='store_true', dest='fullscreen', metavar='FULLSCREEN', help=fullscreen_help)
@@ -79,10 +83,7 @@ class UnlockRuntime(object):
             parser.add_option('-r', '--receiver', dest='receiver', default=None, type=str, metavar='RECEIVER', help=receiver_help)
             parser.add_option('-d', '--bci_wrapper', dest='bci_wrapper', default=None, type=str, metavar='BCI_WRAPPER', help=bci_wrapper_help)
             parser.add_option('-u', '--unrecorded', default=None, action='store_true', dest='unrecorded', metavar='UNRECORDED', help=unrecorded_help)
-            valid_levels = {'debug': logging.DEBUG, 'info': logging.INFO, 'warn': logging.WARN, 'error': logging.ERROR, 'critical': logging.CRITICAL}
-            self.loglevel = logging.INFO
             (options, args) = parser.parse_args()
-            
         except Exception as e:
             print("UnlockRuntime.__init__: FATAL failed to parse command line parameters ")
             raise e
@@ -105,7 +106,6 @@ class UnlockRuntime(object):
     def setup_config(self, options):
         self.conf = options.conf
         self.config = self.parse_config()
-            
 
         assert 'bci' in self.config.keys()
         assert 'signal' in self.config['bci'].keys()
@@ -135,9 +135,9 @@ class UnlockRuntime(object):
         if options.bci_wrapper is not None:
             self.config['bci']['wrapper'] = options.bci_wrapper
             
-        if options.loglevel is not None:
+        if options.loglevel is not None and options.loglevel in self.valid_levels:
             # Config file settings override this command line parameter
-            self.loglevel = valid_levels[options.loglevel]
+            self.loglevel = self.valid_levels[options.loglevel]
             
         if options.unrecorded is not None:
             self.config['unrecorded'] = options.unrecorded
