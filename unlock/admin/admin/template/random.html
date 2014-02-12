@@ -38,7 +38,7 @@
 							// View matrix								
 							{					
 								type:"lookAt",
-								eye:{ z:3 },
+								eye:{ z:6 },
 								
 								nodes:[		
 								
@@ -79,6 +79,87 @@
 												]	
 											}
 											
+											// TEMP
+                                            ,{
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													2,-1,0,
+													2,0,0,													
+													1,-1,0,
+													1,0,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											},
+                                            {
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													2,1,0,
+													2,2,0,													
+													1,1,0,
+													1,2,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											},
+                                            {
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													0,1,0,
+													0,2,0,													
+													-1,1,0,
+													-1,2,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											},
+                                            {
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													-1,0,0,
+													-1,1,0,													
+													-2,0,0,
+													-2,1,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											},
+                                            {
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													-1,-2,0,
+													-1,-1,0,													
+													-2,-2,0,
+													-2,-1,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											},
+                                            {
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													1,-2,0,
+													1,-1,0,													
+													0,-2,0,
+													0,-1,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											}
+                                            // ~TEMP
+											
 										]
 									},
 
@@ -118,6 +199,87 @@
 													0, 1, 2, 3
 												]	
 											}
+											
+											// TEMP
+                                            ,{
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													2,-2,0,
+													2,-1,0,													
+													1,-2,0,
+													1,-1,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											},
+                                            {
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													2,0,0,
+													2,1,0,													
+													1,0,0,
+													1,1,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											},
+                                            {
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													1,1,0,
+													1,2,0,													
+													0,1,0,
+													0,2,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											},
+                                            {
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													-1,1,0,
+													-1,2,0,													
+													-2,1,0,
+													-2,2,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											},
+                                            {
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													-1,-1,0,
+													-1,0,0,													
+													-2,-1,0,
+													-2,0,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											},
+                                            {
+												type:"geometry",
+												primitive:"triangle-strip",										
+												positions:[
+													0,-2,0,
+													0,-1,0,													
+													-1,-2,0,
+													-1,-1,0
+												],										
+												indices:[
+													0, 1, 2, 3
+												]	
+											}
+                                            // ~TEMP
 											
 										]
 									}
