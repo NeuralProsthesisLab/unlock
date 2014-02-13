@@ -211,9 +211,9 @@ class UnlockDashboard(UnlockCalibratedControllerFragment):
         
         
 class PygletWindow(pyglet.window.Window):
-    def __init__(self, decoder, fullscreen=False, show_fps=True, vsync=False):
+    def __init__(self, signal, fullscreen=False, show_fps=True, vsync=False):
         super(PygletWindow, self).__init__(fullscreen=fullscreen, vsync=vsync)
-        self.decoder = decoder
+        self.signal = signal
         self.controller_stack = []
         self.views = []
         self.batches = set([])
@@ -250,11 +250,13 @@ class PygletWindow(pyglet.window.Window):
         if self.active_controller:
             stop = self.active_controller.deactivate()
             if stop:
-                self.decoder.shutdown()
+                self.signal.stop()
+                self.signal.close()
                 pyglet.app.exit()        
             return pyglet.event.EVENT_HANDLED
         else:
-            self.decoder.shutdown()
+            self.signal.stop()
+            self.signal.close()
             pyglet.app.exit()
             
     def activate_controller(self, controller):
