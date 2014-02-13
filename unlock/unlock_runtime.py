@@ -34,9 +34,7 @@ import inspect
 import logging
 import logging.config
 
-from unlock import context
-from unlock.bci import UnlockCommandReceiverFactory, InlineBciWrapper, MultiProcessBciWrapper, UnlockDecoderFactory
-from unlock.controller import PygletWindow, UnlockDashboard, UnlockControllerFactory, Canvas
+from unlock import UnlockFactory
 from optparse import OptionParser
 from sqlalchemy import create_engine
 
@@ -47,13 +45,11 @@ class UnlockRuntime(object):
         self.conf = None
         self.logger = None
         self.loglevel = logging.INFO
-        self.valid_levels = {'debug': logging.DEBUG, 'info': logging.INFO, 'warn': logging.WARN, 'error': logging.ERROR, 'critical': logging.CRITICAL}
 
         args = None
         options = None
         parser = None
         usage = "usage: %prog [options]"
-
 
         conf_help = 'path to the configuration; if not set the default is used'
         fullscreen_help = 'makes the app run in fullscreen; overrides the config file setting'
@@ -65,8 +61,9 @@ class UnlockRuntime(object):
         mac_addr_help = 'a comma separated list of hexadecimal values that are required to connect to some signaling devices;for example -m "0x1,0x2,0x3,0x4,0x5,0x6"'
         com_port_help = 'the COM port associated with some data acquisition devices; e.g. -p COM3'
         receiver_help = 'sets the type of receiver; valid values include delta, raw, decoded and datagram'
-        bci_wrapper_help = 'sets the type of bci_wrapper; valid values include inline and multiprocess'
         unrecorded_help = 'turns off recording'
+
+        valid_levels = {'debug': logging.DEBUG, 'info': logging.INFO, 'warn': logging.WARN, 'error': logging.ERROR, 'critical': logging.CRITICAL}
 
         try:
             parser = OptionParser(version="%prog 1.0", usage=usage)
@@ -81,17 +78,17 @@ class UnlockRuntime(object):
             parser.add_option('-m', '--mac-addr', dest='mac_addr', default=None, type=str, metavar='MAC-ADDR', help=mac_addr_help)
             parser.add_option('-p', '--com-port', dest='com_port', default=None, type=str, metavar='COM-PORT', help=com_port_help)
             parser.add_option('-r', '--receiver', dest='receiver', default=None, type=str, metavar='RECEIVER', help=receiver_help)
-            parser.add_option('-d', '--bci_wrapper', dest='bci_wrapper', default=None, type=str, metavar='BCI_WRAPPER', help=bci_wrapper_help)
             parser.add_option('-u', '--unrecorded', default=None, action='store_true', dest='unrecorded', metavar='UNRECORDED', help=unrecorded_help)
             (options, args) = parser.parse_args()
         except Exception as e:
-            print("UnlockRuntime.__init__: FATAL failed to parse command line parameters ")
-            raise e
-            
+            print('UnlockRuntime: FATAL failed to parse program arguments')
+            self.print_last_exception()
+            sys.exit(1)
+
         try:
-            self.setup_config(options)
+            self.setup_config(options, valid_levels)
             self.configure()
-        except:
+        except Exception as e:
             if self.logger == None:
                 print('UnlockRuntime: FATAL failed to initialize correctly; did not complete logging setup')
             else:
@@ -99,11 +96,11 @@ class UnlockRuntime(object):
                 
             if parser:
                 parser.print_help()
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)
+
+            self.print_last_exception()
             sys.exit(1)
-            
-    def setup_config(self, options):
+
+    def setup_config(self, options, valid_levels):
         self.conf = options.conf
         self.config = self.parse_config()
 
@@ -135,9 +132,9 @@ class UnlockRuntime(object):
         if options.bci_wrapper is not None:
             self.config['bci']['wrapper'] = options.bci_wrapper
             
-        if options.loglevel is not None and options.loglevel in self.valid_levels:
+        if options.loglevel is not None and options.loglevel in valid_levels:
             # Config file settings override this command line parameter
-            self.loglevel = self.valid_levels[options.loglevel]
+            self.loglevel = valid_levels[options.loglevel]
             
         if options.unrecorded is not None:
             self.config['unrecorded'] = options.unrecorded
@@ -155,7 +152,7 @@ class UnlockRuntime(object):
         self.configure_persistence()
         self.logger.info('Database setup successfully completed')                
         
-        self.create_unlock()        
+        self.unlock = self.create_unlock()
         self.logger.info('Unlock setup successfully completed')                
             
     def configure_logging(self):
@@ -176,35 +173,35 @@ class UnlockRuntime(object):
                 (db['host'], db['user'],db['name'], db['port'], db['addr']))
                 
     def create_unlock(self):
-        for controller in self.config['controllers']:
-            # xxx - this is a hack to get rid of the name?
-            self.config[controller['name']] = controller['args']
-        
-        self.factory = UnlockFactory(self.config)
-        self.context = context.ApplicationContext(self.factory)
-        self.factory.context = self.context
-        print(self.config['bci']['signal']['type'])
-        self.factory.signal = self.context.get_object(self.config['bci']['signal']['type'])
-        self.factory.bci = self.context.get_object(self.config['bci']['wrapper'])
-        self.factory.window = self.context.get_object('pyglet_window')
-        
-        if 'stimuli' in self.config.keys():
-            self.factory.stimuli = self.context.get_object(self.config['stimuli'])
-            
-        self.main = self.context.get_object(self.config['main'])
-            
+        factory = UnlockFactory()
+        unlock_instance = factory.create_unlock(self.config)
+        return unlock_instance
+
+    def make_high_priority(self):
+        '''Makes the Unlock process a high priority; we never researched the impact of doing this'''
+        try:
+            import psutil
+            import os
+            p = psutil.Process(os.getpid())
+            p.set_nice(psutil.HIGH_PRIORITY_CLASS)
+        except Exception as e:
+            self.print_last_exception()
+
+    def print_last_exception(self):
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)
+
     def start(self):
         """Starts the UnlockRuntime."""
-        self.main.activate()
+        # XXX - this is weird we shouldn't reach in and call window start after activate.  unlock_instance should
+        # override activate.  then call the super.activate then call window.start.  then overrride deactiveate to be
+        # window.close which gets called here.
+        self.unlock.activate()
         self.logger.info('Starting Unlock...')                        
-        self.main.window.start()
-        self.main.window.close()
-        
-        
+        self.unlock.window.start()
+        self.unlock.window.close()
+
+
 if __name__ == '__main__':
-    #import psutil
-    #import os
-    #p = psutil.Process(os.getpid())
-    #p.set_nice(psutil.HIGH_PRIORITY_CLASS)
     unlock = UnlockRuntime()
     unlock.start()
