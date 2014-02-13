@@ -47,11 +47,7 @@ class InlineBciWrapper(BCIWrapper):
         self.receiver = receiver
         self.signal = signal
         self.timer = timer
-        
-    def shutdown(self):
-        self.signal.stop()
-        self.signal.close()
-        
+
     def stop(self):
         raise Exception("Stop not supported")
 
