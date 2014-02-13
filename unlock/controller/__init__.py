@@ -44,7 +44,10 @@ class UnlockControllerFactory(object):
     """
     def __init__(self):
         super(UnlockControllerFactory, self).__init__()
-        
+
+    def create_pyglet_window(self, signal, fullscreen=False, fps=True, vsync=True):
+        return PygletWindow(signal, fullscreen, fps, vsync)
+
     def create_canvas(width, height, xoffset=0, yoffset=0):        
         batch = pyglet.graphics.Batch()
         return Canvas(batch, width, height, xoffset, yoffset)
