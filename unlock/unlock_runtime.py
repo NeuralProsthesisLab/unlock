@@ -55,15 +55,19 @@ class UnlockRuntime(object):
         fullscreen_help = 'makes the app run in fullscreen; overrides the config file setting'
         fps_help = 'displays the frequency per second; overrides the config file setting'
         vsync_help = 'turns vsync on; default is off'
-        loglevel_help = 'sets the root logging level; valid values are debug, info, warn, error and critical; default value is warn; overrides the config file setting'
-        signal_help = 'selects the signaling system; valid values are: random, mobilab, enobio and audio; default value is random; overrides the config file setting'
+        loglevel_help = 'sets the root logging level; valid values are debug, info, warn, error and critical; default '+\
+                        'value is info; overrides the config file setting'
+        signal_help = 'selects the signaling system; valid values are: random, mobilab, enobio and audio; default '+\
+                      'value is random; overrides the config file setting'
         stimuli_help = 'sets the system to use a shared stimuli; valid values are: ssvep, msequence and semg'
-        mac_addr_help = 'a comma separated list of hexadecimal values that are required to connect to some signaling devices;for example -m "0x1,0x2,0x3,0x4,0x5,0x6"'
+        mac_addr_help = 'a comma separated list of hexadecimal values that are required to connect to some signaling '+\
+                        'devices;for example -m "0x1,0x2,0x3,0x4,0x5,0x6"'
         com_port_help = 'the COM port associated with some data acquisition devices; e.g. -p COM3'
         receiver_help = 'sets the type of receiver; valid values include delta, raw, decoded and datagram'
         unrecorded_help = 'turns off recording'
 
-        valid_levels = {'debug': logging.DEBUG, 'info': logging.INFO, 'warn': logging.WARN, 'error': logging.ERROR, 'critical': logging.CRITICAL}
+        valid_levels = {'debug': logging.DEBUG, 'info': logging.INFO, 'warn': logging.WARN, 'error': logging.ERROR,
+                        'critical': logging.CRITICAL}
 
         try:
             parser = OptionParser(version="%prog 1.0", usage=usage)
@@ -81,113 +85,131 @@ class UnlockRuntime(object):
             parser.add_option('-u', '--unrecorded', default=None, action='store_true', dest='unrecorded', metavar='UNRECORDED', help=unrecorded_help)
             (options, args) = parser.parse_args()
         except Exception as e:
-            print('UnlockRuntime: FATAL failed to parse program arguments')
-            self.print_last_exception()
+            print('UnlockRuntime.__init__: FATAL failed to parse program arguments')
+            UnlockRuntime.print_last_exception()
             sys.exit(1)
 
         try:
-            self.setup_config(options, valid_levels)
-            self.configure()
+            self.config = UnlockRuntime.setup_config(options, valid_levels)
+            self.logger, self.engine, self.unlock = UnlockRuntime.configure(self.config)
+
         except Exception as e:
             if self.logger == None:
-                print('UnlockRuntime: FATAL failed to initialize correctly; did not complete logging setup')
+                print('UnlockRuntime.__init__: FATAL failed to initialize correctly; did not complete logging setup')
             else:
                 self.logger.fatal('failed to initialize correctly')
                 
             if parser:
                 parser.print_help()
 
-            self.print_last_exception()
+            UnlockRuntime.print_last_exception()
             sys.exit(1)
 
-    def setup_config(self, options, valid_levels):
-        self.conf = options.conf
-        self.config = self.parse_config()
+    @staticmethod
+    def setup_config(options, valid_levels):
+        config = UnlockRuntime.parse_config(options.conf)
 
-        assert 'bci' in self.config.keys()
-        assert 'signal' in self.config['bci'].keys()
-        assert 'pyglet' in self.config.keys()
-        assert 'main' in self.config.keys()
-        assert 'controllers' in self.config.keys()
+        assert 'bci' in config.keys()
+        assert 'signal' in config['bci'].keys()
+        assert 'pyglet' in config.keys()
+        assert 'main' in config.keys()
+        assert 'controllers' in config.keys()
         
         if options.fullscreen is not None:
-            self.config['pyglet']['fullscreen'] = options.fullscreen
+            config['pyglet']['fullscreen'] = options.fullscreen
         if options.fps is not None:
-            self.config['pyglet']['fps'] = options.fps
+            config['pyglet']['fps'] = options.fps
         if options.vsync is not None:
-            self.config['pyglet']['vsync'] = options.vsync
+            config['pyglet']['vsync'] = options.vsync
             
         if options.signal is not None:
-            self.config['signal'] = options.signal
+            config['signal'] = options.signal
         if options.mac_addr is not None:
-            self.config['signal']['mac_addr'] = options.mac_addr
+            config['signal']['mac_addr'] = options.mac_addr
         if options.com_port is not None:
-            self.config['signal']['com_port'] = options.com_port
+            config['signal']['com_port'] = options.com_port
             
         if options.stimuli is not None:
-            self.config['stimuli'] = options.stimuli
+            config['stimuli'] = options.stimuli
             
         if options.receiver is not None:
-            self.config['bci']['receiver'] = options.receiver
+            config['bci']['receiver'] = options.receiver
         if options.bci_wrapper is not None:
-            self.config['bci']['wrapper'] = options.bci_wrapper
+            config['bci']['wrapper'] = options.bci_wrapper
             
         if options.loglevel is not None and options.loglevel in valid_levels:
-            # Config file settings override this command line parameter
-            self.loglevel = valid_levels[options.loglevel]
-            
+            config['loglevel'] = valid_levels[options.loglevel]
+
         if options.unrecorded is not None:
-            self.config['unrecorded'] = options.unrecorded
-            
-    def parse_config(self):
-        with open(self.conf, 'rt') as file_descriptor:
+            config['unrecorded'] = options.unrecorded
+
+        return config
+
+    @staticmethod
+    def parse_config(conf):
+        with open(conf, 'rt') as file_descriptor:
             json_string = file_descriptor.read()
             config = json.loads(json_string)
         return config            
-            
-    def configure(self):
-        self.configure_logging()
-        self.logger.info('Logging setup successfully completed')
+
+    @staticmethod
+    def configure(config):
+        logger = UnlockRuntime.configure_logging(config)
+        logger.info('Logging setup successfully completed')
         
-        self.configure_persistence()
-        self.logger.info('Database setup successfully completed')                
+        engine = UnlockRuntime.configure_persistence(config)
+        logger.info('Database setup successfully completed')
         
-        self.unlock = self.create_unlock()
-        self.logger.info('Unlock setup successfully completed')                
-            
-    def configure_logging(self):
+        unlock = UnlockRuntime.create_unlock(config)
+        logger.info('Unlock setup successfully completed')
+
+        return logger, engine, unlock
+
+    @staticmethod
+    def configure_logging(config):
         # The Logging-Config object determines the configuration of the logging
         # System.  It follows the standard Python JSON logging config; see
         # http://docs.python.org/2/howto/logging-cookbook.html for more details.        
-        if 'logging' in self.config:
-            logging.config.dictConfig(self.config['logging'])
+        if 'logging' in config:
+            if 'root' in config['logging'] and 'loglevel' in config:
+                config['logging']['root']['level'] = config['loglevel']
+            logging.config.dictConfig(config['logging'])
         else:
-            logging.basicConfig(level=self.loglevel)
-            
-        self.logger = logging.getLogger(__name__)
-         
-    def configure_persistence(self):
-        db = self.config['database']
-        if 'unrecorded' in self.config:
-            self.engine = create_engine('postgresql://%s:%s@%s:%s/%s' % \
+            level = logging.INFO
+            if 'loglevel' in config:
+                level = config['loglevel']
+            logging.basicConfig(level=level)
+        return logging.getLogger(__name__)
+
+    @staticmethod
+    def configure_persistence(config):
+        db = config['database']
+        engine = None
+        if not 'unrecorded' in config:
+            engine = create_engine('postgresql://%s:%s@%s:%s/%s' % \
                 (db['host'], db['user'],db['name'], db['port'], db['addr']))
-                
-    def create_unlock(self):
+
+        return engine
+
+    @staticmethod
+    def create_unlock(config):
         factory = UnlockFactory()
-        unlock_instance = factory.create_unlock(self.config)
+        unlock_instance = factory.create_unlock(config)
         return unlock_instance
 
+    @staticmethod
     def make_high_priority(self):
-        '''Makes the Unlock process a high priority; we never researched the impact of doing this'''
+        '''Makes the Unlock process a high priority; the impact of this was never investigated and it is not used.'''
         try:
             import psutil
             import os
             p = psutil.Process(os.getpid())
             p.set_nice(psutil.HIGH_PRIORITY_CLASS)
         except Exception as e:
-            self.print_last_exception()
+            UnlockRuntime.print_last_exception()
 
-    def print_last_exception(self):
+    @staticmethod
+    def print_last_exception():
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)
 
