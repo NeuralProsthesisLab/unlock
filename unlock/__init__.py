@@ -24,177 +24,146 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 from unlock.util import *
 from unlock.state import *
 from unlock.view import *
 from unlock.controller import *
 from unlock.bci import *
 from unlock import unlock_runtime
+from sqlalchemy import create_engine
+
+
+class Stimulation(object):
+    def __init__(self, stimuli, views):
+        super(Stimulation, self).__init__()
+        self.stimuli = stimuli
+        self.views = views
 
 class UnlockFactory(object):
-    def __init__(self, config):
+    def __init__(self):
         super(UnlockFactory, self).__init__()
-        self.window = None
-        self.bci_wrapper = None
-        self.bci = None
-        self.config = config
-        self.receiver_factory = UnlockCommandReceiverFactory()
+        self.receiver_factory = UnlockCommandFactory()
         self.decoder_factory = UnlockDecoderFactory()
-        self.logger = logging.getLogger(__name__)
+        self.acquisition_factory = UnlockAcquisitionFactory()
+        self.controller_factory = UnlockControllerFactory()
+        self.state_factory = UnlockStateFactory()
+        self.view_factory = UnlockViewFactory()
 
-    def create_base(self):
-        bci = self.inline()
-        assert self.window
-        canvas = UnlockControllerFactory.create_canvas(self.window.width, self.window.height)
-        command_connected_fragment = self.create_command_connected_fragment(canvas, bci.receiver)
-        return bci, canvas, command_connected_fragment
-
-    def create_command_connected_fragment(self, canvas, stimuli, command_receiver):
-        assert self.window
-        return UnlockControllerFactory.create_command_connected_fragment(canvas, stimuli, command_receiver)
-
-    def create_decoder(self, decoder):
-        return self.decoder_factory.create_decoder(decoder['name'], **decoder['args'])
-
-    def create_receiver(self, receiver_type, signal, timer, decoder):
-        receiver = self.receiver_factory.create_receiver(receiver_type, signal=signal, timer=timer, decoder=decoder)
-        return receiver
-
-    def create_stimuli(self):
-        assert self.context
-        stimuli, views = getattr(self, self.config['bci']['stimuli'])
-        return stimuli, views
-
-    def create_quad_ssvep(self, canvas, color):
-        stimuli, views = UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color)
-        return stimuli, views
-
-    def inline(self):
-        # XXX - this is a hack because the context doesn't support keyword args.
-        assert self.signal is not None and self.timer is not None
-        decoder_args = self.config['bci']['decoder']
-        decoder = self.create_decoder(decoder_args)
-
-        receiver_type = self.config['bci']['receiver']
-        receiver = self.create_receiver(receiver_type, self.signal, self.timer, decoder)
-        bci = InlineBciWrapper(receiver, self.signal, self.timer)
-        return bci
-
-# XXX this is no longer used
-    def multiprocess(self):
-        bci_wrapper = MultiProcessBciWrapper(self.config)
-        return bci_wrapper
+    def database(self, database=None, host=None, user=None, name=None, port=None, addr=None):
+        assert database and host and user and name and port and addr
+        engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (database, host, user, port, addr))
+        return engine
+        
+    def logging(self, config):
+        if config:
+            logging.config.dictConfig(config['logging'])
+        else:
+            level = logging.DEBUG
+            logging.basicConfig(level=level)
+            
+        return logging.getLogger(__name__)
 
     def nidaq(self):
-        from unlock.bci import acquire
-        self.timer = acquire.create_timer()
-        signal = acquire.create_nidaq_signal(self.timer)
-        if not signal.start():
-            raise RuntimeError('Failed to start National Instruments DAQ')
-        return signal
-        #for j in range(50):
-        #	ret = daq.acquire()
-        #	ret = daq.getdata(ret)
-        #	f = open('test.data', 'wb')
-        #	import numpy as np
-        #	a = np.array(ret, dtype='float64')
-        #	a = a.reshape((500, 4))
-        #	#np.savetxt(f, a, fmt='%d', delimiter='\t')
-        #	for i in range(20):
-        #		print(a[i])
-        #
+        return self.acquisition_factory.create_nidaq()
 
     def audio(self):
-        from unlock.bci import acquire
-        self.timer = acquire.create_timer()
-        signal = acquire.AudioSignal()
-        if not signal.start():
-            raise RuntimeError('failed to start audio signal')
+        return self.acquisition_factory.create_audio_signal()
 
-        return signal
+    def enobio(self, mac_addr_str='0x61,0x9c,0x58,0x80,0x07,0x00'):
+        mac_addr = [int(value,0) for value in [x.strip() for x in mac_addr_str.split(',')]]
+        return self.acquisition_factory.create_enobio_signal(mac_addr)
 
-    def enobio(self):
-        assert 'mac_addr' in self.config['signal']
-        mac_addr = [int(value,0) for value in [x.strip() for x in self.config['signal']['mac_addr'].split(',')]]
+    def mobilab(self, com_port='COM7', channels_bitmask=0xff):
+        return self.acquisition_factory.create_mobilab(com_port, channels_bitmask)
 
-        from unlock.bci import acquire
-        self.timer = acquire.create_timer()
-        signal = acquire.create_nonblocking_enobio_signal(self.timer)
-        if not signal.open(mac_addr):
-            print('enobio did not open')
-            raise RuntimeError('enobio did not open')
-        if not signal.start():
-            print('enobio device did not start streaming')
-            raise RuntimeError('enobio device did not start streaming')
-        return signal
-
-    def mobilab(self):
-        assert 'com_port' in self.config['bci']['signal']
-        com_port = self.config['bci']['signal']['com_port']
-
-        analog_channels_bitmask = 1+2+4+8+16+32+64+128
-        from unlock.bci import acquire
-        self.timer = acquire.create_timer()
-        signal = acquire.create_nonblocking_mobilab_signal(
-            self.timer, analog_channels_bitmask, 0, com_port)
-
-        if not signal.start():
-            print('mobilab device did not start streaming')
-            raise RuntimeError('mobilab device did not start streaming')
-        return signal
-
-    def file(self):
-        from unlock.bci import acquire
-        self.timer = acquire.create_timer()
-        raise Exception("FIX ME")
-        signal = acquire.MemoryResidentFileSignal(self.config['bci']['signal']['file'],  #analysis/data/valid/emg_signal_1380649383_tongue_c.5_r.5_i1.txt',
-            self.timer, channels=17)
-        if not signal.start():
-            print('file signal failed to start; filename = ', self.config['filename'])
-            raise RuntimeError('file signal failed to start')
-        return signal
+    def file(self, file=None, channels=17):
+        assert file
+        return self.acquisition_factory.create_file_signal(file, channels)
 
     def random(self):
-        from unlock.bci import acquire
-        self.timer = acquire.create_timer()
-        signal = acquire.create_random_signal(self.timer)
-        signal.open([])
-        signal.start()
-        return signal
+        return self.acquisition_factory.create_random_signal()
 
-    def pyglet_window(self):
-        assert 'fullscreen' in self.config['pyglet'] and 'fps' in self.config['pyglet'] and \
-                'vsync' in self.config['pyglet']
+    def pyglet(self, signal, **pyglet_args):
+        assert 'fullscreen' in pyglet_args and 'fps' in pyglet_args and 'vsync' in pyglet_args
+        return self.controller_factory.create_pyglet_window(signal, **pyglet_args)
+            
+    def quad_ssvep(self, canvas, stimulus='frame_count', color=[0,0,0], color1=[255,255,255], stimuli_duration=3.0,
+            rest_duration=1.0, frequencies=[12.0,13.0,14.0,15.0], width=500, height=100, horizontal_blocks=5,
+            vertical_blocks=1):
 
-        return PygletWindow(self.bci, self.config['pyglet']['fullscreen'], self.config['pyglet']['fps'],
-            self.config['pyglet']['vsync'])
+        stimuli = self.state_factory.create_stimuli(stimulus, frequencies, stimuli_duration, rest_duration)
+        ssvep_views = self.view_factory.create_ssvep_views(stimuli, width, height, horizontal_blocks, vertical_blocks)
+        return Stimulation(stimuli, ssvep_views)
 
-    def single_ssvep_diagnostic(self):
-        print ("config = ", self.config['single_ssvep_diagnostic'], self.config['single_ssvep_diagnostic'])
-        return UnlockControllerFactory.create_single_standalone_ssvep_diagnostic(self.window, self.bci.receiver,
-            **self.config['single_ssvep_diagnostic'])
+    def harmonic_sum(self, buffering_decoder, threshold_decoder, fs=256, trial_length=3, n_electrodes=8,
+                     targets=[12.0, 13.0, 14.0, 15.0], target_window=0.1, nfft=2048, n_harmonics=1):
 
-    def gridspeak(self):
+        return self.create_decoder(buffering_decoder, threshold_decoder, **{'fs': fs, 'trial_length': trial_length,
+            'n_electrodes': n_electrodes, 'targets': targets, 'target_window': target_window, 'nfft': nfft,
+            'n_harmonics': n_harmonics})
+
+    def gridspeak(self,stimulation=None, decoder=None):
         bci, canvas, command_connected_fragment = self.create_base()
-        return UnlockControllerFactory.create_gridspeak(self.window, bci.receiver)
+        return self.controller_factory.create_gridspeak(self.window, bci.receiver)
 
     def gridcursor(self):
         bci, canvas, command_connected_fragment = self.create_base()
-        return UnlockControllerFactory.create_gridcursor(self.window, canvas, command_connected_fragment)
+        return self.controller_factory.create_gridcursor(self.window, canvas, command_connected_fragment)
 
-    def dashboard(self):
-        import sys
-        config = self.config['controllers']
-        controllers = []
 
-        for controller_attr in config:
-            if controller_attr['name'] == 'dashboard':
-                continue
 
-            controller = getattr(self, controller_attr['name'])
-            controllers.append(controller())
+    def dashboard(self, stimulation=None, decoder=None, controllers=None):
+        assert stimulation and decoder and controllers
+        canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
+        receiver_args = {'signal': signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoded', **receiver_args)
+        cc_frag = self.controller_factory.create_command_connected_fragment(canvas, stimulation.stimuli,
+            stimulation.views, cmd_receiver)
 
-        bci, canvas, command_connected_fragment = self.create_base()
-        return UnlockControllerFactory.create_dashboard(self.window, canvas, command_connected_fragment, controllers)
+        icons = []
+        for c in controllers:
+            icons.append((c.icon_path, c.name))
 
+        state_chain, grid_state, state_chain = self.state_factory.create_dashboard_grid(controllers, icons)
+        center_x, center_y = canvas.center()
+        grid_view = self.view_factory.create_grid_view(grid_state, canvas, icons, center_x, center_y)
+
+        return self.controller_factory.create_dashboard(self.window, canvas, cc_frag, controllers, grid_view, state_chain)
+
+    def create_singleton(self, name, key, config):
+        assert not hasattr(self, key)
+        newobj = self.create(name, config)
+        setattr(self, key, newobj)
+        
+    def create(self, name, config):
+        objdesc = config[name]
+        deps = None
+        args = None
+        
+        if 'args' in objdesc:
+            args = objdesc['args']
+            
+        if 'deps' in objdesc:
+            for key, value in deps.items():
+                if type(value) == list:
+                    depobj = []
+                    for element in value:
+                        depobj.append(self.create(element, self.config[element]))
+                else:             
+                    depobj = self.create(value, self.config[value])
+                    
+                deps[key] = depobj
+                
+            if args and deps:
+                args.update(deps)
+                
+        if args:    
+            newobj = getattr(self, name)(**args)
+        else:
+            newobj = getattr(self, name)()
+
+        if newobj is None:
+            self.logger.error("UnlockFactory.create_"+str(name), "returned None; objdesc = ", objdesc)
+
+        assert newobj        
+        return newobj
