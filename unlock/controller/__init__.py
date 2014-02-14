@@ -111,28 +111,13 @@ class UnlockControllerFactory(object):
             'frequency-128x128.jpg', standalone=False)
         return controller_chain
 
-    def create_command_connected_fragment(self, canvas, stimuli, command_receiver, color='bw'):
-
-        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimuli,
-            views, canvas.batch)
+    def create_command_connected_fragment(self, canvas, stimuli, views, command_receiver):
+        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimuli, views, canvas.batch)
         return command_connected_fragment
 
-    def create_dashboard_fragment(window, canvas, controllers, calibrator):      
-        grid_state = ControllerGridState(controllers)
-        icons = []
-        for controller in controllers:
-            icons.append((controller.icon_path, controller.name))
-            
-        center_x, center_y = canvas.center()
-        grid_view = GridView(grid_state, canvas, icons, center_x, center_y)
-        offline_data = OfflineData("dashboard")        
-        state = UnlockStateChain([grid_state, offline_data])
-        
-        return UnlockDashboard(window, state, [grid_view], canvas.batch, controllers, calibrator)
+    def create_dashboard(window, canvas, controllers, command_connected_fragment, grid_view, state, calibrator=None):
 
-    def create_dashboard(window, canvas, controllers, command_connected_fragment, calibrator=None):
-        dashboard_fragment = UnlockControllerFactory.create_dashboard_fragment(window, canvas,
-            controllers, calibrator)
+        dashboard_fragment = UnlockDashboard(window, state, [grid_view], canvas.batch, controllers, calibrator)
 
         dashboard_chain = UnlockControllerChain(window, command_connected_fragment.command_receiver,
             [command_connected_fragment, dashboard_fragment], 'Dashboard', '', standalone=True)
@@ -140,64 +125,6 @@ class UnlockControllerFactory(object):
         dashboard_fragment.poll_signal = dashboard_chain.poll_signal
         dashboard_chain.poll_signal = dashboard_fragment.poll_signal_interceptor
         return dashboard_chain
-
-    def create_frame_count_timed_quad_ssvep_stimulation(canvas, color):
-        UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color, UnlockStateFactory.create_frame_count_timed_stimulus)
-
-    def create_wall_clock_timed_quad_ssvep_stimulation(canvas, color):
-        UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color, UnlockStateFactory.create_wall_clock_timed_stimulus)
-
-    def create_quad_ssvep_stimulation(canvas, color='bw', frequencies=[12.0, 13.0, 14.0, 15.0], stimuli_duration=3.0,
-                                      rest_duration=1.0, width=500, height=100, xfrequency=5, yfrequency=1,
-                                      timed_stimulus_factory_method=UnlockStateFactory.create_wall_clock_timed_stimulus):
-        if color == 'ry':
-            color1 = (255, 0, 0)
-            color2 = (255, 255, 0)
-        else:
-            color1 = (0, 0, 0)
-            color2 = (255, 255, 255)
-        width = 500
-        height = 100
-        
-        xfrequency = 5
-        yfrequency = 1
-        
-        stimuli = UnlockStateFactory.create_timed_stimuli(stimuli_duration, rest_duration)
-        views = []
-
-        # XXX these should be injected
-        stimulus = timed_stimulus_factory_method(frequencies[0] * 2)
-        stimulus1 = timed_stimulus_factory_method(frequencies[1] * 2)
-        stimulus2 = timed_stimulus_factory_method(frequencies[2] * 2)
-        stimulus3 = timed_stimulus_factory_method(frequencies[3] * 2)
-
-        stimuli.add_stimulus(stimulus)
-        stimuli.add_stimulus(stimulus1)
-        stimuli.add_stimulus(stimulus2)
-        stimuli.add_stimulus(stimulus3)
-
-        fs = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
-            SpritePositionComputer.North, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
-            color_on=color1, color_off=color2, reversal=False)
-
-        fs1 = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
-            SpritePositionComputer.South, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
-            color_on=color1, color_off=color2, reversal=False)
-
-        fs2 = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
-            SpritePositionComputer.West, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
-            color_on=color1, color_off=color2, reversal=False, rotation=90)
-
-        fs3 = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus3, canvas,
-            SpritePositionComputer.East, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
-            color_on=color1, color_off=color2, reversal=False, rotation=90)
-
-        views.append(fs)
-        views.append(fs1)
-        views.append(fs2)
-        views.append(fs3)
-
-        return stimuli, views
 
     def create_gridspeak_fragment(canvas):
         grid_model = HierarchyGridState(2)
