@@ -283,8 +283,7 @@ class PygletWindow(pyglet.window.Window):
             
     def start(self):
         pyglet.app.run()
-            
-          
+
 class Canvas(object):
     def __init__(self, batch, width, height, xoffset=0, yoffset=0):
         self.batch = batch
@@ -302,4 +301,3 @@ class Canvas(object):
     def ycenter(self):
         return self.height / 2 + self.y
             
-          
