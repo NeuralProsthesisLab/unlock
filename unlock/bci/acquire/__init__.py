@@ -26,14 +26,93 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import sys
+imported_neural_signal = False
 
 try:
     from unlock.bci.acquire.neuralsignal import *
-    from unlock.bci.acquire.audio_signal import *
-    from unlock.bci.acquire.file_signal import *
+    imported_neural_signal = True
 except:
     assert sys.platform == 'darwin'
-    
+
+from unlock.bci.acquire.audio_signal import *
+from unlock.bci.acquire.file_signal import *
+
+
+class UnlockAcquisitionFactory:
+    def __init__(self):
+        self.timer = create_timer()
+        if imported_neural_signal:
+            self.b = __bah__
+
+    def nidaq(self):
+        signal = create_nidaq_signal()
+        if not signal.start():
+            raise RuntimeError('Failed to start National Instruments DAQ')
+        return signal
+        #for j in range(50):
+        #	ret = daq.acquire()
+        #	ret = daq.getdata(ret)
+        #	f = open('test.data', 'wb')
+        #	import numpy as np
+        #	a = np.array(ret, dtype='float64')
+        #	a = a.reshape((500, 4))
+        #	#np.savetxt(f, a, fmt='%d', delimiter='\t')
+        #	for i in range(20):
+        #		print(a[i])
+        #
+
+    def audio(self):
+        signal = AudioSignal()
+        if not signal.start():
+            raise RuntimeError('failed to start audio signal')
+        return signal
+
+    def enobio(self, mac_addr):
+        assert 'mac_addr' in self.config['signal']
+        mac_addr = [int(value,0) for value in [x.strip() for x in self.config['signal']['mac_addr'].split(',')]]
+        signal = create_nonblocking_enobio_signal(self.timer)
+        if not signal.open(mac_addr):
+            print('enobio did not open')
+            raise RuntimeError('enobio did not open')
+        if not signal.start():
+            print('enobio device did not start streaming')
+            raise RuntimeError('enobio device did not start streaming')
+        return signal
+
+    def mobilab(self, timer):
+        assert 'com_port' in self.config['bci']['signal']
+        com_port = self.config['bci']['signal']['com_port']
+
+        analog_channels_bitmask = 1+2+4+8+16+32+64+128
+        from unlock.bci import acquire
+        timer = acquire.create_timer()
+        signal = acquire.create_nonblocking_mobilab_signal(
+            timer, analog_channels_bitmask, 0, com_port)
+
+        if not signal.start():
+            print('mobilab device did not start streaming')
+            raise RuntimeError('mobilab device did not start streaming')
+        return signal
+
+    def file(self, timer):
+        from unlock.bci import acquire
+        timer = acquire.create_timer()
+        raise Exception("FIX ME")
+        signal = acquire.MemoryResidentFileSignal(self.config['bci']['signal']['file'], timer, channels=17)  #analysis/data/valid/emg_signal_1380649383_tongue_c.5_r.5_i1.txt',
+
+        if not signal.start():
+            print('file signal failed to start; filename = ', self.config['filename'])
+            raise RuntimeError('file signal failed to start')
+        return signal
+
+    def random(self):
+        from unlock.bci import acquire
+        signal = acquire.create_random_signal(self.timer)
+        signal.open([])
+        signal.start()
+        return signal
+
+
 #try:
 #    from .nidaq import *
 #except:
