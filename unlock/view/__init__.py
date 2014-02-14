@@ -110,3 +110,35 @@ class UnlockViewFactory(object):
 
     def create_frequency_scope_view(model, canvas, labels=None):
         return FrequencyScopeView(model, canvas, labels)
+
+    def create_dashboard_grid(self):
+
+        grid_view = GridView(grid_state, canvas, icons, center_x, center_y)
+
+    def create_quad_ssvep_views(self, stimuli, canvas, width=500, height=100, horizontal_blocks=5, vertical_blocks=1,
+            color=[0,0,0], color1=[255,255,255]):
+
+        assert len(stimuli.stimulus) == 4
+
+        views = []
+
+        fs = self.view_factory.create_flickering_checkered_box_sprite(stimuli.stimulus[0], canvas,
+            SpritePositionComputer.North, width=width, height=height, xfreq=horizontal_blocks, yfreq=vertical_blocks,
+            color_on=color, color_off=color1, reversal=False)
+
+        fs1 = self.view_factory.create_flickering_checkered_box_sprite(stimuli.stimulus[1], canvas,
+            SpritePositionComputer.South, width=width, height=height, xfreq=horizontal_blocks, yfreq=vertical_blocks,
+            color_on=color, color_off=color1, reversal=False)
+
+        fs2 = self.view_factory.create_flickering_checkered_box_sprite(stimuli.stimulus[2], canvas,
+            SpritePositionComputer.West, width=width, height=height, xfreq=horizontal_blocks, yfreq=vertical_blocks,
+            color_on=color, color_off=color1, reversal=False, rotation=90)
+
+        fs3 = self.view_factory.create_flickering_checkered_box_sprite(stimuli.stimulus[3], canvas,
+            SpritePositionComputer.East, width=width, height=height, xfreq=horizontal_blocks, yfreq=vertical_blocks,
+            color_on=color, color_off=color1, reversal=False, rotation=90)
+
+        views.append(fs)
+        views.append(fs1)
+        views.append(fs2)
+        views.append(fs3)
