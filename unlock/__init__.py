@@ -156,7 +156,7 @@ class UnlockFactory(object):
 
         grid_state = self.state_factory.create_grid_hierarchy_kansas(grid_radius)
         if offline_data:
-            offline_data = self.state_factory.create_offline_data('gridspeak')
+            offline_data = self.state_factory.create_offline_data('gridspeak_kansas')
             state_chain = self.state_factory.create_state_chain(grid_state, offline_data)
         else:
             state_chain = grid_state
