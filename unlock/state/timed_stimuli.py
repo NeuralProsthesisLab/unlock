@@ -24,7 +24,6 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 from unlock.state.state import UnlockState, TrialState, TimerState, RunState, SequenceState
 from unlock.util import Trigger
 
@@ -33,12 +32,15 @@ import logging
 
 class TimedStimuli(UnlockState):
     """ Manages multiple timed, sequence-based stimuli. """
-    def __init__(self, state):
+    def __init__(self, state, stimuli=None):
         super(TimedStimuli, self).__init__()
-        self.state = state
-        self.stimuli = list()
         self.logger = logging.getLogger(__name__)
-        
+        self.state = state
+        if stimuli:
+            self.stimuli = list(stimuli)
+        else:
+            self.stimuli = list()
+
     def add_stimulus(self, stimulus):
         self.stimuli.append(stimulus)
             

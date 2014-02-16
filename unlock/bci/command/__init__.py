@@ -29,18 +29,17 @@ from unlock.bci.command.receiver import *
 from unlock.bci.command.command import *
 from unlock.bci.acquire import MemoryResidentFileSignal
     
-class UnlockCommandReceiverFactory(object):
+class UnlockCommandFactory(object):
     def __init__(self):
-        super(UnlockCommandReceiverFactory, self).__init__()
+        super(UnlockCommandFactory, self).__init__()
         
     def create_receiver(self, receiver_type='inline', **kwargs):
         receiver_factory_method = {
             'delta': self.create_delta_receiver,
             'raw': self.create_raw_receiver,
-            'decoded': self.create_decoding_receiver,
+            'decoding': self.create_decoding_receiver,
             'datagram': self.create_datagram_receiver,
-            'inline': self.create_inline_receiver,
-            'multiprocess':  self.create_multiprocess_receiver,
+            'inline': self.create_inline_receiver
         }.get(receiver_type, self.unknown)
             
         if receiver_factory_method is None:
@@ -69,10 +68,6 @@ class UnlockCommandReceiverFactory(object):
         
     def create_inline_receiver(self):
         return InlineCommandReceiver()
-        
-    def create_multiprocess_receiver(self, signal=None, timer=None, decoder=None):
-        receiver = self.create_decoding_receiver(signal, timer, decoder)
-        return MultiProcessCommandReceiver(receiver)
-        
+
     def unknown(self, **kwargs):
         raise("Unsupported")

@@ -24,22 +24,10 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#import os
-#import sys
-#import platform
-#import shutil
-#import inspect
-
 from unlock.bci.acquire import *
 from unlock.bci.decode import *
 from unlock.bci.command import *
 
-
-#from unlock.bci.command.receiver import CommandReceiverFactory, CommandReceiver
-#from unlock.bci.decode import UnlockDecoder
-from multiprocessing import Process, Queue
-    
 class BCIWrapper(object):
     def __init__(self):
         super(BCIWrapper, self).__init__()
@@ -59,34 +47,10 @@ class InlineBciWrapper(BCIWrapper):
         self.receiver = receiver
         self.signal = signal
         self.timer = timer
-        
-    def shutdown(self):
-        self.signal.stop()
-        self.signal.close()
-        
+
     def stop(self):
         raise Exception("Stop not supported")
-        
-class MultiProcessBciWrapper(object):
-    def __init__(self, args):
-        super(MultiProcessBciWrapper, self).__init__()
-        self.args = args
-        self.mp_cmd_receiver = None
-        
-    def shutdown(self):
-        if self.mp_cmd_receiver != None:
-            self.mp_cmd_receiver.stop()
-            
-    def stop(self):
-        pass    
-    
-    # XXX - fix me
-    def create_receiver(self, args, decoder_type=None):
-        self.mp_cmd_receiver = MultiProcessCommandReceiver(decoder_type, args, self.args)
-        return self.mp_cmd_receiver
-            
-            
-#
+
 #def machine():
 #    """Return type of machine."""
 #    if os.name == 'nt' and sys.version_info[:2] < (2,7):
