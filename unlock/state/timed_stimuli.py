@@ -109,7 +109,7 @@ class SequentialTimedStimuli(UnlockState):
     def pause(self):
         self.stimulus.stop()
         self.pos = (self.pos + 1) % len(self.stimuli)
-        print("PAUSED , pos = ", self.pos)
+#        print("PAUSED , pos = ", self.pos)
         self.stimulus = self.stimuli[self.pos]
             
     def stop(self):
@@ -137,7 +137,7 @@ class SequentialTimedStimuli(UnlockState):
             self.start()
             
         elif change_value == TrialState.TrialExpiry:
-            print("Trial exiry... ")
+            #print("Trial exiry... ")
             self.pause()
             
         return ret
