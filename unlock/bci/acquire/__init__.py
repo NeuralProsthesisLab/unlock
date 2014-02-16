@@ -26,10 +26,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import sys
+import time
+
 imported_neural_signal = False
 
 try:
-    from unlock.bci.acquire.neuralsignal import *
+    from unlock.bci.acquire.neuralsignal import create_timer, create_nonblocking_enobio_signal, create_random_signal, create_nidaq_signal
     imported_neural_signal = True
 except:
     assert sys.platform == 'darwin'
@@ -38,11 +40,20 @@ from unlock.bci.acquire.audio_signal import *
 from unlock.bci.acquire.file_signal import *
 
 
+class BasicTimer(object):
+    def __init__(self):
+        self.start = time.time()
+
+    def elapsedMicroSecs(self):
+        return self.start - time.time()
+
+
 class UnlockAcquisitionFactory:
     def __init__(self):
-        self.timer = create_timer()
         if imported_neural_signal:
-            self.b = __bah__
+            self.timer = create_timer()
+        else:
+            self.timer = BasicTimer
 
     def nidaq(self):
         signal = create_nidaq_signal()
@@ -107,7 +118,7 @@ class UnlockAcquisitionFactory:
 
     def random(self):
         from unlock.bci import acquire
-        signal = acquire.create_random_signal(self.timer)
+        signal = create_random_signal(self.timer)
         signal.open([])
         signal.start()
         return signal
