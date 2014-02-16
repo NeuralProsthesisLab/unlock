@@ -37,10 +37,9 @@ class UnlockCommandFactory(object):
         receiver_factory_method = {
             'delta': self.create_delta_receiver,
             'raw': self.create_raw_receiver,
-            'decoded': self.create_decoding_receiver,
+            'decoding': self.create_decoding_receiver,
             'datagram': self.create_datagram_receiver,
-            'inline': self.create_inline_receiver,
-            'multiprocess':  self.create_multiprocess_receiver,
+            'inline': self.create_inline_receiver
         }.get(receiver_type, self.unknown)
             
         if receiver_factory_method is None:
