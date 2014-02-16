@@ -144,7 +144,7 @@ class HierarchyGridState(GridState):
         """
         Determine and execute current tile's associated action
         """
-        assert self.state_change == None
+        assert not self.state_change
         self.state_change = GridStateChange(GridStateChange.Select, self.state)
         
         
