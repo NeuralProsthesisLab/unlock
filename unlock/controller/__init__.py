@@ -127,13 +127,13 @@ class UnlockControllerFactory(object):
         dashboard_chain.poll_signal = dashboard_fragment.poll_signal_interceptor
         return dashboard_chain
 
-    def create_gridspeak(self, window, canvas, cc_frag, views, state):
+    def create_gridspeak(self, window, canvas, cc_frag, views, state, name='Gridspeak', icon='gridspeak.png'):
 
         gridspeak = UnlockControllerFragment(state, views, canvas.batch)
         gridspeak_chain = UnlockControllerChain(window, cc_frag.command_receiver,
-            [cc_frag, gridspeak], 'Gridspeak', 'gridspeak.png', standalone=False)
+            [cc_frag, gridspeak], name, icon, standalone=False)
         return gridspeak_chain
-        
+
     def create_gridcursor_fragment(self, canvas):
         grid_model = HierarchyGridState(2)
         grid_view = HierarchyGridView(grid_model, canvas)
