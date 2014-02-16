@@ -76,25 +76,32 @@ class HarmonicFeatureExtractor(UnlockDecoder):
             self.harmonics.append(harmonic_idx)
             
         self.file_handle = None
-        self.output_file_prefix = 'Decoder'
+        self.output_file_prefix = 'harmonic_feature_extractor'
         
     def start(self):
-        traceback.print_stack()
-        print("deocder started = ", self)
-        try:
-            assert self.file_handle == None
-        except:
-            print("WARNING: decoder already started")
-            return
-        self.file_handle = open("%s_%d.txt" % (self.output_file_prefix, time.time()), 'wb')
-        
+        #traceback.print_stack()
+        #print("deocder started = ", self)
+        #try:
+        #    assert self.file_handle == None
+        #
+        #except:
+        #    print("WARNING: decoder already started")
+        #    return
+        #self.file_handle = open("%s_%d.txt" % (self.output_file_prefix, time.time()), 'wb')
+        pass
+
     def stop(self):
-        traceback.print_stack()
-        print("deocder stopped = ", self)
-        assert self.file_handle != None
-        self.file_handle.flush()
-        self.file_handle.close()
-        self.file_handle = None
+        pass
+        #traceback.print_stack()
+        #print("deocder stopped = ", self)
+        #try:
+        #    assert self.file_handle != None
+        #except:
+        #    print("WARNING: decoder already stopped")
+        #    pass
+        #self.file_handle.flush()
+        #self.file_handle.close()
+        #self.file_handle = None
         
     def decode(self, command):
         """
