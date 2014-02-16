@@ -111,7 +111,7 @@ class UnlockRuntime(object):
                     max_level = level_value
                     
                 if level_value <= level:
-                    print(key, value)
+                    #print(key, value)
                     assert 'name' in value
                     factory.create_singleton(value['name'], key, config)
                     pop_keys.add(key)
