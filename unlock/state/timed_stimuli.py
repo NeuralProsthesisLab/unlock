@@ -33,12 +33,16 @@ import logging
 
 class TimedStimuli(UnlockState):
     """ Manages multiple timed, sequence-based stimuli. """
-    def __init__(self, state):
+    def __init__(self, state, stimuli=None):
         super(TimedStimuli, self).__init__()
-        self.state = state
-        self.stimuli = list()
         self.logger = logging.getLogger(__name__)
-        
+        self.state = state
+        if stimuli:
+            assert list == type(stimuli)
+            self.stimuli = stimuli
+        else:
+            self.stimuli = list()
+
     def add_stimulus(self, stimulus):
         self.stimuli.append(stimulus)
             
