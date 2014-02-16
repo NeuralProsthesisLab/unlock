@@ -5,7 +5,7 @@
         "deps" : {
             "stimulation" : "no_stimulation",
             "decoder" : "harmonic_sum",
-            "controllers" : ["gridspeak"]
+            "controllers" : ["gridspeak", "gridspeak_kansas"]
         }
     },
     
@@ -55,6 +55,13 @@
     },
     
     "gridspeak" : {
+        "deps" : {
+            "stimulation" : "no_stimulation",
+            "decoder" : "harmonic_sum"
+        }
+    },
+
+    "gridspeak_kansas" : {
         "deps" : {
             "stimulation" : "no_stimulation",
             "decoder" : "harmonic_sum"
