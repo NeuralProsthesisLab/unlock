@@ -15,7 +15,6 @@ class UnlockViewFactory(object):
             xduty=0.5, yduty=0.5, xoffset=0, yoffset=0, xuneven=False, yuneven=False, color_on=(0,0,0), color_off=(255,255,255)):
 
         texture_region = self.create_checkered_box_texture_region(width, height, xfreq, yfreq, xduty, yduty, xuneven, yuneven, color_on, color_off)
-        print('canvas ', canvas, canvas.width)
         spc = SpritePositionComputer(canvas, texture_region.width, texture_region.height, rotation)
         spc.compute(position)
 
@@ -145,3 +144,4 @@ class UnlockViewFactory(object):
         views.append(fs1)
         views.append(fs2)
         views.append(fs3)
+        return views
