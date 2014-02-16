@@ -92,6 +92,9 @@ class UnlockStateFactory(object):
         grid_state = ControllerGridState(controllers)
         return grid_state
 
+    def create_grid_hierarchy(self, grid_radius):
+        return HierarchyGridState(grid_radius)
+
     def create_offline_data(self, output_file_name):
         offline_data = OfflineData(output_file_name)
         return offline_data
