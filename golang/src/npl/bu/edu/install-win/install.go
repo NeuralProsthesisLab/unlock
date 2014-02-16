@@ -332,22 +332,24 @@ func installPySerial26(pythonPath string, baseUrl string, fileName string, packa
 }
 
 func installAvbin(baseUrl string, avbin string) {
-    /*downloadAndWriteFile(baseUrl+avbin, avbin)
-    var cwd = getWorkingDirectoryAbsolutePath()
-    install(cwd+"\\"+avbin, `avbin`, true)*/
-    
     installBinPackage(baseUrl, avbin, `avbin`, true)
+
+    // there is a problem with avbin10 installer; it drops the dll in the wrong directory
+    hostArch := os.Getenv(`PROCESSOR_ARCHITECTURE`)
+	log.Println(hostArch)
+    if hostArch == `AMD64` {
+        log.Println("Fix Avbin x86-64")
+		data, err1 := ioutil.ReadFile(`C:\Windows\System32\avbin64.dll`)
+		if err1 != nil {
+			log.Fatalln(err1)
+		}
     
-    // XXX - last minute hack
-    data, err1 := ioutil.ReadFile(`C:\Windows\System32\avbin.dll`)
-    if err1 != nil {
-        log.Fatalln(err1)
-    }
-    
-    if err := ioutil.WriteFile(`C:\Windows\SysWOW64\avbin.dll`, data, 0744); err != nil {
-        log.Println(err)
-    }    
-    
+		if err := ioutil.WriteFile(`C:\Windows\SysWOW64\avbin.dll`, data, 0744); err != nil {
+			log.Println(err)
+		}
+	} else {
+		log.Println(`fucked`)
+	}
 }
 
 func installScons(pythonPath string, baseUrl string, fileName string, packageName string, packageDirectory string) {
@@ -371,7 +373,8 @@ func createConf() unlockconf.UnlockInstallConf {
             `C:\Python33\Scripts\virtualenv.exe`, `python33`,
             `C:\Python33\Lib\site-packages\numpy`, `C:\Unlock\python33\Lib\site-packages`,
             `C:\Unlock\python33\Scripts\python.exe`, `C:\Unlock\python33\Scripts\pip.exe`,
-            `pyglet-1.2alpha-p3.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`, `AVbin10-win32.exe`, 
+            `pyglet-1.2alpha-p3.zip`, `pyglet-1.2alpha`, `pyglet-1.2alpha1`,
+		    `AVbin10-win64.exe`,
             `pyserial-2.6.zip`, `pyserial-2.6`, `pyserial-2.6`, `unlock-0.3.7-win32.zip`, `unlock`, `unlock-0.3.7`,
             `scons-2.3.0.zip`, `scons`, `scons-2.3.0`,
             `unlock.exe`, `vcredist_2010_x86.exe`, `pyaudio-0.2.7.py33.exe`, `pywin32-218.win32-py3.3.exe`,
@@ -410,10 +413,10 @@ func installUnlockRunner(baseUrl string, unlockDirectory string, unlockexe strin
 }
 
 func installUnlockExe(baseUrl string, x86FileName string, x64FileName string) {
-    hostArch := os.Getenv(`GOHOSTARCH`)
-    
+    hostArch := os.Getenv(`PROCESSOR_ARCHITECTURE`)
+
     var file string
-    if hostArch == `amd64` {
+    if hostArch == `AMD64` {
         log.Println("Install unlock.exe x64")        
         file = downloadAndWriteFile(baseUrl+"/"+x64FileName, x64FileName) 
     } else {
@@ -476,12 +479,14 @@ func main() {
     log.Printf("conf file = "+*confFile)
     
     var conf = createConf()
-    
+
+	/*
     installPython(conf.BaseUrl, conf.PythonPathEnvVar, conf.PythonInstallerName, conf.PythonBasePath, conf.PythonPackageName)
     installBinPackage(conf.BaseUrl, conf.VCRedistPackageName, `vcredist`, false)
     installBinPackage(conf.BaseUrl, conf.ScipyPackageName, `scipy`, true)
 	installNumPy(conf.BaseUrl, conf.NumpyPackageName)
-    //installEasyInstall(conf.BaseUrl, conf.PythonPath)
+	*/
+    //installEasyconf.BaseUrl, conf.PythonPath)
     //installPip(conf.EasyInstallPath)
     //installVirtualenv(conf.PipPath)
     installAvbin(conf.BaseUrl, conf.Avbin)

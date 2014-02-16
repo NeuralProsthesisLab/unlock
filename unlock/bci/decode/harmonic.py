@@ -28,6 +28,8 @@ from unlock.bci.decode.decode import UnlockDecoder
 from unlock.state import TrialState
 import numpy as np
 import time
+import traceback
+import sys
 
 SetResultHandler = 0
 LogResultHandler = 1
@@ -77,10 +79,18 @@ class HarmonicFeatureExtractor(UnlockDecoder):
         self.output_file_prefix = 'Decoder'
         
     def start(self):
-        assert self.file_handle == None
+        traceback.print_stack()
+        print("deocder started = ", self)
+        try:
+            assert self.file_handle == None
+        except:
+            print("WARNING: decoder already started")
+            return
         self.file_handle = open("%s_%d.txt" % (self.output_file_prefix, time.time()), 'wb')
         
     def stop(self):
+        traceback.print_stack()
+        print("deocder stopped = ", self)
         assert self.file_handle != None
         self.file_handle.flush()
         self.file_handle.close()

@@ -157,7 +157,8 @@ class BufferedDecoder(UnlockDecoder):
         
         
 class FixedTimeBufferingDecoder(BufferedDecoder):
-    def __init__(self, buffer_shape, electrodes, window_length):
+    def __init__(self, electrodes, window_length):
+        buffer_shape = (window_length, electrodes)
         super(FixedTimeBufferingDecoder, self).__init__(buffer_shape, electrodes)
         self.window_length = window_length
         self.decode_now = False
@@ -182,15 +183,12 @@ class FixedTimeBufferingDecoder(BufferedDecoder):
         
 class ContinuousBufferingDecoder(BufferedDecoder):
     # XXX - untested
-    def __init__(self, buffer_shape, step_size=32, trial_limit=768, electrodes=8):
-        super(ContinuousBufferingDecoder, self).__init__(buffer_shape, electrodes)
+    def __init__(self, step_size=32, trial_limit=768, electrodes=8):
+        raise "No."
+        super(ContinuousBufferingDecoder, self).__init__(electrodes)
         self.step_size = step_size
         self.trial_limit = trial_limit
         self.last_mark = 0
-        
-    def deocde(self, command):
-        command = super(ContinuousBufferingDecoder, self).decode(command)
-        return command
         
     def is_ready(self):
         return self.cursor >= self.last_mark + self.step_size
@@ -214,32 +212,31 @@ class NoThresholdDecoder(UnlockDecoder):
         
 class AbsoluteThresholdDecoder(UnlockDecoder):
     """Accepts everything greater than or equal to a set value."""
-    def __init__(self, threshold=0, reduction_fcn='np.mean'):
+    def __init__(self, threshold=0, reduction_fn='np.mean'):
         self.threshold = threshold
-        self.reduction_fcn = eval(reduction_fcn)
+        self.reduction_fn = eval(reduction_fn)
         
     def decode(self, command):
         assert hasattr(command, 'scores')
-        command.accept, command.confidence = self.reduction_fcn(command.scores) >= self.threshold, 1.0
+        command.accept, command.confidence = self.reduction_fn(command.scores) >= self.threshold, 1.0
         return command
         
         
-class LDAThresholdDecoder(UnlockDecoder):
+class LdaThresholdDecoder(UnlockDecoder):
     """
     Uses an LDA decoder to determine the threshold boundary. LDA predictions
     above a provided confidence level are accepted. Training data must be
     supplied to the decoder.
     """
-    def __init__(self, x=(0, 1), y=(0, 1), min_confidence=0.5, reduction_fcn='np.mean'):
+    def __init__(self, x=(0, 1), y=(0, 1), min_confidence=0.5, reduction_fn='np.mean'):
         self.min_confidence = min_confidence
         self.clf = lda.LDA()
         self.clf.fit(x, y)
-        self.reduction_fcn = eval(reduction_fcn)
+        self.reduction_fn = eval(reduction_fn)
         
     def decode(self, command):
         assert hasattr(command, 'scores')        
-        command.confidence = self.clf.predict_proba(self.reduction_fcn(command.scores))[0, 1]
+        command.confidence = self.clf.predict_proba(self.reduction_fn(command.scores))[0, 1]
         command.accept = command.confidence >= self.min_confidence
         return command
-        
-        
+
