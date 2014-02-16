@@ -107,7 +107,7 @@ class UnlockFactory(object):
         canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
         stimuli = self.state_factory.create_timed_stimuli(stimuli_duration, rest_duration,  *[stimulus, stimulus1, stimulus2, stimulus3])
         ssvep_views = self.view_factory.create_quad_ssvep_views(stimuli, canvas, width, height, horizontal_blocks, vertical_blocks)
-
+        #print("canvas, stimuli , ssvep_views ", canvas, stimuli, ssvep_views)
         return Stimulation(canvas, stimuli, ssvep_views)
 
     def harmonic_sum(self, buffering_decoder, threshold_decoder, fs=256, trial_length=3, n_electrodes=8,
@@ -122,6 +122,10 @@ class UnlockFactory(object):
 
     def absolute_threshold_decoder(self, threshold, reduction_fn):
         return self.decoder_factory.create_absolute_threshold(**{'threshold': threshold, 'reduction_fn': reduction_fn})
+
+    def no_stimulation(self):
+        canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
+        return Stimulation(canvas, UnlockState(True), [])
 
     def gridspeak(self,stimulation=None, decoder=None, grid_radius=2, offline_data=False):
         assert stimulation and decoder
@@ -171,7 +175,7 @@ class UnlockFactory(object):
             [grid_view], state_chain)
 
     def create_singleton(self, type_name, attr_name, config):
-        print('atter name = ', attr_name)
+        #print('atter name = ', attr_name)
         assert not hasattr(self, attr_name)
         args = config[attr_name].get('args', None)
         if args:
@@ -195,7 +199,7 @@ class UnlockFactory(object):
             args = objdesc['args']
             
         if 'deps' in objdesc:
-            print("typename = ", type_name, objdesc)
+            #print("typename = ", type_name, objdesc)
             deps = {}
 
             for key, value in objdesc['deps'].items():
