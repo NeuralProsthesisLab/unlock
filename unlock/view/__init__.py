@@ -145,3 +145,4 @@ class UnlockViewFactory(object):
         views.append(fs1)
         views.append(fs2)
         views.append(fs3)
+        return views
