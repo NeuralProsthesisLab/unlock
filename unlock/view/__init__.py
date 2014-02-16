@@ -111,9 +111,12 @@ class UnlockViewFactory(object):
     def create_frequency_scope_view(self, model, canvas, labels=None):
         return FrequencyScopeView(model, canvas, labels)
 
-    def create_dashboard_grid(self):
+    def create_grid_view(self, state, canvas, icons):
+        center_x, center_y = canvas.center()
+        return GridView(state, canvas, icons, center_x, center_y)
 
-        grid_view = GridView(grid_state, canvas, icons, center_x, center_y)
+    def create_gridspeak(self, state, canvas):
+        return GridSpeakView(None, state, canvas)
 
     def create_quad_ssvep_views(self, stimuli, canvas, width=500, height=100, horizontal_blocks=5, vertical_blocks=1,
             color=[0,0,0], color1=[255,255,255]):
