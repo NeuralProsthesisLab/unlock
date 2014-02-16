@@ -128,16 +128,16 @@ class RawSignalCommand(Command):
     
     def set_decision(self, decision):
         self.decision = decision
-        if self.decision is not None:
-            print ("Decision set ========================== ", self.decision)
-            if self.matrix is not None:
+        if self.decision:
+#            print ("Decision set ========================== ", self.decision)
+            if self.matrix:
                 if len(self.matrix.shape) > 1 and self.matrix.shape[1] > 0:
                     self.matrix[-1][-2] = -1
                     self.matrix[-1][-1] = self.decision
-                else:
-                    print("MATRIX SHAPED WRONGLY ", self.matrix.shape)
-            else:
-                print ("NO MATRIX")            
+#                else:
+#                    print("Matrix shape = ", self.matrix.shape)
+#            else:
+#                print ("")
                 
     def make_matrix(self):
         if self.raw_data_vector.shape != (self.samples, self.channels):    
@@ -150,6 +150,6 @@ class RawSignalCommand(Command):
                                  self.cue_trigger_time_vector))
         
         self.__reset_trigger_vectors__()
-        self.logger.debug("Data = ", self.matrix)
+        #self.logger.debug("Data = ", self.matrix)
         
         
