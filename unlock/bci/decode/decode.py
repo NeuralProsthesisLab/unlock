@@ -157,7 +157,8 @@ class BufferedDecoder(UnlockDecoder):
         
         
 class FixedTimeBufferingDecoder(BufferedDecoder):
-    def __init__(self, buffer_shape, electrodes, window_length):
+    def __init__(self, electrodes, window_length):
+        buffer_shape = (window_length, electrodes)
         super(FixedTimeBufferingDecoder, self).__init__(buffer_shape, electrodes)
         self.window_length = window_length
         self.decode_now = False
@@ -182,15 +183,12 @@ class FixedTimeBufferingDecoder(BufferedDecoder):
         
 class ContinuousBufferingDecoder(BufferedDecoder):
     # XXX - untested
-    def __init__(self, buffer_shape, step_size=32, trial_limit=768, electrodes=8):
-        super(ContinuousBufferingDecoder, self).__init__(buffer_shape, electrodes)
+    def __init__(self, step_size=32, trial_limit=768, electrodes=8):
+        raise "No."
+        super(ContinuousBufferingDecoder, self).__init__(electrodes)
         self.step_size = step_size
         self.trial_limit = trial_limit
         self.last_mark = 0
-        
-    def deocde(self, command):
-        command = super(ContinuousBufferingDecoder, self).decode(command)
-        return command
         
     def is_ready(self):
         return self.cursor >= self.last_mark + self.step_size
