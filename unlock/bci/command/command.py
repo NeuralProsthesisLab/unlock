@@ -39,6 +39,8 @@ class Command(object):
         self.delta = delta
         self.decision = decision
         self.selection = selection
+        self.predicted_decision = None
+        self.predicted_decision_confidence = None
         self.data = data
         self.json = json
         self.ready = True
