@@ -45,7 +45,7 @@ class BasicTimer(object):
         self.start = time.time()
 
     def elapsedMicroSecs(self):
-        return self.start - time.time()
+        return time.time() - self.start
 
 
 class UnlockAcquisitionFactory:
