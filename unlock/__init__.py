@@ -146,6 +146,25 @@ class UnlockFactory(object):
         return self.controller_factory.create_gridspeak(self.window, stimulation.canvas, cc_frag, [gridspeak_view],
             state_chain)
 
+    def gridspeak_kansas(self, stimulation=None, decoder=None, grid_radius=2, offline_data=False):
+        assert stimulation and decoder
+        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
+
+        cc_frag = self.controller_factory.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
+            stimulation.views, cmd_receiver)
+
+        grid_state = self.state_factory.create_grid_hierarchy_kansas(grid_radius)
+        if offline_data:
+            offline_data = self.state_factory.create_offline_data('gridspeak')
+            state_chain = self.state_factory.create_state_chain(grid_state, offline_data)
+        else:
+            state_chain = grid_state
+
+        gridspeak_view = self.view_factory.create_gridspeak_kansas(grid_state, stimulation.canvas)
+        return self.controller_factory.create_gridspeak(self.window, stimulation.canvas, cc_frag, [gridspeak_view],
+            state_chain, name="Gridspeak_Kansas", icon="ku.png")
+
     def gridcursor(self):
         return self.controller_factory.create_gridcursor(self.window, canvas, command_connected_fragment)
 
