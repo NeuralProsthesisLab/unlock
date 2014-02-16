@@ -55,7 +55,7 @@ class UnlockAcquisitionFactory:
         else:
             self.timer = BasicTimer
 
-    def nidaq(self):
+    def create_nidaq_signal(self):
         signal = create_nidaq_signal()
         if not signal.start():
             raise RuntimeError('Failed to start National Instruments DAQ')
@@ -72,13 +72,13 @@ class UnlockAcquisitionFactory:
         #		print(a[i])
         #
 
-    def audio(self):
+    def create_audio_signal(self):
         signal = AudioSignal()
         if not signal.start():
             raise RuntimeError('failed to start audio signal')
         return signal
 
-    def enobio(self, mac_addr):
+    def create_enobio_signal(self, mac_addr):
         assert 'mac_addr' in self.config['signal']
         mac_addr = [int(value,0) for value in [x.strip() for x in self.config['signal']['mac_addr'].split(',')]]
         signal = create_nonblocking_enobio_signal(self.timer)
@@ -90,7 +90,7 @@ class UnlockAcquisitionFactory:
             raise RuntimeError('enobio device did not start streaming')
         return signal
 
-    def mobilab(self, timer):
+    def create_mobilab_signal(self, timer):
         assert 'com_port' in self.config['bci']['signal']
         com_port = self.config['bci']['signal']['com_port']
 
@@ -105,7 +105,7 @@ class UnlockAcquisitionFactory:
             raise RuntimeError('mobilab device did not start streaming')
         return signal
 
-    def file(self, timer):
+    def create_file_signal(self, timer):
         from unlock.bci import acquire
         timer = acquire.create_timer()
         raise Exception("FIX ME")
@@ -116,7 +116,7 @@ class UnlockAcquisitionFactory:
             raise RuntimeError('file signal failed to start')
         return signal
 
-    def random(self):
+    def create_random_signal(self):
         from unlock.bci import acquire
         signal = create_random_signal(self.timer)
         signal.open([])
