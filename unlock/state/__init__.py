@@ -34,24 +34,23 @@ from unlock.state.scope_state import *
 from unlock.state.diagnostic_state import *
 
 class UnlockStateFactory(object):
-    def create_wall_clock_timed_stimulus(rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x), repeat_count=1):
+    def create_wall_clock_timed_stimulus(self, rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x), repeat_count=1):
         flick_rate = 1.0/rate
         time_state = TimerState(flick_rate)
         seq_state = SequenceState(sequence, value_transformer_fn)
         return TimedStimulus(time_state, seq_state, repeat_count=repeat_count)
 
-    def create_frame_counted_timed_stimulus(rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x), repeat_count=1):
-        flick_rate = 1.0/rate
-        time_state = FrameCountTimerState(flick_rate)
+    def create_frame_counted_timed_stimulus(self, rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x), repeat_count=1):
+        time_state = FrameCountTimerState(rate)
         seq_state = SequenceState(sequence, value_transformer_fn)
         return TimedStimulus(time_state, seq_state, repeat_count=repeat_count)
 
-    def create_sequential_timed_stimuli(stimuli_duration, rest_duration=0):
+    def create_sequential_timed_stimuli(self, stimuli_duration, rest_duration=0):
         # XXX this, and above, can be optimized in the case that rest_duration = 0
         trial_state = TrialState.create(stimuli_duration, rest_duration)
         return SequentialTimedStimuli(trial_state)
 
-    def create_random_cue_indicate_rest(cue_states, rest_state, indicate_state, seed=42, trials=25):
+    def create_random_cue_indicate_rest(self, cue_states, rest_state, indicate_state, seed=42, trials=25):
         state_machine = CueStateMachine(Random(seed), trials, cue_states, rest_state, indicate_state)
         for cue_state in cue_states:
             cue_state.transition_fn = state_machine.cue_indicate
@@ -60,7 +59,7 @@ class UnlockStateFactory(object):
  #       rest_state.start()
         return state_machine
 
-    def create_sequential_cue_indicate_rest(cue_states, rest_state, indicate_state, trials=10):
+    def create_sequential_cue_indicate_rest(self, cue_states, rest_state, indicate_state, trials=10):
         state_machine = CueStateMachine(None, trials, cue_states, rest_state, indicate_state)
         for cue_state in cue_states:
             cue_state.transition_fn = state_machine.cue_indicate
@@ -68,7 +67,7 @@ class UnlockStateFactory(object):
         indicate_state.transition_fn = state_machine.indicate_rest
         return state_machine
 
-    def create_random_cue_rest(cue_states, rest_state, seed=42, trials=25):
+    def create_random_cue_rest(self, cue_states, rest_state, seed=42, trials=25):
         state_machine = CueStateMachine(Random(seed), trials, cue_states, rest_state, None)
         for cue_state in cue_states:
             cue_state.transition_fn = state_machine.cue_rest
@@ -76,16 +75,16 @@ class UnlockStateFactory(object):
 #        rest_state.start()
         return state_machine
 
-    def create_cue_state(state_id, duration):
+    def create_cue_state(self, state_id, duration):
         time_state = TimerState(duration)
         return CueState(state_id, time_state)
 
-    def create_trial_state(stimuli_duration, rest_duration, run_state=RunState()):
+    def create_trial_state(self, stimuli_duration, rest_duration, run_state=RunState()):
         trial_timer = TimerState(stimuli_duration)
         rest_timer = TimerState(rest_duration)
         return TrialState(trial_timer, rest_timer, run_state)
 
-    def create_dynamic_position_cue_state(state_id, duration, screen_height, height, screen_width, width, radius=1):
+    def create_dynamic_position_cue_state(self, state_id, duration, screen_height, height, screen_width, width, radius=1):
         time_state = TimerState(duration)
         return DynamicPositionCueState(state_id, time_state, screen_height, height, screen_width, width, radius)
 
