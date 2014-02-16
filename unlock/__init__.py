@@ -34,8 +34,9 @@ from sqlalchemy import create_engine
 
 
 class Stimulation(object):
-    def __init__(self, stimuli, views):
+    def __init__(self, canvas, stimuli, views):
         super(Stimulation, self).__init__()
+        self.canvas = canvas
         self.stimuli = stimuli
         self.views = views
 
@@ -43,21 +44,21 @@ class Stimulation(object):
 class UnlockFactory(object):
     def __init__(self):
         super(UnlockFactory, self).__init__()
-        self.receiver_factory = UnlockCommandFactory()
+        self.command_factory = UnlockCommandFactory()
         self.decoder_factory = UnlockDecoderFactory()
         self.acquisition_factory = UnlockAcquisitionFactory()
         self.controller_factory = UnlockControllerFactory()
         self.state_factory = UnlockStateFactory()
         self.view_factory = UnlockViewFactory()
 
-    def database(self, database=None, host=None, user=None, name=None, port=None, addr=None):
-        assert database and host and user and name and port and addr
-        engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (database, host, user, port, addr))
+    def database(self, host=None, user=None, name=None, port=None, addr=None):
+        assert host and user and name and port and addr
+        engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (name, host, user, port, addr))
         return engine
         
-    def logging(self, config):
+    def logging(self, **config):
         if config:
-            logging.config.dictConfig(config['logging'])
+            logging.config.dictConfig(config)
         else:
             level = logging.DEBUG
             logging.basicConfig(level=level)
@@ -65,7 +66,7 @@ class UnlockFactory(object):
         return logging.getLogger(__name__)
 
     def nidaq(self):
-        return self.acquisition_factory.create_nidaq()
+        return self.acquisition_factory.create_nidaq_signal()
 
     def audio(self):
         return self.acquisition_factory.create_audio_signal()
@@ -75,7 +76,7 @@ class UnlockFactory(object):
         return self.acquisition_factory.create_enobio_signal(mac_addr)
 
     def mobilab(self, com_port='COM7', channels_bitmask=0xff):
-        return self.acquisition_factory.create_mobilab(com_port, channels_bitmask)
+        return self.acquisition_factory.create_mobilab_signal(com_port, channels_bitmask)
 
     def file(self, file=None, channels=17):
         assert file
@@ -84,49 +85,71 @@ class UnlockFactory(object):
     def random(self):
         return self.acquisition_factory.create_random_signal()
 
-    def pyglet(self, signal, **pyglet_args):
+    def pyglet(self, **pyglet_args):
         assert 'fullscreen' in pyglet_args and 'fps' in pyglet_args and 'vsync' in pyglet_args
-        return self.controller_factory.create_pyglet_window(signal, **pyglet_args)
+        return self.controller_factory.create_pyglet_window(self.signal, **pyglet_args)
             
-    def quad_ssvep(self, canvas, stimulus='frame_count', color=[0,0,0], color1=[255,255,255], stimuli_duration=3.0,
+    def quad_ssvep(self, stimulus='frame_count', color=[0,0,0], color1=[255,255,255], stimuli_duration=3.0,
             rest_duration=1.0, frequencies=[12.0,13.0,14.0,15.0], width=500, height=100, horizontal_blocks=5,
             vertical_blocks=1):
 
         if stimulus == 'frame_count':
-            timed_stimulus_factory_method = self.create_frame_count_timed_stimulus
+            stimulus = self.state_factory.create_frame_counted_timed_stimulus(frequencies[0])
+            stimulus1 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[1])
+            stimulus2 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[2])
+            stimulus3 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[3])
         else:
-            timed_stimulus_factory_method = self.create_wall_clock_timed_stimulus
+            stimulus = self.state_factory.create_wall_clock_timed_stimulus(frequencies[0] * 2)
+            stimulus1 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[1] * 2)
+            stimulus2 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[2] * 2)
+            stimulus3 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[3] * 2)
 
-        stimulus = timed_stimulus_factory_method(frequencies[0] * 2)
-        stimulus1 = timed_stimulus_factory_method(frequencies[1] * 2)
-        stimulus2 = timed_stimulus_factory_method(frequencies[2] * 2)
-        stimulus3 = timed_stimulus_factory_method(frequencies[3] * 2)
-
+        canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
         stimuli = self.state_factory.create_timed_stimuli(stimuli_duration, rest_duration,  *[stimulus, stimulus1, stimulus2, stimulus3])
-        ssvep_views = self.view_factory.create_ssvep_views(stimuli, width, height, horizontal_blocks, vertical_blocks)
-        return Stimulation(stimuli, ssvep_views)
+        ssvep_views = self.view_factory.create_quad_ssvep_views(stimuli, canvas, width, height, horizontal_blocks, vertical_blocks)
+
+        return Stimulation(canvas, stimuli, ssvep_views)
 
     def harmonic_sum(self, buffering_decoder, threshold_decoder, fs=256, trial_length=3, n_electrodes=8,
                      targets=[12.0, 13.0, 14.0, 15.0], target_window=0.1, nfft=2048, n_harmonics=1):
 
-        return self.create_decoder(buffering_decoder, threshold_decoder, **{'fs': fs, 'trial_length': trial_length,
+        return self.decoder_factory.create_harmonic_sum_decision(buffering_decoder, threshold_decoder, **{'fs': fs, 'trial_length': trial_length,
             'n_electrodes': n_electrodes, 'targets': targets, 'target_window': target_window, 'nfft': nfft,
             'n_harmonics': n_harmonics})
 
-    def gridspeak(self,stimulation=None, decoder=None):
-        bci, canvas, command_connected_fragment = self.create_base()
-        return self.controller_factory.create_gridspeak(self.window, bci.receiver)
+    def fixed_time_buffering_decoder(self, window_length=768, electrodes=8):
+        return self.decoder_factory.create_fixed_time_buffering(**{'window_length': window_length, 'electrodes': electrodes})
 
-    def gridcursor(self):
-        bci, canvas, command_connected_fragment = self.create_base()
-        return self.controller_factory.create_gridcursor(self.window, canvas, command_connected_fragment)
+    def absolute_threshold_decoder(self, threshold, reduction_fn):
+        return self.decoder_factory.create_absolute_threshold(**{'threshold': threshold, 'reduction_fn': reduction_fn})
 
-    def dashboard(self, stimulation=None, decoder=None, controllers=None):
-        assert stimulation and decoder and controllers
-        canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
+    def gridspeak(self,stimulation=None, decoder=None, grid_radius=2, offline_data=False):
+        assert stimulation and decoder
         receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
         cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
-        cc_frag = self.controller_factory.create_command_connected_fragment(canvas, stimulation.stimuli,
+        cc_frag = self.controller_factory.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
+            stimulation.views, cmd_receiver)
+
+        grid_state = self.state_factory.create_grid_hierarchy(grid_radius)
+        if offline_data:
+            offline_data = self.state_factory.create_offline_data('gridspeak')
+            state_chain = self.state_factory.create_state_chain(grid_state, offline_data)
+        else:
+            state_chain = grid_state
+
+        gridspeak_view = self.view_factory.create_gridspeak(grid_state, stimulation.canvas)
+        return self.controller_factory.create_gridspeak(self.window, stimulation.canvas, cc_frag, [gridspeak_view],
+            state_chain)
+
+    def gridcursor(self):
+        return self.controller_factory.create_gridcursor(self.window, canvas, command_connected_fragment)
+
+    def dashboard(self, stimulation=None, decoder=None, controllers=None, offline_data=False):
+        assert stimulation and decoder and controllers
+        #canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
+        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
+        cc_frag = self.controller_factory.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
             stimulation.views, cmd_receiver)
 
         icons = []
@@ -134,19 +157,32 @@ class UnlockFactory(object):
             icons.append((c.icon_path, c.name))
 
         grid_state = self.state_factory.create_grid_state(controllers, icons)
-        offline_data = self.state_factory.create_offline_data(output_file)
-        state_chain = self.state_factory.create_state_chain(grid_state, offline_data)
-        state_chain, grid_state, offline_data = self.state_factory.create_dashboard_grid(controllers, icons)
-        center_x, center_y = canvas.center()
-        grid_view = self.view_factory.create_grid_view(grid_state, canvas, icons, center_x, center_y)
+        if offline_data:
+            offline_data = self.state_factory.create_offline_data('dashboard')
+            state_chain = self.state_factory.create_state_chain(grid_state, offline_data)
+        else:
+            state_chain = grid_state
 
-        return self.controller_factory.create_dashboard(self.window, canvas, cc_frag, controllers, grid_view, state_chain)
+        grid_view = self.view_factory.create_grid_view(grid_state, stimulation.canvas, icons)
+        return self.controller_factory.create_dashboard(self.window, stimulation.canvas, controllers, cc_frag,
+            [grid_view], state_chain)
 
     def create_singleton(self, type_name, attr_name, config):
+        print('atter name = ', attr_name)
         assert not hasattr(self, attr_name)
-        newobj = self.create(type_name, config)
+        args = config[attr_name].get('args', None)
+        if args:
+            newobj = getattr(self, type_name)(**args)
+        else:
+            newobj = getattr(self, type_name)()
+
+        if newobj is None:
+            self.logger.error("UnlockFactory.create_singleton returned None; objdesc = ", type_name)
+
         setattr(self, attr_name, newobj)
-        
+        assert newobj
+        return newobj
+
     def create(self, type_name, config):
         objdesc = config[type_name]
         deps = None
@@ -156,20 +192,26 @@ class UnlockFactory(object):
             args = objdesc['args']
             
         if 'deps' in objdesc:
-            for key, value in deps.items():
+            print("typename = ", type_name, objdesc)
+            deps = {}
+
+            for key, value in objdesc['deps'].items():
                 if type(value) == list:
                     depobj = []
                     for element in value:
-                        depobj.append(self.create(element, self.config[element]))
+                        depobj.append(self.create(element, config))
                 else:             
-                    depobj = self.create(value, self.config[value])
+                    depobj = self.create(value, config)
                     
                 deps[key] = depobj
                 
             if args and deps:
                 args.update(deps)
-                
-        if args:    
+            elif deps.keys():
+                assert not args
+                args = deps
+
+        if args:
             newobj = getattr(self, type_name)(**args)
         else:
             newobj = getattr(self, type_name)()
@@ -177,6 +219,6 @@ class UnlockFactory(object):
         if newobj is None:
             self.logger.error("UnlockFactory.create_"+str(type_name), "returned None; objdesc = ", objdesc)
 
-        assert newobj        
+        assert newobj
         return newobj
 

@@ -34,7 +34,8 @@ import inspect
 import logging
 import logging.config
 
-from unlock import UnlockFactory
+import unlock
+
 from optparse import OptionParser
 
 
@@ -67,7 +68,7 @@ class UnlockRuntime(object):
         try:
             
             self.config = UnlockRuntime.setup_config(options)
-            self.configure(self.config)
+            self.unlock = self.configure(self.config)
             
         except Exception as e:
             if not self.logger:
@@ -80,6 +81,8 @@ class UnlockRuntime(object):
                 
             UnlockRuntime.print_last_exception()
             raise e
+
+        self.logger = logging.getLogger(__name__)
 
     @staticmethod
     def setup_config(options):
@@ -94,29 +97,37 @@ class UnlockRuntime(object):
         return config            
 
     def configure(self, config):
-        factory = UnlockFactory()
+        factory = unlock.UnlockFactory()
         level = 0
         max_level = 0
         while level <= max_level:
+            pop_keys = set([])
             for key, value in config.items():
+                if not 'singleton' in value:
+                    continue
+
                 level_value = value['singleton']
                 if level_value > max_level:
                     max_level = level_value
                     
                 if level_value <= level:
-                    factor.create_singleton(name, key, config)
-                    config.pop(key)
-                    
+                    print(key, value)
+                    assert 'name' in value
+                    factory.create_singleton(value['name'], key, config)
+                    pop_keys.add(key)
+
+            for key in pop_keys:
+                config.pop(key)
             level += 1
         
-        for obj in config:
-            if obj['main']:
-                newobj = factory.create(obj, config)
-                assert not self.main
-                self.unlock = newobj
-                return self.unlock                    
-                
-                
+        for key, value in config.items():
+            if 'main' in value:
+                newobj = factory.create(key, config)
+                unlock_instance = newobj
+                break
+        assert unlock_instance
+        return unlock_instance
+
     @staticmethod
     def make_high_priority():
         '''Makes the Unlock process a high priority; the impact of this was never investigated and it is not used.'''
@@ -145,9 +156,9 @@ class UnlockRuntime(object):
 
 
 if __name__ == '__main__':
-    try:
+ #   try:
         unlock = UnlockRuntime()
         unlock.start()
-    except:
-        sys.exit(1)
+#    except:
+#        sys.exit(1)
 
