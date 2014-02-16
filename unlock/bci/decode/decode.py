@@ -214,13 +214,13 @@ class NoThresholdDecoder(UnlockDecoder):
         
 class AbsoluteThresholdDecoder(UnlockDecoder):
     """Accepts everything greater than or equal to a set value."""
-    def __init__(self, threshold=0, reduction_fcn='np.mean'):
+    def __init__(self, threshold=0, reduction_fn='np.mean'):
         self.threshold = threshold
-        self.reduction_fcn = eval(reduction_fcn)
+        self.reduction_fn = eval(reduction_fn)
         
     def decode(self, command):
         assert hasattr(command, 'scores')
-        command.accept, command.confidence = self.reduction_fcn(command.scores) >= self.threshold, 1.0
+        command.accept, command.confidence = self.reduction_fn(command.scores) >= self.threshold, 1.0
         return command
         
         
