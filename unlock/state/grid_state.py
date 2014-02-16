@@ -127,9 +127,9 @@ class HierarchyGridState(GridState):
     2) Each tile's state is its label and action
     3) On layer change, set tile states accordingly
     """
-    def __init__(self, radius):
+    def __init__(self, grid_radius):
         super(HierarchyGridState, self).__init__()
-        self.radius = radius
+        self.radius = grid_radius
         self.state = (0, 0)
         self.state_change = None
             
