@@ -127,6 +127,7 @@ class UnlockFactory(object):
         assert stimulation and decoder
         receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
         cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
+
         cc_frag = self.controller_factory.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
             stimulation.views, cmd_receiver)
 
@@ -145,7 +146,9 @@ class UnlockFactory(object):
         return self.controller_factory.create_gridcursor(self.window, canvas, command_connected_fragment)
 
     def dashboard(self, stimulation=None, decoder=None, controllers=None, offline_data=False):
-        assert stimulation and decoder and controllers
+        assert stimulation and decoder
+        if not controllers:
+            controllers = []
         #canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
         receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
         cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
