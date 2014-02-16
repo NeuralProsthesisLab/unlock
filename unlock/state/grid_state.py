@@ -52,13 +52,13 @@ class GridState(UnlockState):
 
     def process_command(self, command):
         # a selection event supersedes a decision event
-        if command.decision is not None and command.selection is not None:
+        if command.decision and command.selection:
             command.decision = None
 
-        if command.decision is not None:
+        if command.decision:
             self.process_decision(command.decision)
             
-        if command.selection is not None:
+        if command.selection:
             self.process_selection()
             
     def process_decision(self, decision):
@@ -90,7 +90,6 @@ class GridState(UnlockState):
 class ControllerGridState(GridState):
     def __init__(self, controllers):
         super(ControllerGridState, self).__init__()
-        assert len(controllers) > 0        
         self.controllers = {}
         for slot in self.ordering:
             self.controllers[slot] = 'deadbeef'
@@ -134,9 +133,7 @@ class HierarchyGridState(GridState):
         self.state_change = None
             
     def handle_state_change(self, new_state, change):
-        if new_state is not None and \
-           abs(new_state[0]) <= self.radius and \
-           abs(new_state[1]) <= self.radius:
+        if new_state and abs(new_state[0]) <= self.radius and abs(new_state[1]) <= self.radius:
             self.state = new_state
             self.state_change = GridStateChange(*change)
 
@@ -144,7 +141,7 @@ class HierarchyGridState(GridState):
         """
         Determine and execute current tile's associated action
         """
-        assert self.state_change == None
+        assert not self.state_change
         self.state_change = GridStateChange(GridStateChange.Select, self.state)
         
         
