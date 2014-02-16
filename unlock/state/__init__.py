@@ -46,10 +46,6 @@ class UnlockStateFactory(object):
         seq_state = SequenceState(sequence, value_transformer_fn)
         return TimedStimulus(time_state, seq_state, repeat_count=repeat_count)
 
-    def create_timed_stimuli(stimuli_duration, rest_duration=0):
-        trial_state = UnlockStateFactory.create_trial_state(stimuli_duration, rest_duration)
-        return TimedStimuli(trial_state)
-
     def create_sequential_timed_stimuli(stimuli_duration, rest_duration=0):
         # XXX this, and above, can be optimized in the case that rest_duration = 0
         trial_state = TrialState.create(stimuli_duration, rest_duration)
@@ -105,25 +101,6 @@ class UnlockStateFactory(object):
         state_chain = UnlockStateChain(states)
         return state_chain
 
-    def create_quad_timed_stimuli(self, stimulus, stimulus1, stimulus2, stimulus3, stimuli_duration=3.0,
-        rest_duration=1.0):
-
-        stimuli = UnlockStateFactory.create_timed_stimuli(stimuli_duration, rest_duration)
-
-        stimuli.add_stimulus(stimulus)
-        stimuli.add_stimulus(stimulus1)
-        stimuli.add_stimulus(stimulus2)
-        stimuli.add_stimulus(stimulus3)
-
-    def create_stimuli(self, stimulus='frame_count', frequencies=[12.0,13.0,14.0,15.0],stimuli_duration=3.0, rest_duration=1.0):
-        if stimulus == 'frame_count':
-            timed_stimulus_factory_method = self.create_frame_count_timed_stimulus
-        else:
-            timed_stimulus_factory_method = self.create_wall_clock_timed_stimulus
-
-        stimulus = timed_stimulus_factory_method(frequencies[0] * 2)
-        stimulus1 = timed_stimulus_factory_method(frequencies[1] * 2)
-        stimulus2 = timed_stimulus_factory_method(frequencies[2] * 2)
-        stimulus3 = timed_stimulus_factory_method(frequencies[3] * 2)
-        stimuli = self.state_factory.create_timed_stimuli(stimuli_duration, rest_duration)
-        return stimuli
+    def create_timed_stimuli(self, stimuli_duration=3.0, rest_duration=1.0, *stimuli):
+        trial_state = self.create_trial_state(stimuli_duration, rest_duration)
+        return TimedStimuli(trial_state, stimuli)
