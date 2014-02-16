@@ -53,11 +53,6 @@ class UnlockDecoderFactory(object):
 
         assert buffering_decoder is not None and threshold_decoder is not None
         trial_state_decoder = TrialStateControlledDecoder(None)
-        buffering_decoder['args']['buffer_shape'] = (fs * (trial_length + 1), n_electrodes)
-        buffering_decoder['args']['electrodes'] = n_electrodes
-        buffering_decoder = self.create_decoder(buffering_decoder['name'], **buffering_decoder['args'])
-        threshold_decoder = self.create_decoder(threshold_decoder['name'], **threshold_decoder['args'])
-        
         feature_extractor = HarmonicFeatureExtractor(fs, n_electrodes, targets, target_window, nfft,
             n_harmonics, selected_channels)
         
