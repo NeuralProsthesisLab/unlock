@@ -82,8 +82,8 @@ class UnlockDecoderFactory(object):
     def create_absolute_threshold(self, threshold=0, reduction_fcn='np.mean'):
         return AbsoluteThresholdDecoder(threshold, reduction_fcn)
         
-    def create_lda_threshold(self, x=(0, 1), y=(0, 1), min_confidence=0.5, reduction_fcn='np.mean'):
-        return LdaThresholdDecoder(x, y, min_confidence, reduction_fcn)
+    def create_lda_threshold(self, x=(0, 1), y=(0, 1), min_confidence=0.5, reduction_fn='np.mean'):
+        return LdaThresholdDecoder(x, y, min_confidence, reduction_fn)
         
     def create_eyeblink_detector(self):
         return EyeBlinkDetector()
