@@ -34,7 +34,8 @@ from unlock.view import GridSpeakView, HierarchyGridView, FastPadView, GridView,
     TimeScopeView, PygletDynamicTextLabel, PygletTextLabel, SpritePositionComputer, FlickeringPygletSprite, \
     UnlockViewFactory
     
-from unlock.bci import UnlockCommandReceiverFactory, UnlockDecoder
+from unlock.bci import UnlockCommandFactory, UnlockDecoder
+
 
 
 class UnlockControllerFactory(object):
@@ -44,19 +45,22 @@ class UnlockControllerFactory(object):
     """
     def __init__(self):
         super(UnlockControllerFactory, self).__init__()
-        
-    def create_canvas(width, height, xoffset=0, yoffset=0):        
+
+    def create_pyglet_window(self, signal, fullscreen=False, fps=True, vsync=True):
+        return PygletWindow(signal, fullscreen, fps, vsync)
+
+    def create_canvas(self, width, height, xoffset=0, yoffset=0):
         batch = pyglet.graphics.Batch()
         return Canvas(batch, width, height, xoffset, yoffset)
         
-    def create_fastpad_fragment(canvas):
+    def create_fastpad_fragment(self, canvas):
         fastpad_model = FastPadState()            
         fastpad_view = FastPadView(fastpad_model, canvas)
         assert canvas != None
         fastpad = UnlockControllerFragment(fastpad_model, [fastpad_view], canvas.batch)
         return fastpad
         
-    def create_fastpad(window, bci_wrapper, base=None, color='bw'):
+    def create_fastpad(self, window, bci_wrapper, base=None, color='bw'):
         canvas = Canvas.create(window.width, window.height)
         if base == None:
             base = UnlockControllerFactory.create_quad_ssvep(canvas,
@@ -68,14 +72,14 @@ class UnlockControllerFactory(object):
             'FastPad', 'fastpad.png', standalone=False)
         return controller_chain
         
-    def create_time_scope_fragment(canvas, n_channels=1, fs=256, duration=2):
+    def create_time_scope_fragment(self, canvas, n_channels=1, fs=256, duration=2):
         scope_model = TimeScopeState(**kwargs)
         scope_view = TimeScopeView(scope_model, canvas)
         assert canvas is not None
         scope = UnlockControllerFragment(scope_model, [scope_view], canvas.batch)
         return scope
         
-    def create_time_scope(window, bci_wrapper, base=None, **kwargs):
+    def create_time_scope(self, window, bci_wrapper, base=None, **kwargs):
         canvas = Canvas.create(window.width, window.height)        
         scope = TimeScope.create_time_scope_fragment(canvas, **kwargs)
         if base is None:
@@ -88,18 +92,18 @@ class UnlockControllerFactory(object):
             'time-128x128.jpg', standalone=False)
         return controller_chain
         
-    def create_frequency_scope_fragment(canvas, **kwargs):
+    def create_frequency_scope_fragment(self, canvas, **kwargs):
         scope_model = FrequencyScopeState(**kwargs)
         scope_view = FrequencyScopeView(scope_model, canvas, labels=scope_model.labels)
         assert canvas is not None
         scope = UnlockControllerFragment(scope_model, [scope_view], canvas.batch)
         return scope
         
-    def create_frequency_scope(window, bci_wrapper, base=None, **kwargs):
+    def create_frequency_scope(self, window, bci_wrapper, base=None, **kwargs):
         canvas = Canvas.create(window.width, window.height)
         scope = UnlockControllerFragment.create_frequency_scope_fragment(canvas, **kwargs)
         if base is None:
-            command_receiver = CommandReceiverFactory.create(CommandReceiverFactory.Raw,
+            command_receiver = UnlockCommandReceiverFactory.create(UnlockCommandReceiverFactory.Raw,
                 bci_wrapper.signal, bci_wrapper.timer)
         else:
             command_receiver = base.command_receiver
@@ -107,119 +111,30 @@ class UnlockControllerFactory(object):
         controller_chain = UnlockControllerChain(window, command_receiver, [scope], 'FrequencyScope',
             'frequency-128x128.jpg', standalone=False)
         return controller_chain
-        
-    def create_dashboard_fragment(window, canvas, controllers, calibrator):      
-        grid_state = ControllerGridState(controllers)
-        icons = []
-        for controller in controllers:
-            icons.append((controller.icon_path, controller.name))
-            
-        center_x, center_y = canvas.center()
-        grid_view = GridView(grid_state, canvas, icons, center_x, center_y)
-        offline_data = OfflineData("dashboard")        
-        state = UnlockStateChain([grid_state, offline_data])
-        
-        return UnlockDashboard(window, state, [grid_view], canvas.batch, controllers, calibrator)
 
-    def create_frame_count_timed_quad_ssvep_stimulation(canvas, color):
-        UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color, UnlockStateFactory.create_frame_count_timed_stimulus)
+    def create_command_connected_fragment(self, canvas, stimuli, views, command_receiver):
+        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimuli, views, canvas.batch)
+        return command_connected_fragment
 
-    def create_wall_clock_timed_quad_ssvep_stimulation(canvas, color):
-        UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color, UnlockStateFactory.create_wall_clock_timed_stimulus)
+    def create_dashboard(self, window, canvas, controllers, command_connected_fragment, views, state, calibrator=None):
 
-    def create_quad_ssvep_stimulation(canvas, color='bw', frequencies=[12.0, 13.0, 14.0, 15.0], stimuli_duration=3.0,
-                                      rest_duration=1.0, width=500, height=100, xfrequency=5, yfrequency=1,
-                                      timed_stimulus_factory_method=UnlockStateFactory.create_wall_clock_timed_stimulus):
-        if color == 'ry':
-            color1 = (255, 0, 0)
-            color2 = (255, 255, 0)
-        else:
-            color1 = (0, 0, 0)
-            color2 = (255, 255, 255)
-        width = 500
-        height = 100
-        
-        xfrequency = 5
-        yfrequency = 1
-        
-        stimuli = UnlockStateFactory.create_timed_stimuli(stimuli_duration, rest_duration)
-        views = []
+        dashboard_fragment = UnlockDashboard(window, state, views, canvas.batch, controllers, calibrator)
 
-        # XXX these should be injected
-        stimulus = timed_stimulus_factory_method(frequencies[0] * 2)
-        stimulus1 = timed_stimulus_factory_method(frequencies[1] * 2)
-        stimulus2 = timed_stimulus_factory_method(frequencies[2] * 2)
-        stimulus3 = timed_stimulus_factory_method(frequencies[3] * 2)
-
-        stimuli.add_stimulus(stimulus)
-        stimuli.add_stimulus(stimulus1)
-        stimuli.add_stimulus(stimulus2)
-        stimuli.add_stimulus(stimulus3)
-
-        fs = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
-            SpritePositionComputer.North, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
-            color_on=color1, color_off=color2, reversal=False)
-
-        fs1 = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
-            SpritePositionComputer.South, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
-            color_on=color1, color_off=color2, reversal=False)
-
-        fs2 = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus, canvas,
-            SpritePositionComputer.West, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
-            color_on=color1, color_off=color2, reversal=False, rotation=90)
-
-        fs3 = UnlockViewFactory.create_flickering_checkered_box_sprite(stimulus3, canvas,
-            SpritePositionComputer.East, width=width, height=height, xfreq=xfrequency, yfreq=yfrequency,
-            color_on=color1, color_off=color2, reversal=False, rotation=90)
-
-        views.append(fs)
-        views.append(fs1)
-        views.append(fs2)
-        views.append(fs3)
-
-        return stimuli, views
-        
-    def create_dashboard(window, controllers, command_receiver, calibrator=None, color='bw'):        
-        canvas = UnlockControllerFactory.create_canvas(window.width, window.height)
-        dashboard_fragment = UnlockControllerFactory.create_dashboard_fragment(window, canvas,
-            controllers, calibrator)
-            
-        stimuli, views = UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color)        
-        
-        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimuli,
-            views, canvas.batch)
-            
         dashboard_chain = UnlockControllerChain(window, command_connected_fragment.command_receiver,
             [command_connected_fragment, dashboard_fragment], 'Dashboard', '', standalone=True)
-            
+
         dashboard_fragment.poll_signal = dashboard_chain.poll_signal
         dashboard_chain.poll_signal = dashboard_fragment.poll_signal_interceptor
         return dashboard_chain
-        
-    def create_gridspeak_fragment(canvas):
-        grid_model = HierarchyGridState(2)
-        gridspeak_view = GridSpeakView(None, grid_model, canvas)
-        assert canvas != None
-        offline_data = OfflineData("gridspeak")        
-        state = UnlockStateChain([grid_model, offline_data])
-        gridspeak = UnlockControllerFragment(state, [gridspeak_view], canvas.batch)
-        return gridspeak
-        
-    def create_gridspeak(window, command_receiver, color='bw'):
-        canvas = UnlockControllerFactory.create_canvas(window.width, window.height)
-        gridspeak_fragment = UnlockControllerFactory.create_gridspeak_fragment(canvas)
-            
-        stimuli, views = UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color)        
-        
-        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimuli,
-            views, canvas.batch)
-            
-        gridspeak_chain = UnlockControllerChain(window, command_connected_fragment.command_receiver,
-            [command_connected_fragment, gridspeak_fragment], 'Gridspeak', 'gridspeak.png', standalone=False)
-            
+
+    def create_gridspeak(self, window, canvas, cc_frag, views, state):
+
+        gridspeak = UnlockControllerFragment(state, views, canvas.batch)
+        gridspeak_chain = UnlockControllerChain(window, cc_frag.command_receiver,
+            [cc_frag, gridspeak], 'Gridspeak', 'gridspeak.png', standalone=False)
         return gridspeak_chain
         
-    def create_gridcursor_fragment(canvas):
+    def create_gridcursor_fragment(self, canvas):
         grid_model = HierarchyGridState(2)
         grid_view = HierarchyGridView(grid_model, canvas)
         assert canvas != None
@@ -228,7 +143,7 @@ class UnlockControllerFactory(object):
         gridcursor = UnlockControllerFragment(state, [grid_view], canvas.batch)
         return gridcursor
         
-    def create_gridcursor(window, command_receiver, color='bw'):
+    def create_gridcursor(self, window, command_receiver, color='bw'):
         canvas = UnlockControllerFactory.create_canvas(window.width, window.height)
         gridcursor_fragment = UnlockControllerFactory.create_gridcursor_fragment(canvas)
             
@@ -242,7 +157,7 @@ class UnlockControllerFactory(object):
             
         return gridcursor_chain        
         
-    def create_single_standalone_ssvep_diagnostic(window, command_receiver, output_file='collector',
+    def create_single_standalone_ssvep_diagnostic(self, window, command_receiver, output_file='collector',
             frequency=14.0, color=(255, 255, 0), color1=(255, 0, 0)):
          
         stimulus = UnlockStateFactory.create_wall_clock_timed_stimulus(frequency * 2)
@@ -268,7 +183,7 @@ class UnlockControllerFactory(object):
             
         return controller_chain
         
-    def create_eeg_emg_collector(window, bci_wrapper, stimuli=None, trials=10, cue_duration=.5,
+    def create_eeg_emg_collector(self, window, bci_wrapper, stimuli=None, trials=10, cue_duration=.5,
             rest_duration=1, indicate_duration=1, output_file='collector', standalone=False):
         raise Exception("Old code that is no longer supported")
         canvas = Canvas.create(window.width, window.height)
@@ -315,7 +230,7 @@ class UnlockControllerFactory(object):
                                                  standalone=standalone)
         return controller_chain
             
-    def create_facial_emg_collector(window, bci_wrapper, stimuli=None, trials=10, cue_duration=.5,
+    def create_facial_emg_collector(self, window, bci_wrapper, stimuli=None, trials=10, cue_duration=.5,
                          rest_duration=1, indicate_duration=1, output_file='collector', standalone=False):
         raise Exception("Old code that is no longer supported")        
         canvas = Canvas.create(window.width, window.height)
@@ -361,7 +276,7 @@ class UnlockControllerFactory(object):
                                                  standalone=standalone)
         return controller_chain
             
-    def create_calibration_fragment(window, command_receiver, trials=4, cue_duration=.5,
+    def create_calibration_fragment(self, window, command_receiver, trials=4, cue_duration=.5,
         rest_duration=1, indicate_duration=1, standalone=False):
         
         raise Exception("Old code that is no longer supported")        
