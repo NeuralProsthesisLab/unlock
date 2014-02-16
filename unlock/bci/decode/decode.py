@@ -224,7 +224,7 @@ class AbsoluteThresholdDecoder(UnlockDecoder):
         return command
         
         
-class LDAThresholdDecoder(UnlockDecoder):
+class LdaThresholdDecoder(UnlockDecoder):
     """
     Uses an LDA decoder to determine the threshold boundary. LDA predictions
     above a provided confidence level are accepted. Training data must be
@@ -241,5 +241,4 @@ class LDAThresholdDecoder(UnlockDecoder):
         command.confidence = self.clf.predict_proba(self.reduction_fn(command.scores))[0, 1]
         command.accept = command.confidence >= self.min_confidence
         return command
-        
-        
+
