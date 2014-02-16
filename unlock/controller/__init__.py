@@ -116,9 +116,9 @@ class UnlockControllerFactory(object):
         command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimuli, views, canvas.batch)
         return command_connected_fragment
 
-    def create_dashboard(self, window, canvas, controllers, command_connected_fragment, grid_view, state, calibrator=None):
+    def create_dashboard(self, window, canvas, controllers, command_connected_fragment, views, state, calibrator=None):
 
-        dashboard_fragment = UnlockDashboard(window, state, [grid_view], canvas.batch, controllers, calibrator)
+        dashboard_fragment = UnlockDashboard(window, state, views, canvas.batch, controllers, calibrator)
 
         dashboard_chain = UnlockControllerChain(window, command_connected_fragment.command_receiver,
             [command_connected_fragment, dashboard_fragment], 'Dashboard', '', standalone=True)
@@ -127,27 +127,11 @@ class UnlockControllerFactory(object):
         dashboard_chain.poll_signal = dashboard_fragment.poll_signal_interceptor
         return dashboard_chain
 
-    def create_gridspeak_fragment(self, canvas):
-        grid_model = HierarchyGridState(2)
-        gridspeak_view = GridSpeakView(None, grid_model, canvas)
-        assert canvas != None
-        offline_data = OfflineData("gridspeak")        
-        state = UnlockStateChain([grid_model, offline_data])
-        gridspeak = UnlockControllerFragment(state, [gridspeak_view], canvas.batch)
-        return gridspeak
-        
-    def create_gridspeak(self, window, command_receiver, color='bw'):
-        canvas = UnlockControllerFactory.create_canvas(window.width, window.height)
-        gridspeak_fragment = UnlockControllerFactory.create_gridspeak_fragment(canvas)
-            
-        stimuli, views = UnlockControllerFactory.create_quad_ssvep_stimulation(canvas, color)        
-        
-        command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimuli,
-            views, canvas.batch)
-            
-        gridspeak_chain = UnlockControllerChain(window, command_connected_fragment.command_receiver,
-            [command_connected_fragment, gridspeak_fragment], 'Gridspeak', 'gridspeak.png', standalone=False)
-            
+    def create_gridspeak(self, window, canvas, cc_frag, views, state):
+
+        gridspeak = UnlockControllerFragment(state, views, canvas.batch)
+        gridspeak_chain = UnlockControllerChain(window, cc_frag.command_receiver,
+            [cc_frag, gridspeak], 'Gridspeak', 'gridspeak.png', standalone=False)
         return gridspeak_chain
         
     def create_gridcursor_fragment(self, canvas):
