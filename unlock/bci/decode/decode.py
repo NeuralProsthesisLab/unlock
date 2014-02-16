@@ -230,15 +230,15 @@ class LDAThresholdDecoder(UnlockDecoder):
     above a provided confidence level are accepted. Training data must be
     supplied to the decoder.
     """
-    def __init__(self, x=(0, 1), y=(0, 1), min_confidence=0.5, reduction_fcn='np.mean'):
+    def __init__(self, x=(0, 1), y=(0, 1), min_confidence=0.5, reduction_fn='np.mean'):
         self.min_confidence = min_confidence
         self.clf = lda.LDA()
         self.clf.fit(x, y)
-        self.reduction_fcn = eval(reduction_fcn)
+        self.reduction_fn = eval(reduction_fn)
         
     def decode(self, command):
         assert hasattr(command, 'scores')        
-        command.confidence = self.clf.predict_proba(self.reduction_fcn(command.scores))[0, 1]
+        command.confidence = self.clf.predict_proba(self.reduction_fn(command.scores))[0, 1]
         command.accept = command.confidence >= self.min_confidence
         return command
         
