@@ -26,28 +26,29 @@ class GridView(UnlockView):
         fixed_state = UnlockState(state=True)
         name = "Unlock Dashboard"
         path=os.path.join(os.path.dirname(inspect.getabsfile(GridView)), 'unlock.png')
-            
         try:
-            unlock_widget = PygletSprite.create_image_sprite(fixed_state, canvas, path, center_x, center_y)
+            abstract_image = pyglet.image.load(path)
+            unlock_widget = PygletSprite(fixed_state, canvas, abstract_image, center_x, center_y, 0)
         except AttributeError:
             unlock_widget = PygletTextLabel(fixed_state, canvas, name,center_x, center_y, size=18)
-            
+
         unlock_widget.render()
         self.icon_widgets.append(unlock_widget)
-        
+
         for icon_path, icon_name in icons:
             x_offset, y_offset = model.ordering[index]
             icon_x = center_x + x_offset * icon_width
             icon_y = center_y + y_offset * icon_height
             try:
-                icon_widget = PygletSprite.create_image_sprite(fixed_state, canvas, icon_path, icon_x, icon_y)
+                abstract_image = pyglet.image.load(icon_path)
+                icon_widget = PygletSprite(fixed_state, canvas, abstract_image, icon_x, icon_y, 0)
             except AttributeError:
                 icon_widget = PygletTextLabel(fixed_state, canvas, icon_name, icon_x, icon_y, size=18)
-                
+
             icon_widget.render()
             self.icon_widgets.append(icon_widget)
             index += 1
-            
+
     def render(self):
         state = self.model.get_state()
         if not state:

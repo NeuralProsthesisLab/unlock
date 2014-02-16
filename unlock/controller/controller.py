@@ -98,9 +98,10 @@ class UnlockControllerChain(UnlockController):
         self.name = name
         self.icon = icon
         self.standalone = standalone
+
         self.icon_path = os.path.join(os.path.dirname(inspect.getabsfile(UnlockControllerChain)),
             'resource', self.icon)
-            
+
     def update_state(self, command):
         for controller in self.controllers:
             controller.update_state(command)
