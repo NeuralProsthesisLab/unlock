@@ -13,7 +13,7 @@
         "singleton" : 0,
         "name" : "random"
     },
-    
+
     "window" : {
        "singleton" : 1,
        "name" : "pyglet",
@@ -33,7 +33,7 @@
     "absolute_threshold_decoder" : {
         "args" : {
             "threshold" : 0,
-            "reduction_fcn" : "np.mean"
+            "reduction_fn" : "np.mean"
         }
     },
     
@@ -65,7 +65,7 @@
         "args" : {
             "stimulus" : "frame_count",
             "stimuli_duration" : 3.0,
-            "rest_duration" : 1.0
+            "rest_duration" : 1.0,
             "frequencies" : [12.0, 13.0, 14.0, 15.0],
             "color" : [0, 0, 0],
             "color1" : [255, 255, 255],
@@ -76,8 +76,9 @@
         }
     },
 
-    "database" : {
-        "singleton" : 0,        
+    "db" : {
+        "singleton" : 0,
+        "name" : "database",
         "args" : {
             "host" : "ec2-54-204-43-139.compute-1.amazonaws.com",
             "name" : "dps7g4lruchrr",
@@ -87,8 +88,9 @@
         }
     },
     
-    "logging": {
+    "logger": {
         "singleton" : 0,
+        "name" : "logging",
         "args" : {
             "version": 1,
             "disable_existing_loggers": false,
