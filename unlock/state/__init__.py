@@ -93,11 +93,17 @@ class UnlockStateFactory(object):
         time_state = TimerState(duration)
         return DynamicPositionCueState(state_id, time_state, screen_height, height, screen_width, width, radius)
 
-    def create_dashboard_grid(self, controllers, icons):
+    def create_grid_state(self, controllers, icons):
         grid_state = ControllerGridState(controllers)
-        offline_data = OfflineData("dashboard")
-        state_chain = UnlockStateChain([grid_state, offline_data])
-        return state_chain, grid_state, offline_data
+        return grid_state
+
+    def create_offline_data(self, output_file_name):
+        offline_data = OfflineData(output_file_name)
+        return offline_data
+
+    def create_state_chain(self, *states):
+        state_chain = UnlockStateChain(states)
+        return state_chain
 
     def create_quad_timed_stimuli(self, stimulus, stimulus1, stimulus2, stimulus3, stimuli_duration=3.0,
         rest_duration=1.0):
