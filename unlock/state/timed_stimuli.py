@@ -37,8 +37,7 @@ class TimedStimuli(UnlockState):
         self.logger = logging.getLogger(__name__)
         self.state = state
         if stimuli:
-            assert list == type(stimuli)
-            self.stimuli = stimuli
+            self.stimuli = list(stimuli)
         else:
             self.stimuli = list()
 
