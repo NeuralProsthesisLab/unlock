@@ -39,6 +39,7 @@ class Stimulation(object):
         self.stimuli = stimuli
         self.views = views
 
+
 class UnlockFactory(object):
     def __init__(self):
         super(UnlockFactory, self).__init__()
@@ -91,7 +92,17 @@ class UnlockFactory(object):
             rest_duration=1.0, frequencies=[12.0,13.0,14.0,15.0], width=500, height=100, horizontal_blocks=5,
             vertical_blocks=1):
 
-        stimuli = self.state_factory.create_stimuli(stimulus, frequencies, stimuli_duration, rest_duration)
+        if stimulus == 'frame_count':
+            timed_stimulus_factory_method = self.create_frame_count_timed_stimulus
+        else:
+            timed_stimulus_factory_method = self.create_wall_clock_timed_stimulus
+
+        stimulus = timed_stimulus_factory_method(frequencies[0] * 2)
+        stimulus1 = timed_stimulus_factory_method(frequencies[1] * 2)
+        stimulus2 = timed_stimulus_factory_method(frequencies[2] * 2)
+        stimulus3 = timed_stimulus_factory_method(frequencies[3] * 2)
+
+        stimuli = self.state_factory.create_timed_stimuli(stimuli_duration, rest_duration,  *[stimulus, stimulus1, stimulus2, stimulus3])
         ssvep_views = self.view_factory.create_ssvep_views(stimuli, width, height, horizontal_blocks, vertical_blocks)
         return Stimulation(stimuli, ssvep_views)
 
@@ -110,13 +121,11 @@ class UnlockFactory(object):
         bci, canvas, command_connected_fragment = self.create_base()
         return self.controller_factory.create_gridcursor(self.window, canvas, command_connected_fragment)
 
-
-
     def dashboard(self, stimulation=None, decoder=None, controllers=None):
         assert stimulation and decoder and controllers
         canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
-        receiver_args = {'signal': signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
-        cmd_receiver = self.command_factory.create_receiver('decoded', **receiver_args)
+        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
         cc_frag = self.controller_factory.create_command_connected_fragment(canvas, stimulation.stimuli,
             stimulation.views, cmd_receiver)
 
@@ -124,19 +133,22 @@ class UnlockFactory(object):
         for c in controllers:
             icons.append((c.icon_path, c.name))
 
-        state_chain, grid_state, state_chain = self.state_factory.create_dashboard_grid(controllers, icons)
+        grid_state = self.state_factory.create_grid_state(controllers, icons)
+        offline_data = self.state_factory.create_offline_data(output_file)
+        state_chain = self.state_factory.create_state_chain(grid_state, offline_data)
+        state_chain, grid_state, offline_data = self.state_factory.create_dashboard_grid(controllers, icons)
         center_x, center_y = canvas.center()
         grid_view = self.view_factory.create_grid_view(grid_state, canvas, icons, center_x, center_y)
 
         return self.controller_factory.create_dashboard(self.window, canvas, cc_frag, controllers, grid_view, state_chain)
 
-    def create_singleton(self, name, key, config):
-        assert not hasattr(self, key)
-        newobj = self.create(name, config)
-        setattr(self, key, newobj)
+    def create_singleton(self, type_name, attr_name, config):
+        assert not hasattr(self, attr_name)
+        newobj = self.create(type_name, config)
+        setattr(self, attr_name, newobj)
         
-    def create(self, name, config):
-        objdesc = config[name]
+    def create(self, type_name, config):
+        objdesc = config[type_name]
         deps = None
         args = None
         
@@ -158,12 +170,13 @@ class UnlockFactory(object):
                 args.update(deps)
                 
         if args:    
-            newobj = getattr(self, name)(**args)
+            newobj = getattr(self, type_name)(**args)
         else:
-            newobj = getattr(self, name)()
+            newobj = getattr(self, type_name)()
 
         if newobj is None:
-            self.logger.error("UnlockFactory.create_"+str(name), "returned None; objdesc = ", objdesc)
+            self.logger.error("UnlockFactory.create_"+str(type_name), "returned None; objdesc = ", objdesc)
 
         assert newobj        
         return newobj
+
