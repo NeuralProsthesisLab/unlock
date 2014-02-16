@@ -71,16 +71,14 @@ class UnlockDecoderFactory(object):
         
         return decoder_chain
         
-    def create_fixed_time_buffering(self, buffer_shape=None, electrodes=8, window_length=768):
-        assert buffer_shape is not None        
-        return FixedTimeBufferingDecoder(buffer_shape, electrodes, window_length)
+    def create_fixed_time_buffering(self, electrodes=8, window_length=768):
+        return FixedTimeBufferingDecoder(electrodes, window_length)
     
-    def create_continuous_time_buffering(self, buffer_shape=None, electrodes=8, step_size=32, trial_limit=768):
-        assert buffer_shape is not None
-        return ContinuousTimeBufferingDecoder(buffer_shape, electrodes, step_size, trial_limit)
+    def create_continuous_time_buffering(self, electrodes=8, step_size=32, trial_limit=768):
+        return ContinuousTimeBufferingDecoder(electrodes, step_size, trial_limit)
     
-    def create_absolute_threshold(self, threshold=0, reduction_fcn='np.mean'):
-        return AbsoluteThresholdDecoder(threshold, reduction_fcn)
+    def create_absolute_threshold(self, threshold=0, reduction_fn='np.mean'):
+        return AbsoluteThresholdDecoder(threshold, reduction_fn)
         
     def create_lda_threshold(self, x=(0, 1), y=(0, 1), min_confidence=0.5, reduction_fn='np.mean'):
         return LdaThresholdDecoder(x, y, min_confidence, reduction_fn)
