@@ -40,7 +40,7 @@ class UnlockController(object):
         self.window = window
         self.views = views
         self.batches = set([])
-        if batches != None:
+        if batches:
             self.batches = self.batches.union(batches)
             
         self.command_receiver = command_receiver
@@ -49,8 +49,7 @@ class UnlockController(object):
         
     def poll_signal(self, delta):
         command = self.command_receiver.next_command(delta)
-        #print("TYPE COMMAND = ", type(command#))
-        
+
         if 'stop' in command.__dict__:
             self.window.handle_stop_request()
         else:
@@ -73,7 +72,6 @@ class UnlockController(object):
         return self.standalone
         
     def render(self):
-        #print("Render =======================================================================")
         self.window.render()
         
         
@@ -81,15 +79,15 @@ class UnlockControllerChain(UnlockController):
     def __init__(self, window, command_receiver, controllers, name, icon,
         poll_signal_frequency=1.0/512.0, standalone=False):
         
-        assert controllers != None and len(controllers) > 0
+        assert controllers and len(controllers) > 0
             
         views = []
         batches = set([])
         for controller in controllers:
-            if controller.views != None:
+            if controller.views:
                 views.extend(controller.views)    
                     
-            if controller.batches != None:
+            if controller.batches:
                 batches = batches.union(controller.batches)
                 
         super(UnlockControllerChain, self).__init__(window, views, batches,
@@ -143,29 +141,29 @@ class UnlockControllerFragment(UnlockController):
         self.render = None
         
     def update_state(self, command):
-        if command is not None and self.model is not None:
+        if command and self.model:
             if self.check_command_validity and not command.is_valid():
                 return
                 
             self.model.process_command(command)
             
     def keyboard_input(self, command):
-        if self.model is not None:
+        if self.model:
             self.model.process_command(command)
             
     def activate(self):
-        if self.model is not None:
+        if self.model:
             self.model.start()
             
     def deactivate(self):
-        if self.model is not None:
+        if self.model:
             self.model.stop()
         return self.standalone
          
             
 class UnlockCommandConnectedFragment(UnlockControllerFragment):
     def __init__(self, command_receiver, timed_stimuli, views, batch):
-        assert timed_stimuli is not None
+        assert timed_stimuli
         super(UnlockCommandConnectedFragment, self).__init__(timed_stimuli, views, batch)
         self.command_receiver = command_receiver
         
@@ -173,12 +171,12 @@ class UnlockCommandConnectedFragment(UnlockControllerFragment):
         pass
         
     def activate(self):
-        assert self.command_receiver != None
+        assert self.command_receiver
         super(UnlockCommandConnectedFragment, self).activate()
         self.command_receiver.start()
         
     def deactivate(self):
-        assert self.command_receiver != None        
+        assert self.command_receiver
         self.command_receiver.stop()
         super(UnlockCommandConnectedFragment, self).deactivate()
         
@@ -188,7 +186,7 @@ class UnlockCalibratedControllerFragment(UnlockControllerFragment):
         super(UnlockCalibratedControllerFragment, self).__init__(model, views, batch)
         self.window = window
         self.calibrator = calibrator
-        if calibrator != None:
+        if calibrator:
             self.initialized = False
         else:
             self.initialized = True            
@@ -243,7 +241,7 @@ class PygletWindow(pyglet.window.Window):
         for view in self.views:
             view.render()
         for batch in self.batches:
-            if batch != None:
+            if batch:
                 batch.draw()
         self.fps()
         
@@ -271,7 +269,7 @@ class PygletWindow(pyglet.window.Window):
         self.active_controller = controller
         
     def deactivate_controller(self):
-        if self.active_controller != None:
+        if self.active_controller:
             self.views = []
             self.batches = set([])
             pyglet.clock.unschedule(self.active_controller.poll_signal)
