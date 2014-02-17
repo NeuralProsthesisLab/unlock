@@ -146,6 +146,8 @@ Note, the quotes around pwd are back ticks; they tell Bash to execute the comman
 
 Watch the task bar.  Some versions of Windows will bring up access control dialogs; sometimes they come up in the background.  Additionally, at least one of the installers has a dialog that comes up asynchronously and in the background, so keep your eyes peeled for dialog boxes in the background.  They should be flashing on the task bar.
 
+Additionally, AVbin installer puts the avbin.dll in the wrong directory; the installer tries to move it, but you might have to do it manually as the administrator. To fix the issue go to C:\\Windows\\SysWOW64. If there is no avbin.dll, then copy the one in C:\\Windows\\System32 to SysWOW64.
+
 That should be all there is to it.  To test it run the following command:
 
 \begin{verbatim}
