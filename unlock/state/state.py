@@ -120,7 +120,6 @@ class OfflineData(UnlockState):
                 self.logger.warning(msg)
                 self.invalid_count = 0
                 self.last_invalid = time.time()
-
         #else:
             #XXX - hack for test
         #    a = np.array([0,0,0,0,0,0])
