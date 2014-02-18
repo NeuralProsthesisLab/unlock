@@ -89,6 +89,9 @@ class UnlockStateFactory(object):
         time_state = TimerState(duration)
         return DynamicPositionCueState(state_id, time_state, screen_height, height, screen_width, width, radius)
 
+    def create_fastpad(self):
+        return FastPadState()
+
     def create_grid_state(self, controllers, icons):
         grid_state = ControllerGridState(controllers)
         return grid_state
