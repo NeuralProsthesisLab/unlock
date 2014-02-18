@@ -4,7 +4,7 @@
         "deps" : {
             "stimulation" : "quad_ssvep",
             "decoder" : "harmonic_sum",
-            "controllers" : ["gridspeak", "time_scope", "frequency_scope"]
+            "controllers" : ["gridspeak", "time_scope", "frequency_scope", "gridcursor"]
         }
     },
     
@@ -54,6 +54,13 @@
     },
     
     "gridspeak" : {
+        "deps" : {
+            "stimulation" : "quad_ssvep",
+            "decoder" : "harmonic_sum"
+        }
+    },
+
+    "gridcursor" : {
         "deps" : {
             "stimulation" : "quad_ssvep",
             "decoder" : "harmonic_sum"
