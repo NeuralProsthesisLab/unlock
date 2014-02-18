@@ -31,9 +31,9 @@ from unlock.state.state import UnlockState
 
 
 class TimeScopeState(UnlockState):
-    def __init__(self, n_channels=1, fs=256, duration=2):
+    def __init__(self, channels=1, fs=256, duration=2):
         super(TimeScopeState, self).__init__()
-        self.n_channels = n_channels
+        self.n_channels = channels
         self.fs = fs
         self.duration = duration
         self.n_samples = self.duration * self.fs
@@ -88,11 +88,11 @@ class TimeScopeState(UnlockState):
 
 
 class FrequencyScopeState(UnlockState):
-    def __init__(self, n_channels=1, fs=256, duration=2, nfft=None,
+    def __init__(self, channels=1, fs=256, duration=2, nfft=None,
                  freq_range=None, display_channels=None, labels=None):
         super(FrequencyScopeState, self).__init__()
 
-        self.n_channels = n_channels
+        self.n_channels = channels
         self.fs = fs
         self.duration = duration
         self.nfft = nfft
