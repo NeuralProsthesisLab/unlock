@@ -1,10 +1,11 @@
 {
-    "dashboard" : {
+    "ssvep_diagnostic" : {
         "main" : true,
         "deps" : {
-            "stimulation" : "quad_ssvep",
-            "decoder" : "harmonic_sum",
-            "controllers" : ["gridspeak", "time_scope", "frequency_scope", "gridcursor", "fastpad"]
+            "stimulation" : "single_ssvep"
+        },
+        "args" : {
+            "output_file" : "ssvep-diag-18hz-random"
         }
     },
     
@@ -52,53 +53,22 @@
            "n_harmonics" : 1
         }
     },
-    
-    "gridspeak" : {
-        "deps" : {
-            "stimulation" : "quad_ssvep",
-            "decoder" : "harmonic_sum"
-        }
-    },
-
-    "fastpad" : {
-        "deps" : {
-            "stimulation" : "quad_ssvep",
-            "decoder" : "harmonic_sum"
-        }
-    },
-
-    "gridcursor" : {
-        "deps" : {
-            "stimulation" : "quad_ssvep",
-            "decoder" : "harmonic_sum"
-        }
-    },
-
-    "time_scope" : {
-        "deps" : {
-            "stimulation" : "no_stimulation"
-        },
-        "args" : {
-            "channels" : 1,
-            "fs" : 256,
-            "duration" : 2,
-            "offline_data" : true
-        }
-    },
-
-    "frequency_scope" : {
-        "deps" : {
-            "stimulation" : "no_stimulation"
-        },
-        "args" : {
-            "channels" : 1,
-            "fs" : 256,
-            "duration" : 2,
-            "offline_data" : true
-        }
-    },
 
     "no_stimulation" : {
+    },
+
+
+    "single_ssvep" : {
+        "args" : {
+            "stimulus" : "frame_count",
+            "frequency" : 18,
+            "color" : [0, 0, 0],
+            "color1" : [255, 255, 255],
+            "width" : 300,
+            "height" : 300,
+            "horizontal_blocks" : 2,
+            "vertical_blocks" : 2
+        }
     },
 
     "quad_ssvep" : {
