@@ -143,8 +143,8 @@ class UnlockFactory(object):
             state_chain = grid_state
 
         gridspeak_view = self.view_factory.create_gridspeak(grid_state, stimulation.canvas)
-        return self.controller_factory.create_gridspeak(self.window, stimulation.canvas, cc_frag, [gridspeak_view],
-            state_chain)
+        return self.controller_factory.create_controller_chain(self.window, stimulation.canvas, cc_frag, state_chain,
+            [gridspeak_view], name="Gridspeak", icon="gridspeak.png")
 
     def gridspeak_kansas(self, stimulation=None, decoder=None, grid_radius=2, offline_data=False):
         assert stimulation and decoder
@@ -162,10 +162,49 @@ class UnlockFactory(object):
             state_chain = grid_state
 
         gridspeak_view = self.view_factory.create_gridspeak_kansas(grid_state, stimulation.canvas)
-        return self.controller_factory.create_gridspeak(self.window, stimulation.canvas, cc_frag, [gridspeak_view],
-            state_chain, name="Gridspeak_Kansas", icon="ku.png")
+        return self.controller_factory.create_controller_chain(self.window, stimulation.canvas, cc_frag, state_chain,
+            [gridspeak_view], name="Gridspeak_Kansas", icon="ku.png")
 
     def time_scope(self, stimulation=None, channels=1, fs=256, duration=2, offline_data=False):
+        assert stimulation
+        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
+        cmd_receiver = self.command_factory.create_receiver('raw', **receiver_args)
+
+        cc_frag = self.controller_factory.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
+            stimulation.views, cmd_receiver)
+
+        scope_model = TimeScopeState(channels, fs, duration)
+        time_scope_view = TimeScopeView(scope_model, stimulation.canvas)
+        if offline_data:
+            offline_data = self.state_factory.create_offline_data('time_scope')
+            state_chain = self.state_factory.create_state_chain(scope_model, offline_data)
+        else:
+            state_chain = scope_model
+
+        return self.controller_factory.create_controller_chain(self.window, stimulation.canvas, cc_frag, state_chain,
+            [time_scope_view], name='TimeScope', icon='time-128x128.jpg')
+
+    def frequency_scope(self, stimulation=None, channels=1, fs=256, duration=2, offline_data=False):
+  #  def create_frequency_scope_fragment(self):
+        scope_model = FrequencyScopeState(**kwargs)
+        scope_view = FrequencyScopeView(scope_model, canvas, labels=scope_model.labels)
+        assert canvas is not None
+        scope = UnlockControllerFragment(scope_model, [scope_view], canvas.batch)
+        return scope
+
+    def create_frequency_scope(self, window, bci_wrapper, base=None, **kwargs):
+        canvas = Canvas.create(window.width, window.height)
+        scope = UnlockControllerFragment.create_frequency_scope_fragment(canvas, **kwargs)
+        if base is None:
+            command_receiver = UnlockCommandReceiverFactory.create(UnlockCommandReceiverFactory.Raw,
+                bci_wrapper.signal, bci_wrapper.timer)
+        else:
+            command_receiver = base.command_receiver
+
+        controller_chain = UnlockControllerChain(window, command_receiver, [scope], 'FrequencyScope',
+            'frequency-128x128.jpg', standalone=False)
+        return controller_chain
+
         assert stimulation
         receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
         cmd_receiver = self.command_factory.create_receiver('raw', **receiver_args)
