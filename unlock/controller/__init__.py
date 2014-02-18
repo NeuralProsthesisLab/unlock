@@ -54,7 +54,7 @@ class UnlockControllerFactory(object):
         return Canvas(batch, width, height, xoffset, yoffset)
 
     def create_controller_chain(self, window, stimulation, command_receiver, state, views, name="Nameless",
-            icon=None, standalone=False):
+            icon='', standalone=False):
 
         fragment = UnlockControllerFragment(state, views, stimulation.canvas.batch)
         command_connected_fragment = self.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
