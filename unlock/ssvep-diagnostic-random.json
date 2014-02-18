@@ -1,11 +1,11 @@
 {
-
-    "dashboard" : {
+    "ssvep_diagnostic" : {
         "main" : true,
         "deps" : {
-            "stimulation" : "quad_ssvep",
-            "decoder" : "harmonic_sum",
-            "controllers" : ["gridspeak", "gridcursor", "diagnostic"]
+            "stimulation" : "single_ssvep"
+        },
+        "args" : {
+            "output_file" : "ssvep-diag-18hz-random"
         }
     },
     
@@ -13,7 +13,7 @@
         "singleton" : 0,
         "name" : "random"
     },
-    
+
     "window" : {
        "singleton" : 1,
        "name" : "pyglet",
@@ -33,7 +33,7 @@
     "absolute_threshold_decoder" : {
         "args" : {
             "threshold" : 0,
-            "reduction_fcn" : "np.mean"
+            "reduction_fn" : "np.mean"
         }
     },
     
@@ -53,35 +53,29 @@
            "n_harmonics" : 1
         }
     },
-    
-    "gridspeak" : {
-        "deps" : {
-            "stimulation" : "quad_ssvep",
-            "decoder" : "harmonic_sum"
-        }
+
+    "no_stimulation" : {
     },
 
-    "gridcursor" : {
-        "deps" : {"decoder" : "harmonic_sum"}
-    },
 
-    "ssvep_diagnostic" : {
-        "deps" : {"stimulation" : "ssvep"},
+    "single_ssvep" : {
         "args" : {
-            "frequency": 18,
+            "stimulus" : "frame_count",
+            "frequency" : 18,
             "color" : [0, 0, 0],
-            "color1" : [255, 255, 255],            
-            "fs" : 256,
-            "duration" : 2,
-            "output_file" : "random-dashboard"
-        },
+            "color1" : [255, 255, 255],
+            "width" : 300,
+            "height" : 300,
+            "horizontal_blocks" : 2,
+            "vertical_blocks" : 2
+        }
     },
 
     "quad_ssvep" : {
         "args" : {
             "stimulus" : "frame_count",
             "stimuli_duration" : 3.0,
-            "rest_duration" : 1.0
+            "rest_duration" : 1.0,
             "frequencies" : [12.0, 13.0, 14.0, 15.0],
             "color" : [0, 0, 0],
             "color1" : [255, 255, 255],
@@ -92,8 +86,9 @@
         }
     },
 
-    "database" : {
-        "singleton" : 0,        
+    "db" : {
+        "singleton" : 0,
+        "name" : "database",
         "args" : {
             "host" : "ec2-54-204-43-139.compute-1.amazonaws.com",
             "name" : "dps7g4lruchrr",
@@ -103,8 +98,9 @@
         }
     },
     
-    "logging": {
+    "logger": {
         "singleton" : 0,
+        "name" : "logging",
         "args" : {
             "version": 1,
             "disable_existing_loggers": false,
