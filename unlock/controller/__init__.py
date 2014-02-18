@@ -52,26 +52,7 @@ class UnlockControllerFactory(object):
     def create_canvas(self, width, height, xoffset=0, yoffset=0):
         batch = pyglet.graphics.Batch()
         return Canvas(batch, width, height, xoffset, yoffset)
-        
-    def create_fastpad_fragment(self, canvas):
-        fastpad_model = FastPadState()            
-        fastpad_view = FastPadView(fastpad_model, canvas)
-        assert canvas != None
-        fastpad = UnlockControllerFragment(fastpad_model, [fastpad_view], canvas.batch)
-        return fastpad
-        
-    def create_fastpad(self, window, bci_wrapper, base=None, color='bw'):
-        canvas = Canvas.create(window.width, window.height)
-        if base == None:
-            base = UnlockControllerFactory.create_quad_ssvep(canvas,
-                bci_wrapper, color)
-            
-        assert base != None
-        fastpad = UnlockControllerFactory.create_fastpad_fragment(canvas)
-        controller_chain = UnlockControllerChain(window, base.command_receiver, [base, fastpad],
-            'FastPad', 'fastpad.png', standalone=False)
-        return controller_chain
-        
+
     def create_controller_chain(self, window, stimulation, command_receiver, state, views, name="Nameless",
             icon=None, standalone=False):
 
@@ -98,7 +79,7 @@ class UnlockControllerFactory(object):
         dashboard_fragment.poll_signal = dashboard_chain.poll_signal
         dashboard_chain.poll_signal = dashboard_fragment.poll_signal_interceptor
         return dashboard_chain
-        
+
     def create_single_standalone_ssvep_diagnostic(self, window, command_receiver, output_file='collector',
             frequency=14.0, color=(255, 255, 0), color1=(255, 0, 0)):
          
