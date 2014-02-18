@@ -1,11 +1,10 @@
 {
-
     "dashboard" : {
         "main" : true,
         "deps" : {
             "stimulation" : "quad_ssvep",
             "decoder" : "harmonic_sum",
-            "controllers" : ["gridspeak"]
+            "controllers" : ["gridspeak", "time_scope"]
         }
     },
     
@@ -59,6 +58,21 @@
             "stimulation" : "quad_ssvep",
             "decoder" : "harmonic_sum"
         }
+    },
+
+    "time_scope" : {
+        "deps" : {
+            "stimulation" : "no_stimulation"
+        },
+        "args" : {
+            "channels" : 1,
+            "fs" : 256,
+            "duration" : 2,
+            "offline_data" : true
+        }
+    },
+
+    "no_stimulation" : {
     },
 
     "quad_ssvep" : {
