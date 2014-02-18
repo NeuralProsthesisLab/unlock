@@ -43,7 +43,7 @@ class UnlockCommandFactory(object):
         }.get(receiver_type, self.unknown)
             
         if receiver_factory_method is None:
-            raise LookupError('CommandReceiver does not support the factory method identified by '+str(factory_method))
+            raise LookupError('CommandReceiver does not support the factory method identified by '+str(receiver_factory_method))
                 
         return receiver_factory_method(**kwargs)
             
