@@ -165,6 +165,25 @@ class UnlockFactory(object):
         return self.controller_factory.create_gridspeak(self.window, stimulation.canvas, cc_frag, [gridspeak_view],
             state_chain, name="Gridspeak_Kansas", icon="ku.png")
 
+    def time_scope(self, stimulation=None, channels=1, fs=256, duration=2, offline_data=False):
+        assert stimulation
+        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
+        cmd_receiver = self.command_factory.create_receiver('raw', **receiver_args)
+
+        cc_frag = self.controller_factory.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
+            stimulation.views, cmd_receiver)
+
+        scope_model = TimeScopeState(channels, fs, duration)
+        time_scope_view = TimeScopeView(scope_model, stimulation.canvas)
+        if offline_data:
+            offline_data = self.state_factory.create_offline_data('time_scope')
+            state_chain = self.state_factory.create_state_chain(scope_model, offline_data)
+        else:
+            state_chain = scope_model
+
+        return self.controller_factory.create_time_scope(self.window, stimulation.canvas, cc_frag, state_chain,
+            [time_scope_view], name='TimeScope', icon='time-128x128.jpg')
+
     def gridcursor(self):
         return self.controller_factory.create_gridcursor(self.window, canvas, command_connected_fragment)
 
