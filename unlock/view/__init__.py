@@ -99,7 +99,7 @@ class UnlockViewFactory(object):
            icon_width=128, icon_height=128):
         return GridView(model, canvas, icons, center_x, center_y, rect_xoffset, rect_yoffset, icon_width, icon_height)
 
-    def create_fast_pad_view(self, model, canvas):
+    def create_fastpad_view(self, model, canvas):
         return FastPadView(model, canvas)
 
     def create_fastpad_button(self, rect, labels, actions, canvas):
@@ -114,6 +114,9 @@ class UnlockViewFactory(object):
     def create_grid_view(self, state, canvas, icons):
         center_x, center_y = canvas.center()
         return GridView(state, canvas, icons, center_x, center_y)
+
+    def create_hierarchy_grid_view(self, state, canvas):
+        return HierarchyGridView(state, canvas,)
 
     def create_gridspeak(self, state, canvas):
         return GridSpeakView(None, state, canvas)
