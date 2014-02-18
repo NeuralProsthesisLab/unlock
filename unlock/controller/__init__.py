@@ -72,33 +72,17 @@ class UnlockControllerFactory(object):
             'FastPad', 'fastpad.png', standalone=False)
         return controller_chain
         
-    # XXX - looks like these can be refactored into 1 create method for most controllers
-    def create_time_scope(self, window, canvas, cc_frag, state, views, name, icon, standalone=False):
-        scope = UnlockControllerFragment(state, views, canvas.batch)
-        scope_chain = UnlockControllerChain(window, cc_frag.command_receiver,
-            [cc_frag, scope], name, icon, standalone=False)
-        return scope_chain
+    def create_controller_chain(self, window, stimulation, command_receiver, state, views, name="Nameless",
+            icon=None, standalone=False):
 
+        fragment = UnlockControllerFragment(state, views, stimulation.canvas.batch)
+        command_connected_fragment = self.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
+            stimulation.views, command_receiver)
 
-    def create_frequency_scope_fragment(self, canvas, **kwargs):
-        scope_model = FrequencyScopeState(**kwargs)
-        scope_view = FrequencyScopeView(scope_model, canvas, labels=scope_model.labels)
-        assert canvas is not None
-        scope = UnlockControllerFragment(scope_model, [scope_view], canvas.batch)
-        return scope
-        
-    def create_frequency_scope(self, window, bci_wrapper, base=None, **kwargs):
-        canvas = Canvas.create(window.width, window.height)
-        scope = UnlockControllerFragment.create_frequency_scope_fragment(canvas, **kwargs)
-        if base is None:
-            command_receiver = UnlockCommandReceiverFactory.create(UnlockCommandReceiverFactory.Raw,
-                bci_wrapper.signal, bci_wrapper.timer)
-        else:
-            command_receiver = base.command_receiver
-            
-        controller_chain = UnlockControllerChain(window, command_receiver, [scope], 'FrequencyScope',
-            'frequency-128x128.jpg', standalone=False)
-        return controller_chain
+        chain = UnlockControllerChain(window, command_receiver, [command_connected_fragment, fragment], name, icon,
+             standalone)
+
+        return chain
 
     def create_command_connected_fragment(self, canvas, stimuli, views, command_receiver):
         command_connected_fragment = UnlockCommandConnectedFragment(command_receiver, stimuli, views, canvas.batch)
@@ -114,12 +98,6 @@ class UnlockControllerFactory(object):
         dashboard_fragment.poll_signal = dashboard_chain.poll_signal
         dashboard_chain.poll_signal = dashboard_fragment.poll_signal_interceptor
         return dashboard_chain
-
-    def create_gridspeak(self, window, canvas, cc_frag, views, state, name='Gridspeak', icon='gridspeak.png'):
-        gridspeak = UnlockControllerFragment(state, views, canvas.batch)
-        gridspeak_chain = UnlockControllerChain(window, cc_frag.command_receiver,
-            [cc_frag, gridspeak], name, icon, standalone=False)
-        return gridspeak_chain
 
     def create_gridcursor_fragment(self, canvas):
         grid_model = HierarchyGridState(2)
