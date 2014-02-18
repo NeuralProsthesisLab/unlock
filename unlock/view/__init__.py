@@ -115,6 +115,9 @@ class UnlockViewFactory(object):
         center_x, center_y = canvas.center()
         return GridView(state, canvas, icons, center_x, center_y)
 
+    def create_hierarchy_grid_view(self, state, canvas):
+        return HierarchyGridView(state, canvas,)
+
     def create_gridspeak(self, state, canvas):
         return GridSpeakView(None, state, canvas)
 
