@@ -96,7 +96,9 @@ class OfflineData(UnlockState):
         self.cache = list(range(cache_size))
         self.cache_size = cache_size
         self.current = 0
-        
+        self.last_invalid = 0
+        self.invalid_count = 0
+
     def cache(self, command):
         self.cache[self.current] = command.matrix
         self.current = 0 if (self.current % self.cache_size) == 0 else self.current + 1        
@@ -105,12 +107,20 @@ class OfflineData(UnlockState):
         if self.file_handle is None:
             self.logger.warning("state not started")
             return
-            
-        #print("am here", dir(command))
+
         if command.is_valid():
-            print("NOTHING IN THE FILE...")
             np.savetxt(self.file_handle, command.matrix, fmt='%d', delimiter='\t')
-            
+        else:
+            if (time.time() - self.last_invalid) < 1.5:
+                self.invalid_count += 1
+            else:
+                msg = 'invalid command cannot be logged'
+                if self.invalid_count > 0:
+                    msg += '; logging attempted '+str(self.invalid_count)+' times in the last 1.5 secs'
+                self.logger.warning(msg)
+                self.invalid_count = 0
+                self.last_invalid = time.time()
+
         #else:
             #XXX - hack for test
         #    a = np.array([0,0,0,0,0,0])

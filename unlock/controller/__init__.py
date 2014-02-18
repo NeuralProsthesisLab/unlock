@@ -72,26 +72,14 @@ class UnlockControllerFactory(object):
             'FastPad', 'fastpad.png', standalone=False)
         return controller_chain
         
-    def create_time_scope_fragment(self, canvas, n_channels=1, fs=256, duration=2):
-        scope_model = TimeScopeState(**kwargs)
-        scope_view = TimeScopeView(scope_model, canvas)
-        assert canvas is not None
-        scope = UnlockControllerFragment(scope_model, [scope_view], canvas.batch)
-        return scope
-        
-    def create_time_scope(self, window, bci_wrapper, base=None, **kwargs):
-        canvas = Canvas.create(window.width, window.height)        
-        scope = TimeScope.create_time_scope_fragment(canvas, **kwargs)
-        if base is None:
-            command_receiver = CommandReceiverFactory.create(
-                CommandReceiverFactory.Raw, bci_wrapper.signal, bci_wrapper.timer)
-        else:
-            command_receiver = base.command_receiver
-            
-        controller_chain = UnlockControllerChain(window, command_receiver, [scope], 'TimeScope',
-            'time-128x128.jpg', standalone=False)
-        return controller_chain
-        
+    # XXX - looks like these can be refactored into 1 create method for most controllers
+    def create_time_scope(self, window, canvas, cc_frag, state, views, name, icon, standalone=False):
+        scope = UnlockControllerFragment(state, views, canvas.batch)
+        scope_chain = UnlockControllerChain(window, cc_frag.command_receiver,
+            [cc_frag, scope], name, icon, standalone=False)
+        return scope_chain
+
+
     def create_frequency_scope_fragment(self, canvas, **kwargs):
         scope_model = FrequencyScopeState(**kwargs)
         scope_view = FrequencyScopeView(scope_model, canvas, labels=scope_model.labels)
@@ -128,7 +116,6 @@ class UnlockControllerFactory(object):
         return dashboard_chain
 
     def create_gridspeak(self, window, canvas, cc_frag, views, state, name='Gridspeak', icon='gridspeak.png'):
-
         gridspeak = UnlockControllerFragment(state, views, canvas.batch)
         gridspeak_chain = UnlockControllerChain(window, cc_frag.command_receiver,
             [cc_frag, gridspeak], name, icon, standalone=False)
