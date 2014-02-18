@@ -110,6 +110,20 @@ class UnlockFactory(object):
         #print("canvas, stimuli , ssvep_views ", canvas, stimuli, ssvep_views)
         return Stimulation(canvas, stimuli, ssvep_views)
 
+    def single_ssvep(self, stimulus='frame_count', color=[0,0,0], color1=[255,255,255], stimuli_duration=3.0,
+            rest_duration=1.0, frequency=15.0, width=300, height=300, horizontal_blocks=2,
+            vertical_blocks=3):
+
+        if stimulus == 'frame_count':
+            stimulus = self.state_factory.create_frame_counted_timed_stimulus(frequency)
+        else:
+            stimulus = self.state_factory.create_wall_clock_timed_stimulus(frequency * 2)
+
+        canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
+        #stimuli = self.state_factory.create_timed_stimuli(stimuli_duration, rest_duration,  *[stimulus])
+        ssvep_views = self.view_factory.create_single_ssvep_view(stimulus, canvas, width, height, horizontal_blocks, vertical_blocks)
+        return Stimulation(canvas, stimulus, ssvep_views)
+
     def harmonic_sum(self, buffering_decoder, threshold_decoder, fs=256, trial_length=3, n_electrodes=8,
                      targets=[12.0, 13.0, 14.0, 15.0], target_window=0.1, nfft=2048, n_harmonics=1):
 
@@ -249,6 +263,21 @@ class UnlockFactory(object):
         grid_view = self.view_factory.create_grid_view(grid_state, stimulation.canvas, icons)
         return self.controller_factory.create_dashboard(self.window, stimulation.canvas, controllers, cc_frag,
             [grid_view], state_chain)
+
+    def ssvep_diagnostic(self, stimulation=None, decoder=None, output_file='ssvep-diagnostic', standalone=True):
+        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
+        if decoder:
+            receiver_args['decoder'] = decoder
+            cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
+        else:
+            cmd_receiver = self.command_factory.create_receiver('raw', **receiver_args)
+
+        cc_frag = self.controller_factory.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
+            stimulation.views, cmd_receiver)
+
+        offline_data = self.state_factory.create_offline_data(output_file)
+        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, offline_data, [],
+            standalone=standalone)
 
     def create_singleton(self, type_name, attr_name, config):
         #print('atter name = ', attr_name)
