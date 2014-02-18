@@ -72,9 +72,16 @@ class UnlockControllerFactory(object):
             'FastPad', 'fastpad.png', standalone=False)
         return controller_chain
         
-    def create_controller_chain(self, window, canvas, command_fragment, state, views, name="Nameless", icon=None, standalone=False):
-        fragment = UnlockControllerFragment(state, views, canvas.batch)
-        chain = UnlockControllerChain(window, command_fragment.command_receiver, [command_fragment, fragment], name, icon, standalone=False)
+    def create_controller_chain(self, window, stimulation, command_receiver, state, views, name="Nameless",
+            icon=None, standalone=False):
+
+        fragment = UnlockControllerFragment(state, views, stimulation.canvas.batch)
+        command_connected_fragment = self.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
+            stimulation.views, command_receiver)
+
+        chain = UnlockControllerChain(window, command_receiver, [command_connected_fragment, fragment], name, icon,
+             standalone)
+
         return chain
 
     def create_command_connected_fragment(self, canvas, stimuli, views, command_receiver):
