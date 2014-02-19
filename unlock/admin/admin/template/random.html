@@ -4,10 +4,33 @@
 		<!-- SceneJS -->
 		<script src="static/js/scenejs/scenejs.js"></script>
 		
+		<!-- Unlock graphics helper -->
+		<script src="static/js/graphics-helpers.js"></script>
+		
 		<!-- Draw flickering checkerboard -->
 		<script>
+		var canvasID = "flickerboard-canvas";
+		
 		window.onload = function() {
-			// Enable debug (not working though)
+		
+			// Parse query string params
+			var nRows = location.search.match(/(\?|&)rows=\d+/);
+			nRows = (nRows) ? nRows[0].match(/\d+/)[0] : 4;
+			var nCols = location.search.match(/(\?|&)cols=\d+/);
+			nCols = (nCols) ? nCols[0].match(/\d+/)[0] : 4;
+			var frate = location.search.match(/(\?|&)frate=\d+/);
+			frate = (frate) ? frate[0].match(/\d+/)[0] : null;
+			var cwidth = location.search.match(/(\?|&)cwidth=\d+/);
+			cwidth = (cwidth) ? cwidth.match(/\d+/)[0] : 800;
+			var cheight = location.search.match(/(\?|&)cheight=\d+/);
+			cheight = (cheight) ? cheight.match(/\d+/)[0] : 800;
+			
+			// Set canvas size
+			var canvas = document.getElementById(canvasID);
+			canvas.style.width = cwidth;
+			canvas.style.height = cheight;
+		
+			// Init scenejs
 			SceneJS.setDebugConfigs({
 				webgl: {
 					logTrace: true
@@ -16,14 +39,19 @@
 					logScripts: true
 				}
 			});
-
 			SceneJS.setConfigs({
 				pluginPath:"static/js/scenejs/plugins"
-			});
+			});			
+			
+			// Custom helper functions tailored to suit Unlock's needs
+			var sceneJSHelper = new SceneJSHelper();
+			
+			// Construct checker board scene node definition
+			var board = sceneJSHelper.createCheckerBoardNode(nRows,nCols);
 
-			// Scene def
+			// Scene definition
 			var scene = SceneJS.createScene({		
-				canvasId: "flickerboard-canvas",
+				canvasId: canvasID,
 			
 				nodes:[
 				
@@ -39,251 +67,8 @@
 								type:"lookAt",
 								eye:{ z:6 },
 								
-								nodes:[		
-								
-									// Black squares
-									{
-										type:"material",
-										color:{ r:0.0, g:0.0, b:0.0 },
-										
-										nodes:[					
-											
-											// Top right
-											{
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													1,0,0,
-													1,1,0,													
-													0,0,0,
-													0,1,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											},
-
-											// Bottom left
-											{
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													0,-1,0,
-													0,0,0,													
-													-1,-1,0,
-													-1,0,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											}
-											
-											// TEMP
-                                            ,{
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													2,-1,0,
-													2,0,0,													
-													1,-1,0,
-													1,0,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											},
-                                            {
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													2,1,0,
-													2,2,0,													
-													1,1,0,
-													1,2,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											},
-                                            {
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													0,1,0,
-													0,2,0,													
-													-1,1,0,
-													-1,2,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											},
-                                            {
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													-1,0,0,
-													-1,1,0,													
-													-2,0,0,
-													-2,1,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											},
-                                            {
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													-1,-2,0,
-													-1,-1,0,													
-													-2,-2,0,
-													-2,-1,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											},
-                                            {
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													1,-2,0,
-													1,-1,0,													
-													0,-2,0,
-													0,-1,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											}
-                                            // ~TEMP
-											
-										]
-									},
-
-									// White squares
-									{
-										type:"material",
-										color:{ r:1.0, g:1.0, b:1.0 },
-										
-										nodes:[					
-											
-											// Top left
-											{
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													0,0,0,
-													0,1,0,													
-													-1,0,0,
-													-1,1,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											},
-
-											// Bottom right
-											{
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													1,-1,0,
-													1,0,0,													
-													0,-1,0,
-													0,0,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											}
-											
-											// TEMP
-                                            ,{
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													2,-2,0,
-													2,-1,0,													
-													1,-2,0,
-													1,-1,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											},
-                                            {
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													2,0,0,
-													2,1,0,													
-													1,0,0,
-													1,1,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											},
-                                            {
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													1,1,0,
-													1,2,0,													
-													0,1,0,
-													0,2,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											},
-                                            {
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													-1,1,0,
-													-1,2,0,													
-													-2,1,0,
-													-2,2,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											},
-                                            {
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													-1,-1,0,
-													-1,0,0,													
-													-2,-1,0,
-													-2,0,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											},
-                                            {
-												type:"geometry",
-												primitive:"triangle-strip",										
-												positions:[
-													0,-2,0,
-													0,-1,0,													
-													-1,-2,0,
-													-1,-1,0
-												],										
-												indices:[
-													0, 1, 2, 3
-												]	
-											}
-                                            // ~TEMP
-											
-										]
-									}
-									
-								]							
+								// Attach checker board definition
+								nodes:board
 							} // ~View matrix
 							
 						]
@@ -292,28 +77,17 @@
 				]				
 			}); // ~Scene def
 			
-			// Get flickering rate
-			var frate = location.search.match(/(\?|&)frate=\d+/);
-			if (frate != null) {				
-				frate = frate[0].match(/\d+/)[0];
-				
-				// Set flickering
-				scene.getNode("root", function (node) {
-					setInterval(function () {
-						node.setEnabled(!node.getEnabled());					
-					}, 1000/frate);
-				});
-			}			
-		}
+			// Set flickering screen
+			if (frate) {				
+				sceneJSHelper.setFlickeringScene(scene, "root", frate);
+			}					
+		}	
 		</script>
 		<!-- ~Draw flickering checkerboard -->
 		
 		<style>
 		#flickerboard
 		{
-			width: 800px;
-			height: 600px;
-			
 			/* Fixed at bottom right corner of the browser */
 			/*
 			position: fixed;
@@ -330,12 +104,6 @@
 			/*
 			margin: auto;
 			*/
-		}
-		
-		#flickerboard-canvas
-		{
-			width: 100%;
-			height: 100%;
 		}
 		</style>
 	</head>
