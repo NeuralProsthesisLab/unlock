@@ -103,6 +103,7 @@ class RawSignalCommand(Command):
         self.samples = samples
         self.channels = channels
         self.timer = timer
+        self.matrix = None
         self.sequence_trigger_vector = np.zeros((samples, 1))
         self.sequence_trigger_time_vector = np.zeros((samples, 1))
         self.cue_trigger_vector = np.zeros((samples, 1))
