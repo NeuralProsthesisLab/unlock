@@ -1,6 +1,6 @@
 <html>
 	<head>
-	
+		
 		<!-- SceneJS -->
 		<script src="static/js/scenejs/scenejs.js"></script>
 		
@@ -293,7 +293,7 @@
 			}); // ~Scene def
 			
 			// Get flickering rate
-			var frate = location.search.match(/frate=\d+/);
+			var frate = location.search.match(/(\?|&)frate=\d+/);
 			if (frate != null) {				
 				frate = frate[0].match(/\d+/)[0];
 				
