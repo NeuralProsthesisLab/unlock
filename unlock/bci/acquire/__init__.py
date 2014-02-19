@@ -31,7 +31,7 @@ import time
 imported_neural_signal = False
 
 try:
-    from unlock.bci.acquire.neuralsignal import create_timer, create_nonblocking_enobio_signal, create_random_signal, create_nidaq_signal
+    from unlock.bci.acquire.neuralsignal import create_timer, create_nonblocking_mobilab_signal, create_nonblocking_enobio_signal, create_random_signal, create_nidaq_signal
     imported_neural_signal = True
 except:
     assert sys.platform == 'darwin'
@@ -90,15 +90,15 @@ class UnlockAcquisitionFactory:
             raise RuntimeError('enobio device did not start streaming')
         return signal
 
-    def create_mobilab_signal(self, timer):
-        assert 'com_port' in self.config['bci']['signal']
-        com_port = self.config['bci']['signal']['com_port']
+    def create_mobilab_signal(self, com_port, analog_channels_bitmask):
+        #assert 'com_port' in self.config['bci']['signal']
+        #com_port = self.config['bci']['signal']['com_port']
 
-        analog_channels_bitmask = 1+2+4+8+16+32+64+128
+        #analog_channels_bitmask = 1+2+4+8+16+32+64+128
         from unlock.bci import acquire
-        timer = acquire.create_timer()
-        signal = acquire.create_nonblocking_mobilab_signal(
-            timer, analog_channels_bitmask, 0, com_port)
+        #timer = acquire.create_timer()
+        signal = create_nonblocking_mobilab_signal(
+            self.timer, analog_channels_bitmask, 0, com_port)
 
         if not signal.start():
             print('mobilab device did not start streaming')
