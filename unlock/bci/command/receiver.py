@@ -157,14 +157,15 @@ class DecodingCommandReceiver(CommandReceiver):
         
     def next_command(self, delta):
         command = self.command_receiver.next_command(delta)
-        if self.is_running() is not True:
+        if self.is_running():
             self.logger.warning('DecodingCommandReceiver: poll while not running; returning empty command')
             return Command(delta)
             
-        assert command != None
-        decoded_command = self.decoder.decode(command)
-        assert decoded_command != None
-        return decoded_command
+        assert command
+        if command.is_valid():
+            command = self.decoder.decode(command)
+        assert command
+        return command
         
         
 class FileSignalReceiver(CommandReceiver):
