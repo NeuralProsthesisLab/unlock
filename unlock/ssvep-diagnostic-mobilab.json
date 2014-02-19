@@ -11,7 +11,8 @@
     
     "signal" : {
         "singleton" : 0,
-        "name" : "random"
+        "name" : "mobilab",
+        "com_port" : "COM7"
     },
 
     "window" : {
