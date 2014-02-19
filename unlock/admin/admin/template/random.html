@@ -4,12 +4,9 @@
 		<!-- SceneJS -->
 		<script src="static/js/scenejs/scenejs.js"></script>
 		
-	</head>
-	<body>
-
 		<!-- Draw flickering checkerboard -->
 		<script>
-		
+		window.onload = function() {
 			// Enable debug (not working though)
 			SceneJS.setDebugConfigs({
 				webgl: {
@@ -25,7 +22,9 @@
 			});
 
 			// Scene def
-			var scene = SceneJS.createScene({			
+			var scene = SceneJS.createScene({		
+				canvasId: "flickerboard-canvas",
+			
 				nodes:[
 				
 					// Root node
@@ -305,9 +304,45 @@
 					}, 1000/frate);
 				});
 			}			
-			
+		}
 		</script>
 		<!-- ~Draw flickering checkerboard -->
 		
+		<style>
+		#flickerboard
+		{
+			width: 800px;
+			height: 600px;
+			
+			/* Fixed at bottom right corner of the browser */
+			/*
+			position: fixed;
+			bottom: 0;
+			right: 0;
+			*/
+			
+			/* Float right */
+			/*
+			float: right;
+			*/
+			
+			/* Centered */
+			/*
+			margin: auto;
+			*/
+		}
+		
+		#flickerboard-canvas
+		{
+			width: 100%;
+			height: 100%;
+		}
+		</style>
+	</head>
+	
+	<body>		
+		<div id="flickerboard">
+			<canvas id="flickerboard-canvas"></canvas>
+		</div>
 	</body>
 </html>
