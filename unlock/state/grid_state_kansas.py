@@ -65,6 +65,7 @@ class GridState(UnlockState):
         current_x, current_y = self.state
         new_state = None
         if decision == GridState.IncrementYCursor:
+            print("INCREMENTY-Kansas")
             new_state = (current_x, current_y+1)
             change = GridStateChange.YChange, 1
             
@@ -134,6 +135,7 @@ class HierarchyGridState(GridState):
         self.state_change = None
             
     def handle_state_change(self, new_state, change):
+        print("hsc")
         if new_state is not None and \
            abs(new_state[0]) <= self.radius and \
            abs(new_state[1]) <= self.radius:
@@ -146,5 +148,4 @@ class HierarchyGridState(GridState):
         """
         assert not self.state_change
         self.state_change = GridStateChange(GridStateChange.Select, self.state)
-        
-        
+                
