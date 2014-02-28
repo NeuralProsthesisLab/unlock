@@ -81,8 +81,8 @@ class SpritePositionComputer(object):
         self.y = self.height  - self.box_height/2
         
     def center(self):
-        self.x = self.width / 2 + self.box_width
-        self.y = self.height / 2  - self.box_height
+        self.x = self.width / 2
+        self.y = self.height / 2
             
            
 class PygletSprite(UnlockView):
