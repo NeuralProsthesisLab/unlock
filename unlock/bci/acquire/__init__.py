@@ -56,7 +56,7 @@ class UnlockAcquisitionFactory:
             self.timer = BasicTimer
 
     def create_nidaq_signal(self):
-        signal = create_nidaq_signal()
+        signal = create_nidaq_signal(self.timer)
         if not signal.start():
             raise RuntimeError('Failed to start National Instruments DAQ')
         return signal
