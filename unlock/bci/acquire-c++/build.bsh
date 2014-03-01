@@ -1,0 +1,39 @@
+import subprocess
+from optparse import OptionParser
+
+class BuildHelper(object):
+    def __init__(self):
+        """Initializes the UnlockRuntime."""
+        self.conf = None
+        self.logger = None
+        self.loglevel = logging.INFO
+
+        args = None
+        options = None
+        parser = None
+        usage = "usage: %prog [options]"
+
+        conf_help = 'path to the configuration; if not set conf.json is used'
+
+        try:
+
+            parser = OptionParser(version="%prog 1.0", usage=usage)
+            conf = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'conf.json')
+            parser.add_option('-c', '--conf', type=str, dest='conf', default=conf, metavar='CONF', help=conf_help)
+            (options, args) = parser.parse_args()
+
+        except Exception as e:
+            print('UnlockRuntime.__init__: FATAL failed to parse program arguments')
+            UnlockRuntime.print_last_exception()
+            raise e
+
+
+if __name__ == '__main__':
+
+
+#!/bin/bash
+
+
+
+
+/c/Python27/python.exe /c/Python27/Scripts/scons-2.3.0.py -Q
