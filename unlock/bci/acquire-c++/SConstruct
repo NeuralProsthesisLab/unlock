@@ -49,7 +49,7 @@ if sys.platform == 'darwin':
       shlibsuffix = '.so'
       
 elif sys.platform == 'win32':
-      boost_lib = os.path.join('boost', 'win-x86-msvc-10', 'lib')
+      boost_lib = os.path.join('win-x86-msvc-10', 'lib')
       boost_lib_path = [ boost_lib ]
       boost_lib_path.append('C:\Python33\libs')
       boost_lib_path.append('C:\Program Files (x86)\National Instruments\NI-DAQ\DAQmx ANSI C Dev\lib\msvc')
