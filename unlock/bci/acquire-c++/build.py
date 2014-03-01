@@ -51,13 +51,13 @@ def build_windows():
     python_help = 'specifies the location of the python interpreter; default is c:\Python27\python.exe'
     scons_help = 'specifies the location of the scons script; default is c:\Python27\Scripts\scons-2.3.0.py'
     setup_help = 'configures the build environment for the first time; must be run with the first build'
-
+    build_help = 'builds the libraries and tests and copies them to the library directory'
     parser = OptionParser(version="%prog 1.0", usage=usage)
     parser.add_option('-l', '--libdir', dest='lib_dir', action='store_true', default=False, metavar='LIB_DIR', help=lib_dir_help)
     parser.add_option('-c', '--clean', dest='clean', action='store_true', default=False, metavar='CLEAN', help=clean_help)
     parser.add_option('-s', '--setup', dest='setup', action='store_true', default=False, metavar='SETUP', help=setup_help)
-    parser.add_option('-s', '--setup', dest='setup', action='store_true', default=False, metavar='SETUP', help=setup_help)
     parser.add_option('-i', '--install', dest='install', action='store_true', default=False, metavar='install', help=setup_help)
+    parser.add_option('-b', '--build', dest='build', action='store_true', default=False, metavar='build', help=build_help)
     (options, args) = parser.parse_args()
 
     redirect = {'stdin': sys.stdin, 'stdout': sys.stdout, 'stderr': sys.stderr}
