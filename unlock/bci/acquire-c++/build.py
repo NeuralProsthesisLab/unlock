@@ -27,7 +27,9 @@
 from optparse import OptionParser
 import subprocess
 import logging
+import inspect
 import sys
+import os
 
 def build_windows():
     conf = None
@@ -39,27 +41,72 @@ def build_windows():
     parser = None
     usage = "usage: %prog [options]"
 
-    python='C:\Python27\python.exe'
-    scons='C:\Python27\Scripts\scons-2.3.0.py'
+    python = 'C:\Python27\python.exe'
+    scons = 'C:\Python27\Scripts\scons-2.3.0.py'
+    lib_dir = 'lib\win-x86-msvc-10'
+    cwd = os.path.dirname(inspect.getfile(build_windows))
 
+    lib_dir_help = 'sets the library directory to copy binaries to; default is lib\win-x86-msvc-10, relative the build directory'
     clean_help = 'removes old binaries before building'
     python_help = 'specifies the location of the python interpreter; default is c:\Python27\python.exe'
     scons_help = 'specifies the location of the scons script; default is c:\Python27\Scripts\scons-2.3.0.py'
     setup_help = 'configures the build environment for the first time; must be run with the first build'
 
     parser = OptionParser(version="%prog 1.0", usage=usage)
+    parser.add_option('-l', '--libdir', dest='lib_dir', action='store_true', default=False, metavar='LIB_DIR', help=lib_dir_help)
     parser.add_option('-c', '--clean', dest='clean', action='store_true', default=False, metavar='CLEAN', help=clean_help)
     parser.add_option('-s', '--setup', dest='setup', action='store_true', default=False, metavar='SETUP', help=setup_help)
+    parser.add_option('-s', '--setup', dest='setup', action='store_true', default=False, metavar='SETUP', help=setup_help)
+    parser.add_option('-i', '--install', dest='install', action='store_true', default=False, metavar='install', help=setup_help)
     (options, args) = parser.parse_args()
 
+    redirect = {'stdin': sys.stdin, 'stdout': sys.stdout, 'stderr': sys.stderr}
+
     if options.setup:
-        command = ['tar', 'xzvf', 'boost/includes.tar.gz']
-        subprocess.check_call(command, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+        command = ['tar', 'xzvf', 'includes.tar.gz']
+        subprocess.check_call(command, **redirect)
 
     if options.clean:
-        subprocess.check_call([python, scons, '-c'], stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+        subprocess.check_call([python, scons, '-c'], **redirect)
 
-    subprocess.check_call([python, scons, '-Q'], stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+    if options.lib_dir:
+        lib_dir = options.lib_dir
+
+    if options.build:
+        # build it
+        subprocess.check_call([python, scons, '-Q'], stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+
+        # copy to the libdir directory
+        # setup the file names
+        ns_dll = 'neuralsignal_win_x86.dll'
+        ns_test_dll = 'neuralsignal-unit-tests.exe'
+        ns = os.path.join(cwd, ns_dll)
+        ns_dest = os.path.join(cwd, lib_dir, ns_dll)
+        # python runtime won't find it on windows, if it is not named .pyd
+        ns_dest_python = os.path.join(cwd, lib_dir, 'neuralsignal.pyd')
+        ns_test = os.path.join(cwd, ns_test_dll)
+        ns_test_dest = os.path.join(cwd, lib_dir, ns_test_dll)
+
+        # construct the command lists
+        command = ['cp', ns, ns_dest]
+        command1 = ['cp', ns, ns_dest_python]
+        command2 = ['cp', ns_test, ns_test_dest]
+
+        # execute the commands
+        subprocess.check_call(command, **redirect)
+        subprocess.check_call(command1, **redirect)
+        subprocess.check_call(command2, **redirect)
+
+    if options.install:
+        # copy boost
+        pass
+    #   cp neuralsignal_win_x86.dll neuralsignal-unit-tests.exe ../acquire
+    #   cp boost/win-x86-msvc-10/lib/boost_*.dll ../acquire
+    #   cp neuralsignal_win_x86.dll ../acquire/neuralsignal.pyd
+    #   cp boost/win-x86-msvc-10/lib/Enobio3GAPI.dll boost/win-x86-msvc-10/lib/QtCore4.dll boost/win-x86-msvc-10/lib/WinBlueToothAPI.dll ../acquire
+    #   cd boost/win-x86-msvc-10/lib
+    #   subprocess.check_call([python, scons, '-Q'], stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+
 
 if __name__ == '__main__':
     build_windows()
