@@ -31,85 +31,128 @@ import inspect
 import sys
 import os
 
-def build_windows():
-    conf = None
-    logger = None
-    loglevel = logging.INFO
 
-    args = None
-    options = None
-    parser = None
-    usage = "usage: %prog [options]"
+class Builder(object):
+    def __init__(self, platform):
+        super(Builder, self).__init__()
+        self.platform = str(platform).casefold()
 
-    python = 'C:\Python27\python.exe'
-    scons = 'C:\Python27\Scripts\scons-2.3.0.py'
-    lib_dir = 'lib\win-x86-msvc-10'
-    cwd = os.path.dirname(inspect.getfile(build_windows))
+    def build(self):
+        ret = {
+            'win32'.casefold(): builder.build_windows,
+            'darwin'.casefold(): builder.build_darwin,
+            'linux'.casefold(): builder.build_linux
+        }.get(self.platform, builder.unsupported)()
+        return ret
 
-    lib_dir_help = 'sets the library directory to copy binaries to; default is lib\win-x86-msvc-10, relative the build directory'
-    clean_help = 'removes old binaries before building'
-    python_help = 'specifies the location of the python interpreter; default is c:\Python27\python.exe'
-    scons_help = 'specifies the location of the scons script; default is c:\Python27\Scripts\scons-2.3.0.py'
-    setup_help = 'configures the build environment for the first time; must be run with the first build'
-    build_help = 'builds the libraries and tests and copies them to the library directory'
-    parser = OptionParser(version="%prog 1.0", usage=usage)
-    parser.add_option('-l', '--libdir', dest='lib_dir', action='store_true', default=False, metavar='LIB_DIR', help=lib_dir_help)
-    parser.add_option('-c', '--clean', dest='clean', action='store_true', default=False, metavar='CLEAN', help=clean_help)
-    parser.add_option('-s', '--setup', dest='setup', action='store_true', default=False, metavar='SETUP', help=setup_help)
-    parser.add_option('-i', '--install', dest='install', action='store_true', default=False, metavar='install', help=setup_help)
-    parser.add_option('-b', '--build', dest='build', action='store_true', default=False, metavar='build', help=build_help)
-    (options, args) = parser.parse_args()
+    def build_windows(self):
 
-    redirect = {'stdin': sys.stdin, 'stdout': sys.stdout, 'stderr': sys.stderr}
+        conf = None
+        logger = None
+        loglevel = logging.INFO
 
-    if options.setup:
-        command = ['tar', 'xzvf', 'includes.tar.gz']
-        subprocess.check_call(command, **redirect)
+        args = None
+        options = None
+        parser = None
 
-    if options.clean:
-        subprocess.check_call([python, scons, '-c'], **redirect)
+        usage = "usage: %prog [options]"
+        python = 'C:\Python27\python.exe'
+        scons = 'C:\Python27\Scripts\scons-2.3.0.py'
+        lib_dir = os.path.join('lib', 'win-x86-msvc-10')
+        runtime_dir = os.path.join('..', 'acquire')
+        cwd = os.getcwd()
 
-    if options.lib_dir:
-        lib_dir = options.lib_dir
+        runtime_dir_help = 'sets the installation directory; defaults to ..\acquire'
+        lib_dir_help = 'sets the library directory to copy binaries to; default is lib\win-x86-msvc-10, relative the build directory'
+        clean_help = 'removes old binaries before building'
+        python_help = 'specifies the location of the python interpreter; default is c:\Python27\python.exe'
+        scons_help = 'specifies the location of the scons script; default is c:\Python27\Scripts\scons-2.3.0.py'
+        setup_help = 'configures the build environment for the first time; must be run with the first build'
+        build_help = 'builds the libraries and tests and copies them to the library directory'
+        parser = OptionParser(version="%prog 1.0", usage=usage)
 
-    if options.build:
-        # build it
-        subprocess.check_call([python, scons, '-Q'], stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+        parser.add_option('-n', '--runtime-dir', dest='runtime_dir', action='store_true', default=False,
+            metavar='RUNTIME_DIR', help=runtime_dir_help)
+        parser.add_option('-p', '--python', dest='python', action='store_true', default=False, metavar='PYTHON',
+            help=python_help)
+        parser.add_option('-o', '--scons', dest='scons', action='store_true', default=False, metavar='SCONS',
+            help=scons_help)
+        parser.add_option('-l', '--lib-dir', dest='lib_dir', action='store_true', default=False, metavar='LIB_DIR',
+            help=lib_dir_help)
+        parser.add_option('-c', '--clean', dest='clean', action='store_true', default=False, metavar='CLEAN',
+            help=clean_help)
+        parser.add_option('-s', '--setup', dest='setup', action='store_true', default=False, metavar='SETUP',
+            help=setup_help)
+        parser.add_option('-i', '--install', dest='install', action='store_true', default=False, metavar='install',
+            help=setup_help)
+        parser.add_option('-b', '--build', dest='build', action='store_true', default=False, metavar='build',
+            help=build_help)
+        (options, args) = parser.parse_args()
 
-        # copy to the libdir directory
-        # setup the file names
-        ns_dll = 'neuralsignal_win_x86.dll'
-        ns_test_dll = 'neuralsignal-unit-tests.exe'
-        ns = os.path.join(cwd, ns_dll)
-        ns_dest = os.path.join(cwd, lib_dir, ns_dll)
-        # python runtime won't find it on windows, if it is not named .pyd
-        ns_dest_python = os.path.join(cwd, lib_dir, 'neuralsignal.pyd')
-        ns_test = os.path.join(cwd, ns_test_dll)
-        ns_test_dest = os.path.join(cwd, lib_dir, ns_test_dll)
+        redirect = {'stdin': sys.stdin, 'stdout': sys.stdout, 'stderr': sys.stderr}
 
-        # construct the command lists
-        command = ['cp', ns, ns_dest]
-        command1 = ['cp', ns, ns_dest_python]
-        command2 = ['cp', ns_test, ns_test_dest]
+        if options.setup:
+            setup_command = ['tar', 'xzvf', 'includes.tar.gz']
+            subprocess.check_call(setup_command, **redirect)
 
-        # execute the commands
-        subprocess.check_call(command, **redirect)
-        subprocess.check_call(command1, **redirect)
-        subprocess.check_call(command2, **redirect)
+        if options.python:
+            python = options.python
 
-    if options.install:
-        # copy boost
-        pass
-    #   cp neuralsignal_win_x86.dll neuralsignal-unit-tests.exe ../acquire
-    #   cp boost/win-x86-msvc-10/lib/boost_*.dll ../acquire
-    #   cp neuralsignal_win_x86.dll ../acquire/neuralsignal.pyd
-    #   cp boost/win-x86-msvc-10/lib/Enobio3GAPI.dll boost/win-x86-msvc-10/lib/QtCore4.dll boost/win-x86-msvc-10/lib/WinBlueToothAPI.dll ../acquire
-    #   cd boost/win-x86-msvc-10/lib
-    #   subprocess.check_call([python, scons, '-Q'], stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
+        if options.scons:
+            scons = options.scons
+
+        if options.clean:
+            subprocess.check_call([python, scons, '-c'], **redirect)
+
+        if options.lib_dir:
+            lib_dir = options.lib_dir
+
+        if options.build:
+            subprocess.check_call([python, scons, '-Q'], **redirect)
+
+            ns_dll = 'neuralsignal_win_x86.dll'
+            ns_test_dll = 'neuralsignal-unit-tests.exe'
+            ns = os.path.join(cwd, ns_dll)
+            ns_dest = os.path.join(cwd, lib_dir, ns_dll)
+
+            ns_dest_python = os.path.join(cwd, lib_dir, 'neuralsignal.pyd')
+            ns_test = os.path.join(cwd, ns_test_dll)
+            ns_test_dest = os.path.join(cwd, lib_dir, ns_test_dll)
+
+            build_command = ['cp', ns, ns_dest]
+            build_command1 = ['cp', ns, ns_dest_python]
+            build_command2 = ['cp', ns_test, ns_test_dest]
+
+            # execute the commands
+            subprocess.check_call(build_command, **redirect)
+            subprocess.check_call(build_command1, **redirect)
+            subprocess.check_call(build_command2, **redirect)
+
+        if options.runtime_dir:
+            runtime_dir = options.runtime_dir
+
+        if options.install:
+            def install_file(file_name):
+                libs = os.path.join(cwd, lib_dir, file_name)
+                dest = os.path.join(cwd, runtime_dir, file_name)
+                install_command = ['cp', libs, dest]
+                subprocess.check_call(install_command, **redirect)
+
+            for root, dirs, files in os.walk(os.path.join(cwd, lib_dir), topdown=False):
+                for file in files:
+                    if file.endswith('dll') or file.endswith('exe') or file.endswith('pyd'):
+                        install_file(file)
+
+    def unsupported(self):
+        raise RuntimeError('Unsupported OS '+ self.platform)
+
+    def build_linux(self):
+        return self.unsupported()
+
+    def build_darwin(self):
+        return self.unsupported()
 
 
 if __name__ == '__main__':
-    build_windows()
-
-
-
+    builder = Builder(sys.platform)
+    builder.build()
