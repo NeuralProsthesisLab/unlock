@@ -33,7 +33,7 @@ lib_path = ['.']
 libs = []
 test_libs = []
 includes = []
-boost_includes = [os.path.join('boost', 'include')]
+boost_includes = [os.path.join('include')]
 
 if sys.platform == 'darwin':
 
@@ -49,7 +49,7 @@ if sys.platform == 'darwin':
       shlibsuffix = '.so'
       
 elif sys.platform == 'win32':
-      boost_lib = os.path.join('boost', 'win-x86-msvc-10', 'lib')
+      boost_lib = os.path.join('lib', 'win-x86-msvc-10')
       boost_lib_path = [ boost_lib ]
       boost_lib_path.append('C:\Python33\libs')
       boost_lib_path.append('C:\Program Files (x86)\National Instruments\NI-DAQ\DAQmx ANSI C Dev\lib\msvc')
@@ -68,8 +68,8 @@ elif sys.platform == 'win32':
       ni_includes = ['C:\Program Files (x86)\National Instruments\NI-DAQ\DAQmx ANSI C Dev\include']
       libname = 'neuralsignal_win_x86'
       ccflags = ['/MD',  '/EHsc']
-      includes.append(os.path.join('boost', 'include', 'enobio'))
-      includes.append(os.path.join('boost', 'include', 'gtec'))      
+      includes.append(os.path.join('include', 'enobio'))
+      includes.append(os.path.join('include', 'gtec'))
       includes.append(ni_includes)
       cppdefines = ['BOOST_ALL_DYN_LINK', 'MSVC', 'DLL_LINK', 'NPL_DEBUG']
       target_arch = 'x86'
