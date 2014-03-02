@@ -104,7 +104,7 @@ class Builder(object):
             install_scons230 = ['C:\Python27\python.exe', 'setup.py', 'install']
             subprocess.check_call(install_scons230, **redirect)
             os.chdir(cwd)
-            
+
         if options.python:
             python = options.python
 

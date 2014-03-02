@@ -72,7 +72,7 @@ In the next three sections we describe the installation procedures for Unlock in
 
 Many signal acquisition devices work exclusively with Windows.  Additionally, many of the potential users of Unlock may only have access to Windows computers.  These circumstances led to Windows being the first platform supported by Unlock.
 
-To make installation on Windows as easy as possible, we decided a binary, clickable installer was the solution that would best suite the community.  There were many ways to proceed, but, ultimately, we decided to write the installer in Go~\cite{golang}.  
+To make installation on Windows as easy as possible, we decided a binary, click-able installer was the solution that would best suite the community.  There were many ways to proceed, but, ultimately, we decided to write the installer in Go~\cite{golang}.  
 
 The Unlock installer is not much more than a package manager for handling dependencies.  Unlock, not unlike many other frameworks, has many dependencies.  These dependencies include:
 \begin{itemize}
@@ -96,7 +96,7 @@ There are additional dependencies based the hardware acquisition device in use. 
 
 Unfortunately, at the time of this writing, Unlock's C++ layer is built as a single dynamic-link library (dll).  This means all of these dependencies need to be available for Unlock to run.  
 
-Fortunately, Unlock manages all but the NI DAQ driver code.  The NI DAQ dependencies are quazi installed by Unlock, but may require some manual effort.  
+Fortunately, Unlock manages all but the NI DAQ driver code.  The NI DAQ dependencies are quasi installed by Unlock, but may require some manual effort.  
 
 The Unlock installer will start the NI DAQ downloader, which should kick off the installer after the download and extraction complete.  But it runs asynchronously to the Unlock installer; the Unlock installer exists without knowing if the NI DAQ installer completed successfully or not; if something happens, go to~\cite{nidaq} and follow the instructions for downloading and installing the NI DAQ.
 
@@ -106,7 +106,7 @@ Luckily we found~\cite{winpythonpackages}; it has most Python packages as Window
 
 We are watching Pip and may revisit using the Pip packages in the future.  That said, Pip would still be wrapped by the Go executable.
 
-\subsubsection{Developer Installation}
+\subsubsection{Developer Installation}\label{developerinstallsec}
 
 At this time only developer-based installation is supported.  A developer-based install requires a few steps:
 \begin{itemize}
@@ -222,7 +222,7 @@ In Section~\ref{overviewsec} we defined the signal-processing chain to be signal
 
 \subsubsection{Stimulation}
 
-\subsubsection{Acquisition}
+\subsubsection{Acquisition}\label{acquisitionsec}
 
 Most of the signal acquisition code is written in C++.  The C++ layer is dynamically linked to the Python run-time using Boost Python~\cite{boostpython}.  The C++ signal acquisition module exports a single polymorphic interface inspired by UNIX device files, and several factory methods for creating the signal acquisition infrastructure.
 
@@ -240,8 +240,90 @@ To acquire the signal without blocking, Unlock supports a non-blocking acquisiti
 
 The Unlock application programming layer is a model-view-controller (MVC)~\cite{mvc, mvc2} inspired framework for graphical user interface (GUI) development.  Commands flow through the BCI layer to a control layer that interprets the state changes and sends the changes to visualization module.
 
-\subsection{Building Unlock for Development}
-\subsection{Example}
+\subsection{Compiling Unlock's C++ code}
+
+The acquisition software, described in~\ref{acquisitionsec}, includes C++ software that interfaces with data acquisition devices and links with the Python runtime.  This section describes how to compile the C++ software.  This section assumes the developer installation instructions~\ref{developerinstallsec} have been completed.  
+
+Scons-2.3.0~\cite{scons}, a Python-based, cross-platform build system, is the system used to build Unlock's C++ software.  The Scons documentation can be found here~\cite{sconsdocs}.  Scons requires Python27, so you must install Python27 to build Unlock's C++ software.
+
+The C++ is located under \textit{unlock/bci/acquire-c++}.   In \textit{acquire-c++}, \textit{build.py} automates the enviornment setup and build process and installation of binaries.
+
+\begin{verbatim}
+	jpercent@feynman ~/unlock/unlock/bci/acquire-c++ (master)
+	$ /c/Python33/python.exe build.py --help
+	Usage: build.py [options]
+
+	Options:
+  	--version             show program's version number and exit
+  	-h, --help            show this help message and exit
+  	-n, --runtime-dir  sets the installation directory; defaults to ..cquire
+  	-p, --python         specifies the location of the python interpreter; default
+        	                  is c:\Python27\python.exe
+        -o, --scons          specifies the location of the scons script; default is
+                                 c:\Python27\Scripts\scons-2.3.0.py
+        -l, --lib-dir          sets the library directory to copy binaries to; default
+                                 is lib\win-x86-msvc-10, relative the build directory
+        -c, --clean          removes old binaries before building
+        -s, --setup         configures the build environment for the first time; must
+                                be run with the first build
+        -i, --install         configures the build environment for the first time; must
+                                be run with the first build
+        -b, --build          builds the libraries and tests and copies them to the
+                                library directory
+\end{verbatim}
+
+The very first time \textit{build.py} is executed, the \textit{-s} option must be included.  It can be run as follows.
+\begin{verbatim}
+    $ /c/Python33/python.exe build.py --setup
+    $  /c/Python33/python.exe build.py --clean --build --install
+
+                    or
+
+    $ /c/Python33/python.exe build.py -s -c -b -i
+\end{verbatim}
+
+The build will fail if the setup is not executed.  If the script works, then the packages are built and installed, and the world is a happy place.  
+
+In the rest of this section, the manual steps of building are explained; if \textit{build.py} fails, we do not want to leave anyone stuck.
+
+The setup option, untars the C++ include files required, installs Python27 and installs Scons-2.3.0 into the Python27 distribution.  These steps can be accomplished by running the following commands from Git Bash.  Note that we are in the \textit{acquire-c++} directory.
+
+\begin{verbatim}
+    $ tar xzvf includes.tar.gz  && cmd.exe "/C install-python27.bat"  && \ 
+       cd ../../../package  && tar xzvf scons-2.3.0.tar.gz && \
+       cd scons-2.3.0 && /c/Python27/python.exe install setup.py  
+\end{verbatim}
+
+To build the source run Scons with the \textit{\-Q} option. We recommend cleaning the old binaries before compiling; to do so run Scons with the \textit{\-c} option.  An example follows.
+\begin{verbatim}
+    $ /c/Python27/python.exe /c/Python27/Scripts/scons-2.3.0.py -c 
+    $ /c/Python27/python.exe /c/Python27/Scripts/scons-2.3.0.py -Q
+\end{verbatim}
+
+If the build completes successfully, then a number of libraries and executables will be created and placed into a platform specific subdirectory of \textit{acquire-c++/lib/}.  The final steps involve installing the binaries we just built.  The installation steps are platform independent and covered in the next 3 sections.
+
+\subsubsection{Windows x86-64}
+
+On Windows, the platform specific subdirectory is named \textit{acquire-c++/lib/win-x86-msvc-10}.  Note, on Windows x86-64, the Unlock C++ code is actually x86.  The final step is to put the files into a place where the python interpreter can find them at runtime.
+
+In a Windows environment, there is no notion of a dynamic link library search path, so dependencies that are not in the system directory need to be in the same working directory when loaded.  This means we need to co-locate our library with all of its non-system dependencies.
+
+The following command, run from the bci directory, will copy our libraries and their dependencies.
+
+\begin{verbatim}
+    $ cp acquire\-c++/lib/win-x86-msvc-10/*.dll acquire-c++/*exe acquire/
+\end{verbatim}
+
+Next we need to rename \textit{neuralsignal\_win\_x86.dll}; this file is a binary Python module and the python interpreter will not load .dll files when it loads the acquire package.  It will only load .pyd files.  We also need to remove the platform dependency on the name.  The following command, run from the acquire directory, will accomplish this.
+
+\begin{verbatim}
+    $ cp neuralsignal_win_x86.dll neuralsignal.pyd
+\end{verbatim}
+
+Note, that we do not rename the file but make a copy of it.  This is because the tests use the names of the original binaries and we want to be able to run the tests as a sanity check.
+
+\subsubsection{Linux}
+\subsubsection{Darwin}
 
 \begin{thebibliography}{99}
 \bibitem{lis}  Bauer, G. and Gerstenbrand, F. and Rumpl, E. Varieties of the locked-in syndrome. Journal of Neurology.  1979.
