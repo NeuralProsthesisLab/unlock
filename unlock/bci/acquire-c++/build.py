@@ -92,9 +92,19 @@ class Builder(object):
         redirect = {'stdin': sys.stdin, 'stdout': sys.stdout, 'stderr': sys.stderr}
 
         if options.setup:
-            setup_command = ['tar', 'xzvf', 'includes.tar.gz']
-            subprocess.check_call(setup_command, **redirect)
+            install_includes = ['tar', 'xzvf', 'includes.tar.gz']
+            subprocess.check_call(install_includes, **redirect)
+            install_python27 = ['cmd', '/C install-python27.bat']
+            subprocess.check_call(install_python27, **redirect)
 
+            os.chdir(os.path.join('..', '..', '..', 'package'))
+            untar_scons = ['tar', 'zxvf', 'scons-2.3.0.tar.gz']
+            subprocess.check_call(untar_scons, **redirect)
+            os.chdir('scons-2.3.0')
+            install_scons230 = ['C:\Python27\python.exe', 'setup.py', 'install']
+            subprocess.check_call(install_scons230, **redirect)
+            os.chdir(cwd)
+            
         if options.python:
             python = options.python
 
