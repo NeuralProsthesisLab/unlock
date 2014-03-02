@@ -1,0 +1,7 @@
+The scenejs code was archived because it is a ton of code.  We have to figure 
+out a better way to use 3rd party libraries.  To use the scenejs code, run 
+the following command from GitBash or some other shell:
+
+    $ tar xzvf scenejs.tar.gz
+
+
