@@ -131,9 +131,6 @@ class InlineCommandReceiver(CommandReceiver):
             self.pos += 1
         return ret
             
-    def stop(self):
-        logger.debug("stop called")
-            
     def put(self, command):
         self.Q.append(command)
             
