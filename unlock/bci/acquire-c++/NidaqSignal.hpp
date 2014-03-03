@@ -33,12 +33,13 @@
 #include <NIDAQmx.h>
 #include "ISignal.hpp"
 #include "Portability.hpp"
+#include "ITimer.hpp"
 
 class DllExport NidaqSignal : public ISignal
 {
  public:
 	
-  NidaqSignal();
+  NidaqSignal(ITimer* pTimer);
   virtual ~NidaqSignal();
   virtual bool open(uint8_t* mac);
   virtual bool init(size_t channels);
@@ -50,7 +51,8 @@ class DllExport NidaqSignal : public ISignal
   virtual bool stop();
   virtual bool close();
 
-  private:	
+  private:
+    ITimer* mpTimer;
 	TaskHandle  mTaskHandle;
 	float64* mpDataBuffer;
 	int32_t mChannels;
