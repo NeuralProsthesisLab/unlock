@@ -85,7 +85,7 @@ size_t PythonSignal::acquire() {
 
 std::vector<int32_t> PythonSignal::getdata(size_t samples) {
   BOOST_VERIFY(mpSignal != 0);
-    std::vector<int32_t> ret = std::vector<int32_t>();
+    std::vector<int32_t> ret = std::vector<int32_t>(samples);
     if(samples == 0) {
       return ret;
     }

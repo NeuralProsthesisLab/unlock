@@ -28,8 +28,10 @@
 #include <boost/assert.hpp>
 #include "MobilabSignal.hpp"
 
-MobilabSignal::MobilabSignal(int32_t ain, int32_t dio, std::string port)
-	: mAin(ain), mDio(dio), mPort(port), mpGtec(0), mChannels(0), mpBuffer(0) {
+static const int TIME_SLOT=2;
+
+MobilabSignal::MobilabSignal(ITimer* pTimer, int32_t ain, int32_t dio, std::string port)
+	: mpTimer(pTimer), mAin(ain), mDio(dio), mPort(port), mpGtec(0), mChannels(0), mpBuffer(0) {
 	mEventHandler.hEvent = CreateEvent(0,FALSE,FALSE,0);
 	mEventHandler.Offset = 0;
 	mEventHandler.OffsetHigh = 0;
@@ -48,7 +50,7 @@ bool MobilabSignal::init(size_t channels) {
 }
 
 size_t MobilabSignal::channels() {
-	return mChannels;
+	return mChannels+TIME_SLOT;
 }
 
 bool MobilabSignal::start() {
@@ -108,19 +110,25 @@ size_t MobilabSignal::acquire() {
 		std::cerr << "Mobilab.acquire ERROR: GT_GetData failed " << std::endl;
 		return 0;
 	}
-	WaitForSingleObject(mEventHandler.hEvent, 1000); 
-	return mChannels;
+	WaitForSingleObject(mEventHandler.hEvent, 1000);
+	return mChannels+TIME_SLOT;
 }
 
 void MobilabSignal::getdata(uint32_t* buffer, size_t samples) {
-	BOOST_ASSERT(samples == mChannels);
+	BOOST_ASSERT(samples == mChannels && mpTimer != 0);
 	for(size_t i=0; i < samples; i++) {
-		buffer[i] = mpBuffer[i];
+		if (i+TIME_SLOT < samples) {
+		    buffer[i] = mpBuffer[i];
+		} else {
+		    buffer[i] = 0;
+		}
 	}
+	buffer[samples-TIME_SLOT] = mpTimer->elapsedMicroSecs();
 }
 
 uint64_t MobilabSignal::timestamp() {
-	return 0;
+	BOOST_ASSERT(mpTimer != 0);
+	return mpTimer->elapsedMicroSecs();
 }
 
 bool MobilabSignal::stop() {
