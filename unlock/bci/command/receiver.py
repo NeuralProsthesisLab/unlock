@@ -40,14 +40,14 @@ import numpy as np
 class CommandReceiver(object):
     def __init__(self, state=None):
         super(CommandReceiver, self).__init__()
-        if state is None:
+        if not state:
             state = RunState()
             state.run()
             
         self.state = state
         
     def is_running(self):
-        return self.state.is_running() is True
+        return self.state.is_running()
         
     def start(self):
         self.state.run()
@@ -175,16 +175,15 @@ class FileSignalReceiver(CommandReceiver):
     def next_command(self, delta):
         samples = self.signal.acquire()
         self.calls += 1
-        if samples is not None and samples > 0:
+        if samples and samples > 0:
             matrix = self.signal.getdata(samples)
-            # XXX - the rawcmd.make_matrix stuff is a hack.  perhaps this should be a filerawcommand?
             raw_command = RawSignalCommand(delta, matrix, samples/self.signal.channels(), self.signal.channels(), self.timer)
             raw_command.matrix = matrix
-            raw_command.data_matrix = matrix[:,:-RawSignalCommand.TriggerCount]
+            raw_command.data_matrix = matrix[:, :-RawSignalCommand.TriggerCount]
         else:
             raise EOFError("FileSignalReceiver: FileSignal complete; calls = "+str(self.calls))
             
-        assert raw_command != None
+        assert raw_command
         return raw_command
         
         
@@ -196,7 +195,7 @@ class RawInlineSignalReceiver(CommandReceiver):
         
     def next_command(self, delta):
         samples = self.signal.acquire()
-        if samples is not None and samples > 0:
+        if samples and samples > 0:
             c_data = self.signal.getdata(samples)
             
             raw_data_vector = np.array(c_data)
@@ -221,91 +220,26 @@ class DeltaCommandReceiver(CommandReceiver):
             
     def next_command(self, delta):
         return Command(delta)
-        
-        
-class FileSignalReceiver(CommandReceiver):
-    def __init__(self, signal, timer):
-        super(FileSignalReceiver, self).__init__()        
-        self.signal = signal
-        self.timer = timer
-        self.calls = 0
-        
-    def next_command(self, delta):
-        samples = self.signal.acquire()
-        self.calls += 1
-        if samples is not None and samples > 0:
-            matrix = self.signal.getdata(samples)
-            # XXX - the rawcmd.make_matrix stuff is a hack.  perhaps this should be a filerawcommand?
-            raw_command = RawSignalCommand(delta, matrix, samples/self.signal.channels(), self.signal.channels(), self.timer)
-            raw_command.matrix = matrix
-            raw_command.data_matrix = matrix[:,:-RawSignal.TriggerCount]
-        else:
-            raise EOFError("FileSignalReceiver: FileSignal complete; calls = "+str(self.calls))
-            
-        assert raw_command != None
-        return raw_command
-            
-            
+
+
 class GeneratedSignalReceiver(CommandReceiver):
     def __init__(self, signal, timer, command_receiver=None):
         self.signal = signal
         self.timer = timer
-        if command_receiver == None:
+        if not command_receiver:
             def create_raw_command(delta, data, samples, channels, timer):
                 return RawSignalCommand(delta, data, samples, channels, timer)
             self.generate_next = create_raw_command
         else:
             self.generate_next = command_receiver.next_command
+
     def next_command(self, delta, samples=None):
         matrix = self.signal.generate_samples(samples)
-        if samples is not None:
+        if samples:
             assert samples == matrix.size
         raw_command = self.generate_next(delta, matrix, matrix.shape[0], self.signal.channels, self.timer)
         if raw_command.is_valid():
             raw_command.make_matrix()
-            
-        #print("data matrix = ", raw_command.data_matrix)
+
         return raw_command
-            
-#
-# The code below is used for running the acquisition and decoding in a separate process.
-# It was hacked in when we were trying to figure out why the system was not working; leaving the
-# code here because it worked, but we are not using it and it would have to be ported/maintained
-# through iterations.
-#
-#class MultiProcessCommandReceiver(CommandReceiver):
-#    def __init__(self, classifier, classifier_args, args):
-#        super(MultiProcessCommandReceiver, self).__init__()        
-#        self.Q = Queue()
-#        self.args = args
-#        self.args['decoder'] = 'inline'
-#        self.process = Process(target=remote_receive_next_command, args=(self.Q, classifier, classifier_args, self.args))
-#        self.process.start()
-#        
-#    def next_command(self, delta):
-#        return self.Q.get()
-#        
-#    def stop(self):
-#        self.process.terminate()
-#        self.process.join()
-#        
-##@staticmethod 
-#def remote_receive_next_command(Q, classifier, classifier_args, args):
-#    from unlock import unlock_runtime
-#    import unlock.context
-#    factory = unlock_runtime.UnlockFactory(args)
-#    app_ctx = unlock.context.ApplicationContext(factory)
-#    assert args['decoder'] == 'inline'
-#    factory.signal = app_ctx.get_object(args['signal'])
-#    factory.decoder = app_ctx.get_object(args['decoder'])
-#    command_receiver = factory.decoder.create_receiver(classifier_args, classifier)
-#    import time
-#    start = time.time()
-#    while True:
-#        command = command_receiver.next_command(time.time() - start)
-#        # can't pickle the C++ object
-#        command.timer = None
-#        Q.put(command)
-#        
-#            
-        
+
