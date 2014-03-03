@@ -24,7 +24,6 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 import json
 import pickle
 import logging
@@ -130,18 +129,13 @@ class RawSignalCommand(Command):
     def set_decision(self, decision):
         self.decision = decision
         if self.decision:
-#            print ("Decision set ========================== ", self.decision)
             if self.matrix:
                 if len(self.matrix.shape) > 1 and self.matrix.shape[1] > 0:
                     self.matrix[-1][-2] = -1
                     self.matrix[-1][-1] = self.decision
-#                else:
-#                    print("Matrix shape = ", self.matrix.shape)
-#            else:
-#                print ("")
-                
+
     def make_matrix(self):
-        if self.raw_data_vector.shape != (self.samples, self.channels):    
+        if self.raw_data_vector.shape != (self.samples, self.channels):
             self.data_matrix = self.raw_data_vector.reshape((self.samples, self.channels))
         else:
             self.data_matrix = self.raw_data_vector
@@ -151,6 +145,3 @@ class RawSignalCommand(Command):
                                  self.cue_trigger_time_vector))
         
         self.__reset_trigger_vectors__()
-        #self.logger.debug("Data = ", self.matrix)
-        
-        

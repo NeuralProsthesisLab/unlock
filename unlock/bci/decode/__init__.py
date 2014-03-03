@@ -37,8 +37,8 @@ class UnlockDecoderFactory(object):
             'harmonic_sum' : self.create_harmonic_sum_decision,
             'eyeblink_detector' : self.create_eyeblink_detector,
             'facial_emg' : self.create_facial_emg_detector,
+            'sliding' : self.create_sliding,
             'fixed_time' : self.create_fixed_time_buffering,
-            'continuous_time' : self.create_continuous_time_buffering,
             'absolute' : self.create_absolute_threshold,
             'lda' : self.create_lda_threshold,
             'unknown' : self.unknown
@@ -51,7 +51,7 @@ class UnlockDecoderFactory(object):
             fs=256, trial_length=3, n_electrodes=8, targets=(12.0, 13.0, 14.0, 15.0),
             target_window=0.1, nfft=2048, n_harmonics=1, selected_channels=None):
 
-        assert buffering_decoder is not None and threshold_decoder is not None
+        assert buffering_decoder and threshold_decoder
         trial_state_decoder = TrialStateControlledDecoder(None)
         feature_extractor = HarmonicFeatureExtractor(fs, n_electrodes, targets, target_window, nfft,
             n_harmonics, selected_channels)
@@ -69,8 +69,8 @@ class UnlockDecoderFactory(object):
     def create_fixed_time_buffering(self, electrodes=8, window_length=768):
         return FixedTimeBufferingDecoder(electrodes, window_length)
     
-    def create_continuous_time_buffering(self, electrodes=8, step_size=32, trial_limit=768):
-        return ContinuousTimeBufferingDecoder(electrodes, step_size, trial_limit)
+    def create_sliding(self, electrodes=8, step_size=32, trial_limit=768):
+        return SlidingWindowDecoder(electrodes, step_size, trial_limit)
     
     def create_absolute_threshold(self, threshold=0, reduction_fn='np.mean'):
         return AbsoluteThresholdDecoder(threshold, reduction_fn)

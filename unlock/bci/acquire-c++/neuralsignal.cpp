@@ -149,7 +149,7 @@ PythonSignal* create_random_signal(ITimer* pTimer) {
 }
 
 PythonSignal* create_nidaq_signal(ITimer* pTimer) {
-  ISignal* pSignal = new NidaqSignal();
+  ISignal* pSignal = new NidaqSignal(pTimer);
   PythonSignal* pPythonSignal = new PythonSignal(pSignal, pTimer);
   return pPythonSignal;  
 }
@@ -180,19 +180,19 @@ PythonSignal* create_nonblocking_enobio_signal(ITimer* pTimer) {
 }
 
 // ain = 120, dio = 0, comPort = "COM5"
-ISignal* create_mobilab_signal(int32_t ain, int32_t dio, std::string comPort) {
-  MobilabSignal* pMobilabSignal = new MobilabSignal(ain, dio, comPort);
+ISignal* create_mobilab_signal(ITimer* pTimer, int32_t ain, int32_t dio, std::string comPort) {
+  MobilabSignal* pMobilabSignal = new MobilabSignal(pTimer, ain, dio, comPort);
   return pMobilabSignal;
 }
 
 PythonSignal* create_blocking_mobilab_signal(ITimer* pTimer, int32_t ain, int32_t dio, std::string comPort) {
-  ISignal* pMobilabSignal = create_mobilab_signal(ain, dio, comPort);
+  ISignal* pMobilabSignal = create_mobilab_signal(pTimer, ain, dio, comPort);
   PythonSignal* pPythonSignal = new PythonSignal(pMobilabSignal, pTimer);
   return pPythonSignal;
 }
 
 PythonSignal* create_nonblocking_mobilab_signal(ITimer* pTimer, int32_t ain, int32_t dio, std::string comPort) {
-  ISignal* pMobilabSignal = create_mobilab_signal(ain, dio, comPort);
+  ISignal* pMobilabSignal = create_mobilab_signal(pTimer, ain, dio, comPort);
   NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pMobilabSignal);
   PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal, pTimer);
   return pPythonSignal;

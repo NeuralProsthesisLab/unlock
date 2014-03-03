@@ -27,9 +27,12 @@
 
 #include <string>
 #include <iostream>
+#include <boost/assert.hpp>
 #include "NidaqSignal.hpp"
 
-NidaqSignal::NidaqSignal() : mTaskHandle(0), mpDataBuffer(0), mSamplesPerChannelPerBatch(500) {
+static const int TIME_SLOT = 2;
+
+NidaqSignal::NidaqSignal(ITimer* pTimer) : mpTimer(pTimer), mTaskHandle(0), mpDataBuffer(0), mSamplesPerChannelPerBatch(500) {
 	init(4);
 }
 
@@ -53,7 +56,7 @@ bool NidaqSignal::init(size_t channels) {
 }
 
 size_t NidaqSignal::channels() {
-	return mChannels;
+	return mChannels+TIME_SLOT;
 }	
 
 bool NidaqSignal::start() {
@@ -106,13 +109,27 @@ size_t NidaqSignal::acquire() {
 		std::cerr << "NidaqSignal.acquire: ERROR: " << errorBuffer << std::endl;
 		return 0;
 	}
-	return (size_t)read*mChannels;
+	return (size_t)read*mChannels*TIME_SLOT;
+}
+
+uint32_t makeFloatIntoInt(uint32_t float_value) {
+    return float_value * 32768 / 10;
 }
 
 void NidaqSignal::getdata(uint32_t* buffer, size_t samples) {
-	for(int i = 0; i < samples; i++) {
-		buffer[i] = (uint32_t)(mpDataBuffer[i] * 32768 / 10);
+	for(size_t i = 0, last = 0; i < samples; ) {
+	    if ((last != 0) && ((last % mChannels) != 0)) {
+		   buffer[i] = makeFloatIntoInt((uint32_t)mpDataBuffer[i]);// * 32768 / 10);
+		   last ++;
+		   i ++;
+		} else {
+		     for(size_t start=i; i < start+TIME_SLOT; i++) {
+		         BOOST_ASSERT(i < samples);
+		         buffer[i] = 0;
+		     }
+		}
 	}
+	buffer[samples-TIME_SLOT] = mpTimer->elapsedMicroSecs();
 }
 
 uint64_t NidaqSignal::timestamp() {

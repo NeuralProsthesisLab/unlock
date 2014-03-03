@@ -165,11 +165,13 @@ void EnobioSignalHandler::handleChannelData(ChannelData* pChannelData) {
 	*(mpRawBuffer+offset) = mpTimer->elapsedMicroSecs();
 	offset++;
 	*(mpRawBuffer+offset) = (uint32_t)0;
-	
+
+#if RAW_ENOBIO_LOG
 	for(size_t i=0; i < CHANNELS; i++) {
 	  mRawEnobioLog << ((int32_t*)(mpRawBuffer+CHANNELS*mNumSamples))[i] << " ";
 	}
 	mRawEnobioLog << endl;
+#endif
 
 	mNumSamples++;
 	if(mNumSamples == BUFFER_SAMPLES) {

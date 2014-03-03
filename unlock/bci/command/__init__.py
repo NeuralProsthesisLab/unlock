@@ -52,7 +52,6 @@ class UnlockCommandFactory(object):
         
     def create_raw_receiver(self, signal=None, timer=None):
         if type(signal) == MemoryResidentFileSignal:
-            print("creating memory resident file signal")
             receiver = FileSignalReceiver(signal, timer)
         else:
             receiver = RawInlineSignalReceiver(signal, timer)
