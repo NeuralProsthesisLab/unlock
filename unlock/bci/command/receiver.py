@@ -157,7 +157,7 @@ class DecodingCommandReceiver(CommandReceiver):
         
     def next_command(self, delta):
         command = self.command_receiver.next_command(delta)
-        if self.is_running():
+        if not self.is_running():
             self.logger.warning('DecodingCommandReceiver: poll while not running; returning empty command')
             return Command(delta)
             
