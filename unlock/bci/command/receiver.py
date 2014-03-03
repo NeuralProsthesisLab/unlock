@@ -121,14 +121,14 @@ class InlineCommandReceiver(CommandReceiver):
     def __init__(self):
         super(InlineCommandReceiver, self).__init__()
         self.queue = []
-        self.pos = 0
+        self.position = 0
             
     def next_command(self, delta):
-        if self.pos == len(self.queue):
+        if self.position == len(self.queue):
             ret = None
         else:
-            ret = self.queue[self.pos]
-            self.pos += 1
+            ret = self.queue[self.position]
+            self.position += 1
         return ret
             
     def put(self, command):
@@ -180,7 +180,7 @@ class FileSignalReceiver(CommandReceiver):
             # XXX - the rawcmd.make_matrix stuff is a hack.  perhaps this should be a filerawcommand?
             raw_command = RawSignalCommand(delta, matrix, samples/self.signal.channels(), self.signal.channels(), self.timer)
             raw_command.matrix = matrix
-            raw_command.data_matrix = matrix[:,:-RawSignal.TriggerCount]
+            raw_command.data_matrix = matrix[:,:-RawSignalCommand.TriggerCount]
         else:
             raise EOFError("FileSignalReceiver: FileSignal complete; calls = "+str(self.calls))
             
