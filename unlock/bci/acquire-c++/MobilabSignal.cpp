@@ -28,7 +28,7 @@
 #include <boost/assert.hpp>
 #include "MobilabSignal.hpp"
 
-static const int TIMER_SLOT=2;
+static const int TIME_SLOT=2;
 
 MobilabSignal::MobilabSignal(ITimer* pTimer, int32_t ain, int32_t dio, std::string port)
 	: mpTimer(pTimer), mAin(ain), mDio(dio), mPort(port), mpGtec(0), mChannels(0), mpBuffer(0) {
@@ -50,7 +50,7 @@ bool MobilabSignal::init(size_t channels) {
 }
 
 size_t MobilabSignal::channels() {
-	return mChannels;
+	return mChannels+TIME_SLOT;
 }
 
 bool MobilabSignal::start() {
@@ -111,17 +111,19 @@ size_t MobilabSignal::acquire() {
 		return 0;
 	}
 	WaitForSingleObject(mEventHandler.hEvent, 1000);
-	int timer_slot = 1;
-	return mChannels+TIMER_SLOT;
+	return mChannels+TIME_SLOT;
 }
 
 void MobilabSignal::getdata(uint32_t* buffer, size_t samples) {
 	BOOST_ASSERT(samples == mChannels && mpTimer != 0);
-	int timer_slot = 1;
-	for(size_t i=0; i < samples-TIMER_SLOT; i++) {
-		buffer[i] = mpBuffer[i];
+	for(size_t i=0; i < samples; i++) {
+		if (i+TIME_SLOT < samples) {
+		    buffer[i] = mpBuffer[i];
+		} else {
+		    buffer[i] = 0;
+		}
 	}
-	buffer[samples-TIMER_SLOT] = mpTimer->elapsedMicroSecs();
+	buffer[samples-TIME_SLOT] = mpTimer->elapsedMicroSecs();
 }
 
 uint64_t MobilabSignal::timestamp() {
