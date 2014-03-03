@@ -120,19 +120,19 @@ class DatagramCommandSender(object):
 class InlineCommandReceiver(CommandReceiver):
     def __init__(self):
         super(InlineCommandReceiver, self).__init__()
-        self.Q = []
+        self.queue = []
         self.pos = 0
             
     def next_command(self, delta):
-        if self.pos == len(self.Q):
+        if self.pos == len(self.queue):
             ret = None
         else:
-            ret = self.Q[self.pos]
+            ret = self.queue[self.pos]
             self.pos += 1
         return ret
             
     def put(self, command):
-        self.Q.append(command)
+        self.queue.append(command)
             
             
 class DecodingCommandReceiver(CommandReceiver):
