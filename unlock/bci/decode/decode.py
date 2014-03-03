@@ -142,18 +142,10 @@ class BufferedDecoder(UnlockDecoder):
         return self.buffer[0:self.cursor]
         
     def is_ready(self):
-        """
-        Returns a boolean indicating whether or not to run the decoder on the
-        accumulated data.
-        """
-        raise NotImplementedError
+        pass
         
     def handle_result(self, result):
-        """
-        Any state updates or actions that are required after the decoder has
-        run.
-        """
-        raise NotImplementedError
+        pass
         
         
 class FixedTimeBufferingDecoder(BufferedDecoder):
@@ -181,11 +173,10 @@ class FixedTimeBufferingDecoder(BufferedDecoder):
         return command
         
         
-class ContinuousBufferingDecoder(BufferedDecoder):
-    # XXX - untested
+class SlidingWindowDecoder(BufferedDecoder):
     def __init__(self, step_size=32, trial_limit=768, electrodes=8):
-        raise "No."
-        super(ContinuousBufferingDecoder, self).__init__(electrodes)
+        buffer_shape = (trial_limit, electrodes)
+        super(SlidingWindowDecoder, self).__init__(buffer_shape, electrodes)
         self.step_size = step_size
         self.trial_limit = trial_limit
         self.last_mark = 0
@@ -194,7 +185,7 @@ class ContinuousBufferingDecoder(BufferedDecoder):
         return self.cursor >= self.last_mark + self.step_size
         
     def update(self, command):
-        if command.result is not None or self.cursor >= self.trial_limit:
+        if command.result or self.cursor >= self.trial_limit:
             self.last_mark = 0
             self.cursor = 0
         else:
