@@ -45,11 +45,10 @@ class HarmonicFeatureExtractor(UnlockDecoder):
     frequencies and their harmonics. The target with the highest sum is chosen
     as the attended frequency.
     """
-    def __init__(self, fs=256, n_electrodes=8, targets=(12.0, 13.0, 14.0, 15.0), target_window=0.1,
-        nfft=2048, n_harmonics=1, selected_channels=None):
-        
+    def __init__(self, fs=256, n_electrodes=8, targets=(12.0, 13.0, 14.0, 15.0), target_window=0.1, nfft=2048,
+            n_harmonics=1, selected_channels=None):
+
         super(HarmonicFeatureExtractor, self).__init__()
-        
         self.fs = fs
         self.n_electrodes = n_electrodes
         self.targets = targets
@@ -58,7 +57,7 @@ class HarmonicFeatureExtractor(UnlockDecoder):
         self.n_harmonics = n_harmonics
         
         self.selected_channels = selected_channels
-        if selected_channels is None:
+        if not selected_channels:
             self.selected_channels = range(self.n_electrodes)
              
         self.harmonics = list()
@@ -77,32 +76,7 @@ class HarmonicFeatureExtractor(UnlockDecoder):
             
         self.file_handle = None
         self.output_file_prefix = 'harmonic_feature_extractor'
-        
-    def start(self):
-        #traceback.print_stack()
-        #print("deocder started = ", self)
-        #try:
-        #    assert self.file_handle == None
-        #
-        #except:
-        #    print("WARNING: decoder already started")
-        #    return
-        #self.file_handle = open("%s_%d.txt" % (self.output_file_prefix, time.time()), 'wb')
-        pass
 
-    def stop(self):
-        pass
-        #traceback.print_stack()
-        #print("deocder stopped = ", self)
-        #try:
-        #    assert self.file_handle != None
-        #except:
-        #    print("WARNING: decoder already stopped")
-        #    pass
-        #self.file_handle.flush()
-        #self.file_handle.close()
-        #self.file_handle = None
-        
     def decode(self, command):
         """
         The features used by harmonic sum decision are the summed magnitudes of one or more
@@ -120,7 +94,6 @@ class HarmonicFeatureExtractor(UnlockDecoder):
             for harmonic in self.harmonics[i]:
                 score += np.mean(y[harmonic, :])
             command.scores[i] = score
-#        command.scores = self.extract_features(command.matrix)
         return command
         
         
@@ -136,7 +109,8 @@ class ScoredHarmonicSumDecision(UnlockDecoder):
         threshold criteria.
         """
         assert hasattr(command, 'scores')
-            
+        result_string = None
+
         command.winner = np.argmax(command.scores)
         command = self.threshold_decoder.decode(command)
             
@@ -146,86 +120,14 @@ class ScoredHarmonicSumDecision(UnlockDecoder):
             result_string = "ScoredHarmonicSumDecision: %d (%.1f Hz)" % (command.class_label,
                 self.targets[command.class_label])
                 
-            if command.confidence is not None:
+            if command.confidence:
                 result_string = "%s [%.2f]" % (result_string, command.confidence)
                 
         else:
             command.class_label = -1
             result_string = "ScoredHarmonicSumDecision: could not make a decision"
-                
-        print(result_string)
+
+        if result_string:
+            print(result_string)
+
         return command
-#       
-#
-## Somethings wind up being ugly for no good reason.
-#class ResultHandler(object):
-#    def __init__(self, result_handlers=()):
-#        super(ResultHandler, self).__init__()
-#        self.result_handlers = set()
-#        for rh in result_handlers:
-#            handler = {
-#                SetResultHandler: self.set_result,
-#                LogResultHandler: self.log_result,
-#                PrintResultHandler: self.print_result
-#            }.get(rh)
-#            self.result_handlers.add(handler)
-#            
-#
-#    def log_result(self, predicted_class, actual_class=None, features=None, confidence=None):
-#        
-#        """
-#        Save the results of the decoder, HSD parameters, and raw data used
-#        to a file.
-#        """
-#        log = dict(
-#            targets=self.targets,
-#            fs=self.fs,
-#            nfft=self.nfft,
-#            n_harmonics=self.n_harmonics,
-#            selected_channels=self.selected_channels,
-#            data=self.model.get_data(),
-#            predicted_class=predicted_class,
-#            actual_class=actual_class,
-#            features=features,
-#            confidence=confidence
-#        )
-#        np.savetxt(self.file_handle, log, fmt='%d', delimiter='\t')
-#        #np.savez("%s-%d" % (self.label, time.time()), **log)
-#
-#    def print_result(self, predicted_class, actual_class=None, features=None, confidence=None):
-#        
-#    
-#
-#        
-#    def decode(self, command):
-#        """
-#        Buffer incoming data samples from the command object, then determine if
-#        a decision has been reached and handle accordingly.
-#        Must return the command object with or without modification.
-#        """
-#        self.model.check_state()
-#        
-#        if command.is_valid():
-#            self.model.buffer_data(command.matrix[:, 0:self.n_electrodes])
-#            
-#        if self.model.is_ready():
-#            scores = self.extract_features(self.model.get_data())
-#            result = self.dodecode(scores)
-#            
-#            if result is None:
-#                predicted_class = None
-#                confidence = 1.0
-#            else:
-#                predicted_class = result[0]
-#                confidence = result[1]
-#                
-#            for handler in self.result_handlers:
-#                handler(predicted_class, command=command, features=scores,
-#                        actual_class=self.actual_class, confidence=confidence)
-#            self.model.handle_result(result)
-#            
-#            self.result_handler.handle_result(result) #
-#            
-#        return command
-#            
-#            
