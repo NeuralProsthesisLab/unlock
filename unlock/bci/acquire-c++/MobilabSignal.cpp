@@ -28,7 +28,7 @@
 #include <boost/assert.hpp>
 #include "MobilabSignal.hpp"
 
-static const int TIMER_SLOT=1;
+static const int TIMER_SLOT=2;
 
 MobilabSignal::MobilabSignal(ITimer* pTimer, int32_t ain, int32_t dio, std::string port)
 	: mpTimer(pTimer), mAin(ain), mDio(dio), mPort(port), mpGtec(0), mChannels(0), mpBuffer(0) {
