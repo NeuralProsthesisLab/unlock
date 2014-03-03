@@ -149,7 +149,7 @@ PythonSignal* create_random_signal(ITimer* pTimer) {
 }
 
 PythonSignal* create_nidaq_signal(ITimer* pTimer) {
-  ISignal* pSignal = new NidaqSignal();
+  ISignal* pSignal = new NidaqSignal(pTimer);
   PythonSignal* pPythonSignal = new PythonSignal(pSignal, pTimer);
   return pPythonSignal;  
 }
