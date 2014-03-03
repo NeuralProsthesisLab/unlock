@@ -32,10 +32,11 @@
 #include <Windows.h>
 #include "gmobilabplus.h"
 #include "ISignal.hpp"
+#include "ITimer.hpp"
 
 class MobilabSignal : public ISignal {
 public:
-	MobilabSignal(int32_t ain, int32_t dio, std::string port);
+	MobilabSignal(ITimer* pTimer, int32_t ain, int32_t dio, std::string port);
 	~MobilabSignal();
 	virtual bool open(uint8_t*);
 	virtual bool init(size_t channels);
@@ -47,7 +48,8 @@ public:
 	virtual bool stop();
 	virtual bool close();
 private:
-	HANDLE mpGtec;
+    ITimer* mpTimer;
+    HANDLE mpGtec;
 	int16_t* mpBuffer;
     _BUFFER_ST mDatBuffer;
 	OVERLAPPED mEventHandler;
