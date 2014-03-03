@@ -38,20 +38,32 @@ First we do a quick technical introduction.  After that, we discuss how to insta
 Development of the Unlock framework is funded by the Adaptive Brain-Computer Interactions (ABCI) Capstone Project~\cite{abci}.
 
 \section{Technical Introduction}
+The infrastructure Unlock provides can be logically separated into two distinct layers: the application layer and the
+BCI layer.  These layers can in turn be further decomposed.
 
-The infrastructure Unlock provides can be logically separated into two distinct layers: the application layer and the BCI layer.  These layers can in turn be further decomposed.
+The BCI layer is defined by the signal-processing chain.  The signal-processing chain includes signal acquisition and
+reconstruction, feature extraction and decoding, and command generation~\cite{neuraleng}.  Many BCI systems also
+include a stimulation component, which is actually processed at the application layer; however, logically, the
+stimulation component is part of the BCI.
 
-The BCI layer is defined by the signal-processing chain~\cite{signalprocessing}.  The signal-processing chain includes signal acquisition and reconstruction, feature extraction and decoding, and command generation~\cite{neuraleng}.  Many BCI systems also include a stimulation component, which is actually processed at the application layer; however, logically, the stimulation component is part of the BCI.
+For example, a paradigm based on Visually Evoked Potentials (VEP), flashes a graphical sequence at the user, which is
+subsequently interpreted in the signal-processing chain~\cite{vep}.  But the actual flashing is handled at the
+application layer.
 
-For example, a paradigm based on Visually Evoked Potentials (VEP), flashes a graphical sequence at the user, which is subsequently interpreted in the signal-processing chain~\cite{vep}.  But the actual flashing is handled at the application layer.
+We'll talk in more detail about the BCI layer in Section~\ref{bcisec}, but for now there is one important take away.
+At each point in the pipeline we just discussed, the system is designed so that you can easily manipulate the data as
+it flows through the system.
 
-We'll talk in more detail about the BCI layer in Section~\ref{bcisec}, but for now there is one important take away.  At each point in the pipeline we just discussed, the system is designed so that you can easily decorate, replace or otherwise manipulate the data flow.  Each step in the pipeline is encapsulated under an interface contract.
+The application layer is model-view-controller (MVC)~\ref{mvc, mvc1} inspired.  Don't worry too much if you're not
+familiar with MVC.  It's just a logical framework for structuring graphical user interfaces (GUIs).
 
-The application layer is model-view-controller (MVC)~\ref{mvc, mvc1} inspired.  Don't worry too much if you're not familiar with MVC.  It's just a logical framework for structuring graphical user interfaces (GUIs).  
+The basic idea is that each application consists of three types of objects: models, views and controllers.  The
+controllers accept user input (in this case BCI commands) and pass the inputs to the correct models.  Models handle
+state transformation (the business logic if you will).  Finally, views observe the state objects(models) and render
+themselves based on the current state of the world.
 
-The basic idea is that each application consists of three types of objects: models, views and controllers.  The controllers accept user input (in this case BCI commands) and pass the inputs to the correct models.  Models handle state transformation (the business logic if you will).  Finally, views observe the state objects (models) and render themselves based on the current state of the world.
-
-If you think about it, this also creates a pipeline in the application layer.  The take away here is that these components are also encapsulated under interfaces.
+If you think about it, this also creates a pipeline in the application layer.  The take away here is that these
+components are also encapsulated under interfaces.
 
 Figure~\ref{bci-pipeline-fig} depicts the main components of Unlock.
 
@@ -162,7 +174,7 @@ If you have an issue, please send me an email directly.  Please include the file
 \subsection{Mac OSX}
 \section{Internals}
 
-\subsection{configuration}
+\subsection{Configuration Management}
  Unlock builds most components using an "inversion of control" container.  Most people refer to this, nowadays, as dependency injection~\cite{depinjection}.  What it means is that object construction is handled by a container that can be configured to wire up various of configurations based on the contracts/interfaces objects support.  This paradigm of configuration management has been around a long time, but became widely known when the developers of J2EE did not know about it.
 
 The important point, from a mechanical perspective, is that objects rarely create other objects in their own constructors.  In Python each file is referred to as a module.  And each package is defined at the directly level.  Each unlock package has it's own factory that creates objects.  The UnlockFactory creates and wires up the configuration of an unlock instance.  What system is created depends on the values set in the configuration file passed to Unlock.  To understand how dependency injection works let's look at a small example:
