@@ -109,12 +109,12 @@ includes.extend(python_includes)
 frameworks = ["Python"]
 
 CORE_SOURCES=['NonblockingSignal.cpp', 'AsyncSampleCollector.cpp', 'ManagedWorkController.cpp', 'PythonSignal.cpp',
-              'Logger.cpp',  'WinTimer.cpp',]
+              'Logger.cpp',  'WinTimer.cpp', 'unlock_signal.cpp']
 
 CORE_TEST_SOURCES=['AsyncSampleCollectorTest.cpp', 'SignalTestRunner.cpp', 'NonblockingSignalTest.cpp',
                    'SampleTest.cpp', 'IntegralWorkController.cpp', 'ManagedWorkControllerTest.cpp',
                    'IntegralWorkControllerTest.cpp', 'PythonSignalTest.cpp',
-                   'LoggerTest.cpp', 'WinTimerTest.cpp', 'MockSignal.cpp']
+                   'LoggerTest.cpp', 'WinTimerTest.cpp']
 
 RANDOM_SOURCES = ['RandomSignal.cpp', 'random_signal.cpp']
 RANDOM_TEST_SOURCES = ['RandomSignalTest.cpp']
