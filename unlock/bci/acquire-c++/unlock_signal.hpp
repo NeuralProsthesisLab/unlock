@@ -98,51 +98,45 @@ class DllExport TimerPythonWrap : public ITimer, public wrapper<ITimer>
  public:
   TimerPythonWrap(ITimer* pTimer) : mpTimer(pTimer) {
   }
-    
+
   virtual ~TimerPythonWrap() {
     delete mpTimer;
   }
-  
+
   void start() {
     this->get_override("start")();
   }
 
   uint32_t elapsedCycles() {
-    return this->get_override("elapsedCycles")();    
+    return this->get_override("elapsedCycles")();
   }
-  
+
   uint32_t elapsedMilliSecs() {
-    return this->get_override("elapsedMilliSecs")();    
+    return this->get_override("elapsedMilliSecs")();
   }
-  
+
   uint32_t elapsedMicroSecs() {
-    return this->get_override("elapsedMicroSecs")();    
+    return this->get_override("elapsedMicroSecs")();
   }
-  
+
   int64_t getFrequency() {
     return this->get_override("getFrequency")();
   }
-  
+
   int64_t getStartValue() {
     return this->get_override("getStartValue")();
   }
-  
+
  private:
-  ITimer* mpTimer;    
+  ITimer* mpTimer;
 };
 
-ITimer* create_timer() {
-  ITimer* pTimer = new WinTimer();
-  pTimer->start();
-  return pTimer;
-}
-
-BOOST_PYTHON_MODULE(unlock_signal)
+BOOST_PYTHON_MODULE(neuralsignal)
 {
   class_<std::vector<int32_t> >("int32_vector")
         .def(vector_indexing_suite<std::vector<int32_t> >() );
         
-  def("create_timer", create_timer, return_value_policy<manage_new_object>());
+//  def("create_timer", create_timer, return_value_policy<manage_new_object>());
 
   class_<SignalPythonWrap, boost::noncopyable>("ISignal", no_init)
     .def("open", pure_virtual(&ISignal::open))
@@ -156,15 +150,6 @@ BOOST_PYTHON_MODULE(unlock_signal)
     .def("close", pure_virtual(&ISignal::close))             
     ;
 
-  class_<TimerPythonWrap, boost::noncopyable>("ITimer", no_init)
-    .def("start", pure_virtual(&ITimer::start))
-    .def("elapsedCycles", pure_virtual(&ITimer::elapsedCycles))
-    .def("elapsedMilliSecs", pure_virtual(&ITimer::elapsedMilliSecs))
-    .def("elapsedMicroSecs", pure_virtual(&ITimer::elapsedMicroSecs))
-    .def("getFrequency", pure_virtual(&ITimer::getFrequency))
-    .def("getStartValue", pure_virtual(&ITimer::getStartValue))
-    ;
-    
   class_<NonblockingSignal, bases<ISignal> >("NonblockingSignal", init<ISignal*>())
     .def("open", &NonblockingSignal::open)
     .def("init", &NonblockingSignal::init)

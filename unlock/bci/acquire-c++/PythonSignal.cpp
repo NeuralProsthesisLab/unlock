@@ -95,12 +95,13 @@ std::vector<int32_t> PythonSignal::getdata(size_t samples) {
       BOOST_VERIFY(buffer != 0);
       mpSignal->getdata(buffer, samples);
       for (size_t i = 0; i < samples; i++) {
-        ret.push_back((int32_t)buffer[i]);
+          ret[i] = (int32_t)buffer[i];
+#if UNLOCK_LOG_RAW_DEVICE_DATA_2112
         mReturnedDataLog << (int32_t) ret.back() << " ";
         if((i+1) % mpSignal->channels() == 0) {
           mReturnedDataLog << endl;
         }
-
+#endif
       }
       delete[] buffer;
       buffer = 0;
