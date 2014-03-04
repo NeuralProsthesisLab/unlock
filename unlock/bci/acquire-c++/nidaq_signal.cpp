@@ -1,4 +1,3 @@
-
 // Copyright (c) James Percent and Unlock contributors.
 // All rights reserved.
 // Redistribution and use in source and binary forms, with or without modification,
@@ -25,30 +24,20 @@
 // ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#define BOOST_TEST_MODULE NiDaqTests
-#include <boost/test/unit_test.hpp>
-#include <boost/thread/thread.hpp>
-#include <iostream>
 
-#include "NiDaqMx.hpp"
+#include "NidaqSignal.hpp"
+#include "unlock_signal.hpp"
 
-/****
- If you want to have multiple tests in one executable, the put this in a separte object file and link all the tests
- to it.
-#define BOOST_TEST_MODULE Signal_Tests
-#ifdef MSVC
-#include <boost/test/unit_test.hpp>
-#else
-#include <boost/test/included/unit_test.hpp>
-#endif
-*/
+using namespace boost::python;
 
-BOOST_AUTO_TEST_SUITE(DaqTest)
-
-BOOST_AUTO_TEST_CASE(daq_test)
-{
-  std::cout << "DAQTest.." << std::endl;
-  daq_function();
+PythonSignal* create_nidaq_signal(ITimer* pTimer) {
+  ISignal* pSignal = new NidaqSignal(pTimer);
+  PythonSignal* pPythonSignal = new PythonSignal(pSignal, pTimer);
+  return pPythonSignal;  
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_PYTHON_MODULE(nidaq_signal)
+{
+  def("create_nidaq_signal", create_nidaq_signal, return_value_policy<manage_new_object>());
+}
+
