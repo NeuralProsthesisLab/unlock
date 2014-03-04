@@ -21,14 +21,19 @@
 			var frate = location.search.match(/(\?|&)frate=\d+/);
 			frate = (frate) ? frate[0].match(/\d+/)[0] : null;
 			var cwidth = location.search.match(/(\?|&)cwidth=\d+/);
-			cwidth = (cwidth) ? cwidth.match(/\d+/)[0] : 800;
+			cwidth = (cwidth) ? cwidth[0].match(/\d+/)[0] : 800;
 			var cheight = location.search.match(/(\?|&)cheight=\d+/);
-			cheight = (cheight) ? cheight.match(/\d+/)[0] : 800;
+			cheight = (cheight) ? cheight[0].match(/\d+/)[0] : 800;
+			var swidth = location.search.match(/(\?|&)swidth=\d+/);
+			swidth = (swidth) ? swidth[0].match(/\d+/)[0] : 10;
 			
 			// Set canvas size
 			var canvas = document.getElementById(canvasID);
 			canvas.style.width = cwidth;
 			canvas.style.height = cheight;
+			
+			// Zomm in/out to scale squares to desired width 
+			var camZ = cwidth / swidth;
 		
 			// Init scenejs
 			SceneJS.setDebugConfigs({
@@ -65,7 +70,7 @@
 							// View matrix								
 							{					
 								type:"lookAt",
-								eye:{ z:6 },
+								eye:{ z:camZ },
 								
 								// Attach checker board definition
 								nodes:board
