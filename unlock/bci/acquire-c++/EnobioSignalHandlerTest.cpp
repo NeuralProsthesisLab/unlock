@@ -25,7 +25,7 @@
 // ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+#define BOOST_TEST_MODULE EnobioSignalHandlerTests
 #include <boost/test/unit_test.hpp>
 #include <boost/thread/thread.hpp>
 #include <iostream>

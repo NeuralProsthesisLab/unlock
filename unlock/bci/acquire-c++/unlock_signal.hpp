@@ -24,20 +24,15 @@
 // ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#ifndef UNLOCK_SIGNAL_HPP
+#define UNLOCK_SIGNAL_HPP
 
-#include "Enobio3G.h"
 #include "ISignal.hpp"
-#include "RandomSignal.hpp"
 #include "NonblockingSignal.hpp"
 #include "Portability.hpp"
 #include "PythonSignal.hpp"
-#include "EnobioSignalHandler.hpp"
-#include "EnobioDataReceiver.hpp"
-#include "EnobioStatusReceiver.hpp"
 #include "ITimer.hpp"
 #include "WinTimer.hpp"
-#include "NidaqSignal.hpp"
-#include "MobilabSignal.hpp"
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -142,76 +137,13 @@ ITimer* create_timer() {
   return pTimer;
 }
 
-PythonSignal* create_random_signal(ITimer* pTimer) {
-  ISignal* pSignal = new RandomSignal();
-  PythonSignal* pPythonSignal = new PythonSignal(pSignal, pTimer);
-  return pPythonSignal;  
-}
-
-PythonSignal* create_nidaq_signal(ITimer* pTimer) {
-  ISignal* pSignal = new NidaqSignal(pTimer);
-  PythonSignal* pPythonSignal = new PythonSignal(pSignal, pTimer);
-  return pPythonSignal;  
-}
-
-ISignal* create_enobio_signal(ITimer* pTimer) {
-  Enobio3G* pEnobio3G = new Enobio3G();
-  EnobioSignalHandler* pEnobioSignalHandler = new EnobioSignalHandler(pEnobio3G, pTimer);
-  
-  EnobioDataReceiver* pDataReceiver = new EnobioDataReceiver(pEnobioSignalHandler);
-  pEnobioSignalHandler->setEnobioDataReceiver(pDataReceiver);
-  
-  EnobioStatusReceiver* pStatusReceiver = new EnobioStatusReceiver(pEnobioSignalHandler);
-  pEnobioSignalHandler->setEnobioStatusReceiver(pStatusReceiver);
-  return pEnobioSignalHandler;
-}
-
-PythonSignal* create_blocking_enobio_signal(ITimer* pTimer) {
-  ISignal* pEnobioSignalHandler = create_enobio_signal(pTimer);
-  PythonSignal* pPythonSignal = new PythonSignal(pEnobioSignalHandler, pTimer);
-  return pPythonSignal;
-}
-
-PythonSignal* create_nonblocking_enobio_signal(ITimer* pTimer) {
-  ISignal* pEnobioSignalHandler = create_enobio_signal(pTimer);
-  NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pEnobioSignalHandler);
-  PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal, pTimer);
-  return pPythonSignal;
-}
-
-// ain = 120, dio = 0, comPort = "COM5"
-ISignal* create_mobilab_signal(ITimer* pTimer, int32_t ain, int32_t dio, std::string comPort) {
-  MobilabSignal* pMobilabSignal = new MobilabSignal(pTimer, ain, dio, comPort);
-  return pMobilabSignal;
-}
-
-PythonSignal* create_blocking_mobilab_signal(ITimer* pTimer, int32_t ain, int32_t dio, std::string comPort) {
-  ISignal* pMobilabSignal = create_mobilab_signal(pTimer, ain, dio, comPort);
-  PythonSignal* pPythonSignal = new PythonSignal(pMobilabSignal, pTimer);
-  return pPythonSignal;
-}
-
-PythonSignal* create_nonblocking_mobilab_signal(ITimer* pTimer, int32_t ain, int32_t dio, std::string comPort) {
-  ISignal* pMobilabSignal = create_mobilab_signal(pTimer, ain, dio, comPort);
-  NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pMobilabSignal);
-  PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal, pTimer);
-  return pPythonSignal;
-}
-
-BOOST_PYTHON_MODULE(neuralsignal)
+BOOST_PYTHON_MODULE(unlock_signal)
 {
   class_<std::vector<int32_t> >("int32_vector")
         .def(vector_indexing_suite<std::vector<int32_t> >() );
         
   def("create_timer", create_timer, return_value_policy<manage_new_object>());
-  def("create_random_signal", create_random_signal, return_value_policy<manage_new_object>());
-  def("create_nidaq_signal", create_nidaq_signal, return_value_policy<manage_new_object>());  
-  def("create_blocking_enobio_signal", create_blocking_enobio_signal, return_value_policy<manage_new_object>());
-  def("create_nonblocking_enobio_signal", create_nonblocking_enobio_signal, return_value_policy<manage_new_object>());
-  def("create_blocking_mobilab_signal", create_blocking_mobilab_signal, return_value_policy<manage_new_object>());
-  def("create_nonblocking_mobilab_signal", create_nonblocking_mobilab_signal, return_value_policy<manage_new_object>());  
 
-  
   class_<SignalPythonWrap, boost::noncopyable>("ISignal", no_init)
     .def("open", pure_virtual(&ISignal::open))
     .def("init", pure_virtual(&ISignal::init))
@@ -259,3 +191,4 @@ BOOST_PYTHON_MODULE(neuralsignal)
     ;
 }
 
+#endif
