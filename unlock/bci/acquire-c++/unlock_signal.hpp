@@ -24,20 +24,15 @@
 // ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#ifndef UNLOCK_SIGNAL_HPP
+#define UNLOCK_SIGNAL_HPP
 
-#include "Enobio3G.h"
 #include "ISignal.hpp"
-#include "RandomSignal.hpp"
 #include "NonblockingSignal.hpp"
 #include "Portability.hpp"
 #include "PythonSignal.hpp"
-#include "EnobioSignalHandler.hpp"
-#include "EnobioDataReceiver.hpp"
-#include "EnobioStatusReceiver.hpp"
 #include "ITimer.hpp"
 #include "WinTimer.hpp"
-#include "NidaqSignal.hpp"
-#include "MobilabSignal.hpp"
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -103,115 +98,46 @@ class DllExport TimerPythonWrap : public ITimer, public wrapper<ITimer>
  public:
   TimerPythonWrap(ITimer* pTimer) : mpTimer(pTimer) {
   }
-    
+
   virtual ~TimerPythonWrap() {
     delete mpTimer;
   }
-  
+
   void start() {
     this->get_override("start")();
   }
 
   uint32_t elapsedCycles() {
-    return this->get_override("elapsedCycles")();    
+    return this->get_override("elapsedCycles")();
   }
-  
+
   uint32_t elapsedMilliSecs() {
-    return this->get_override("elapsedMilliSecs")();    
+    return this->get_override("elapsedMilliSecs")();
   }
-  
+
   uint32_t elapsedMicroSecs() {
-    return this->get_override("elapsedMicroSecs")();    
+    return this->get_override("elapsedMicroSecs")();
   }
-  
+
   int64_t getFrequency() {
     return this->get_override("getFrequency")();
   }
-  
+
   int64_t getStartValue() {
     return this->get_override("getStartValue")();
   }
-  
+
  private:
-  ITimer* mpTimer;    
+  ITimer* mpTimer;
 };
-
-ITimer* create_timer() {
-  ITimer* pTimer = new WinTimer();
-  pTimer->start();
-  return pTimer;
-}
-
-PythonSignal* create_random_signal(ITimer* pTimer) {
-  ISignal* pSignal = new RandomSignal();
-  PythonSignal* pPythonSignal = new PythonSignal(pSignal, pTimer);
-  return pPythonSignal;  
-}
-
-PythonSignal* create_nidaq_signal(ITimer* pTimer) {
-  ISignal* pSignal = new NidaqSignal(pTimer);
-  PythonSignal* pPythonSignal = new PythonSignal(pSignal, pTimer);
-  return pPythonSignal;  
-}
-
-ISignal* create_enobio_signal(ITimer* pTimer) {
-  Enobio3G* pEnobio3G = new Enobio3G();
-  EnobioSignalHandler* pEnobioSignalHandler = new EnobioSignalHandler(pEnobio3G, pTimer);
-  
-  EnobioDataReceiver* pDataReceiver = new EnobioDataReceiver(pEnobioSignalHandler);
-  pEnobioSignalHandler->setEnobioDataReceiver(pDataReceiver);
-  
-  EnobioStatusReceiver* pStatusReceiver = new EnobioStatusReceiver(pEnobioSignalHandler);
-  pEnobioSignalHandler->setEnobioStatusReceiver(pStatusReceiver);
-  return pEnobioSignalHandler;
-}
-
-PythonSignal* create_blocking_enobio_signal(ITimer* pTimer) {
-  ISignal* pEnobioSignalHandler = create_enobio_signal(pTimer);
-  PythonSignal* pPythonSignal = new PythonSignal(pEnobioSignalHandler, pTimer);
-  return pPythonSignal;
-}
-
-PythonSignal* create_nonblocking_enobio_signal(ITimer* pTimer) {
-  ISignal* pEnobioSignalHandler = create_enobio_signal(pTimer);
-  NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pEnobioSignalHandler);
-  PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal, pTimer);
-  return pPythonSignal;
-}
-
-// ain = 120, dio = 0, comPort = "COM5"
-ISignal* create_mobilab_signal(ITimer* pTimer, int32_t ain, int32_t dio, std::string comPort) {
-  MobilabSignal* pMobilabSignal = new MobilabSignal(pTimer, ain, dio, comPort);
-  return pMobilabSignal;
-}
-
-PythonSignal* create_blocking_mobilab_signal(ITimer* pTimer, int32_t ain, int32_t dio, std::string comPort) {
-  ISignal* pMobilabSignal = create_mobilab_signal(pTimer, ain, dio, comPort);
-  PythonSignal* pPythonSignal = new PythonSignal(pMobilabSignal, pTimer);
-  return pPythonSignal;
-}
-
-PythonSignal* create_nonblocking_mobilab_signal(ITimer* pTimer, int32_t ain, int32_t dio, std::string comPort) {
-  ISignal* pMobilabSignal = create_mobilab_signal(pTimer, ain, dio, comPort);
-  NonblockingSignal* pNonblockingSignal = new NonblockingSignal(pMobilabSignal);
-  PythonSignal* pPythonSignal = new PythonSignal(pNonblockingSignal, pTimer);
-  return pPythonSignal;
-}
 
 BOOST_PYTHON_MODULE(neuralsignal)
 {
   class_<std::vector<int32_t> >("int32_vector")
         .def(vector_indexing_suite<std::vector<int32_t> >() );
         
-  def("create_timer", create_timer, return_value_policy<manage_new_object>());
-  def("create_random_signal", create_random_signal, return_value_policy<manage_new_object>());
-  def("create_nidaq_signal", create_nidaq_signal, return_value_policy<manage_new_object>());  
-  def("create_blocking_enobio_signal", create_blocking_enobio_signal, return_value_policy<manage_new_object>());
-  def("create_nonblocking_enobio_signal", create_nonblocking_enobio_signal, return_value_policy<manage_new_object>());
-  def("create_blocking_mobilab_signal", create_blocking_mobilab_signal, return_value_policy<manage_new_object>());
-  def("create_nonblocking_mobilab_signal", create_nonblocking_mobilab_signal, return_value_policy<manage_new_object>());  
+//  def("create_timer", create_timer, return_value_policy<manage_new_object>());
 
-  
   class_<SignalPythonWrap, boost::noncopyable>("ISignal", no_init)
     .def("open", pure_virtual(&ISignal::open))
     .def("init", pure_virtual(&ISignal::init))
@@ -224,15 +150,6 @@ BOOST_PYTHON_MODULE(neuralsignal)
     .def("close", pure_virtual(&ISignal::close))             
     ;
 
-  class_<TimerPythonWrap, boost::noncopyable>("ITimer", no_init)
-    .def("start", pure_virtual(&ITimer::start))
-    .def("elapsedCycles", pure_virtual(&ITimer::elapsedCycles))
-    .def("elapsedMilliSecs", pure_virtual(&ITimer::elapsedMilliSecs))
-    .def("elapsedMicroSecs", pure_virtual(&ITimer::elapsedMicroSecs))
-    .def("getFrequency", pure_virtual(&ITimer::getFrequency))
-    .def("getStartValue", pure_virtual(&ITimer::getStartValue))
-    ;
-    
   class_<NonblockingSignal, bases<ISignal> >("NonblockingSignal", init<ISignal*>())
     .def("open", &NonblockingSignal::open)
     .def("init", &NonblockingSignal::init)
@@ -259,3 +176,4 @@ BOOST_PYTHON_MODULE(neuralsignal)
     ;
 }
 
+#endif

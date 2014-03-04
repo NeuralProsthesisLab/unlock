@@ -118,25 +118,95 @@ class Builder(object):
             lib_dir = options.lib_dir
 
         if options.build:
+            # XXX - For fsck(2) sake fix me; this stuff is specified in serveral places.  We should generate the
+            #       SConstruct file from this file.
             subprocess.check_call([python, scons, '-Q'], **redirect)
 
             ns_dll = 'neuralsignal_win_x86.dll'
             ns_test_dll = 'neuralsignal-unit-tests.exe'
+
+            random_dll = 'random_signal_win_x86.dll'
+            random_test_dll = 'random-unit-tests.exe'
+
+            mobilab_dll = 'mobilab_signal_win_x86.dll'
+            mobilab_test_dll = 'mobilab-unit-tests.exe'
+
+            enobio_dll = 'enobio_signal_win_x86.dll'
+            enobio_test_dll = 'enobio-unit-tests.exe'
+
+            nidaq_dll = 'nidaq_signal_win_x86.dll'
+            nidaq_test_dll = 'nidaq-unit-tests.exe'
+
             ns = os.path.join(cwd, ns_dll)
             ns_dest = os.path.join(cwd, lib_dir, ns_dll)
-
             ns_dest_python = os.path.join(cwd, lib_dir, 'neuralsignal.pyd')
             ns_test = os.path.join(cwd, ns_test_dll)
             ns_test_dest = os.path.join(cwd, lib_dir, ns_test_dll)
 
-            build_command = ['cp', ns, ns_dest]
-            build_command1 = ['cp', ns, ns_dest_python]
-            build_command2 = ['cp', ns_test, ns_test_dest]
+            random = os.path.join(cwd, random_dll)
+            random_dest = os.path.join(cwd, lib_dir, random_dll)
+            random_dest_python = os.path.join(cwd, lib_dir, 'random_signal.pyd')
+            random_test = os.path.join(cwd, random_test_dll)
+            random_test_dest = os.path.join(cwd, lib_dir, random_test_dll)
+
+            mobilab = os.path.join(cwd, mobilab_dll)
+            mobilab_dest = os.path.join(cwd, lib_dir, mobilab_dll)
+            mobilab_dest_python = os.path.join(cwd, lib_dir, 'mobilab_signal.pyd')
+            mobilab_test = os.path.join(cwd, mobilab_test_dll)
+            mobilab_test_dest = os.path.join(cwd, lib_dir, mobilab_test_dll)
+
+            enobio = os.path.join(cwd, enobio_dll)
+            enobio_dest = os.path.join(cwd, lib_dir, enobio_dll)
+            enobio_dest_python = os.path.join(cwd, lib_dir, 'enobio_signal.pyd')
+            enobio_test = os.path.join(cwd, enobio_test_dll)
+            enobio_test_dest = os.path.join(cwd, lib_dir, enobio_test_dll)
+
+            nidaq = os.path.join(cwd, nidaq_dll)
+            nidaq_dest = os.path.join(cwd, lib_dir, nidaq_dll)
+            nidaq_dest_python = os.path.join(cwd, lib_dir, 'nidaq_signal.pyd')
+            nidaq_test = os.path.join(cwd, nidaq_test_dll)
+            nidaq_test_dest = os.path.join(cwd, lib_dir, nidaq_test_dll)
+
+            copy_ns = ['cp', ns, ns_dest]
+            copy_ns_python = ['cp', ns, ns_dest_python]
+            copy_ns_test = ['cp', ns_test, ns_test_dest]
+
+            copy_random = ['cp', random, random_dest]
+            copy_random_python = ['cp', random, random_dest_python]
+            copy_random_test = ['cp', random_test, random_test_dest]
+
+            copy_mobilab = ['cp', mobilab, mobilab_dest]
+            copy_mobilab_python = ['cp', mobilab, mobilab_dest_python]
+            copy_mobilab_test = ['cp', mobilab_test, mobilab_test_dest]
+
+            copy_enobio = ['cp', enobio, enobio_dest]
+            copy_enobio_python = ['cp', enobio, enobio_dest_python]
+            copy_enobio_test = ['cp', enobio_test, enobio_test_dest]
+
+            copy_nidaq = ['cp', nidaq, nidaq_dest]
+            copy_nidaq_python = ['cp', nidaq, nidaq_dest_python]
+            copy_nidaq_test = ['cp', nidaq_test, nidaq_test_dest]
 
             # execute the commands
-            subprocess.check_call(build_command, **redirect)
-            subprocess.check_call(build_command1, **redirect)
-            subprocess.check_call(build_command2, **redirect)
+            subprocess.check_call(copy_ns, **redirect)
+            subprocess.check_call(copy_enobio_python, **redirect)
+            subprocess.check_call(copy_ns_test, **redirect)
+
+            subprocess.check_call(copy_random, **redirect)
+            subprocess.check_call(copy_random_python, **redirect)
+            subprocess.check_call(copy_random_test, **redirect)
+
+            subprocess.check_call(copy_enobio, **redirect)
+            subprocess.check_call(copy_enobio_python, **redirect)
+            subprocess.check_call(copy_enobio_test, **redirect)
+
+            subprocess.check_call(copy_mobilab, **redirect)
+            subprocess.check_call(copy_mobilab_python, **redirect)
+            subprocess.check_call(copy_mobilab_test, **redirect)
+
+            subprocess.check_call(copy_nidaq, **redirect)
+            subprocess.check_call(copy_nidaq_python, **redirect)
+            subprocess.check_call(copy_nidaq_test, **redirect)
 
         if options.runtime_dir:
             runtime_dir = options.runtime_dir
@@ -161,7 +231,6 @@ class Builder(object):
 
     def build_darwin(self):
         return self.unsupported()
-
 
 if __name__ == '__main__':
     builder = Builder(sys.platform)

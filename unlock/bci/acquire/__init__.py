@@ -31,10 +31,26 @@ import time
 imported_neural_signal = False
 
 try:
-    from unlock.bci.acquire.neuralsignal import create_timer, create_nonblocking_mobilab_signal, create_nonblocking_enobio_signal, create_random_signal, create_nidaq_signal
+    #from unlock.bci.acquire.neuralsignal import create_timer
+    from unlock.bci.acquire.random_signal import create_timer, create_random_signal
     imported_neural_signal = True
 except:
     assert sys.platform == 'darwin'
+
+try:
+    from unlock.bci.acquire.mobilab_signal import create_nonblocking_mobilab_signal
+except:
+    print("unlock/acquire.__init__.py: mobilab not present")
+
+try:
+    from unlock.bci.acquire.enobio_signal import create_nonblocking_enobio_signal
+except:
+    print("unlock/acquire.__init__.py: enobio not present")
+
+try:
+    from unlock.bci.acquire.nidaq_signal import create_nidaq_signal
+except:
+    print("unlock/acquire.__init__.py: nidaq not present")
 
 from unlock.bci.acquire.audio_signal import *
 from unlock.bci.acquire.file_signal import *
