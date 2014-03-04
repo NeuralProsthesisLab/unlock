@@ -36,8 +36,41 @@ PythonSignal* create_random_signal(ITimer* pTimer) {
   return pPythonSignal;  
 }
 
+ITimer* create_timer() {
+  ITimer* pTimer = new WinTimer();
+  pTimer->start();
+  return pTimer;
+}
+
 BOOST_PYTHON_MODULE(random_signal)
 {
+  class_<std::vector<int32_t> >("int32_vector")
+        .def(vector_indexing_suite<std::vector<int32_t> >() );
+
+  def("create_timer", create_timer, return_value_policy<manage_new_object>());
   def("create_random_signal", create_random_signal, return_value_policy<manage_new_object>());
+
+  class_<TimerPythonWrap, boost::noncopyable>("ITimer", no_init)
+    .def("start", pure_virtual(&ITimer::start))
+    .def("elapsedCycles", pure_virtual(&ITimer::elapsedCycles))
+    .def("elapsedMilliSecs", pure_virtual(&ITimer::elapsedMilliSecs))
+    .def("elapsedMicroSecs", pure_virtual(&ITimer::elapsedMicroSecs))
+    .def("getFrequency", pure_virtual(&ITimer::getFrequency))
+    .def("getStartValue", pure_virtual(&ITimer::getStartValue))
+    ;
+
+  class_<PythonSignal>("PythonSignal", init<ISignal*, ITimer*>())
+    .def("open", &PythonSignal::open)
+    .def("init", &PythonSignal::init)
+    .def("channels", &PythonSignal::channels)
+    .def("start", &PythonSignal::start)
+    .def("acquire", &PythonSignal::acquire)
+    .def("getdata", &PythonSignal::getdata)
+    .def("elapsedMicroSecs", &PythonSignal::elapsedMicroSecs)
+    .def("timestamp", &PythonSignal::timestamp)
+    .def("stop", &PythonSignal::stop)
+    .def("close", &PythonSignal::close)
+    ;
+
 }
 
