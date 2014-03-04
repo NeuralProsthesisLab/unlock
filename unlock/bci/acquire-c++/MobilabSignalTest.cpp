@@ -25,21 +25,20 @@
 // ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#define BOOST_TEST_MODULE EnobioSignalHandlerTests
+#define BOOST_TEST_MODULE MobilabSignalTests
 #include <boost/test/unit_test.hpp>
 #include <boost/thread/thread.hpp>
 #include <iostream>
 
 #include "NonblockingSignal.hpp"
-#include "EnobioSignalHandler.hpp"
-#include "RandomSignal.hpp"
+#include "MobilabSignal.hpp"
 #include "Sample.hpp"
 
 using namespace std;
 
-uint8_t mac1[RandomSignal::MAC_ADDRESS_SIZE] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6 };
+//uint8_t mac1[RandomSignal::MAC_ADDRESS_SIZE] = { 0x1, 0x2, 0x3, 0x4, 0x5, 0x6 };
 
-BOOST_AUTO_TEST_SUITE(EnobioSignalHandlerTest)
+BOOST_AUTO_TEST_SUITE(MobilabSignalTest)
 #if 0
 BOOST_AUTO_TEST_CASE(test_create_delete)
 {
