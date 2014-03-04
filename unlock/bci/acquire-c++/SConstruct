@@ -30,7 +30,12 @@ import os
 import sys
 
 lib_path = ['.']
-libs = []
+core_libs = []
+random_signal_libs = []
+mobilab_signal_libs = []
+enobio_signal_libs = []
+nidaq_signal_libs = []
+
 test_libs = []
 includes = []
 boost_includes = [os.path.join('include')]
@@ -42,7 +47,11 @@ if sys.platform == 'darwin':
             'libboost_test_exec_monitor.a', 'libboost_thread.a', 
             'libboost_unit_test_framework.a']
       python_includes = ['/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/']
-      libname = 'libneuralsignal_darwin_x86_64'
+
+      core_lib_name = 'libneuralsignal_darwin_x86_64'
+      nidaq_lib_name = 'libnidaq_darwin_x86_64'
+      random_lib_name = 'librandom_darwin_x86_64'
+
       ccflags = []
       cppdefines = []
       target_arch = 'x86_64'
@@ -59,14 +68,17 @@ elif sys.platform == 'win32':
                     'boost_unit_test_framework-vc100-mt-1_54',
 #                    'libboost_test_exec_monitor-vc100-mt-1_54',
 #                    'boost_prg_exec_monitor-vc100-mt-1_54',
-                    'boost_thread-vc100-mt-1_54',
-                    'Enobio3GAPI',
-                    'NIDAQmx',
-                    'gMOBIlabplus'
+                    'boost_thread-vc100-mt-1_54'
                     ]
       python_includes = ['C:\Python33\include']
       ni_includes = ['C:\Program Files (x86)\National Instruments\NI-DAQ\DAQmx ANSI C Dev\include']
-      libname = 'neuralsignal_win_x86'
+
+      core_lib_name = 'neuralsignal_win_x86'
+      random_signal_lib_name = 'random_signal_win_x86'
+      mobilab_signal_lib_name = 'mobilab_signal_win_x86'
+      enobio_signal_lib_name = 'enobio_signal_win_x86'
+      nidaq_signal_lib_name = 'nidaq_signal_win_x86'
+
       ccflags = ['/MD',  '/EHsc']
       includes.append(os.path.join('include', 'enobio'))
       includes.append(os.path.join('include', 'gtec'))
@@ -75,29 +87,89 @@ elif sys.platform == 'win32':
       target_arch = 'x86'
 
 lib_path.extend(boost_lib_path)
-libs.extend(boost_libs)
+core_libs.extend(boost_libs)
+
+random_signal_libs.extend(boost_libs)
+random_signal_libs.append(core_lib_name)
+
+mobilab_signal_libs.extend(boost_libs)
+mobilab_signal_libs.append([core_lib_name, 'gMOBIlabplus'])
+
+enobio_signal_libs.extend(boost_libs)
+enobio_signal_libs.append([core_lib_name, 'Enobio3GAPI', random_signal_lib_name])
+
+nidaq_signal_libs.extend(boost_libs)
+nidaq_signal_libs.append([core_lib_name, 'NIDAQmx'])
+
 test_libs.extend(boost_libs)
-test_libs.append(libname)
+test_libs.extend([core_lib_name, random_signal_lib_name, mobilab_signal_lib_name, enobio_signal_lib_name, nidaq_signal_lib_name,'Enobio3GAPI', 'NIDAQmx', 'gMOBIlabplus' ])
+
 includes.extend(boost_includes)
 includes.extend(python_includes)
 frameworks = ["Python"]
 
-SOURCES=['neuralsignal.cpp', 'NonblockingSignal.cpp', 'RandomSignal.cpp', 'AsyncSampleCollector.cpp',
-           'ManagedWorkController.cpp', 'EnobioSignalHandler.cpp', 'PythonSignal.cpp', 'Logger.cpp',
-           'EnobioDataReceiver.cpp', 'EnobioStatusReceiver.cpp', 'WinTimer.cpp', 'NidaqSignal.cpp', 'MobilabSignal.cpp']
-UNIT_TEST_SOURCES=['AsyncSampleCollectorTest.cpp', 'SignalTestRunner.cpp', 'NonblockingSignalTest.cpp',
-                   'SampleTest.cpp', 'IntegralWorkController.cpp', 'ManagedWorkControllerTest.cpp',
-                   'IntegralWorkControllerTest.cpp', 'EnobioSignalHandlerTest.cpp', 'PythonSignalTest.cpp',
-                   'LoggerTest.cpp', 'WinTimerTest.cpp', 'NiDaqMxTest.cpp']
+CORE_SOURCES=['NonblockingSignal.cpp', 'AsyncSampleCollector.cpp', 'ManagedWorkController.cpp', 'PythonSignal.cpp',
+              'Logger.cpp',  'WinTimer.cpp',]
 
-env = Environment(CPPPATH = includes, LIBS = libs, LIBPATH = lib_path,
-                  FRAMEWORKS = frameworks, SHLIBPREFIX = '',
-                  TARGET_ARCH=target_arch, CCFLAGS=ccflags , CPPDEFINES=cppdefines)
-                  
-test_env = Environment(CPPPATH = includes, LIBS = test_libs, LIBPATH = lib_path,
-                  SHLIBPREFIX = '', CCFLAGS=ccflags, CPPDEFINES=cppdefines,
-                  TARGET_ARCH=target_arch)
-                  
-neuralsignal = env.SharedLibrary(libname, SOURCES)
-test_neuralsignal = test_env.Program('neuralsignal-unit-tests', UNIT_TEST_SOURCES)
+CORE_TEST_SOURCES=['AsyncSampleCollectorTest.cpp', 'SignalTestRunner.cpp', 'NonblockingSignalTest.cpp',
+                   'SampleTest.cpp', 'IntegralWorkController.cpp', 'ManagedWorkControllerTest.cpp',
+                   'IntegralWorkControllerTest.cpp', 'PythonSignalTest.cpp',
+                   'LoggerTest.cpp', 'WinTimerTest.cpp', 'MockSignal.cpp']
+
+RANDOM_SOURCES = ['RandomSignal.cpp', 'random_signal.cpp']
+RANDOM_TEST_SOURCES = ['RandomSignalTest.cpp']
+
+
+MOBILAB_SOURCES = ['MobilabSignal.cpp']
+MOBILAB_TEST_SOURCES=['MobilabSignalTest.cpp']
+
+ENOBIO_SOURCES = ['EnobioSignalHandler.cpp', 'EnobioDataReceiver.cpp', 'EnobioStatusReceiver.cpp']
+ENOBIO_TEST_SOURCES=['EnobioSignalHandlerTest.cpp']
+
+NIDAQ_SOURCES = ['NidaqSignal.cpp', 'nidaq_signal.cpp']
+NIDAQ_TEST_SOURCES = ['NiDaqMxTest.cpp']
+
+core_lib_env = Environment(CPPPATH = includes, LIBS = core_libs, LIBPATH = lib_path, FRAMEWORKS = frameworks, SHLIBPREFIX = '',
+                       TARGET_ARCH=target_arch, CCFLAGS=ccflags , CPPDEFINES=cppdefines)
+
+random_signal_env = Environment(CPPPATH = includes, LIBS = random_signal_libs, LIBPATH = lib_path, SHLIBPREFIX = '',
+                                 CCFLAGS=ccflags, CPPDEFINES=cppdefines, TARGET_ARCH=target_arch)
+
+mobilab_signal_env = Environment(CPPPATH = includes, LIBS = mobilab_signal_libs, LIBPATH = lib_path, SHLIBPREFIX = '',
+                                 CCFLAGS=ccflags, CPPDEFINES=cppdefines, TARGET_ARCH=target_arch)
+
+enobio_signal_env = Environment(CPPPATH = includes, LIBS = enobio_signal_libs, LIBPATH = lib_path, SHLIBPREFIX = '',
+                                 CCFLAGS=ccflags, CPPDEFINES=cppdefines, TARGET_ARCH=target_arch)
+
+nidaq_signal_env = Environment(CPPPATH = includes, LIBS = nidaq_signal_libs, LIBPATH = lib_path, SHLIBPREFIX = '',
+                                 CCFLAGS=ccflags, CPPDEFINES=cppdefines, TARGET_ARCH=target_arch)
+
+test_env = Environment(CPPPATH = includes, LIBS = test_libs, LIBPATH = lib_path, SHLIBPREFIX = '',
+                                 CCFLAGS=ccflags, CPPDEFINES=cppdefines, TARGET_ARCH=target_arch)
+
+neuralsignal = core_lib_env.SharedLibrary(core_lib_name, CORE_SOURCES)
+random_signal = random_signal_env.SharedLibrary(random_signal_lib_name, RANDOM_SOURCES)
+mobilab_signal = mobilab_signal_env.SharedLibrary(mobilab_signal_lib_name, MOBILAB_SOURCES)
+enobio_signal = enobio_signal_env.SharedLibrary(enobio_signal_lib_name, ENOBIO_SOURCES)
+nidaq_signal = nidaq_signal_env.SharedLibrary(nidaq_signal_lib_name, NIDAQ_SOURCES)
+
+test_neuralsignal = test_env.Program('neuralsignal-unit-tests', CORE_TEST_SOURCES)
+random_test = test_env.Program('random-unit-tests', RANDOM_TEST_SOURCES)
+mobilab_test = test_env.Program('mobilab-unit-tests', MOBILAB_TEST_SOURCES)
+enobio_test = test_env.Program('enobio-unit-tests', ENOBIO_TEST_SOURCES)
+nidaq_test = test_env.Program('nidaq-unit-tests', NIDAQ_TEST_SOURCES)
+
+test_env.Requires(random_test, neuralsignal)
+test_env.Requires(random_test, random_signal)
+
+test_env.Requires(mobilab_test, neuralsignal)
+test_env.Requires(mobilab_test, mobilab_signal)
+
+test_env.Requires(enobio_test, neuralsignal)
+test_env.Requires(enobio_test, enobio_signal)
+
+test_env.Requires(nidaq_test, neuralsignal)
+test_env.Requires(nidaq_test, nidaq_signal)
+
+test_env.Requires(test_neuralsignal, random_signal)
 test_env.Requires(test_neuralsignal, neuralsignal)
