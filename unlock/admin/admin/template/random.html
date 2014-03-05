@@ -1,3 +1,12 @@
+<!--
+Usage:
+- http://localhost:5000?cwidth=1000&cheight=1000 : Customize canvas size in pixel. Default: 800x800.
+- http://localhost:5000?rows=5&cols=5 : Customize checker board's number of rows & columns. Default: 4x4.
+- http://localhost:5000?frate=15 : Customize flickering rate in Hertz. Default: 0.
+
+Params can be combined. For example: http://localhost:5000?cwidth=1000&cheight=1000&rows=5&cols=5&frate=15
+-->
+
 <html>
 	<head>
 		
@@ -24,16 +33,11 @@
 			cwidth = (cwidth) ? cwidth[0].match(/\d+/)[0] : 800;
 			var cheight = location.search.match(/(\?|&)cheight=\d+/);
 			cheight = (cheight) ? cheight[0].match(/\d+/)[0] : 800;
-			var swidth = location.search.match(/(\?|&)swidth=\d+/);
-			swidth = (swidth) ? swidth[0].match(/\d+/)[0] : 10;
 			
 			// Set canvas size
 			var canvas = document.getElementById(canvasID);
 			canvas.style.width = cwidth;
 			canvas.style.height = cheight;
-			
-			// Zomm in/out to scale squares to desired width 
-			var camZ = cwidth / swidth;
 		
 			// Init scenejs
 			SceneJS.setDebugConfigs({
@@ -70,7 +74,7 @@
 							// View matrix								
 							{					
 								type:"lookAt",
-								eye:{ z:camZ },
+								eye:{ z:6 },
 								
 								// Attach checker board definition
 								nodes:board
