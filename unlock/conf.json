@@ -19,7 +19,7 @@
         "args" : {
             "fullscreen" : true,
             "fps" : false,
-            "vsync" : false
+            "vsync" : true
         }
     },
     
