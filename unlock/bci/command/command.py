@@ -136,7 +136,7 @@ class RawSignalCommand(Command):
 
     def make_matrix(self):
         if self.raw_data_vector.shape != (self.samples, self.channels):
-            print("Raw vector = ", self.raw_data_vector, " shape = ", self.raw_data_vector.shape, " samples ", self.samples, " chaneels ", self.channels)
+            #print("Raw vector = ", self.raw_data_vector, " shape = ", self.raw_data_vector.shape, " samples ", self.samples, " chaneels ", self.channels)
             self.data_matrix = self.raw_data_vector.reshape((self.samples, self.channels))
         else:
             self.data_matrix = self.raw_data_vector

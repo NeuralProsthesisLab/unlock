@@ -71,9 +71,6 @@ PythonSignal* create_nonblocking_enobio_signal(ITimer* pTimer) {
 
 BOOST_PYTHON_MODULE(enobio_signal)
 {
-  class_<std::vector<int32_t> >("int32_vector")
-        .def(vector_indexing_suite<std::vector<int32_t> >() );
-
   def("create_blocking_enobio_signal", create_blocking_enobio_signal, return_value_policy<manage_new_object>());
   def("create_nonblocking_enobio_signal", create_nonblocking_enobio_signal, return_value_policy<manage_new_object>());
 

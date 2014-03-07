@@ -236,7 +236,7 @@ class FrameCountTimerState(object):
     """
     def __init__(self, duration_in_frames):
         assert duration_in_frames >= 1
-        self.duration = int(duration_in_frames)
+        self.duration = int(60/int(duration_in_frames))
         self.elapsed = 0
 
     def begin_timer(self):
