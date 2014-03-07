@@ -115,7 +115,7 @@ size_t MobilabSignal::acquire() {
 }
 
 void MobilabSignal::getdata(uint32_t* buffer, size_t samples) {
-	BOOST_ASSERT(samples == mChannels && mpTimer != 0);
+	BOOST_ASSERT(samples == mChannels+TIME_SLOT && mpTimer != 0);
 	for(size_t i=0; i < samples; i++) {
 		if (i+TIME_SLOT < samples) {
 		    buffer[i] = mpBuffer[i];

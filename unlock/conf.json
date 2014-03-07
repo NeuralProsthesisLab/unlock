@@ -18,7 +18,7 @@
        "name" : "pyglet",
         "args" : {
             "fullscreen" : true,
-            "fps" : false,
+            "fps" : true,
             "vsync" : true
         }
     },
