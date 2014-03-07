@@ -25,20 +25,10 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "ISignal.hpp"
-#include "NonblockingSignal.hpp"
-#include "Portability.hpp"
-#include "PythonSignal.hpp"
-#include "ITimer.hpp"
-#include "WinTimer.hpp"
 #include "MobilabSignal.hpp"
 #include "unlock_signal.hpp"
 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <vector>
-#include <stdint.h>
-
+using namespace boost::python;
 
 // ain = 120, dio = 0, comPort = "COM5"
 ISignal* create_mobilab_signal(ITimer* pTimer, int32_t ain, int32_t dio, std::string comPort) {
@@ -61,9 +51,6 @@ PythonSignal* create_nonblocking_mobilab_signal(ITimer* pTimer, int32_t ain, int
 
 BOOST_PYTHON_MODULE(mobilab_signal)
 {
-  class_<std::vector<int32_t> >("int32_vector")
-        .def(vector_indexing_suite<std::vector<int32_t> >() );
-        
   def("create_blocking_mobilab_signal", create_blocking_mobilab_signal, return_value_policy<manage_new_object>());
   def("create_nonblocking_mobilab_signal", create_nonblocking_mobilab_signal, return_value_policy<manage_new_object>());
 

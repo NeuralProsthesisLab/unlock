@@ -5,7 +5,7 @@
             "stimulation" : "single_ssvep"
         },
         "args" : {
-            "output_file" : "ssvep-diag-18hz-random"
+            "output_file" : "ssvep-diag-12z-mobilab-time"
         }
     },
     
@@ -20,8 +20,8 @@
        "name" : "pyglet",
         "args" : {
             "fullscreen" : true,
-            "fps" : false,
-            "vsync" : false
+            "fps" : true,
+            "vsync" : true
         }
     },
     
@@ -62,7 +62,7 @@
     "single_ssvep" : {
         "args" : {
             "stimulus" : "time",
-            "frequency" : 18,
+            "frequency" : 12,
             "color" : [0, 0, 0],
             "color1" : [255, 255, 255],
             "width" : 300,
@@ -74,7 +74,7 @@
 
     "quad_ssvep" : {
         "args" : {
-            "stimulus" : "time",
+            "stimulus" : "frame_count",
             "stimuli_duration" : 3.0,
             "rest_duration" : 1.0,
             "frequencies" : [12.0, 13.0, 14.0, 15.0],

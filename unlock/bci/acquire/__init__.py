@@ -39,8 +39,9 @@ except:
 
 try:
     from unlock.bci.acquire.mobilab_signal import create_nonblocking_mobilab_signal
-except:
-    print("unlock/acquire.__init__.py: mobilab not present")
+except Exception as e:
+    raise e
+    print("unlock/acquire.__init__.py: mobilab not present", e)
 
 try:
     from unlock.bci.acquire.enobio_signal import create_nonblocking_enobio_signal

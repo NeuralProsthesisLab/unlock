@@ -72,8 +72,12 @@ class HarmonicFeatureExtractor(UnlockDecoder):
                     freqs > harmonic * target - self.target_window,
                     freqs < harmonic * target + self.target_window))[0]
                 harmonic_idx.append(idx)
+                print("Harmonic ---", harmonic, " idx ", idx)
             self.harmonics.append(harmonic_idx)
-            
+
+        print("harmonics = ", self.harmonics)
+        #import sys
+        #sys.exit(0)
         self.file_handle = None
         self.output_file_prefix = 'harmonic_feature_extractor'
 
@@ -115,8 +119,10 @@ class ScoredHarmonicSumDecision(UnlockDecoder):
         command = self.threshold_decoder.decode(command)
             
         if command.accept:
-            command.class_label = command.winner + 1
+            # XXX made a change here
+            command.class_label = command.winner
             np.set_printoptions(precision=2)
+            print("Targets ", self.targets, ' command classlabel ', command.class_label)
             result_string = "ScoredHarmonicSumDecision: %d (%.1f Hz)" % (command.class_label,
                 self.targets[command.class_label])
                 

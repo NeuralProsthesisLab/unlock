@@ -119,11 +119,10 @@ CORE_TEST_SOURCES=['AsyncSampleCollectorTest.cpp', 'SignalTestRunner.cpp', 'Nonb
 RANDOM_SOURCES = ['RandomSignal.cpp', 'random_signal.cpp']
 RANDOM_TEST_SOURCES = ['RandomSignalTest.cpp']
 
-
-MOBILAB_SOURCES = ['MobilabSignal.cpp']
+MOBILAB_SOURCES = ['MobilabSignal.cpp', 'mobilab_signal.cpp']
 MOBILAB_TEST_SOURCES=['MobilabSignalTest.cpp']
 
-ENOBIO_SOURCES = ['EnobioSignalHandler.cpp', 'EnobioDataReceiver.cpp', 'EnobioStatusReceiver.cpp']
+ENOBIO_SOURCES = ['EnobioSignalHandler.cpp', 'EnobioDataReceiver.cpp', 'EnobioStatusReceiver.cpp', 'enobio_signal.cpp']
 ENOBIO_TEST_SOURCES=['EnobioSignalHandlerTest.cpp']
 
 NIDAQ_SOURCES = ['NidaqSignal.cpp', 'nidaq_signal.cpp']

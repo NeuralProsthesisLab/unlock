@@ -64,6 +64,7 @@ class TimeScopeState(UnlockState):
             return
 
         samples = command.matrix[:, 0:self.n_channels]
+        print("a sample = ", samples[0])
         s = samples.shape[0]
         idx = np.arange(self.cursor, self.cursor+s) % self.n_samples
         self.traces[idx] = samples
