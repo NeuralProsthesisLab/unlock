@@ -5,7 +5,7 @@
             "stimulation" : "single_ssvep"
         },
         "args" : {
-            "output_file" : "ssvep-diag-12z-mobilab-time"
+            "output_file" : "ssvep-diag-12z-mobilab-time-novsync"
         }
     },
     
@@ -21,7 +21,7 @@
         "args" : {
             "fullscreen" : true,
             "fps" : true,
-            "vsync" : true
+            "vsync" : false
         }
     },
     
