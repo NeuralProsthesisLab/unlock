@@ -86,11 +86,11 @@ func unzipExpand(fileName string) {
 }
 
 func downloadAndWriteFile(fileUrl string, fileName string) string {
-    // Use the files in <repo>/package/ if specified by -repo flag
+    // Use the files in <unlock-deps-repo> if specified by -deps-repo flag
     if *repoPath == `` {
         return getOnlineFile(fileUrl, fileName)
     } else {
-        return getOfflineFile(filepath.Join(*repoPath, `package`, fileName))
+        return getOfflineFile(filepath.Join(*repoPath, fileName))
     }
 }
 
@@ -362,7 +362,7 @@ func installUnlock(pythonPath string, baseUrl string, fileName string, packageNa
 
 var confFile = flag.String("conf", "", "Qualified file name of Unlock installation configuration file")
 var devOption = flag.Bool("dev", false, "Setup development env")
-var repoPath = flag.String("repo", "", "Path to project's git repo")
+var repoPath = flag.String("deps-repo", "", "Path to unlock-deps git repo (see https://github.com/NeuralProsthesisLab/unlock-deps for more details)")
 var testDownloadTimeout = flag.Bool("testDownloadTimeout", false, "Test download timeout after 5 attempts to download correct file")
 
 func createConf() unlockconf.UnlockInstallConf {
