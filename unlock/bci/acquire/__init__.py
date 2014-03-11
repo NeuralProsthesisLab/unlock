@@ -57,46 +57,49 @@ from unlock.bci.acquire.audio_signal import *
 from unlock.bci.acquire.file_signal import *
 
 class NoBciRandomSignal(object):
-	def __init__(self,channels=2, seed=42, lower_bound=1, upper_bound=65536):
-		super(NoBciRandomSignal, self).__init__()
+    def __init__(self,channels=8, seed=42, lower_bound=1, upper_bound=65536):
+        super(NoBciRandomSignal, self).__init__()
         import random
-	    self.channels = channels
+        self.chans = channels
         self.rand = random.Random()
         self.rand.seed(seed)
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
-
-	def open(self, macaddr):
-		self.mac = macaddr
-		return True
-			
-	def init(self, channels):
-		self.channels = channels
-		return True
-		
-	def channels(self):
-		return self.channels
-		
-	def start(self):
-		return True
-		
-	def acquire(self):
-		return 1 * self.channels
-		
-	def getdata(self, samples):
-        return [self.rand.nextint(self.lower_bound, self.upper_bound) for i in self.samples]
-		
-	def getEaplsedMicros(self):
-		pass
-		
-	def timestamp(self):
-		pass
-		
-	def stop(self):
-		pass
-		
-	def close(self):	
-	    pass
+    
+    def open(self, macaddr):
+        self.mac = macaddr
+        return True
+            
+    def init(self, channels):
+        self.chans = channels
+        return True
+        
+    def channels(self):
+            return self.chans
+            
+    def start(self):
+            return True
+            
+    def acquire(self):
+            return 1 * self.chans
+            
+    def getdata(self, samples):
+        import numpy as np
+        ret = np.array([float(self.rand.randint(self.lower_bound, self.upper_bound)) for i in range(0, samples)])
+        ret[-1] = 0
+        return ret
+    
+    def getEaplsedMicros(self):
+            pass
+            
+    def timestamp(self):
+            pass
+            
+    def stop(self):
+            pass
+            
+    def close(self):        
+        pass
 
 class BasicTimer(object):
     def __init__(self):
@@ -111,7 +114,7 @@ class UnlockAcquisitionFactory:
         if imported_neural_signal:
             self.timer = create_timer()
         else:
-            self.timer = BasicTimer
+            self.timer = BasicTimer()
 
     def create_nidaq_signal(self):
         signal = create_nidaq_signal(self.timer)
@@ -119,15 +122,15 @@ class UnlockAcquisitionFactory:
             raise RuntimeError('Failed to start National Instruments DAQ')
         return signal
         #for j in range(50):
-        #	ret = daq.acquire()
-        #	ret = daq.getdata(ret)
-        #	f = open('test.data', 'wb')
-        #	import numpy as np
-        #	a = np.array(ret, dtype='float64')
-        #	a = a.reshape((500, 4))
-        #	#np.savetxt(f, a, fmt='%d', delimiter='\t')
-        #	for i in range(20):
-        #		print(a[i])
+        #       ret = daq.acquire()
+        #       ret = daq.getdata(ret)
+        #       f = open('test.data', 'wb')
+        #       import numpy as np
+        #       a = np.array(ret, dtype='float64')
+        #       a = a.reshape((500, 4))
+        #       #np.savetxt(f, a, fmt='%d', delimiter='\t')
+        #       for i in range(20):
+        #               print(a[i])
         #
 
     def create_audio_signal(self):

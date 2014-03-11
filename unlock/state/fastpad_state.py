@@ -29,6 +29,7 @@ class FastPadState(UnlockState):
 
         Raises an Exception if anything goes wrong.
         """
+        print("fastpad_state.ln 32 KARL I GOT A COMMAND")
         self.noop = False
         if command.decision == FastPadState.LEFT:
             
