@@ -67,10 +67,10 @@ components are also encapsulated under interfaces.
 
 Figure~\ref{bci-pipeline-fig} depicts the main components of Unlock.
 
-%\begin{figure}[]
-%\resizebox{\textwidth}{!}{\includegraphics{images/UnlockProjectSoftwareFramework.pdf}}
-%\caption{\label{bci-pipeline-fig}  Data flow through Unlock}
-%\end{figure}
+\begin{figure}[]
+\resizebox{\textwidth}{!}{\includegraphics{images/UnlockProjectSoftwareFramework.pdf}}
+\caption{\label{bci-pipeline-fig}  Unlock components}
+\end{figure}
 
 
 %\section{History}
@@ -144,23 +144,43 @@ To clone the repo run the following command from the Git Bash command.exe:
 
 Note, git@github.com:jpercent/unlock.git is my fork of the project.  If you want to commit to my fork that's fine, send me email and I'll add you.  But it's probably better to commit to your own fork.  If you want to push changes upstream, then you make a pull request.  
 
-Then change directory to the repo.  To do so type:
+
+Next clone the unlock-deps repo.  That is where the dependencies are stored.
+\begin{verbatim}  
+  $ git clone git@github.com:NeuralProsthesisLab/unlock-deps.git
+\end{verbatim}
+
+Next change directory into the unlock-deps repo and store it's location in an environment variable.  To do so type:
 \begin{verbatim}
-  $ cd unlock/
+  $ cd unlock-deps/
+  $ export UNLOCK_DEPS_REPO=`pwd`
+\end{verbatim}
+
+Note, the quotes around pwd are back ticks; they tell Bash to execute the command that gets the current working directory.   Next, change directory to the repo.  To do so type:
+\begin{verbatim}
+  $ cd ../unlock/
 \end{verbatim}
 
 Then run the installer for a development installation:
 \begin{verbatim}
-  $ golang/bin/install-win-x86-64.exe -dev=true -repo=`pwd`
+  $ golang/bin/install-win-x86-64.exe -dev=true -repo=${UNLOCK_DEPS_REPO}
 \end{verbatim}
-
-Note, the quotes around pwd are back ticks; they tell Bash to execute the command that gets the current working directory.  There should almost immediately be several installers that will ask you questions.  Please accept the defaults on everything.  
+There should almost immediately be several installers that will ask you questions.  Please accept the defaults on everything.  
 
 Watch the task bar.  Some versions of Windows will bring up access control dialogs; sometimes they come up in the background.  Additionally, at least one of the installers has a dialog that comes up asynchronously and in the background, so keep your eyes peeled for dialog boxes in the background.  They should be flashing on the task bar.
 
-Additionally, AVbin installer puts the avbin.dll in the wrong directory; the installer tries to move it, but you might have to do it manually as the administrator. To fix the issue go to C:\\Windows\\SysWOW64. If there is no avbin.dll, then copy the one in C:\\Windows\\System32 to SysWOW64.
+Additionally, AVbin installer puts the avbin.dll in the wrong directory; the installer tries to move it, but you might have to do it manually as the administrator. Check that the following file exists.  
 
-That should be all there is to it.  To test it run the following command:
+\begin{verbatim} 
+ C:\Windows\SysWOW64\avbin.dll 
+ \end{verbatim}  
+ 
+ If it does not, then the following file should exist.
+ \begin{verbatim}
+ C:\Windows\System32\avbin.dll
+ \end{verbatim} 
+ 
+ Copy avbin.dll in System32 to SysWOW64 and you should be all set.  To test it run the following command:
 
 \begin{verbatim}
   $ export PYTHONPATH=`pwd`
