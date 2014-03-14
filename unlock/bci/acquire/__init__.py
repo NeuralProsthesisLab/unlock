@@ -29,6 +29,7 @@ import sys
 import time
 
 imported_neural_signal = False
+no_bci = False
 
 try:
     #from unlock.bci.acquire.neuralsignal import create_timer

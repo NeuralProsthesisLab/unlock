@@ -111,10 +111,10 @@ class UnlockFactory(AbstractFactory):
 
     def single_ssvep(self, stimulus='frame_count', color=[0,0,0], color1=[255,255,255], stimuli_duration=3.0,
             rest_duration=1.0, frequency=15.0, width=300, height=300, horizontal_blocks=2,
-            vertical_blocks=3):
+            vertical_blocks=3, repeat_count=150):
 
         if stimulus == 'frame_count':
-            stimulus = self.state_factory.create_frame_counted_timed_stimulus(frequency)
+            stimulus = self.state_factory.create_frame_counted_timed_stimulus(frequency, repeat_count=repeat_count)
         else:
             stimulus = self.state_factory.create_wall_clock_timed_stimulus(frequency * 2)
 
@@ -263,7 +263,7 @@ class UnlockFactory(AbstractFactory):
         return self.controller_factory.create_dashboard(self.window, stimulation.canvas, controllers, cc_frag,
             [grid_view], state_chain)
 
-    def ssvep_diagnostic(self, stimulation=None, decoder=None, output_file='ssvep-diagnostic', standalone=True):
+    def ssvep_diagnostic(self, stimulation=None, decoder=None, output_file='ssvep-diagnostic', duration=10, standalone=True):
         receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
         if decoder:
             receiver_args['decoder'] = decoder

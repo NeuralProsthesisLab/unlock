@@ -50,11 +50,14 @@ class UnlockController(object):
     def poll_signal(self, delta):
         command = self.command_receiver.next_command(delta)
 
-        if 'stop' in command.__dict__:
+        if command.stop:
             self.window.handle_stop_request()
         else:
             self.update_state(command)
             self.render()
+
+        #if command.stop:
+        #    self.window.handle_stop_request()
 
     def update_state(self, command):
         ''' Subclass hook '''

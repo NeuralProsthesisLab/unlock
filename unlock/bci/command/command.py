@@ -43,6 +43,7 @@ class Command(object):
         self.data = data
         self.json = json
         self.ready = True
+        self.stop = False
         
     def is_valid(self):
         return False

@@ -89,7 +89,7 @@
 
     "frequency_scope" : {
         "deps" : {
-            "stimulation" : "no_stimulation"
+            "stimulation" : "quad_ssvep"
         },
         "args" : {
             "channels" : 1,
@@ -105,9 +105,9 @@
     "quad_ssvep" : {
         "args" : {
             "stimulus" : "frame_count",
-            "stimuli_duration" : 3.0,
+            "stimuli_duration" : 10.0,
             "rest_duration" : 1.0,
-            "frequencies" : [12.0, 13.0, 14.0, 15.0],
+            "frequencies" : [15.0, 15.0, 15.0, 15.0],
             "color" : [0, 0, 0],
             "color1" : [255, 255, 255],
             "width" : 500,

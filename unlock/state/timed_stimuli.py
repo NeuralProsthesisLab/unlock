@@ -152,13 +152,13 @@ class TimedStimulus(UnlockState):
     time_state: manages the time (when to emit the next value)
     seq_state: manages the values to emit (on, on, off, on, off, on, off, off, etc..)
     """
-    def __init__(self, time_state, seq_state, repeat_count=1):
+    def __init__(self, time_state, seq_state, repeat_count=150):
         super(TimedStimulus, self).__init__()
         self.time_state = time_state
         self.seq_state = seq_state
         self.state = False
         self.count = 0
-        self.repeat_count = repeat_count
+        self.repeat_count = 1
         self.logger = logging.getLogger(__name__)
             
     def get_state(self):
@@ -190,6 +190,7 @@ class TimedStimulus(UnlockState):
                 if self.count == self.repeat_count:
                     self.count = 0 
                     trigger_value = Trigger.Stop
+                    command.stop = True
                 else:
                     trigger_value = Trigger.Repeat
                     

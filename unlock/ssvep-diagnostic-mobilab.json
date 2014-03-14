@@ -5,7 +5,7 @@
             "stimulation" : "single_ssvep"
         },
         "args" : {
-            "output_file" : "ssvep-diag-12z-mobilab-time-novsync"
+            "output_file" : "ssvep-diag-15z-mobilab-time-novsync"
         }
     },
     
@@ -62,7 +62,7 @@
     "single_ssvep" : {
         "args" : {
             "stimulus" : "time",
-            "frequency" : 12,
+            "frequency" : 15,
             "color" : [0, 0, 0],
             "color1" : [255, 255, 255],
             "width" : 300,

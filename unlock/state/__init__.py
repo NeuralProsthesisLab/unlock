@@ -41,7 +41,7 @@ class UnlockStateFactory(object):
         seq_state = SequenceState(sequence, value_transformer_fn)
         return TimedStimulus(time_state, seq_state, repeat_count=repeat_count)
 
-    def create_frame_counted_timed_stimulus(self, rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x), repeat_count=1):
+    def create_frame_counted_timed_stimulus(self, rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x), repeat_count=150):
         time_state = FrameCountTimerState(rate)
         seq_state = SequenceState(sequence, value_transformer_fn)
         return TimedStimulus(time_state, seq_state, repeat_count=repeat_count)
