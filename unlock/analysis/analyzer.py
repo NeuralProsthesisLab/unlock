@@ -27,9 +27,45 @@
 
 from optparse import OptionParser
 from unlock.util import Trigger
-
+import matplotlib.pyplot as plt
 import numpy as np
 import sys
+
+class Analyzer(object):
+    def __init__(self, schema, data):
+        super(PlotAnalyzer, self).__init__()
+        self.schema = schema
+        self.data = data
+
+    def analyze(self):
+        pass
+
+class PlotAnalyzer(Analyzer):
+    def __init__(self, schema, data):
+        super(PlotAnalyzer, self).__init__(schema, data)
+        self.x_label = x_label
+        self.y_label = y_label
+        self.color_bar_label = color_bar_label
+
+
+class SpectrogramAnalyzer(PlotAnalyzer):
+    def __init__(self, schema, data, x_label='Time (s)', y_label='Frequency (Hz)', color_bar_label='Amplitude (Frequency power)'):
+        super(PlotAnalyzer, self).__init__()
+        self.schema = schema
+        self.data = data
+
+    def analyze(self, file_name=None):
+        time,signal = [],[]
+        self.data.load()
+        plt.specgram(self.data.raw_data(), Fs=self.schema.sampling_rate_hz())
+        plt.xlabel(self.x_label)
+        plt.ylabel(self.y_label)
+        plt.colorbar().set_label(self.color_bar_label)
+
+        if file_name:
+            plt.savefig(file_name)
+        else:
+            plt.show()
 
 
 

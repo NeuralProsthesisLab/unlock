@@ -36,22 +36,6 @@ from unlock import UnlockFactory
 import logging
 from sqlalchemy import create_engine
 
-__author__ = 'jpercent'
-
-class Schema(object):
-    def __init__(self, data, timestamps, triggers):
-        self.data_indices = data
-        self.sample_timestamp_indices = timestamps
-        self.trigger_indices = triggers
-
-    def data(self):
-        return self.data_indices
-
-    def timestamps(self):
-        return self.sample_timestamp_indicies
-
-    def triggers(self):
-        return self.triggers_indicies
 
 class UnlockAnalyzerFactory(AbstractFactory):
     def __init__(self):
