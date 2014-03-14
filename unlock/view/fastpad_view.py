@@ -328,7 +328,7 @@ class FastPadView(UnlockView):
                 
         Raises an Exception if anything goes wrong.
         """
-        print("fastpad_viewln 331: RENDERING THAT COMMAND YOU JUST PROCESSED")
+        
         if self.model.noop == True:
             self.model.noop = False
             return

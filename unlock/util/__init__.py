@@ -31,3 +31,4 @@ from unlock.util.observable import *
 from unlock.util.saferef import *
 from unlock.util.sockets import *
 from unlock.util.signal import *
+from unlock.util.factory import *

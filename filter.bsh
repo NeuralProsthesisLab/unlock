@@ -1,0 +1,4 @@
+#!/bin/bash
+
+git filter-branch -f --index-filter "git rm -f --cached --ignore-unmatch unlock/bci/acquire-c++/boost/boost_1_54_0.zip; git rm -f --cached --ignore-unmatch   unlock/decode/acquire-c++/boost/boost_1_54_0.tar.bz2; git rm -f --cached --ignore-unmatch -rf package/Scipy-stack-13.10.11.win32-py3.3.exe.part0; git rm -f --cached --ignore-unmatch -rf package/Scipy-stack-13.10.11.win32-py3.3.exe.part1; git rm -f --cached --ignore-unmatch package/python-3.3.2.msi git rm -f --cached --ignore-unmatch -rf package/python-3.3.2.amd64.msi git rm -rf --cached --ignore-unmatch unlock/decode" --tag-name-filter cat --prune-empty -- --all
+

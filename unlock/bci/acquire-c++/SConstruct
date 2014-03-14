@@ -46,7 +46,7 @@ if sys.platform == 'darwin':
       boost_libs = ['libboost_prg_exec_monitor.a', 'libboost_python.a', 'libboost_system.a', 
             'libboost_test_exec_monitor.a', 'libboost_thread.a', 
             'libboost_unit_test_framework.a']
-      python_includes = ['/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/']
+      python_includes = ['/Library/Frameworks/Python.framework/Versions/3.3/include/python3.3/']
 
       core_lib_name = 'libneuralsignal_darwin_x86_64'
       nidaq_lib_name = 'libnidaq_darwin_x86_64'
@@ -119,10 +119,11 @@ CORE_TEST_SOURCES=['AsyncSampleCollectorTest.cpp', 'SignalTestRunner.cpp', 'Nonb
 RANDOM_SOURCES = ['RandomSignal.cpp', 'random_signal.cpp']
 RANDOM_TEST_SOURCES = ['RandomSignalTest.cpp']
 
-MOBILAB_SOURCES = ['MobilabSignal.cpp', 'mobilab_signal.cpp']
+
+MOBILAB_SOURCES = ['MobilabSignal.cpp']
 MOBILAB_TEST_SOURCES=['MobilabSignalTest.cpp']
 
-ENOBIO_SOURCES = ['EnobioSignalHandler.cpp', 'EnobioDataReceiver.cpp', 'EnobioStatusReceiver.cpp', 'enobio_signal.cpp']
+ENOBIO_SOURCES = ['EnobioSignalHandler.cpp', 'EnobioDataReceiver.cpp', 'EnobioStatusReceiver.cpp']
 ENOBIO_TEST_SOURCES=['EnobioSignalHandlerTest.cpp']
 
 NIDAQ_SOURCES = ['NidaqSignal.cpp', 'nidaq_signal.cpp']
