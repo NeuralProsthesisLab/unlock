@@ -40,8 +40,7 @@ class Stimulation(object):
         self.stimuli = stimuli
         self.views = views
 
-
-class UnlockFactory(object):
+class UnlockFactory(AbstractFactory):
     def __init__(self):
         super(UnlockFactory, self).__init__()
         self.command_factory = UnlockCommandFactory()
@@ -278,59 +277,3 @@ class UnlockFactory(object):
         offline_data = self.state_factory.create_offline_data(output_file)
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, offline_data, [],
             standalone=standalone)
-
-    def create_singleton(self, type_name, attr_name, config):
-        #print('atter name = ', attr_name)
-        assert not hasattr(self, attr_name)
-        args = config[attr_name].get('args', None)
-        if args:
-            newobj = getattr(self, type_name)(**args)
-        else:
-            newobj = getattr(self, type_name)()
-
-        if newobj is None:
-            self.logger.error("UnlockFactory.create_singleton returned None; objdesc = ", type_name)
-
-        setattr(self, attr_name, newobj)
-        assert newobj
-        return newobj
-
-    def create(self, type_name, config):
-        objdesc = config[type_name]
-        deps = None
-        args = None
-        
-        if 'args' in objdesc:
-            args = objdesc['args']
-            
-        if 'deps' in objdesc:
-            #print("typename = ", type_name, objdesc)
-            deps = {}
-
-            for key, value in objdesc['deps'].items():
-                if type(value) == list:
-                    depobj = []
-                    for element in value:
-                        depobj.append(self.create(element, config))
-                else:             
-                    depobj = self.create(value, config)
-                    
-                deps[key] = depobj
-                
-            if args and deps:
-                args.update(deps)
-            elif deps.keys():
-                assert not args
-                args = deps
-
-        if args:
-            newobj = getattr(self, type_name)(**args)
-        else:
-            newobj = getattr(self, type_name)()
-
-        if newobj is None:
-            self.logger.error("UnlockFactory.create_"+str(type_name), "returned None; objdesc = ", objdesc)
-
-        assert newobj
-        return newobj
-
