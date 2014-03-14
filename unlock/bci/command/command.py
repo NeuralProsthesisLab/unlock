@@ -99,8 +99,9 @@ class RawSignalCommand(Command):
     def __init__(self, delta, raw_data_vector, samples, channels, timer):
         super(RawSignalCommand, self).__init__(delta)
         self.raw_data_vector = raw_data_vector
+        samples = int(samples)
         self.samples = samples
-        self.channels = channels
+        self.channels = int(channels)
         self.timer = timer
         self.matrix = None
         self.sequence_trigger_vector = np.zeros((samples, 1))
