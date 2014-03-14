@@ -1,0 +1,72 @@
+# Copyright (c) James Percent, Byron Galbraith and Unlock contributors.
+# All rights reserved.
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice,
+#       this list of conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#
+#    3. Neither the name of Unlock nor the names of its contributors may be used
+#       to endorse or promote products derived from this software without
+#       specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.import socket
+
+from unlock.util import AbstractFactory
+from unlock import UnlockFactory
+#from unlock.bci.command import UnlockCommandFactory
+#from unlock.bci.decode import UnlockDecoderFactory
+#from unlock.bci.acquire import UnlockAcquisitionFactory
+#from unlock.state import UnlockStateFactory
+
+
+import logging
+from sqlalchemy import create_engine
+
+__author__ = 'jpercent'
+
+class Schema(object):
+    def __init__(self, data, timestamps, triggers):
+        self.data_indices = data
+        self.sample_timestamp_indices = timestamps
+        self.trigger_indices = triggers
+
+    def data(self):
+        return self.data_indices
+
+    def timestamps(self):
+        return self.sample_timestamp_indicies
+
+    def triggers(self):
+        return self.triggers_indicies
+
+class UnlockAnalyzerFactory(AbstractFactory):
+    def __init__(self):
+        super(UnlockAnalyzerFactory, self).__init__()
+        self.unlock_factor = UnlockFactory()
+
+    def create_schema(self, data={'o1':0, 'oz':1, 'o2':3, 'po3':4, 'poz': 5, 'po4': 6, 'cz':7, 'fcz':8},
+                 timestamps={'c++': 9, 'python': 10},
+                 triggers={'sequence_trigger': 11, 'sequence_trigger_time_stamp': 12, 'cue_trigger': 13, 'cue_trigger_time_stamp': 14}):
+
+        schema = Schema(data, timestamps, triggers)
+        return schema
+
+    def create_ssvep_analyzer(self, schema):
+        pass
+
+
+
