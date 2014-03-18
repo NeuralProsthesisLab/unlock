@@ -65,31 +65,32 @@ class PlotAnalyzer(Analyzer):
 
 class FrequencyPlotAnalyzer(PlotAnalyzer):
     def __init__(self, schema=None, data=None, x_label='Frequency (Hz)', y_label='Power (dB)'):
-        super(PlotAnalyzer, self).__init__(schema, data, x_label, y_label)
+        super(FrequencyPlotAnalyzer, self).__init__(schema, data, x_label, y_label)
         assert schema and data
 
-    def analyze(self, file_name):
+    def analyze(self, file_name=None):
         self.data.load()
-        self.data.raw_data()
+        signal = self.data.signal_data()
+        print("signal = ", signal)
+        print("signal.transpose = ", signal.transpose())
         fft = np.fft.fft(signal)
-        sampleSpacing = time[-1] / time.size
+        timestep = 256
 
-        freq = np.fft.fftfreq(signal.size, sampleSpacing)
+        freq = np.fft.fftfreq(signal.size, timestep)
         power = 10*np.log10(np.abs(fft)**2)
-
         plt.plot(freq, power)
         self.make_plot(file_name)
 
 
 class SpectrogramPlotAnalyzer(PlotAnalyzer):
     def __init__(self, schema=None, data=None, x_label='Time (s)', y_label='Frequency (Hz)', bar_label='Amplitude (Frequency power)'):
-        super(SpectrogramPlotAnalyzer, self).__init__(schema, data, x_label, y_label, bar_label)
+        super(SpectrogramPlotAnalyzer, self).__init__(schema, data, y_label, x_label, bar_label)
         assert schema and data
 
     def analyze(self, file_name=None):
         time,signal = [],[]
         self.data.load()
-        plt.specgram(self.data.signal_data(), Fs=self.schema.sampling_rate_hz)
+        plt.specgram(self.data.signal_data(), NFFT=256, Fs=self.schema.sampling_rate_hz)
         self.make_plot(file_name)
 
 
