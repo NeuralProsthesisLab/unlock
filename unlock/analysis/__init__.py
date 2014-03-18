@@ -27,30 +27,37 @@
 
 from unlock.util import AbstractFactory
 from unlock import UnlockFactory
-#from unlock.bci.command import UnlockCommandFactory
-#from unlock.bci.decode import UnlockDecoderFactory
-#from unlock.bci.acquire import UnlockAcquisitionFactory
-#from unlock.state import UnlockStateFactory
 
+from unlock.analysis.data import *
+from unlock.analysis.analyzer import *
+import os
 
-import logging
-from sqlalchemy import create_engine
-
-
-class UnlockAnalyzerFactory(AbstractFactory):
+class AnalysisFactory(UnlockFactory):
     def __init__(self):
-        super(UnlockAnalyzerFactory, self).__init__()
-        self.unlock_factor = UnlockFactory()
+        super(AnalysisFactory, self).__init__()
 
-    def create_schema(self, data={'o1':0, 'oz':1, 'o2':3, 'po3':4, 'poz': 5, 'po4': 6, 'cz':7, 'fcz':8},
-                 timestamps={'c++': 9, 'python': 10},
-                 triggers={'sequence_trigger': 11, 'sequence_trigger_time_stamp': 12, 'cue_trigger': 13, 'cue_trigger_time_stamp': 14}):
+    def schema_with_timestamps_and_cues(self,
+        data={'o1':0, 'oz':1, 'o2':3, 'po3':4, 'poz': 5, 'po4': 6, 'cz':7, 'fcz':8},
+        timestamps={'c++': 9, 'python': 10},
+        triggers={'sequence_trigger': 11, 'sequence_trigger_time_stamp': 12, 'cue_trigger': 13, 'cue_trigger_time_stamp': 14},
+        sampling_rate_hz=256):
 
-        schema = Schema(data, timestamps, triggers)
+        schema = Schema(data, timestamps, triggers, sampling_rate_hz)
         return schema
 
-    def create_ssvep_analyzer(self, schema):
-        pass
+    def numpy_data_table(self, schema=None, loader=None):
+        return NumpyDataTable(schema, loader)
+
+    def spectrogram(self, schema=None, data_table=None):
+        return SpectrogramPlotAnalyzer(schema, data_table)
+
+    def numpy_file_system_data_loader(self, file_path=['data', 'mobilab-3-14', 'ssvep-diag-12z-mobilab-frame_count-vsync_1394832864.txt'], separator='\t'):
+        file_path = os.path.join(*file_path)
+        print(' File loader ', file_path)
+        return NumpyFileSystemDataLoader(file_path, separator)
+
+    def frequency_plot(self, schema):
+        print('Frequency Plot')
 
 
 

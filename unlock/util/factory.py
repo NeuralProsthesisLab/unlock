@@ -27,13 +27,14 @@
 
 __author__ = 'jpercent'
 
+import logging
 
 class AbstractFactory(object):
     def __init__(self):
         super(AbstractFactory, self).__init__()
 
     def create_singleton(self, type_name, attr_name, config):
-        #print('atter name = ', attr_name)
+        print('atter name = ', attr_name)
         assert not hasattr(self, attr_name)
         args = config[attr_name].get('args', None)
         if args:

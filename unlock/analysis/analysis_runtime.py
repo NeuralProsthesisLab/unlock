@@ -27,29 +27,22 @@
 import os
 import inspect
 
-import unlock
+from unlock import analysis
 from unlock.util import JsonConfiguredRuntime
 
-class AnalyzerFactory(object):
-    def __init__(self):
-        pass
-
 class AnalysisRuntime(JsonConfiguredRuntime):
-    def __init__(self, unlock_factory=None):
-        super(AnalysisRuntime, self).__init__(unlock_factory,
+    def __init__(self, analysis_factory=None):
+        super(AnalysisRuntime, self).__init__(analysis_factory,
                 os.path.join(os.path.dirname(inspect.getfile(AnalysisRuntime))))
 
     def run(self):
         """Starts the UnlockRuntime."""
         assert self.runtime_instance
-        self.runtime_instance.activate()
-        self.logger.info('Starting Analyzer...')
-        self.runtime_instance.window.start()
-        self.runtime_instance.window.close()
+        self.runtime_instance.analyze()
 
 if __name__ == '__main__':
-    analyzer_factory = AnalyzerFactory()
-    analyzer = AnalysisRuntime(analyzer_factory)
+    analysis_factory = analysis.AnalysisFactory()
+    analyzer = AnalysisRuntime(analysis_factory)
     analyzer.init()
     analyzer.run()
 
