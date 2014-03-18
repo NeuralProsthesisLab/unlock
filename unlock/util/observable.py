@@ -32,7 +32,7 @@ import inspect
 import time
 import os
 
-
+__author__ = 'jpercent'
 class Observer(object):
     def __init__(self, callout_fn):
         self.callout_fn = callout_fn

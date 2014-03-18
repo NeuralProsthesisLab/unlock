@@ -28,6 +28,8 @@
 import numpy as np
 import random
 
+__author__ = 'jpercent'
+
 class RMSSignalGenerator(object):
     '''
         Generates simulated device samples.  Each invocation of the

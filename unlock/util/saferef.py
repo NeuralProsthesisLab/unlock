@@ -7,7 +7,7 @@ aren't handled by the core weakref module).
 
 import weakref, traceback
 import collections
-
+__author__ = 'jpercent'
 def safeRef(target, onDelete = None):
     """Return a *safe* weak reference to a callable target
 

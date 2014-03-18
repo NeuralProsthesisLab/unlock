@@ -27,6 +27,7 @@
 
 __author__ = 'jpercent'
 
+
 class AbstractFactory(object):
     def __init__(self):
         super(AbstractFactory, self).__init__()
@@ -85,3 +86,4 @@ class AbstractFactory(object):
 
         assert newobj
         return newobj
+

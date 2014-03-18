@@ -25,6 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.import socket
     
+__author__ = 'jpercent'
 
 class DatagramWrapper(object):
     def __init__(self, address, port, chunk_size=1048576):

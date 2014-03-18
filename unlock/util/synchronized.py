@@ -1,7 +1,7 @@
 import logging
 import traceback
 from threading import RLock, currentThread
-
+__author__ = 'jpercent'
 # Original code by Anand Balachandran Pillai (abpillai at gmail.com)
 # http://code.activestate.com/recipes/533135/
 class synchronized(object):

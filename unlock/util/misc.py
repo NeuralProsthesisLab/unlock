@@ -28,7 +28,7 @@
 import inspect
 import os
 
-
+__author__ = 'jpercent'
 class DelegatorMixin(object):
     def __init__(self):
         super(DelegatorMixin, self).__init__()
