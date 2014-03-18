@@ -56,8 +56,7 @@ class AnalysisFactory(UnlockFactory):
         print(' File loader ', file_path)
         return NumpyFileSystemDataLoader(file_path, separator)
 
-    def frequency_plot(self, schema):
+    def frequency_plot(self, schema, data_table):
         print('Frequency Plot')
-
-
+        return FrequencyPlotAnalyzer(schema, data_table)
 
