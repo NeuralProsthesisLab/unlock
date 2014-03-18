@@ -26,71 +26,23 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import sys
-import json
-import traceback
 import inspect
 
-import logging
-import logging.config
-
 import unlock
+from unlock.util import JsonConfiguredRuntime
 
-from optparse import OptionParser
-from unlock.util import RuntimeAssistant
-
-
-class UnlockRuntime(object):
+class UnlockRuntime(JsonConfiguredRuntime):
     def __init__(self, unlock_factory=None):
-        """Initializes the UnlockRuntime."""
-        self.factory = unlock_factory
-        self.conf = None
-        self.logger = None
-        self.loglevel = logging.INFO
-        self.config = None
-        self.unlock = None
-        self.args = None
-        self.options = None
-        self.parser = None
-        self.usage = "usage: %prog [options]"
-        
-        conf_help = 'path to the configuration; if not set conf.json is used'
-
-        try:
-            self.parser = OptionParser(version="%prog 1.0", usage=self.usage)
-            conf = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'conf.json')
-            self.parser.add_option('-c', '--conf', type=str, dest='conf', default=conf, metavar='CONF', help=conf_help)
-        except Exception as e:
-            print('UnlockRuntime.__init__: FATAL failed to parse program arguments')
-            RuntimeAssistant.print_last_exception()
-            raise e
-
-    def init(self):
-        assert self.parser
-        try:
-            (self.options, self.args) = self.parser.parse_args()
-            self.config = RuntimeAssistant.parse_json_config(self.options.conf)
-            self.unlock = RuntimeAssistant.configure(self.config, self.factory)
-        except Exception as e:
-            if not self.logger:
-                print('UnlockRuntime.__init__: FATAL failed to initialize correctly; did not complete logging setup')
-            else:
-                self.logger.fatal('failed to initialize correctly')
-
-            if self.parser:
-                self.parser.print_help()
-
-            RuntimeAssistant.print_last_exception()
-            raise e
-        self.logger = logging.getLogger(__name__)
+        super(UnlockRuntime, self).__init__(unlock_factory,
+                os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime))))
 
     def run(self):
         """Starts the UnlockRuntime."""
-        assert self.unlock
-        self.unlock.activate()
+        assert self.runtime_instance
+        self.runtime_instance.activate()
         self.logger.info('Starting Unlock...')
-        self.unlock.window.start()
-        self.unlock.window.close()
+        self.runtime_instance.window.start()
+        self.runtime_instance.window.close()
 
 if __name__ == '__main__':
     factory_instance = unlock.UnlockFactory()
