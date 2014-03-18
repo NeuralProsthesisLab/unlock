@@ -1,4 +1,11 @@
 {
+    "combinatorial_spectrogram" : {
+        "deps": {
+            "schema": "schema_with_timestamps_and_cues",
+            "data_table": "numpy_data_table"
+        }
+    },
+
     "spectrogram" : {
         "main": true,
         "deps": {
@@ -37,10 +44,17 @@
        }
     },
 
+    "numpy_directory_data_loader" : {
+       "directories": [["data"]]
+       "suffix": "*.unock_data"
+    }
+
     "numpy_file_system_data_loader" : {
        "args" : {
-          "file_path" : ["data", "mobilab-3-14", "ssvep-diag-12z-mobilab-frame_count-vsync_1394832864.txt"],
-          "separator" : "\t"
+          "file_path" : ["data", "mobilab-3-14", "ssvep-diag-12z-mobilab-frame_ciount-vsync_1394832864.txt"],
+          "separator" : "\t",
+          "start_trim" : 256,
+          "end_trim" : 256
        }
     },
 
@@ -48,6 +62,18 @@
         "deps": {
             "schema" : "schema_with_timestamps_and_cues",
             "loader" : "numpy_file_system_data_loader"
+        }
+    },
+
+    "db" : {
+        "singleton" : 0,
+        "name" : "database",
+        "args" : {
+            "host" : "ec2-54-204-43-139.compute-1.amazonaws.com",
+            "name" : "dps7g4lruchrr",
+            "user" : "wltunqpopbqexa",
+            "port" : 5432,
+            "addr" : "EddWJaobEc8L1X-HvByJL3hODi"
         }
     },
 

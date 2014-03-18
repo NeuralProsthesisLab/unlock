@@ -10,14 +10,7 @@
     "schema_with_timestamps_and_cues": {
        "args": {
            "data": {
-               "o1": 0,
-               "oz": 1,
-               "o2": 3,
-               "po3": 4,
-               "poz": 5,
-               "po4": 6,
-               "cz": 7,
-               "fcz": 8
+               "oz": 1
            },
 
            "timestamps" : {
