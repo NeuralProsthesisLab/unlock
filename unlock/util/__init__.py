@@ -36,6 +36,7 @@ from unlock.util.injector import *
 from optparse import OptionParser
 import json
 import logging
+import logging.config
 import sys
 
 __author__ = 'jpercent'
@@ -103,7 +104,7 @@ class JsonConfiguredRuntime(object):
             raise e
 
     def init(self):
-        assert self.parser and self.options
+        assert self.parser
         try:
             (self.options, self.args) = self.parser.parse_args()
             assert self.options.conf
