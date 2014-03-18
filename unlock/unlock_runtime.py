@@ -37,128 +37,65 @@ import logging.config
 import unlock
 
 from optparse import OptionParser
+from unlock.util import RuntimeAssistant
 
 
 class UnlockRuntime(object):
-    def __init__(self):
+    def __init__(self, unlock_factory=None):
         """Initializes the UnlockRuntime."""
+        self.factory = unlock_factory
         self.conf = None
         self.logger = None
         self.loglevel = logging.INFO
-        
-        args = None
-        options = None
-        parser = None
-        usage = "usage: %prog [options]"
+        self.config = None
+        self.unlock = None
+        self.args = None
+        self.options = None
+        self.parser = None
+        self.usage = "usage: %prog [options]"
         
         conf_help = 'path to the configuration; if not set conf.json is used'
-        
+
         try:
-            
-            parser = OptionParser(version="%prog 1.0", usage=usage)
+            self.parser = OptionParser(version="%prog 1.0", usage=self.usage)
             conf = os.path.join(os.path.dirname(inspect.getfile(UnlockRuntime)), 'conf.json')
-            parser.add_option('-c', '--conf', type=str, dest='conf', default=conf, metavar='CONF', help=conf_help)
-            (options, args) = parser.parse_args()
-            
+            self.parser.add_option('-c', '--conf', type=str, dest='conf', default=conf, metavar='CONF', help=conf_help)
         except Exception as e:
             print('UnlockRuntime.__init__: FATAL failed to parse program arguments')
-            UnlockRuntime.print_last_exception()
+            RuntimeAssistant.print_last_exception()
             raise e
-            
+
+    def init(self):
+        assert self.parser
         try:
-            
-            self.config = UnlockRuntime.setup_config(options)
-            self.unlock = self.configure(self.config)
-            
+            (self.options, self.args) = self.parser.parse_args()
+            self.config = RuntimeAssistant.parse_json_config(self.options.conf)
+            self.unlock = RuntimeAssistant.configure(self.config, self.factory)
         except Exception as e:
             if not self.logger:
                 print('UnlockRuntime.__init__: FATAL failed to initialize correctly; did not complete logging setup')
             else:
                 self.logger.fatal('failed to initialize correctly')
-                
-            if parser:
-                parser.print_help()
-                
-            UnlockRuntime.print_last_exception()
-            raise e
 
+            if self.parser:
+                self.parser.print_help()
+
+            RuntimeAssistant.print_last_exception()
+            raise e
         self.logger = logging.getLogger(__name__)
 
-    @staticmethod
-    def setup_config(options):
-        config = UnlockRuntime.parse_config(options.conf)
-        return config
-
-    @staticmethod
-    def parse_config(conf):
-        with open(conf, 'rt') as file_descriptor:
-            json_string = file_descriptor.read()
-            config = json.loads(json_string)
-        return config            
-
-    def configure(self, config):
-        factory = unlock.UnlockFactory()
-        level = 0
-        max_level = 0
-        while level <= max_level:
-            pop_keys = set([])
-            for key, value in config.items():
-                if not 'singleton' in value:
-                    continue
-
-                level_value = value['singleton']
-                if level_value > max_level:
-                    max_level = level_value
-                    
-                if level_value <= level:
-                    #print(key, value)
-                    assert 'name' in value
-                    factory.create_singleton(value['name'], key, config)
-                    pop_keys.add(key)
-
-            for key in pop_keys:
-                config.pop(key)
-            level += 1
-        
-        for key, value in config.items():
-            if 'main' in value:
-                newobj = factory.create(key, config)
-                unlock_instance = newobj
-                break
-        assert unlock_instance
-        return unlock_instance
-
-    @staticmethod
-    def make_high_priority():
-        '''Makes the Unlock process a high priority; the impact of this was never investigated and it is not used.'''
-        try:
-            import psutil
-            import os
-            p = psutil.Process(os.getpid())
-            p.set_nice(psutil.HIGH_PRIORITY_CLASS)
-        except Exception as e:
-            UnlockRuntime.print_last_exception()
-
-    @staticmethod
-    def print_last_exception():
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)
-
-    def start(self):
+    def run(self):
         """Starts the UnlockRuntime."""
-        # XXX - this is weird we shouldn't reach in and call window start ater activate.  unlock_instance should
-        # override activate.  then call the super.activate then call window.start.  then overrride deactiveate to be
-        # window.close which gets called here.
+        assert self.unlock
         self.unlock.activate()
-        self.logger.info('Starting Unlock...')                        
+        self.logger.info('Starting Unlock...')
         self.unlock.window.start()
         self.unlock.window.close()
 
-
 if __name__ == '__main__':
- #   try:
-        unlock = UnlockRuntime()
-        unlock.start()
-#    except:
-#        sys.exit(1)
+    factory_instance = unlock.UnlockFactory()
+    unlock = UnlockRuntime(factory_instance)
+    unlock.init()
+    unlock.run()
+
 
