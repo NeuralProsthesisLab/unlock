@@ -32,3 +32,45 @@ from unlock.util.saferef import *
 from unlock.util.sockets import *
 from unlock.util.signal import *
 from unlock.util.factory import *
+from unlock.util.injector import *
+import json
+import sys
+
+__author__ = 'jpercent'
+
+
+class RuntimeAssistant(object):
+    def __init__(self):
+        super(RuntimeAssistant, self).__init__()
+
+    @staticmethod
+    def configure(config, fact_instance):
+        assert fact_instance
+        dpi = DependencyInjector(fact_instance)
+        instance = dpi.configure_application(config)
+        assert instance
+        return instance
+
+    @staticmethod
+    def parse_json_config(conf):
+        with open(conf, 'rt') as file_descriptor:
+            json_string = file_descriptor.read()
+            config = json.loads(json_string)
+        return config
+
+    @staticmethod
+    def make_high_priority():
+        '''Makes the Unlock process a high priority; the impact of this was never investigated and it is not used.'''
+        try:
+            import psutil
+            import os
+            p = psutil.Process(os.getpid())
+            p.set_nice(psutil.HIGH_PRIORITY_CLASS)
+        except Exception as e:
+            RuntimeAssistant.print_last_exception()
+
+    @staticmethod
+    def print_last_exception():
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)
+
