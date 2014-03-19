@@ -107,24 +107,15 @@ class NumpyDataTable(DataLoader):
         #print ("slice = ", ret)
         return ret
 
-    def signal_data(self):
-        assert self.data_loaded
-        print("raw data = ", self.raw_data)
-        #rows =
+    def signal_rows(self):
         rows = self.raw_data.shape[0]
         if rows % self.schema.sampling_rate_hz:
             rows = int(rows/self.schema.sampling_rate_hz)
+        return rows
 
+    def signal_data(self):
+        assert self.data_loaded
+        rows = self.signal_rows()
         columns = self.schema.data()
-        print ("rows = ", rows, " columns = ", columns)
-        #ret = self.raw_data[:, slice(self.schema.data())] #, rows]
-        #print ('ret shape ', ret.shape)
-        ret = self.raw_data[ 256*rows: , columns]
-        #import pdb
-        #pdb.set_trace()
-        print ('ret shape ', ret.shape)
-
-        return ret
-
-
+        return self.raw_data[ 256*rows: , columns]
 
