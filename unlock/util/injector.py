@@ -54,13 +54,15 @@
 __author__ = 'jpercent'
 
 class Prototype(object):
-    def __init__(self, factory, key, config=None):
+    def __init__(self, factory, key, config):
         self.factory = factory
         self.key = key
         self.config = config
 
-    def create(self):
-        assert self.factory and self.key
+    def create(self, **parameters):
+        assert self.factory and self.key and self.config and self.key in self.config
+        if parameters:
+            self.config[self.key].update(parameters)
         return self.factory.create(self.key, self.config)
 
 
