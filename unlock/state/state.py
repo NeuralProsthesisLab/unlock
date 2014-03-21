@@ -125,7 +125,7 @@ class OfflineData(UnlockState):
         #    a = np.array([0,0,0,0,0,0])
         #    a = np.hstack(a)
         #    np.savetxt(self.file_handle, a, fmt='%d', delimiter='\t')
-        #print("AFGTER = ", command.matrix)
+
     def get_state(self):
         raise NotImplementedError()
 

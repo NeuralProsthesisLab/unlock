@@ -2,7 +2,6 @@ from unlock.view.pyglet_sprite import *
 from unlock.view.pyglet_text import *
 from unlock.view.view import *
 from unlock.view.grid import *
-from unlock.view import grid_kansas
 from unlock.view.fastpad_view import *
 from unlock.view.scope_view import *
 
@@ -120,9 +119,6 @@ class UnlockViewFactory(object):
 
     def create_gridspeak(self, state, canvas):
         return GridSpeakView(None, state, canvas)
-
-    def create_gridspeak_kansas(self, state, canvas):
-        return grid_kansas.GridSpeakView(None, state, canvas)
 
     def create_quad_ssvep_views(self, stimuli, canvas, width=500, height=100, horizontal_blocks=5, vertical_blocks=1,
             color=[0,0,0], color1=[255,255,255]):

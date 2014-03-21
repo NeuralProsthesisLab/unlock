@@ -32,7 +32,7 @@ from unlock.state.grid_state import *
 from unlock.state.fastpad_state import *
 from unlock.state.scope_state import *
 from unlock.state.diagnostic_state import *
-from unlock.state import grid_state_kansas
+
 
 class UnlockStateFactory(object):
     def create_wall_clock_timed_stimulus(self, rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x), repeat_count=1):
@@ -98,9 +98,6 @@ class UnlockStateFactory(object):
 
     def create_grid_hierarchy(self, grid_radius):
         return HierarchyGridState(grid_radius)
-
-    def create_grid_hierarchy_kansas(self, grid_radius):
-        return grid_state_kansas.HierarchyGridState(grid_radius)
 
     def create_offline_data(self, output_file_name):
         offline_data = OfflineData(output_file_name)
