@@ -36,7 +36,6 @@ class DataTransformer(object):
 class MobilabMilliVoltsDataTransformer(DataTransformer):
     def __init__(self, channel_sensitivity=500):
         self.channel_sensitivity = channel_sensitivity
-        print ("2 to the 18 = ", 2**18)
         self.resolution_factor = (10 /2**18) * self.channel_sensitivity
         self.micro_to_millis_factor = 1000
 
