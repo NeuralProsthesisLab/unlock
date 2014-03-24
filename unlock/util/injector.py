@@ -53,6 +53,7 @@
 
 __author__ = 'jpercent'
 
+
 class Prototype(object):
     def __init__(self, factory, key, config):
         self.factory = factory
