@@ -26,12 +26,16 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
+import os
+import re
 
 __author__ = 'jpercent'
+
 
 class DataTransformer(object):
     def apply(self, datum):
         return datum
+
 
 class MobilabMilliVoltsDataTransformer(DataTransformer):
     def __init__(self, channel_sensitivity=500):
@@ -60,6 +64,7 @@ class PersistentDataTransformer(DataTransformer):
     def close(self):
         self.file_open = False
         self.file_desc.close()
+        self.file_desc = None
 
     def apply(self, datum):
         assert self.file_open and self.file_desc
@@ -68,6 +73,7 @@ class PersistentDataTransformer(DataTransformer):
         self.cursor += 1
         if self.cursor == self.row_size:
             self.row.tofile(self.file_desc, sep='\t', format='%s')
+            self.file_desc.write('\n')
             cursor = 0
 
         return transformed_datum
@@ -91,38 +97,61 @@ class NumpyFileSystemDataLoader(object):
 
     def load(self):
         np_array = np.array([[self.transformer.apply(float(datum)) for datum in line.split(self.separator)] for line in open(self.file_path)])
-        #print ('shape = ', np_array.shape, " some rows = ", np_array[0:10, 0:8])
         return np_array
 
     def store(self, file_name, np_array):
         np.savetxt(file_name, np_array, fmt='%s', delimiter='\t')
 
 
+class DirectoryScanner(DataLoader):
+    def __init__(self, directory, file_filter_regex=r'.*', transformer=DataTransformer()):
+        self.directory = os.path.join(*directory)
+        self.regex = file_filter_regex
+        self.transformer = transformer
+
+    def file_generator(self):
+        for root, dirs, files in os.walk(self.directory):
+            for file_name in files:
+                if re.match(self.regex, file_name):
+                    loader = NumpyFileSystemDataLoader(os.path.join(root,file_name), transformer=self.transformer)
+                    loader.file_name = file_name
+                    loader.directory = os.path.basename(os.path.dirname(loader.file_path))
+                    yield loader
+
+
 class Schema(object):
-    def __init__(self, data, timestamps, triggers, sampling_rate_hz):
+    def __init__(self, data_channels, timestamps, triggers, sampling_rate_hz):
         super(Schema, self).__init__()
-        self.data_dict = data
+        self.data_channel_values = data_channels
         self.sample_timestamp_dict = timestamps
         self.trigger_dict = triggers
         self.sampling_rate_hz = sampling_rate_hz
 
-    def data(self):
-        return sorted([value for key, value in self.data_dict.items()])
+    def data_channels(self):
+        return sorted([value for key, value in self.data_channel_values.items()])
 
-    def data_channel_combinations_generator(self):
-        values = self.data()
+    def all_data_channel_combinations_generator(self):
+        values = self.data_channels()
         # we compute the power set here, minus the empty set;  create a set with the first element.  loop through the
-        #  rest of the elements and create a new set for itself and each existing subset.  Booyakasha.
+        # rest of the elements and create a new set for the element and a new set with the element for each existing
+        # subset.
         subsets = None
         for value in values:
+            val_set = [value]
             if not subsets:
-                subsets = [value]
-                yield subsets
+                subsets = [val_set]
+                yield val_set
             else:
-                subsets.extend(value)
-                new_subsets = [ value + subset for subset in subsets]
-                yield new_subsets
+                new_subsets = [val_set + subset for subset in subsets]
+                subsets.append(val_set)
+                for new_subset in new_subsets:
+                    yield new_subset
                 subsets.extend(new_subsets)
+
+    def single_channel_generator(self):
+        values = self.data_channels()
+        for value in values:
+            yield [value]
 
     def timestamps(self):
         return sorted([value for key,value in self.timestamp_dict.items()])
@@ -139,15 +168,18 @@ class NumpyDataTable(object):
 
     def signal_rows(self):
         rows = self.raw_data.shape[0]
-        if rows % self.schema.sampling_rate_hz:
-            rows = int(rows/self.schema.sampling_rate_hz)
+        mod = rows % self.schema.sampling_rate_hz
+        if mod:
+            rows -= mod
         return rows
 
-    def signal_data(self):
-        assert self.data_loaded
+    def signal_data(self, columns=None):
+
         rows = self.signal_rows()
-        columns = self.schema.data()
-        return self.raw_data[ 256*rows: , columns]
+        if not columns:
+            columns = self.schema.data_channels()
+
+        return self.raw_data[ :rows , columns]
 
 
 class OtherMobilabInfo(DataTransformer):
