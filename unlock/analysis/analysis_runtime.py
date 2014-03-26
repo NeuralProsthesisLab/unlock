@@ -30,6 +30,7 @@ import inspect
 from unlock import analysis
 from unlock.util import JsonConfiguredRuntime
 
+
 class AnalysisRuntime(JsonConfiguredRuntime):
     def __init__(self, analysis_factory=None):
         super(AnalysisRuntime, self).__init__(analysis_factory,
@@ -38,6 +39,8 @@ class AnalysisRuntime(JsonConfiguredRuntime):
     def run(self):
         """Starts the UnlockRuntime."""
         assert self.runtime_instance
+        if self.runtime_instance.data:
+            print("matrix row 1 ", self.runtime_instance.data.signal_data()[0:10])
         self.runtime_instance.analyze()
 
 if __name__ == '__main__':
