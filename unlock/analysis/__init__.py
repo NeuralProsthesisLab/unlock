@@ -28,13 +28,17 @@
 from unlock.util import AbstractFactory
 from unlock import UnlockFactory
 
-from unlock.analysis.data import *
+from unlock.analysis.accessor import *
 from unlock.analysis.analyzer import *
 import os
+
 
 class AnalysisFactory(UnlockFactory):
     def __init__(self):
         super(AnalysisFactory, self).__init__()
+
+    def mobilab_milli_volts_transformer(self, channel_sensitivity=500):
+        return MobilabMilliVoltsDataTransformer(channel_sensitivity)
 
     def schema_with_timestamps_and_cues(self,
         data={'o1':0, 'oz':1, 'o2':3, 'po3':4, 'poz': 5, 'po4': 6, 'cz':7, 'fcz':8},
@@ -46,17 +50,25 @@ class AnalysisFactory(UnlockFactory):
         return schema
 
     def numpy_data_table(self, schema=None, loader=None):
-        return NumpyDataTable(schema, loader)
+        return NumpyDataTable(schema, loader.load())
 
     def spectrogram(self, schema=None, data_table=None):
         return SpectrogramPlotAnalyzer(schema, data_table)
 
-    def numpy_file_system_data_loader(self, file_path=['data', 'mobilab-3-14', 'ssvep-diag-12z-mobilab-frame_count-vsync_1394832864.txt'], separator='\t'):
+    def numpy_file_system_data_loader(self, file_path=['data', 'mobilab-3-14', 'ssvep-diag-12z-mobilab-frame_count-vsync_1394832864.txt'], separator='\t', transformer=DataTransformer()):
         file_path = os.path.join(*file_path)
         print(' File loader ', file_path)
-        return NumpyFileSystemDataLoader(file_path, separator)
+        return NumpyFileSystemDataLoader(file_path, separator, transformer)
 
-    def frequency_plot(self, schema, data_table):
+    def frequency_plot(self, schema=None, data_table=None):
         print('Frequency Plot')
         return FrequencyPlotAnalyzer(schema, data_table)
+
+    def multi_plot_analyzer(self, analyzers=None, schema=None, data_loader=None, output_prefix=None):
+        print("Multi-plot analyzer ")
+        return MultiPlotAnalyzer(schema, analyzers, data_loader, output_prefix)
+
+    def directory_scanner(self, directory=os.path.join(['data', 'mobilab-3-14']), file_filter=r'.*\.txt', transformer=None):
+        assert directory and file_filter and transformer
+        return DirectoryScanner(directory, file_filter, transformer)
 
