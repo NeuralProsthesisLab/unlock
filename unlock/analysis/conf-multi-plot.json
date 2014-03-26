@@ -1,0 +1,102 @@
+{
+    "multi_plot_analyzer" : {
+        "main": true,
+        "deps": {
+            "analyzers": [ "spectrogram", "frequency_plot"],
+            "schema": "schema_with_timestamps_and_cues",
+            "data_loader": "directory_scanner"
+        },
+
+        "args" : {
+           "output_prefix" : ["data", "results"]
+        }
+    },
+
+   "spectrogram": {
+   },
+
+   "frequency_plot" : {
+   },
+
+  "schema_with_timestamps_and_cues": {
+       "args": {
+           "data": {
+               "o1": 0,
+               "oz": 1,
+               "o2": 3,
+               "po3": 4,
+               "poz": 5,
+               "po4": 6,
+               "cz": 7,
+               "fcz": 8
+           },
+
+           "timestamps" : {
+              "c++": 9,
+              "python": 10
+           },
+
+           "triggers": {
+              "sequence_trigger": 11,
+              "sequence_trigger_time_stamp": 12,
+              "cue_trigger": 13,
+              "cue_trigger_time_stamp": 14
+           },
+
+           "sampling_rate_hz": 256
+
+       }
+    },
+
+    "directory_scanner" : {
+      "deps" : {
+          "transformer" : "mobilab_milli_volts_transformer"
+       },
+
+       "args" : {
+          "directory" : ["data", "mobilab-3-14"],
+          "file_filter" : ".*\\.txt"
+       }
+    },
+
+    "mobilab_milli_volts_transformer" : {
+        "channel_sensitivity" : 500
+    },
+
+    "logger": {
+        "singleton" : 0,
+        "name" : "logging",
+        "args" : {
+            "version": 1,
+            "disable_existing_loggers": false,
+            "formatters": {
+                "simple": {
+                    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                }
+            },
+
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "level": "DEBUG",
+                    "formatter": "simple",
+                    "stream": "ext://sys.stdout"
+                },
+
+                "file_handler": {
+                    "class": "logging.handlers.RotatingFileHandler",
+                    "formatter": "simple",
+                    "filename": "unlock.log",
+                    "maxBytes": 10485760,
+                    "backupCount": 20,
+                    "encoding": "utf8"
+                }
+            },
+
+            "root": {
+                "level": "INFO",
+                "handlers": ["console", "file_handler"]
+            }
+        }
+    }
+}
