@@ -57,7 +57,6 @@ class RuntimeAssistant(object):
 
     @staticmethod
     def make_high_priority():
-        '''Makes the Unlock process a high priority; the impact of this was never investigated and it is not used.'''
         try:
             import psutil
             import os
