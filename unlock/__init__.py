@@ -31,6 +31,7 @@ from unlock.controller import *
 from unlock.bci import *
 from unlock import unlock_runtime
 from sqlalchemy import create_engine
+from unlock.view.PhotodiodeView import PhotodiodeView
 
 
 class Stimulation(object):
@@ -221,6 +222,20 @@ class UnlockFactory(AbstractFactory):
         frequency_scope_view = FrequencyScopeView(scope_model, stimulation.canvas, labels=scope_model.labels)
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
             [frequency_scope_view], name='FrequencyScope', icon='frequency2-128x128.png')
+
+    def photodiode(self, stimulation=None, channels=1, fs=256, duration=2, offline_data=False):
+        assert stimulation
+        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
+        cmd_receiver = self.command_factory.create_receiver('raw', **receiver_args)
+        scope_model = FrequencyScopeState(channels, fs, duration)
+        if offline_data:
+            return None
+        else:
+            state_chain = scope_model
+
+        photodiode_view = PhotodiodeView(scope_model, stimulation.canvas, labels=scope_model.labels)
+        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain, [photodiode_view], name='Photodiode', icon='photodiode.png')
+
 
     def dashboard(self, stimulation=None, decoder=None, controllers=None, offline_data=False):
         assert stimulation and decoder

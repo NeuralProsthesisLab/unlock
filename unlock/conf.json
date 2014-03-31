@@ -4,7 +4,7 @@
         "deps" : {
             "stimulation" : "quad_ssvep",
             "decoder" : "harmonic_sum",
-            "controllers" : ["gridspeak", "time_scope", "frequency_scope", "gridcursor", "fastpad"]
+            "controllers" : ["gridspeak", "time_scope", "frequency_scope", "gridcursor", "fastpad", "photodiode"]
         }
     },
     
@@ -76,6 +76,18 @@
     },
 
     "time_scope" : {
+        "deps" : {
+            "stimulation" : "no_stimulation"
+        },
+        "args" : {
+            "channels" : 1,
+            "fs" : 256,
+            "duration" : 2,
+            "offline_data" : true
+        }
+    },
+
+    "photodiode" : {
         "deps" : {
             "stimulation" : "no_stimulation"
         },
