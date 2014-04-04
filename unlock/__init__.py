@@ -224,12 +224,14 @@ class UnlockFactory(AbstractFactory):
             [frequency_scope_view], name='FrequencyScope', icon='frequency2-128x128.png')
 
     def photodiode(self, stimulation=None, channels=1, fs=256, duration=2, offline_data=False):
+        return
         assert stimulation
         receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
         cmd_receiver = self.command_factory.create_receiver('raw', **receiver_args)
-        scope_model = FrequencyScopeState(channels, fs, duration)
+        scope_model = PhotodiodeScopeState(channels, fs, duration)
         if offline_data:
-            return None
+            offline_data = self.state_factory.create_offline_data('time_scope')
+            state_chain = self.state_factory.create_state_chain(scope_model,offline_data)
         else:
             state_chain = scope_model
 
