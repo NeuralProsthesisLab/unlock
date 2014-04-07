@@ -167,7 +167,7 @@ class GridSpeakView(HierarchyGridView):
         self.yes = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'yes.wav')))                        
         self.words = {
             (-2, -2): ('alone', self.alone), (-2, -1): ('bored',self.bored), (-2,0): ('down', self.down), (-2,1):('explain', self.explain),(-2,2):('get', self.get),
-            (-1,-2):('goodbye', self.goodbye), (-1,-1):('hello', self.hello), (-1,0):('help', self.help), (-1,1):('how R U', self.howareyou), (-1,2):('hungrey', self.hungah),
+            (-1,-2):('goodbye', self.goodbye), (-1,-1):('hello', self.hello), (-1,0):('help', self.help), (-1,1):('how are you', self.howareyou), (-1,2):('hungry', self.hungah),
             (0,-2):('left', self.left), (0,-1):('move', self.move), (0,0):('no',self.no), (0,1):('nose', self.nose), (0,2):('pain',self.pain),
             (1,-2):('repeat', self.repeat), (1,-1):('right', self.right), (1,0):('sorry', self.sorry), (1,1):('thanks', self.thanks), (1,2):('thirsty', self.thirsty),
             (2,-2): ('up', self.up), (2,-1):('when', self.when), (2,0):('where', self.where), (2,1):('who', self.who), (2,2):('yes', self.yes)
