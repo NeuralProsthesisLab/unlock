@@ -25,11 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import division
-import matplotlib.pyplot as plt
-from unlock.analysis.accessor import NumpyDataTable
-import numpy as np
-import os
-from scipy.signal import butter, lfilter
+from scipy import signal
 
 class Filter(object):
     def __init__(self, fs=256):
@@ -54,6 +50,6 @@ class Butterworth(BandpassFilter):
         self.order = order
 
     def apply(self, data):
-        b, a = butter(self.order, [self.low, self.high], btype='band')
-        filtered_data = lfilter(b, a, data)
+        b, a = signal.butter(self.order, [self.low, self.high], btype='band')
+        filtered_data = signal.filtfilt(b, a, data)
         return filtered_data
