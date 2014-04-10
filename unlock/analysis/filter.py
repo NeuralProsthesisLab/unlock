@@ -39,13 +39,14 @@ class Filter(object):
 
 class BandpassFilter(Filter):
     def __init__(self, fs, lowcut, highcut):
+        self.fs = fs
         self.nyq = 0.5 * self.fs
         self.low = lowcut / self.nyq
         self.high = highcut / self.nyq
 
 
 class Butterworth(BandpassFilter):
-    def __init__(self, schema, data, fs=256, lowcut=4, highcut=65, order=5):
+    def __init__(self, fs=256, lowcut=4, highcut=65, order=5):
         super(Butterworth, self).__init__(fs, lowcut, highcut)
         self.order = order
 
@@ -53,3 +54,4 @@ class Butterworth(BandpassFilter):
         b, a = signal.butter(self.order, [self.low, self.high], btype='band')
         filtered_data = signal.filtfilt(b, a, data)
         return filtered_data
+
