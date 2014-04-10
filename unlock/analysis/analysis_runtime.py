@@ -24,6 +24,7 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 import os
 import inspect
 
@@ -39,8 +40,6 @@ class AnalysisRuntime(JsonConfiguredRuntime):
     def run(self):
         """Starts the UnlockRuntime."""
         assert self.runtime_instance
-        if self.runtime_instance.data:
-            print("matrix row 1 ", self.runtime_instance.data.signal_data()[0:10])
         self.runtime_instance.analyze()
 
 if __name__ == '__main__':
