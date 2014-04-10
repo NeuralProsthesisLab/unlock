@@ -4,7 +4,8 @@
         "deps": {
             "analyzers": [ "spectrogram", "frequency_plot"],
             "schema": "schema_with_timestamps_and_cues",
-            "data_loader": "directory_scanner"
+            "data_loader": "directory_scanner",
+            "filter" : "butterworth_bandpass_filter"
         },
 
         "args" : {
@@ -17,6 +18,17 @@
 
    "frequency_plot" : {
    },
+
+  "butterworth_bandpass_filter": {
+    "deps" : {
+      "schema" : "schema_with_timestamps_and_cues"
+    },
+
+    "args" : {
+       "low_cutoff" : 4,
+       "high_cutoff" : 65
+    }
+  },
 
   "schema_with_timestamps_and_cues": {
        "args": {
@@ -43,7 +55,9 @@
               "cue_trigger_time_stamp": 14
            },
 
-           "sampling_rate_hz": 256
+           "sampling_rate_hz": 256,
+           "start" : 0,
+           "end" : 3
 
        }
     },
