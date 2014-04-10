@@ -30,6 +30,7 @@ from unlock import UnlockFactory
 
 from unlock.analysis.accessor import *
 from unlock.analysis.analyzer import *
+from unlock.analysis.filter import *
 import os
 
 
@@ -44,9 +45,9 @@ class AnalysisFactory(UnlockFactory):
         data={'o1':0, 'oz':1, 'o2':3, 'po3':4, 'poz': 5, 'po4': 6, 'cz':7, 'fcz':8},
         timestamps={'c++': 9, 'python': 10},
         triggers={'sequence_trigger': 11, 'sequence_trigger_time_stamp': 12, 'cue_trigger': 13, 'cue_trigger_time_stamp': 14},
-        sampling_rate_hz=256):
+        sampling_rate_hz=256, start=None, end=None):
 
-        schema = Schema(data, timestamps, triggers, sampling_rate_hz)
+        schema = Schema(data, timestamps, triggers, sampling_rate_hz, start, end)
         return schema
 
     def numpy_data_table(self, schema=None, loader=None):
@@ -55,18 +56,19 @@ class AnalysisFactory(UnlockFactory):
     def spectrogram(self, schema=None, data_table=None):
         return SpectrogramPlotAnalyzer(schema, data_table)
 
-    def numpy_file_system_data_loader(self, file_path=['data', 'mobilab-3-14', 'ssvep-diag-12z-mobilab-frame_count-vsync_1394832864.txt'], separator='\t', transformer=DataTransformer()):
+    def butterworth_bandpass_filter(self, schema=None, low_cutoff=4, high_cutoff=65):
+        return Butterworth(schema.sampling_rate_hz, low_cutoff, high_cutoff)
+
+    def numpy_file_system_data_loader(self, file_path=['data', 'mobilab-3-14', 'ssvep-diag-12z-mobilab-frame_count-vsync_1394832864.txt'],
+                                      separator='\t', transformer=DataTransformer()):
         file_path = os.path.join(*file_path)
-        print(' File loader ', file_path)
         return NumpyFileSystemDataLoader(file_path, separator, transformer)
 
     def frequency_plot(self, schema=None, data_table=None):
-        print('Frequency Plot')
         return FrequencyPlotAnalyzer(schema, data_table)
 
-    def multi_plot_analyzer(self, analyzers=None, schema=None, data_loader=None, output_prefix=None):
-        print("Multi-plot analyzer ")
-        return MultiPlotAnalyzer(schema, analyzers, data_loader, output_prefix)
+    def multi_plot_analyzer(self, analyzers=None, schema=None, data_loader=None, output_prefix=None, filter=None):
+        return MultiPlotAnalyzer(schema, analyzers, data_loader, output_prefix, filter)
 
     def directory_scanner(self, directory=os.path.join(['data', 'mobilab-3-14']), file_filter=r'.*\.txt', transformer=None):
         assert directory and file_filter and transformer
