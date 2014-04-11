@@ -120,15 +120,32 @@ class DirectoryScanner(DataLoader):
 
 
 class Schema(object):
-    def __init__(self, data_channels, timestamps, triggers, sampling_rate_hz):
+    def __init__(self, data_channels, timestamps, triggers, sampling_rate_hz, start=None, end=None):
         super(Schema, self).__init__()
         self.data_channel_values = data_channels
         self.sample_timestamp_dict = timestamps
         self.trigger_dict = triggers
         self.sampling_rate_hz = sampling_rate_hz
+        self.start = start
+        self.end = end
+        if not start:
+            self.start = 0
+        if not end:
+            self.end = len(self.data_channel_values)
+        assert self.start <= self.end
+
+    def get_channel_name(self, channel):
+        # this is a hack
+        for key, value in self.data_channel_values.items():
+            if value == channel[0]:
+                return key
 
     def data_channels(self):
-        return sorted([value for key, value in self.data_channel_values.items()])
+        values = []
+        for key, value in self.data_channel_values.items():
+            if value >= self.start and value <= self.end:
+                values.append(value)
+        return sorted(values)
 
     def all_data_channel_combinations_generator(self):
         values = self.data_channels()

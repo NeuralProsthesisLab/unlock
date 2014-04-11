@@ -12,13 +12,13 @@ class CommandTests(unittest.TestCase):
         self.assertEquals(-1, c.delta)
         self.assertEquals(-2, c.decision)
         self.assertEquals(-3, c.selection)
-        self.assertEquals([-1], c.data)
+        self.assertEquals([-1], c.data_channels)
         binary_c = Command.serialize(c)
         c1 = Command.deserialize(binary_c)
         self.assertEquals(c.delta, c1.delta)
         self.assertEquals(c.decision, c1.decision)
         self.assertEquals(c.selection, c1.selection)        
-        self.assertEquals(c.data, c1.data)
+        self.assertEquals(c.data_channels, c1.data_channels)
         
     def testCommandSenderReceiverInterface(self):
         cr = CommandReceiverInterface()
@@ -65,7 +65,7 @@ class CommandTests(unittest.TestCase):
         self.assertEquals(c.delta, c1.delta)
         self.assertEquals(c.decision, c1.decision)
         self.assertEquals(c.selection, c1.selection)        
-        self.assertEquals(c.data, c1.data)
+        self.assertEquals(c.data_channels, c1.data_channels)
             
     def testInlineCommandReceiver(self):
         icr = InlineCommandReceiver()

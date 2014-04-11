@@ -31,16 +31,30 @@
     },
 
     "numpy_file_system_data_loader" : {
+       "deps" : {
+           "transformer" : "mobilab_milli_volts_transformer"
+       },
+
        "args" : {
           "file_path" : ["data", "mobilab-3-14", "ssvep-diag-12z-mobilab-frame_count-vsync_1394832864.txt"],
           "separator" : "\t"
        }
     },
 
+    "mobilab_milli_volts_transformer" : {
+        "channel_sensitivity" : 500
+    },
+
     "numpy_data_table": {
         "deps": {
             "schema" : "schema_with_timestamps_and_cues",
             "loader" : "numpy_file_system_data_loader"
+        }
+    },
+
+    "mobilab_milli_volts_filter" : {
+        "args" : {
+            "channel_sensitivity" : 500
         }
     },
 
