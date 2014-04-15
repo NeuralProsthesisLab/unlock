@@ -64,8 +64,9 @@ class UnlockFactory(AbstractFactory):
             
         return logging.getLogger(__name__)
 
-    def nidaq(self):
-        return self.acquisition_factory.create_nidaq_signal()
+    def nidaq(self, channel='Dev1/ai0:3', channel_count=4):
+        return self.acquisition_factory.create_nidaq_signal(channel, channel_count)
+
 
     def audio(self):
         return self.acquisition_factory.create_audio_signal()

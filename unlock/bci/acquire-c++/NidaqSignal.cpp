@@ -25,15 +25,15 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <string>
 #include <iostream>
 #include <boost/assert.hpp>
 #include "NidaqSignal.hpp"
 
 static const int TIME_SLOT = 2;
 
-NidaqSignal::NidaqSignal(ITimer* pTimer) : mpTimer(pTimer), mTaskHandle(0), mpDataBuffer(0), mSamplesPerChannelPerBatch(500) {
-	init(4);
+NidaqSignal::NidaqSignal(ITimer* pTimer, std::string channel, size_t channelCount) : mpTimer(pTimer), mTaskHandle(0), mpDataBuffer(0), mSamplesPerChannelPerBatch(500), mChannel(channel) {
+	init(channelCount);
+	std::cerr << "in NidaqSignal constructor" << std::endl;
 }
 
 NidaqSignal::~NidaqSignal() {
@@ -71,7 +71,7 @@ bool NidaqSignal::start() {
 		return false;
 	}
 
-	error = DAQmxCreateAIVoltageChan(mTaskHandle,"Dev1/ai0:3","", DAQmx_Val_Cfg_Default,-10.0,10.0,DAQmx_Val_Volts,NULL);
+	error = DAQmxCreateAIVoltageChan(mTaskHandle, mChannel.c_str() ,"", DAQmx_Val_Cfg_Default,-10.0,10.0,DAQmx_Val_Volts,NULL);
 	if (DAQmxFailed(error)) {
     	DAQmxGetExtendedErrorInfo(errorBuffer,2048);
 		std::cerr << prefix << errorBuffer << std::endl;

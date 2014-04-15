@@ -28,6 +28,7 @@
 #ifndef NIDAQ_SIGNAL_HPP
 #define NIDAQ_SIGNAL_HPP
 
+#include <string>
 #include <stdint.h>
 #include <cstddef>
 #include <NIDAQmx.h>
@@ -39,7 +40,7 @@ class DllExport NidaqSignal : public ISignal
 {
  public:
 	
-  NidaqSignal(ITimer* pTimer);
+  NidaqSignal(ITimer* pTimer, std::string channel, size_t channelCount);
   virtual ~NidaqSignal();
   virtual bool open(uint8_t* mac);
   virtual bool init(size_t channels);
@@ -55,8 +56,9 @@ class DllExport NidaqSignal : public ISignal
     ITimer* mpTimer;
 	TaskHandle  mTaskHandle;
 	float64* mpDataBuffer;
-	int32_t mChannels;
-	int32_t mSamplesPerChannelPerBatch;
+	size_t mChannels;
+	size_t mSamplesPerChannelPerBatch;
+	std::string mChannel;
 };
 
 #endif

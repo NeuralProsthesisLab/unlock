@@ -30,8 +30,9 @@
 
 using namespace boost::python;
 
-PythonSignal* create_nidaq_signal(ITimer* pTimer) {
-  ISignal* pSignal = new NidaqSignal(pTimer);
+PythonSignal* create_nidaq_signal(ITimer* pTimer, std::string channel, int channel_count) {
+    std::cerr << "in create_nidaq_signal" << std::endl;
+  ISignal* pSignal = new NidaqSignal(pTimer, channel, channel_count);
   PythonSignal* pPythonSignal = new PythonSignal(pSignal, pTimer);
   return pPythonSignal;  
 }
@@ -39,5 +40,23 @@ PythonSignal* create_nidaq_signal(ITimer* pTimer) {
 BOOST_PYTHON_MODULE(nidaq_signal)
 {
   def("create_nidaq_signal", create_nidaq_signal, return_value_policy<manage_new_object>());
-}
+
+//class_<std::vector<int32_t> >("int32_vector")
+ //       .def(vector_indexing_suite<std::vector<int32_t> >() );
+
+//  def("create_timer", create_timer, return_value_policy<manage_new_object>());
+
+  /*class_<PythonSignal>("PythonSignal", init<ISignal*, ITimer*>())
+    .def("open", &PythonSignal::open)
+    .def("init", &PythonSignal::init)
+    .def("channels", &PythonSignal::channels)
+    .def("start", &PythonSignal::start)
+    .def("acquire", &PythonSignal::acquire)
+    .def("getdata", &PythonSignal::getdata)
+    .def("elapsedMicroSecs", &PythonSignal::elapsedMicroSecs)
+    .def("timestamp", &PythonSignal::timestamp)
+    .def("stop", &PythonSignal::stop)
+    .def("close", &PythonSignal::close)
+    ;*/
+    }
 
