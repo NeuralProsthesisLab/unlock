@@ -32,6 +32,7 @@ from unlock.state.grid_state import *
 from unlock.state.fastpad_state import *
 from unlock.state.scope_state import *
 from unlock.state.diagnostic_state import *
+from unlock.state.photodiode_state import *
 
 
 class UnlockStateFactory(object):

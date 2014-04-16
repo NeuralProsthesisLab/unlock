@@ -4,6 +4,7 @@ from unlock.view.view import *
 from unlock.view.grid import *
 from unlock.view.fastpad_view import *
 from unlock.view.scope_view import *
+from unlock.view.PhotodiodeView import *
 
 class UnlockViewFactory(object):
 

@@ -165,5 +165,3 @@ class FrequencyScopeState(UnlockState):
         self.display_channels[0] = new_chan
 
 
-class PhotodiodeScopeState(UnlockState):
-    def __init__(self):super(PhotodiodeScopeState, self).__init__()

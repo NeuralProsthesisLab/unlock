@@ -20,7 +20,7 @@
         "args" : {
             "fullscreen" : true,
             "fps" : true,
-            "vsync" : true
+            "vsync" : false
         }
     },
     
@@ -89,13 +89,37 @@
 
     "photodiode" : {
         "deps" : {
-            "stimulation" : "no_stimulation"
+            "stimulation" : "single_ssvep"
         },
         "args" : {
             "channels" : 1,
             "fs" : 256,
             "duration" : 2,
             "offline_data" : true
+        }
+    },
+     "single_ssvep" : {
+        "args" : {
+            "stimulus" : "time",
+            "frequency" : 15,
+            "color" : [0, 0, 0],
+            "color1" : [255, 255, 255],
+            "width" : 300,
+            "height" : 300,
+            "horizontal_blocks" : 2,
+            "vertical_blocks" : 2
+        }
+    },
+     "single_ssvep-exampleCannotBeCalled" : {
+        "args" : {
+            "stimulus" : "frame",
+            "frequency" : 15,
+            "color" : [0, 0, 0],
+            "color1" : [255, 255, 255],
+            "width" : 300,
+            "height" : 300,
+            "horizontal_blocks" : 2,
+            "vertical_blocks" : 2
         }
     },
 
