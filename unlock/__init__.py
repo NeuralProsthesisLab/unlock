@@ -34,7 +34,6 @@ from unlock import unlock_runtime
 from sqlalchemy import create_engine
 
 
-
 class Stimulation(object):
     def __init__(self, canvas, stimuli, views):
         super(Stimulation, self).__init__()
@@ -114,13 +113,14 @@ class UnlockFactory(AbstractFactory):
 
     def single_ssvep(self, stimulus='frame_count', color=[0, 0, 0], color1=[255, 255, 255], stimuli_duration=3.0,
                      rest_duration=1.0, frequency=15.0, width=300, height=300, horizontal_blocks=2,
-                     vertical_blocks=3, repeat_count=150):
+                     vertical_blocks=3, repeat_count=150, is_enabled=True):
 
         if stimulus == 'frame_count':
             stimulus = self.state_factory.create_frame_counted_timed_stimulus(frequency, repeat_count=repeat_count)
         else:
             stimulus = self.state_factory.create_wall_clock_timed_stimulus(frequency * 2)
-
+        if not is_enabled:
+            stimulus.stop()
         canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
         #stimuli = self.state_factory.create_timed_stimuli(stimuli_duration, rest_duration,  *[stimulus])
         ssvep_views = self.view_factory.create_single_ssvep_view(stimulus, canvas, width, height, horizontal_blocks, vertical_blocks)
@@ -230,15 +230,18 @@ class UnlockFactory(AbstractFactory):
         assert stimulation
         receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
         cmd_receiver = self.command_factory.create_receiver('raw', **receiver_args)
-        scope_model = PhotodiodeScopeState()
+        scope_model = self.state_factory.create_photodiode_state()
         if offline_data:
             offline_data = self.state_factory.create_offline_data('time_scope')
             state_chain = self.state_factory.create_state_chain(scope_model, offline_data)
         else:
             state_chain = scope_model
 
-        photodiode_view = PhotodiodeView(scope_model, stimulation.canvas)
-        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain, [photodiode_view], name='photodiode', icon='photodiode.png')
+        p_view = self.view_factory.create_photodiode_view(scope_model, stimulation.canvas)
+        image_path = os.path.join(os.path.dirname(inspect.getabsfile(UnlockFactory)), 'view', 'dr.png')
+        center_x, center_y = stimulation.canvas.center()
+        sprite_view = self.view_factory.create_image_pyglet_sprite(scope_model, stimulation.canvas, image_path, center_x, center_y)
+        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain, [p_view, sprite_view], name='photodiode', icon='photodiode.png')
 
 
     def dashboard(self, stimulation=None, decoder=None, controllers=None, offline_data=False):

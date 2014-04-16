@@ -93,6 +93,9 @@ class UnlockStateFactory(object):
     def create_fastpad(self):
         return FastPadState()
 
+    def create_photodiode_state(self):
+        return PhotodiodeScopeState()
+
     def create_grid_state(self, controllers, icons):
         grid_state = ControllerGridState(controllers)
         return grid_state
