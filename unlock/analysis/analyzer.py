@@ -70,7 +70,9 @@ class PlotAnalyzer(Analyzer):
 
     def prepare_numpy_matrix(self):
         plt.clf()
-        data = self.filter.apply(np.hstack(self.data.signal_data(self.slice)))
+        #data = self.filter.apply(np.hstack(self.data.signal_data(self.slice)))
+        print("signal data: ",self.data.signal_data(self.slice))
+        data = np.hstack(self.data.signal_data(self.slice))
         return data
 
     def analyze(self):
@@ -112,13 +114,14 @@ class SpectrogramPlotAnalyzer(PlotAnalyzer):
     def __init__(self, schema, data, nfft=3, x_label='Time (s)', y_label='Frequency (Hz)', bar_label='Amplitude (Frequency power)',
                  title='Spectrogram', filter=None):
         super(SpectrogramPlotAnalyzer, self).__init__(schema, data, x_label, y_label, bar_label, title)
-        self.slice = None
+        #self.slice = schema.data_channels()
+        #print("the data channel rows are", schema.data_channels())
         self.nfft = 3
 
     def analyze(self):
         data = self.prepare_numpy_matrix()# np.hstack(self.data.signal_data(self.slice)) #filter_low_high_pass(np.hstack(self.data.signal_data(self.slice)))
         plt.specgram(data, NFFT=self.nfft*self.schema.sampling_rate_hz, Fs=self.schema.sampling_rate_hz)
-        plt.axis([0,30,0,35])
+        plt.axis([0,3,0,35])
         self.make_plot(self.file_name)
 
 

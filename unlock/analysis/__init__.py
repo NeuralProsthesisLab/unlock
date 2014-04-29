@@ -52,9 +52,6 @@ class AnalysisFactory(UnlockFactory):
     def numpy_data_table(self, schema=None, loader=None):
         return NumpyDataTable(schema, loader.load())
 
-    def spectrogram(self, schema=None, data_table=None):
-        return SpectrogramPlotAnalyzer(schema, data_table)
-
     def butterworth_bandpass_filter(self, schema=None, low_cutoff=4, high_cutoff=65):
         return Butterworth(schema.sampling_rate_hz, low_cutoff, high_cutoff)
 

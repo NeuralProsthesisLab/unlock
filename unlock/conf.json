@@ -91,44 +91,34 @@
         "deps" : {
             "stimulation" : "no_stimulation",
             "schema" : "schema_with_timestamps_and_cues",
-             "analyzers": [ "spectrogram"]
+             "analyzer": "spectrogram"
         },
         "args" : {
             "channels" : 1,
             "fs" : 256,
             "duration" : 2,
-            "offline_data" : true
+            "offline_data" : true,
+            "window_length" : 3
         }
     },
       "schema_with_timestamps_and_cues": {
        "args": {
            "data": {
-               "o1": 0,
-               "oz": 1,
-               "o2": 3,
-               "po3": 4,
-               "poz": 5,
-               "po4": 6,
-               "cz": 7,
-               "fcz": 8
+               "photodiode_signal_channel": 0
            },
 
            "timestamps" : {
-              "c++": 9,
-              "python": 10
+              "c++": 1,
+              "python": 2
            },
 
            "triggers": {
-              "sequence_trigger": 11,
-              "sequence_trigger_time_stamp": 12,
-              "cue_trigger": 13,
-              "cue_trigger_time_stamp": 14
+              "sequence_trigger": 3,
+              "sequence_trigger_time_stamp": 4,
+              "cue_trigger": 5,
+              "cue_trigger_time_stamp": 6
            },
-
-           "sampling_rate_hz": 256,
-           "start" : 0,
-           "end" : 3
-
+           "sampling_rate_hz": 256
        }
     },
      "spectrogram": {

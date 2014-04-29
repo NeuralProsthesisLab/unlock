@@ -30,6 +30,7 @@ from unlock.state import *
 from unlock.view import *
 from unlock.controller import *
 from unlock.bci import *
+import tempfile
 
 from unlock import unlock_runtime
 from sqlalchemy import create_engine
@@ -227,14 +228,25 @@ class UnlockFactory(AbstractFactory):
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
                                                                [frequency_scope_view], name='FrequencyScope', icon='frequency2-128x128.png')
 
-    def photodiode(self, stimulation=None, channels=1, fs=256, duration=2, offline_data=False, schema=None, analyzers=None):
+
+    def spectrogram(self, schema=None, data_table=None):
+        from unlock.analysis import SpectrogramPlotAnalyzer
+        return SpectrogramPlotAnalyzer(schema, data_table)
+
+    def photodiode(self, stimulation=None, channels=1, fs=256, duration=2, offline_data=False, schema=None, analyzer=None, window_length=15):
         from unlock.analysis import NumpyDataTable  #a bit of a hack.
 
         assert stimulation and schema
         receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
         cmd_receiver = self.command_factory.create_receiver('raw', **receiver_args)
         numpy_data_table = NumpyDataTable(schema, None)
-        scope_model = self.state_factory.create_photodiode_state(numpy_data_table, analyzers)
+        #filename = tempfile.TemporaryFile
+        filename = "spectrogram.png"
+        analyzer.data = numpy_data_table
+        analyzer.schema = schema
+        analyzer.slice = schema.data_channels()
+        print("the data channel rows are", schema.data_channels())
+        scope_model = self.state_factory.create_photodiode_state(numpy_data_table, analyzer,window_length, filename)
         if offline_data:
             offline_data = self.state_factory.create_offline_data('photodiode') #string sets prefix of output log file
             state_chain = self.state_factory.create_state_chain(scope_model, offline_data)
@@ -247,8 +259,8 @@ class UnlockFactory(AbstractFactory):
         resting_model.state = True
         recording_model = UnlockState()
         recording_model.state = False
-        resting_view = self.create_image_pyglet_sprite(resting_model, stimulation.canvas, starting_image_path, stimulation.canvas.xcenter(), stimulation.canvas.ycenter())
-        recording_view = self.create_image_pyglet_sprite(recording_model, stimulation.canvas, starting_image_path, stimulation.canvas.xcenter(), stimulation.canvas.ycenter())
+        resting_view = self.view_factory.create_image_pyglet_sprite(resting_model, stimulation.canvas, starting_image_path, stimulation.canvas.xcenter(), stimulation.canvas.ycenter())
+        recording_view = self.view_factory.create_image_pyglet_sprite(recording_model, stimulation.canvas, starting_image_path, stimulation.canvas.xcenter(), stimulation.canvas.ycenter())
         p_view = self.view_factory.create_photodiode_view(scope_model, stimulation.canvas, resting_view, recording_view)
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain, [p_view, resting_view, recording_view], name='photodiode', icon='photodiode.png')
 

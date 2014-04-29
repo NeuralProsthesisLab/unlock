@@ -84,19 +84,24 @@ class SpritePositionComputer(object):
         self.y = self.height / 2
 
 
-class PygletSprite(UnlockView):
-    def __init__(self, model, canvas, image, x, y, rotation):
+class ImageBasedPygletSprite(UnlockView):
+    def __init__(self, model, canvas, image_filename, x, y, rotation):
         self.model = model
         self.canvas = canvas
         self.sprite = None
-        self.reload(image, x, y, rotation)
+        self.reload(image_filename, x, y, rotation)
         self.sprite.visible = False
         self.logger = logging.getLogger(__name__)
+        self.image_filename = image_filename
+        self.x = x
+        self.y = y
+        self.rotation = rotation
 
     def render(self):
         self.sprite.visible = self.model.get_state()
 
-    def reload(self, image, x, y, rotation):
+    def reload(self, image_filename, x, y, rotation):
+        image = pyglet.image.load(image_filename)
         image.anchor_x = int(image.width / 2)
         image.anchor_y = int(image.height / 2)
         self.sprite = pyglet.sprite.Sprite(image, batch=self.canvas.batch)
@@ -104,6 +109,23 @@ class PygletSprite(UnlockView):
         self.sprite.x = x
         self.sprite.y = y
 
+class PygletSprite(UnlockView):
+    def __init__(self, model, canvas, image, x, y, rotation):
+        self.model = model
+        self.canvas = canvas
+
+        image.anchor_x = int(image.width / 2)
+        image.anchor_y = int(image.height / 2)
+
+        self.sprite = pyglet.sprite.Sprite(image, batch=self.canvas.batch)
+        self.sprite.rotation = rotation
+        self.sprite.x = x
+        self.sprite.y = y
+        self.sprite.visible = False
+        self.logger = logging.getLogger(__name__)
+
+    def render(self):
+        self.sprite.visible = self.model.get_state()
 
 class FlickeringPygletSprite(PygletSprite):
     def __init__(self, sprite, reversed_sprite, batch):

@@ -9,9 +9,9 @@ from unlock.view.photodiode_view import *
 
 class UnlockViewFactory(object):
     def create_image_pyglet_sprite(self, model, canvas, filename, x=0, y=0, rotation=0):
-        abstract_image = pyglet.image.load(filename)
+        #abstract_image = pyglet.image.load(filename)
         print("loaded file", filename, " x: ", x, " y:", y)
-        widget = PygletSprite(model, canvas, abstract_image, x, y, 0)
+        widget = ImageBasedPygletSprite(model, canvas, filename, x, y, 0)
         widget.render()
         return widget
 

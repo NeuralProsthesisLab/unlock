@@ -20,6 +20,7 @@ class PhotodiodeView(UnlockView):
             self.resting_view.model.state = False
             self.recording_view.model.state = True
         elif self.model.get_state() == PhotodiodeScopeState.DISPLAY_RECORDED:
-
-
+            spectrogram_filename = self.model.spectrogram_filename
+            self.recording_view.reload(spectrogram_filename, self.recording_view.x, self.recording_view.y, self.recording_view.rotation)
+            self.recording_view.render()
         return

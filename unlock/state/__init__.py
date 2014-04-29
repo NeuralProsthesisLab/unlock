@@ -36,13 +36,13 @@ from unlock.state.photodiode_state import *
 
 
 class UnlockStateFactory(object):
-    def create_wall_clock_timed_stimulus(self, rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x), repeat_count=1):
-        flick_rate = 1.0/rate
+    def create_wall_clock_timed_stimulus(self, rate, sequence=(1, 0), value_transformer_fn=lambda x: bool(x), repeat_count=1):
+        flick_rate = 1.0 / rate
         time_state = TimerState(flick_rate)
         seq_state = SequenceState(sequence, value_transformer_fn)
         return TimedStimulus(time_state, seq_state, repeat_count=repeat_count)
 
-    def create_frame_counted_timed_stimulus(self, rate, sequence=(1,0), value_transformer_fn=lambda x: bool(x), repeat_count=150):
+    def create_frame_counted_timed_stimulus(self, rate, sequence=(1, 0), value_transformer_fn=lambda x: bool(x), repeat_count=150):
         time_state = FrameCountTimerState(rate)
         seq_state = SequenceState(sequence, value_transformer_fn)
         return TimedStimulus(time_state, seq_state, repeat_count=repeat_count)
@@ -58,7 +58,7 @@ class UnlockStateFactory(object):
             cue_state.transition_fn = state_machine.cue_indicate
         rest_state.transition_fn = state_machine.rest_cue
         indicate_state.transition_fn = state_machine.indicate_rest
- #       rest_state.start()
+        #       rest_state.start()
         return state_machine
 
     def create_sequential_cue_indicate_rest(self, cue_states, rest_state, indicate_state, trials=10):
@@ -74,7 +74,7 @@ class UnlockStateFactory(object):
         for cue_state in cue_states:
             cue_state.transition_fn = state_machine.cue_rest
         rest_state.transition_fn = state_machine.rest_cue
-#        rest_state.start()
+        #        rest_state.start()
         return state_machine
 
     def create_cue_state(self, state_id, duration):
@@ -93,8 +93,8 @@ class UnlockStateFactory(object):
     def create_fastpad(self):
         return FastPadState()
 
-    def create_photodiode_state(self, data_table, analyzers):
-        return PhotodiodeScopeState(data_table, analyzers)
+    def create_photodiode_state(self, data_table, analyzer, window_length, filename):
+        return PhotodiodeScopeState(data_table, analyzer, window_length, filename)
 
     def create_grid_state(self, controllers, icons):
         grid_state = ControllerGridState(controllers)
