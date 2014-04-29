@@ -89,7 +89,9 @@
 
     "photodiode" : {
         "deps" : {
-            "stimulation" : "no_stimulation"
+            "stimulation" : "no_stimulation",
+            "schema" : "schema_with_timestamps_and_cues",
+             "analyzers": [ "spectrogram"]
         },
         "args" : {
             "channels" : 1,
@@ -98,6 +100,40 @@
             "offline_data" : true
         }
     },
+      "schema_with_timestamps_and_cues": {
+       "args": {
+           "data": {
+               "o1": 0,
+               "oz": 1,
+               "o2": 3,
+               "po3": 4,
+               "poz": 5,
+               "po4": 6,
+               "cz": 7,
+               "fcz": 8
+           },
+
+           "timestamps" : {
+              "c++": 9,
+              "python": 10
+           },
+
+           "triggers": {
+              "sequence_trigger": 11,
+              "sequence_trigger_time_stamp": 12,
+              "cue_trigger": 13,
+              "cue_trigger_time_stamp": 14
+           },
+
+           "sampling_rate_hz": 256,
+           "start" : 0,
+           "end" : 3
+
+       }
+    },
+     "spectrogram": {
+   },
+
      "single_ssvep" : {
         "args" : {
             "stimulus" : "time",

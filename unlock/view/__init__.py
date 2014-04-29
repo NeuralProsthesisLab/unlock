@@ -124,8 +124,9 @@ class UnlockViewFactory(object):
     def create_gridspeak(self, state, canvas):
         return GridSpeakView(None, state, canvas)
 
-    def create_photodiode_view(self, state, canvas):
-        return PhotodiodeView(state, canvas)
+    def create_photodiode_view(self, state, canvas,resting_view, recording_view):
+
+        return PhotodiodeView(state, canvas, resting_view, recording_view)
 
     def create_quad_ssvep_views(self, stimuli, canvas, width=500, height=100, horizontal_blocks=5, vertical_blocks=1,
                                 color=[0, 0, 0], color1=[255, 255, 255]):

@@ -27,7 +27,6 @@
 
 from unlock.util import AbstractFactory
 from unlock import UnlockFactory
-
 from unlock.analysis.accessor import *
 from unlock.analysis.analyzer import *
 from unlock.analysis.filter import *

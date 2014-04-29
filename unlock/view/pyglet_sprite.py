@@ -1,4 +1,3 @@
-
 import pyglet
 import array
 import logging
@@ -28,7 +27,7 @@ class SpritePositionComputer(object):
         self.box_width = (image_width * cos(self.angle) + image_height * sin(self.angle))
         self.box_height = (image_width * sin(self.angle) + image_height * cos(self.angle))
         self.center()
-        
+
     def compute(self, position):
         {
             SpritePositionComputer.North: self.north,
@@ -41,67 +40,69 @@ class SpritePositionComputer(object):
             SpritePositionComputer.NorthWest: self.northwest,
             SpritePositionComputer.Center: self.center,
         }.get(position, self.center)()
-#        print("X, y", self.x, self.y)
-#        print("X, y", self.x0, self.y0)
-#        print("width, height", self.width, self.height)
-#        print("box_width, box_height", self.box_width, self.box_height)
+        #        print("X, y", self.x, self.y)
+        #        print("X, y", self.x0, self.y0)
+        #        print("width, height", self.width, self.height)
+        #        print("box_width, box_height", self.box_width, self.box_height)
         self.x += self.x0
         self.y += self.y0
-                
+
     def north(self):
         self.x = self.width / 2
-        self.y = self.height - self.box_height / 2        
+        self.y = self.height - self.box_height / 2
 
     def northeast(self):
         self.x = self.width - self.box_width / 2
         self.y = self.height - self.box_height / 2
-        
+
     def east(self):
         self.x = self.width - self.box_width / 2
-        self.y = self.height / 2        
-        
+        self.y = self.height / 2
+
     def southeast(self):
         self.x = self.width - self.box_width / 2
         self.y = self.box_height / 2
-        
+
     def south(self):
         self.x = self.width / 2
         self.y = self.box_height / 2
-        
+
     def southwest(self):
         self.x = self.box_width / 2
         self.y = self.box_height / 2
-        
+
     def west(self):
         self.x = self.box_width / 2
         self.y = self.height / 2
-        
+
     def northwest(self):
         self.x = self.box_width / 2
-        self.y = self.height  - self.box_height/2
-        
+        self.y = self.height - self.box_height / 2
+
     def center(self):
         self.x = self.width / 2
         self.y = self.height / 2
-            
-           
+
+
 class PygletSprite(UnlockView):
     def __init__(self, model, canvas, image, x, y, rotation):
         self.model = model
         self.canvas = canvas
-        
+        self.sprite = None
+        self.reload(image, x, y, rotation)
+        self.sprite.visible = False
+        self.logger = logging.getLogger(__name__)
+
+    def render(self):
+        self.sprite.visible = self.model.get_state()
+
+    def reload(self, image, x, y, rotation):
         image.anchor_x = int(image.width / 2)
         image.anchor_y = int(image.height / 2)
-        
         self.sprite = pyglet.sprite.Sprite(image, batch=self.canvas.batch)
         self.sprite.rotation = rotation
         self.sprite.x = x
         self.sprite.y = y
-        self.sprite.visible = False
-        self.logger = logging.getLogger(__name__)
-        
-    def render(self):
-        self.sprite.visible = self.model.get_state()
 
 
 class FlickeringPygletSprite(PygletSprite):
@@ -109,8 +110,8 @@ class FlickeringPygletSprite(PygletSprite):
         self.sprite = sprite
         self.reversed_sprite = reversed_sprite
         self.batch = batch
-        self.logger = logging.getLogger(__name__)        
-        
+        self.logger = logging.getLogger(__name__)
+
     def render(self):
         state = self.sprite.model.get_state()
         if state == None:
@@ -120,5 +121,5 @@ class FlickeringPygletSprite(PygletSprite):
             #print("FlickeringPygletSprite, x,y = ", self.sprite.sprite.x, self.sprite.sprite.y, " rotation ", self.sprite.sprite.rotation, " visible = ", state)
             self.sprite.sprite.visible = state
             self.reversed_sprite.sprite.visible = not state
-        #print('flickeringsprit state = ', state)
+            #print('flickeringsprit state = ', state)
 
