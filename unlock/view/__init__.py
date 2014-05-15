@@ -40,7 +40,7 @@ class UnlockViewFactory(object):
         ## TODO: create a copy and update that instead of modifying original
         if reversal:
             cb_properties.color1, cb_properties.color2 = \
-                cb_properties.color1, cb_properties.color2
+                cb_properties.color2, cb_properties.color1
         else:
             cb_properties.color1, cb_properties.color2 = (0, 0, 0), (0, 0, 0)
         reversed_sprite = self.create_checkerboard_sprite(
