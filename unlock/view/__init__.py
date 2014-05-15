@@ -62,8 +62,8 @@ class UnlockViewFactory(object):
 
         :param properties: an instance of a CheckerboardProperties object
         """
-        tile1_texture = properties.color1 * properties.tile1_width
-        tile2_texture = properties.color2 * properties.tile2_width
+        tile1_texture = tuple(properties.color1) * properties.tile1_width
+        tile2_texture = tuple(properties.color2) * properties.tile2_width
 
         row1_texture = tuple()
         row2_texture = tuple()
@@ -84,9 +84,9 @@ class UnlockViewFactory(object):
 
         for i in range(properties.y_tiles):
             if i % 2 == 0:
-                board_texture += row1_texture * properties.check1_height
+                board_texture += row1_texture * properties.tile1_height
             else:
-                board_texture += row2_texture * properties.check2_height
+                board_texture += row2_texture * properties.tile2_height
         y_remain = properties.height - len(board_texture) / 3
         if y_remain > 0:
             board_texture += board_texture[-properties.width:] * y_remain
