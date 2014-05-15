@@ -67,7 +67,8 @@
             "width" : 300,
             "height" : 300,
             "horizontal_blocks" : 2,
-            "vertical_blocks" : 2
+            "vertical_blocks" : 2,
+            "sequence" : [1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1]
         }
     },
 
