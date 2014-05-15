@@ -57,17 +57,26 @@
     "no_stimulation" : {
     },
 
+    "checkerboard_properties" : {
+        "args" : {
+            "width" : 300,
+            "height" : 300,
+            "x_tiles" : 4,
+            "y_tiles" : 4,
+            "x_ratio" : 1,
+            "y_ratio" : 1,
+            "color1" : [0, 0, 0],
+            "color2" : [255, 255, 255]
+        }
+    },
 
     "single_msequence" : {
+        "deps" : {
+            "cb_properties" : "checkerboard_properties"
+        },
         "args" : {
             "stimulus" : "time",
             "frequency" : 30,
-            "color" : [0, 0, 0],
-            "color1" : [255, 255, 255],
-            "width" : 300,
-            "height" : 300,
-            "horizontal_blocks" : 2,
-            "vertical_blocks" : 2,
             "sequence" : [1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1]
         }
     },

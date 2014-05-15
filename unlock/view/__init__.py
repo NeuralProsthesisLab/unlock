@@ -247,16 +247,10 @@ class UnlockViewFactory(object):
         views.append(fs)
         return views
 
-    def create_single_msequence_view(self, stimulus, canvas, width=300,
-                                     height=300, horizontal_blocks=2,
-                                     vertical_blocks=2, color=(0,0,0),
-                                     color1=(255,255,255)):
-
+    def create_single_msequence_view(self, stimulus, canvas, cb_properties):
         views = list()
-        fs = self.create_flickering_checkered_box_sprite(stimulus, canvas,
-            SpritePositionComputer.Center, width=width, height=height,
-            xfreq=horizontal_blocks, yfreq=vertical_blocks, color_on=color,
-            color_off=color1, reversal=True)
-
+        fs = self.create_flickering_checkerboard_sprite(stimulus, canvas,
+            cb_properties, SpritePositionComputer.Center, reversal=True)
         views.append(fs)
+
         return views

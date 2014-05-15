@@ -123,19 +123,20 @@ class UnlockFactory(AbstractFactory):
         ssvep_views = self.view_factory.create_single_ssvep_view(stimulus, canvas, width, height, horizontal_blocks, vertical_blocks)
         return Stimulation(canvas, stimulus, ssvep_views)
 
-    def single_msequence(self, stimulus='time', color=(0,0,0), color1=(255,255,255), stimulus_duration=3.0,
-                         rest_duration=1.0, frequency=30.0, width=300, height=300, horizontal_blocks=2,
-                         vertical_blocks=2, repeat_count=150, sequence=(0,1)):
-
+    def single_msequence(self, cb_properties=None, stimulus='time',
+                         frequency=30.0, repeat_count=150, sequence=(0,1)):
+        assert cb_properties
         if stimulus == 'frame_count':
-            stimulus = self.state_factory.create_frame_counted_timed_stimulus(frequency,
-                repeat_count=repeat_count, sequence=sequence)
+            stimulus = self.state_factory.create_frame_counted_timed_stimulus(
+                frequency, repeat_count=repeat_count, sequence=sequence)
         else:
-            stimulus = self.state_factory.create_wall_clock_timed_stimulus(frequency,
-                sequence=sequence)
+            stimulus = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequence)
 
-        canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
-        msequence_views = self.view_factory.create_single_msequence_view(stimulus, canvas, width, height, horizontal_blocks, vertical_blocks)
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        msequence_views = self.view_factory.create_single_msequence_view(
+            stimulus, canvas, cb_properties)
         return Stimulation(canvas, stimulus, msequence_views)
 
     def harmonic_sum(self, buffering_decoder, threshold_decoder, fs=256, trial_length=3, n_electrodes=8,
