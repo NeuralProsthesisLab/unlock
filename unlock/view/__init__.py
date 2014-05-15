@@ -1,3 +1,7 @@
+import array
+
+import pyglet
+
 from unlock.view.pyglet_sprite import *
 from unlock.view.pyglet_text import *
 from unlock.view.view import *
@@ -5,11 +9,93 @@ from unlock.view.grid import *
 from unlock.view.fastpad_view import *
 from unlock.view.scope_view import *
 
+
 class UnlockViewFactory(object):
 
     def create_image_pyglet_sprit(self, model, canvas, filename, x=0, y=0, rotation=0):
         abstract_image = pyglet.image.load(filename)
         return PygletSprite(model, canvas, abstract_image, int(x), int(y), rotation)
+
+    def create_checkerboard_sprite(self, model, canvas, cb_properties,
+                                   position=SpritePositionComputer.Center,
+                                   x_offset=0, y_offset=0, rotation=0):
+        texture = self.create_checkerboard_texture(cb_properties)
+        spc = SpritePositionComputer(canvas, texture.width, texture.height,
+                                     rotation)
+        spc.compute(position)
+
+        sprite = PygletSprite(model, canvas, texture, spc.x + x_offset,
+                              spc.y + y_offset, rotation)
+        return sprite
+
+    def create_flickering_checkerboard_sprite(
+            self, model, canvas, cb_properties,
+            position=SpritePositionComputer.Center, x_offset=0, y_offset=0,
+            rotation=0, reversal=True):
+
+        sprite = self.create_checkerboard_sprite(
+            model, canvas, cb_properties, position, x_offset, y_offset,
+            rotation)
+
+        ## TODO: create a copy and update that instead of modifying original
+        if reversal:
+            cb_properties.color1, cb_properties.color2 = \
+                cb_properties.color1, cb_properties.color2
+        else:
+            cb_properties.color1, cb_properties.color2 = (0, 0, 0), (0, 0, 0)
+        reversed_sprite = self.create_checkerboard_sprite(
+            model, canvas, cb_properties, position, x_offset, y_offset,
+            rotation)
+
+        return FlickeringPygletSprite(sprite, reversed_sprite, canvas.batch)
+
+    def create_checkerboard_texture(self, properties):
+        """
+        Creates a checkerboard image
+
+        This takes advantage of the fact that adding two tuples together
+        results in them being concatenated into a new tuple. Multiplying a
+        tuple (in this case the RGB values of the pixel color) by an integer
+        then results in the tuple being concatenated with itself that many
+        times. This allows us to quickly build up the tuple representing the
+        pixel values of the checkerboard texture.
+
+        :param properties: an instance of a CheckerboardProperties object
+        """
+        tile1_texture = properties.color1 * properties.tile1_width
+        tile2_texture = properties.color2 * properties.tile2_width
+
+        row1_texture = tuple()
+        row2_texture = tuple()
+
+        for i in range(properties.x_tiles):
+            if i % 2 == 0:
+                row1_texture += tile1_texture
+                row2_texture += tile2_texture
+            else:
+                row1_texture += tile2_texture
+                row2_texture += tile1_texture
+        x_remain = properties.width - len(row1_texture) / 3
+        if x_remain > 0:
+            row1_texture += row1_texture[-3:] * x_remain
+            row2_texture += row2_texture[-3:] * x_remain
+
+        board_texture = tuple()
+
+        for i in range(properties.y_tiles):
+            if i % 2 == 0:
+                board_texture += row1_texture * properties.check1_height
+            else:
+                board_texture += row2_texture * properties.check2_height
+        y_remain = properties.height - len(board_texture) / 3
+        if y_remain > 0:
+            board_texture += board_texture[-properties.width:] * y_remain
+
+        texture_data = array.array('B', board_texture).tobytes()
+        image = pyglet.image.ImageData(properties.width, properties.height,
+                                       'RGB', texture_data)
+        texture = image.get_texture().get_transform(flip_y=True)
+        return texture
 
     def create_checkered_box_sprite(self, model, canvas, position=SpritePositionComputer.Center, rotation=0, width=600, height=100, xfreq=6, yfreq=1,
             xduty=0.5, yduty=0.5, xoffset=0, yoffset=0, xuneven=False, yuneven=False, color_on=(0,0,0), color_off=(255,255,255)):
@@ -174,4 +260,3 @@ class UnlockViewFactory(object):
 
         views.append(fs)
         return views
-
