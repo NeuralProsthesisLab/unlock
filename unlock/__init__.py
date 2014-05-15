@@ -125,12 +125,14 @@ class UnlockFactory(AbstractFactory):
 
     def single_msequence(self, stimulus='time', color=(0,0,0), color1=(255,255,255), stimulus_duration=3.0,
                          rest_duration=1.0, frequency=30.0, width=300, height=300, horizontal_blocks=2,
-                         vertical_blocks=2, repeat_count=150):
+                         vertical_blocks=2, repeat_count=150, sequence=(0,1)):
 
         if stimulus == 'frame_count':
-            stimulus = self.state_factory.create_frame_counted_timed_stimulus(frequency, repeat_count=repeat_count)
+            stimulus = self.state_factory.create_frame_counted_timed_stimulus(frequency,
+                repeat_count=repeat_count, sequence=sequence)
         else:
-            stimulus = self.state_factory.create_wall_clock_timed_stimulus(frequency * 2)
+            stimulus = self.state_factory.create_wall_clock_timed_stimulus(frequency,
+                sequence=sequence)
 
         canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
         msequence_views = self.view_factory.create_single_msequence_view(stimulus, canvas, width, height, horizontal_blocks, vertical_blocks)
