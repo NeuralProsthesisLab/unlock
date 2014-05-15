@@ -281,5 +281,6 @@ class UnlockFactory(AbstractFactory):
     def checkerboard_properties(self, width=300, height=300, x_tiles=4,
                                 y_tiles=4, x_ratio=1, y_ratio=1,
                                 color1=(0, 0, 0), color2=(255, 255, 255)):
+        assert x_tiles >= 2, y_tiles >= 2
         return CheckerboardProperties(width, height, x_tiles, y_tiles, x_ratio,
                                       y_ratio, color1, color2)
