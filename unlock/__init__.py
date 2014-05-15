@@ -276,3 +276,9 @@ class UnlockFactory(AbstractFactory):
         offline_data = self.state_factory.create_offline_data(output_file)
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, offline_data, [],
             standalone=standalone)
+
+    def checkerboard_properties(self, width=300, height=300, x_tiles=4,
+                                y_tiles=4, x_ratio=1, y_ratio=1,
+                                color1=(0, 0, 0), color2=(255, 255, 255)):
+        return CheckerboardProperties(width, height, x_tiles, y_tiles, x_ratio,
+                                      y_ratio, color1, color2)
