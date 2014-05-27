@@ -123,6 +123,22 @@ class UnlockFactory(AbstractFactory):
         ssvep_views = self.view_factory.create_single_ssvep_view(stimulus, canvas, width, height, horizontal_blocks, vertical_blocks)
         return Stimulation(canvas, stimulus, ssvep_views)
 
+    def single_msequence(self, cb_properties=None, stimulus='time',
+                         frequency=30.0, repeat_count=150, sequence=(0,1)):
+        assert cb_properties
+        if stimulus == 'frame_count':
+            stimulus = self.state_factory.create_frame_counted_timed_stimulus(
+                frequency, repeat_count=repeat_count, sequence=sequence)
+        else:
+            stimulus = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequence)
+
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        msequence_views = self.view_factory.create_single_msequence_view(
+            stimulus, canvas, cb_properties)
+        return Stimulation(canvas, stimulus, msequence_views)
+
     def harmonic_sum(self, buffering_decoder, threshold_decoder, fs=256, trial_length=3, n_electrodes=8,
                      targets=[12.0, 13.0, 14.0, 15.0], target_window=0.1, nfft=2048, n_harmonics=1):
 
@@ -261,3 +277,10 @@ class UnlockFactory(AbstractFactory):
         offline_data = self.state_factory.create_offline_data(output_file)
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, offline_data, [],
             standalone=standalone)
+
+    def checkerboard_properties(self, width=300, height=300, x_tiles=4,
+                                y_tiles=4, x_ratio=1, y_ratio=1,
+                                color1=(0, 0, 0), color2=(255, 255, 255)):
+        assert x_tiles >= 2, y_tiles >= 2
+        return CheckerboardProperties(width, height, x_tiles, y_tiles, x_ratio,
+                                      y_ratio, color1, color2)
