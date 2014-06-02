@@ -254,3 +254,15 @@ class UnlockViewFactory(object):
         views.append(fs)
 
         return views
+
+    def create_quad_msequence_view(self, stimuli, canvas, cb_properties):
+        fs1 = self.create_flickering_checkerboard_sprite(stimuli[0], canvas,
+            cb_properties, SpritePositionComputer.Center, reversal=True)
+        fs2 = self.create_flickering_checkerboard_sprite(stimuli[1], canvas,
+            cb_properties, SpritePositionComputer.Center, reversal=True)
+        fs3 = self.create_flickering_checkerboard_sprite(stimuli[2], canvas,
+            cb_properties, SpritePositionComputer.Center, reversal=True)
+        fs4 = self.create_flickering_checkerboard_sprite(stimuli[3], canvas,
+            cb_properties, SpritePositionComputer.Center, reversal=True)
+
+        return [fs1, fs2, fs3, fs4]

@@ -139,6 +139,30 @@ class UnlockFactory(AbstractFactory):
             stimulus, canvas, cb_properties)
         return Stimulation(canvas, stimulus, msequence_views)
 
+    def quad_msequence(self, cb_properties=None, stimulus='time',
+                       frequency=30.0, sequences=None):
+        assert cb_properties, sequences
+        if stimulus == 'frame_count':
+            raise NotImplementedError('frame count not supported')
+        else:
+            stimulus1 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[0])
+            stimulus2 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[1])
+            stimulus3 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[2])
+            stimulus4 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[3])
+
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        stimuli = self.state_factory.create_timed_stimuli(
+            12.0, 1.0, stimulus1, stimulus2, stimulus3, stimulus4)
+        msequence_views = self.view_factory.create_quad_msequence_view(
+            [stimulus1, stimulus2, stimulus3, stimulus4], canvas,
+            cb_properties)
+        return Stimulation(canvas, stimuli, msequence_views)
+
     def harmonic_sum(self, buffering_decoder, threshold_decoder, fs=256, trial_length=3, n_electrodes=8,
                      targets=[12.0, 13.0, 14.0, 15.0], target_window=0.1, nfft=2048, n_harmonics=1):
 
