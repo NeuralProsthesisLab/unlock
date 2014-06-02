@@ -1,0 +1,117 @@
+{
+    "msequence_trainer" : {
+        "main" : true,
+        "deps" : {
+            "stimuli" : "single_msequence"
+        }
+    },
+    
+    "signal" : {
+        "singleton" : 0,
+        "name" : "random"
+    },
+
+    "window" : {
+       "singleton" : 1,
+       "name" : "pyglet",
+        "args" : {
+            "fullscreen" : true,
+            "fps" : false,
+            "vsync" : true
+        }
+    },
+    
+    "fixed_time_buffering_decoder" : {
+        "args" : {
+            "window_length" : 768
+        }
+    },
+    
+    "absolute_threshold_decoder" : {
+        "args" : {
+            "threshold" : 0,
+            "reduction_fn" : "np.mean"
+        }
+    },
+    
+    "harmonic_sum" : {
+        "deps" : {
+            "buffering_decoder" : "fixed_time_buffering_decoder",
+            "threshold_decoder" : "absolute_threshold_decoder"            
+        },
+        
+        "args" : {
+           "fs" : 256,
+           "trial_length" : 3,
+           "n_electrodes" : 8,
+           "targets" : [12.0, 13.0, 14.0, 15.0],
+           "target_window" : 0.1,
+           "nfft" : 2048,
+           "n_harmonics" : 1
+        }
+    },
+
+    "no_stimulation" : {
+    },
+
+    "checkerboard_properties" : {
+        "args" : {
+            "width" : 300,
+            "height" : 300,
+            "x_tiles" : 4,
+            "y_tiles" : 4,
+            "x_ratio" : 1,
+            "y_ratio" : 1,
+            "color1" : [0, 0, 0],
+            "color2" : [255, 255, 255]
+        }
+    },
+
+    "single_msequence" : {
+        "deps" : {
+            "cb_properties" : "checkerboard_properties"
+        },
+        "args" : {
+            "stimulus" : "time",
+            "frequency" : 30,
+            "sequence" : [1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1]
+        }
+    },
+
+    "logger": {
+        "singleton" : 0,
+        "name" : "logging",
+        "args" : {
+            "version": 1,
+            "disable_existing_loggers": false,
+            "formatters": {
+                "simple": {
+                    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                }
+            },
+     
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "level": "DEBUG",
+                    "formatter": "simple",
+                    "stream": "ext://sys.stdout"
+                },
+                
+                "file_handler": {
+                    "class": "logging.handlers.RotatingFileHandler",
+                    "formatter": "simple",
+                    "filename": "unlock.log",
+                    "maxBytes": 10485760,
+                    "backupCount": 20,
+                    "encoding": "utf8"
+                }
+            },
+        
+            "root": {
+                "level": "INFO",
+                "handlers": ["console", "file_handler"]
+            }
+        }
+    }
+}

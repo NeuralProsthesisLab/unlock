@@ -278,6 +278,21 @@ class UnlockFactory(AbstractFactory):
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, offline_data, [],
             standalone=standalone)
 
+    def msequence_trainer(self, stimuli=None, decoder=None, standalone=True):
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer}
+        if decoder:
+            receiver_args['decoder'] = decoder
+            cmd_receiver = self.command_factory.create_receiver(
+                'decoding', **receiver_args)
+        else:
+            cmd_receiver = self.command_factory.create_receiver(
+                'raw', **receiver_args)
+
+        return self.controller_factory.create_controller_chain(
+            self.window, stimuli, cmd_receiver, None, [],
+            standalone=standalone)
+
     def checkerboard_properties(self, width=300, height=300, x_tiles=4,
                                 y_tiles=4, x_ratio=1, y_ratio=1,
                                 color1=(0, 0, 0), color2=(255, 255, 255)):
