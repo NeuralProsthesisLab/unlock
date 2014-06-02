@@ -142,7 +142,7 @@ class UnlockFactory(AbstractFactory):
     def single_dynamic_msequence(self, cb_properties=None, stimulus='time',
                                  frequency=30.0, trial_duration=12.0,
                                  rest_duration=1.0):
-        assert cb_properties, sequences
+        assert cb_properties
         if stimulus == 'frame_count':
             raise NotImplementedError('frame count not supported')
         else:
@@ -188,8 +188,16 @@ class UnlockFactory(AbstractFactory):
             'n_electrodes': n_electrodes, 'targets': targets, 'target_window': target_window, 'nfft': nfft,
             'n_harmonics': n_harmonics})
 
+    def template_match(self, buffering_decoder, threshold_decoder,
+                       templates=None, fs=256, n_electrodes=8,
+                       selected_channels=None, reference_channel=None):
+        return self.decoder_factory.create_template_match(
+            templates, buffering_decoder, threshold_decoder, fs, n_electrodes,
+            selected_channels, reference_channel)
+
     def fixed_time_buffering_decoder(self, window_length=768, electrodes=8):
-        return self.decoder_factory.create_fixed_time_buffering(**{'window_length': window_length, 'electrodes': electrodes})
+        return self.decoder_factory.create_fixed_time_buffering(electrodes,
+                                                                window_length)
 
     def absolute_threshold_decoder(self, threshold, reduction_fn):
         return self.decoder_factory.create_absolute_threshold(**{'threshold': threshold, 'reduction_fn': reduction_fn})
