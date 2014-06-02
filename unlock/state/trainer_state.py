@@ -32,28 +32,29 @@ class MsequenceTrainerState(UnlockState):
     NextStimulus = 1
     PrevStimulus = 2
 
-    def __init__(self, stimuli):
+    def __init__(self, stimuli, sequences):
         super(MsequenceTrainerState, self).__init__()
         self.stimuli = stimuli
-        self.active_stimulus = stimuli[0]
+        self.sequences = sequences
         self.cursor = 0
         self.trial_count = 0
+        self.update_sequence()
 
     def trial_start(self):
-        self.active_stimulus.model.start()
+        self.stimuli.start()
 
     def trial_stop(self):
-        self.active_stimulus.model.stop()
+        self.stimuli.stop()
+        for stimulus in self.stimuli.stimuli:
+            stimulus.state = None
 
     def process_command(self, command):
-        if not self.stimuli.model.state.is_stopped():
+        if not self.stimuli.state.is_stopped():
             if self.trial_count == 0:
                 # this is a hack to get around the current setup where the
                 # stimuli starts immediately
-                for stimulus in self.stimuli:
-                    stimulus.model.stop()
                 self.trial_stop()
-            elif self.stimuli.model.state.last_change == TrialState.TrialExpiry:
+            elif self.stimuli.state.last_change == TrialState.TrialExpiry:
                 # there is an occasional delay apparently that can happen when
                 # using actual devices which causes this state to be missed
                 # i.e. it goes to rest, then the next rest state, resulting in
@@ -73,12 +74,15 @@ class MsequenceTrainerState(UnlockState):
     def handle_decision(self, decision):
         if decision == MsequenceTrainerState.NextStimulus:
             self.cursor += 1
-            if self.cursor >= len(self.stimuli):
+            if self.cursor >= len(self.sequences):
                 self.cursor = 0
-            self.active_stimulus = self.stimuli[self.cursor]
-
+            self.update_sequence()
         elif decision == MsequenceTrainerState.PrevStimulus:
             self.cursor -= 1
             if self.cursor < 0:
-                self.cursor = len(self.stimuli) - 1
-            self.active_stimulus = self.stimuli[self.cursor]
+                self.cursor = len(self.sequences) - 1
+            self.update_sequence()
+
+    def update_sequence(self):
+        seq = self.sequences[self.cursor]
+        self.stimuli.stimuli[0].seq_state.sequence = seq

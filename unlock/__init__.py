@@ -139,6 +139,24 @@ class UnlockFactory(AbstractFactory):
             stimulus, canvas, cb_properties)
         return Stimulation(canvas, stimulus, msequence_views)
 
+    def single_dynamic_msequence(self, cb_properties=None, stimulus='time',
+                                 frequency=30.0, trial_duration=12.0,
+                                 rest_duration=1.0):
+        assert cb_properties, sequences
+        if stimulus == 'frame_count':
+            raise NotImplementedError('frame count not supported')
+        else:
+            stimulus1 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency)
+
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        stimuli = self.state_factory.create_timed_stimuli(
+            trial_duration, rest_duration, stimulus1)
+        msequence_views = self.view_factory.create_single_msequence_view(
+            stimulus1, canvas, cb_properties)
+        return Stimulation(canvas, stimuli, msequence_views)
+
     def quad_msequence(self, cb_properties=None, stimulus='time',
                        frequency=30.0, sequences=None):
         assert cb_properties, sequences
@@ -157,7 +175,7 @@ class UnlockFactory(AbstractFactory):
         canvas = self.controller_factory.create_canvas(self.window.width,
                                                        self.window.height)
         stimuli = self.state_factory.create_timed_stimuli(
-            12.0, 1.0, stimulus1, stimulus2, stimulus3, stimulus4)
+            5.0, 1.0, stimulus1, stimulus2, stimulus3, stimulus4)
         msequence_views = self.view_factory.create_quad_msequence_view(
             [stimulus1, stimulus2, stimulus3, stimulus4], canvas,
             cb_properties)
@@ -302,7 +320,8 @@ class UnlockFactory(AbstractFactory):
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, offline_data, [],
             standalone=standalone)
 
-    def msequence_trainer(self, stimuli=None, decoder=None, standalone=True):
+    def msequence_trainer(self, stimuli=None, decoder=None, sequences=None,
+                          standalone=True):
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer}
         if decoder:
@@ -313,8 +332,11 @@ class UnlockFactory(AbstractFactory):
             cmd_receiver = self.command_factory.create_receiver(
                 'raw', **receiver_args)
 
+        trainer = self.state_factory.create_msequence_trainer(stimuli,
+                                                              sequences)
+
         return self.controller_factory.create_controller_chain(
-            self.window, stimuli, cmd_receiver, None, [],
+            self.window, stimuli, cmd_receiver, trainer, [],
             standalone=standalone)
 
     def checkerboard_properties(self, width=300, height=300, x_tiles=4,
