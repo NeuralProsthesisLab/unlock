@@ -32,6 +32,7 @@ from unlock.state.grid_state import *
 from unlock.state.fastpad_state import *
 from unlock.state.scope_state import *
 from unlock.state.diagnostic_state import *
+from unlock.state.trainer_state import *
 
 
 class UnlockStateFactory(object):
@@ -110,3 +111,7 @@ class UnlockStateFactory(object):
     def create_timed_stimuli(self, stimuli_duration=3.0, rest_duration=1.0, *stimuli):
         trial_state = self.create_trial_state(stimuli_duration, rest_duration)
         return TimedStimuli(trial_state, stimuli)
+
+    def create_msequence_trainer(self, stimuli, sequences):
+        trainer_state = MsequenceTrainerState(stimuli.stimuli, sequences)
+        return trainer_state
