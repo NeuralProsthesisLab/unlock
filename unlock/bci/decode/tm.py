@@ -43,10 +43,11 @@ class TemplateFeatureExtractor(UnlockDecoder):
     templates, with the highest scoring template selected as the attended
     stimulus.
     """
-    def __init__(self, templates, fs=256, n_electrodes=8,
+    def __init__(self, buffering_decoder, templates, fs=256, n_electrodes=8,
                  selected_channels=None, reference_channel=None):
         super(TemplateFeatureExtractor, self).__init__()
 
+        self.buffering_decoder = buffering_decoder
         self.templates = templates
         self.fs = fs
         self.n_electrodes = n_electrodes
@@ -64,13 +65,15 @@ class TemplateFeatureExtractor(UnlockDecoder):
         The feature used by template matching is the filtered and averaged
         signal over a single presentation.
         """
-        # TODO: this step should be replaced with a passed in filter chain
-        y = command.matrix[:, self.selected_channels]
+        y = self.buffering_decoder.get_data()
         if self.reference_channel is not None:
             y -= command.matrix[:, [self.reference_channel]]
         y -= np.mean(y, axis=0)
-
-        command.scores = np.dot(y, self.templates)
+        print(y.shape)
+        scores = np.zeros(1)
+        if self.templates is not None:
+            scores = np.dot(y, self.templates)
+        command.scores = scores
 
         return command
         
