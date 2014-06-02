@@ -113,9 +113,9 @@ class FlickeringPygletSprite(PygletSprite):
         
     def render(self):
         state = self.sprite.model.get_state()
-        if state == None:
+        if state is None:
             self.sprite.sprite.visible = False
-            self.reversed_sprite.visible = False
+            self.reversed_sprite.sprite.visible = False
         else:
             #print("FlickeringPygletSprite, x,y = ", self.sprite.sprite.x, self.sprite.sprite.y, " rotation ", self.sprite.sprite.rotation, " visible = ", state)
             self.sprite.sprite.visible = state
