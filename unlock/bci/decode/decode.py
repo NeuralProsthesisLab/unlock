@@ -82,7 +82,7 @@ class UnlockDecoderChain(UnlockDecoder):
             
     def reset(self):
         for decoder in self.decoders:
-            self.decoder.reset()
+            decoder.reset()
             
             
 class TrialStateControlledDecoder(UnlockDecoder):
