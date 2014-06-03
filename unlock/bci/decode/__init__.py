@@ -69,13 +69,14 @@ class UnlockDecoderFactory(object):
         return decoder_chain
 
     def create_template_match(self, templates=None, buffering_decoder=None,
-                              threshold_decoder=None, fs=256, n_electrodes=8,
+                              threshold_decoder=None, n_electrodes=8,
                               selected_channels=None, reference_channel=None):
         assert buffering_decoder and threshold_decoder
         trial_state_decoder = TrialStateControlledDecoder(None)
-        feature_extractor = TemplateFeatureExtractor(
-            templates, fs, n_electrodes, selected_channels, reference_channel)
-        decider = ScoredTemplateMatch(threshold_decoder)
+        feature_extractor = TemplateFeatureExtractor(n_electrodes,
+                                                     selected_channels,
+                                                     reference_channel)
+        decider = ScoredTemplateMatch(templates, threshold_decoder)
 
         decoder_chain = UnlockDecoderChain()
         decoder_chain.add(trial_state_decoder)

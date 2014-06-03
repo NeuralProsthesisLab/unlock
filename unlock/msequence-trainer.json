@@ -50,7 +50,6 @@
         },
         
         "args" : {
-           "fs" : 256,
            "n_electrodes" : 8
         }
     },

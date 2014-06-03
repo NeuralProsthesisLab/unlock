@@ -189,10 +189,10 @@ class UnlockFactory(AbstractFactory):
             'n_harmonics': n_harmonics})
 
     def template_match(self, buffering_decoder, threshold_decoder,
-                       templates=None, fs=256, n_electrodes=8,
+                       templates=None, n_electrodes=8,
                        selected_channels=None, reference_channel=None):
         return self.decoder_factory.create_template_match(
-            templates, buffering_decoder, threshold_decoder, fs, n_electrodes,
+            templates, buffering_decoder, threshold_decoder, n_electrodes,
             selected_channels, reference_channel)
 
     def fixed_time_buffering_decoder(self, window_length=768, electrodes=8):

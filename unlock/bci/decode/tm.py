@@ -25,11 +25,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from unlock.bci.decode.decode import UnlockDecoder
-from unlock.state import TrialState
 import numpy as np
 import time
-import traceback
-import sys
 
 SetResultHandler = 0
 LogResultHandler = 1
@@ -43,12 +40,10 @@ class TemplateFeatureExtractor(UnlockDecoder):
     templates, with the highest scoring template selected as the attended
     stimulus.
     """
-    def __init__(self, templates, fs=256, n_electrodes=8,
-                 selected_channels=None, reference_channel=None):
+    def __init__(self, n_electrodes=8, selected_channels=None,
+                 reference_channel=None):
         super(TemplateFeatureExtractor, self).__init__()
 
-        self.templates = templates
-        self.fs = fs
         self.n_electrodes = n_electrodes
 
         self.selected_channels = selected_channels
@@ -64,22 +59,21 @@ class TemplateFeatureExtractor(UnlockDecoder):
         The feature used by template matching is the filtered and averaged
         signal over a single presentation.
         """
-        y = command.data[:, self.selected_channels]
-        if self.reference_channel is not None:
-            y -= command.matrix[:, [self.reference_channel]]
+        y = command.data[:]
         y -= np.mean(y, axis=0)
+        if self.reference_channel is not None:
+            y -= y[:, [self.reference_channel]]
+        y = y[:, self.selected_channels]
+        y = np.mean(y, axis=1)
 
-        scores = np.zeros(1)
-        if self.templates is not None:
-            scores = np.dot(y, self.templates)
-        command.scores = scores
-
+        command.features = y
         return command
         
         
 class ScoredTemplateMatch(UnlockDecoder):
-    def __init__(self, threshold_decoder):
+    def __init__(self, templates, threshold_decoder):
         super(ScoredTemplateMatch, self).__init__()
+        self.templates = templates
         self.threshold_decoder = threshold_decoder
         
     def decode(self, command):
@@ -87,12 +81,14 @@ class ScoredTemplateMatch(UnlockDecoder):
         Find the largest frequency magnitude and determine if it meets
         threshold criteria.
         """
-        assert hasattr(command, 'scores')
-        result_string = None
-
+        scores = np.zeros(1)
+        if self.templates is not None:
+            scores = np.dot(command.features, self.templates)
+        command.scores = scores
         command.winner = np.argmax(command.scores)
         command = self.threshold_decoder.decode(command)
-            
+
+        result_string = None
         if command.accept:
             command.class_label = command.winner
             np.set_printoptions(precision=2)
