@@ -1,4 +1,4 @@
-# Copyright (c) James Percent, Byron Galibrith and Unlock contributors.
+# Copyright (c) James Percent, Byron Galbraith and Unlock contributors.
 # All rights reserved.
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -86,9 +86,6 @@ class UnlockDecoderChain(UnlockDecoder):
             
             
 class TrialStateControlledDecoder(UnlockDecoder):
-    def __init__(self, task_state):
-        self.task_state = task_state
-        
     def decode(self, command):
         """
         Check if the task state has entered or left a rest state and handles
