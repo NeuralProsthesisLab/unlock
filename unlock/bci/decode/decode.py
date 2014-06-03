@@ -92,6 +92,10 @@ class TrialStateControlledDecoder(UnlockDecoder):
         accordingly.
         """
         if self.task_state is not None:
+            if self.task_state.is_stopped():
+                command.set_ready_value(False)
+                return command
+
             state_change = self.task_state.get_state()
             if state_change == TrialState.RestExpiry:
                 self.start()
@@ -128,8 +132,11 @@ class BufferedDecoder(UnlockDecoder):
         else:
             self.buffer[self.cursor:self.cursor+n_samples] = data
             self.cursor += n_samples
-        
-        command.set_ready_value(self.is_ready())
+
+        if self.is_ready():
+            command.data = self.get_data()
+        else:
+            command.set_ready_value(False)
         return command
             
     def get_data(self):

@@ -74,8 +74,7 @@ class UnlockDecoderFactory(object):
         assert buffering_decoder and threshold_decoder
         trial_state_decoder = TrialStateControlledDecoder(None)
         feature_extractor = TemplateFeatureExtractor(
-            buffering_decoder, templates, fs, n_electrodes, selected_channels,
-            reference_channel)
+            templates, fs, n_electrodes, selected_channels, reference_channel)
         decider = ScoredTemplateMatch(threshold_decoder)
 
         decoder_chain = UnlockDecoderChain()
