@@ -159,7 +159,7 @@ class UnlockFactory(AbstractFactory):
 
     def quad_msequence(self, cb_properties=None, stimulus='time',
                        frequency=30.0, sequences=None):
-        assert cb_properties, sequences
+        assert cb_properties and sequences
         if stimulus == 'frame_count':
             raise NotImplementedError('frame count not supported')
         else:
@@ -350,6 +350,6 @@ class UnlockFactory(AbstractFactory):
     def checkerboard_properties(self, width=300, height=300, x_tiles=4,
                                 y_tiles=4, x_ratio=1, y_ratio=1,
                                 color1=(0, 0, 0), color2=(255, 255, 255)):
-        assert x_tiles >= 2, y_tiles >= 2
+        assert x_tiles >= 2 and y_tiles >= 2
         return CheckerboardProperties(width, height, x_tiles, y_tiles, x_ratio,
                                       y_ratio, color1, color2)
