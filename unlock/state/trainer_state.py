@@ -24,6 +24,7 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import numpy as np
 
 from unlock.state.state import UnlockState, TrialState
 
@@ -32,13 +33,22 @@ class MsequenceTrainerState(UnlockState):
     NextStimulus = 1
     PrevStimulus = 2
 
-    def __init__(self, stimuli, sequences):
+    def __init__(self, stimuli, sequences, n_trials=None, trial_sequence=None):
         super(MsequenceTrainerState, self).__init__()
         self.stimuli = stimuli
         self.sequences = sequences
         self.cursor = 0
+        self.n_trials = n_trials
         self.trial_count = 0
-        self.update_sequence()
+        if trial_sequence is None or trial_sequence == 'manual':
+            self.trial_sequence = None
+        elif trial_sequence == 'random':
+            assert n_trials % len(self.sequences) == 0
+            self.trial_sequence = np.random.permutation(np.repeat(
+                np.arange(len(self.sequences)), n_trials / len(self.sequences))
+            )
+        else:
+            self.trial_sequence = trial_sequence
 
     def trial_start(self):
         self.stimuli.start()
@@ -66,7 +76,9 @@ class MsequenceTrainerState(UnlockState):
 
         if command.selection:
             self.trial_count += 1
-            self.trial_start()
+            if self.trial_count <= self.n_trials:
+                self.update_sequence()
+                self.trial_start()
 
         if command.decision is not None:
             self.handle_decision(command.decision)
@@ -84,5 +96,9 @@ class MsequenceTrainerState(UnlockState):
             self.update_sequence()
 
     def update_sequence(self):
-        seq = self.sequences[self.cursor]
+        if self.trial_sequence is None:
+            seq = self.sequences[self.cursor]
+        else:
+            seq = self.sequences[self.trial_sequence[self.trial_count-1]]
+            print(self.trial_sequence[self.trial_count-1])
         self.stimuli.stimuli[0].seq_state.sequence = seq

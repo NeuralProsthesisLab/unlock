@@ -329,7 +329,7 @@ class UnlockFactory(AbstractFactory):
             standalone=standalone)
 
     def msequence_trainer(self, stimuli=None, decoder=None, sequences=None,
-                          standalone=True):
+                          n_trials=None, trial_sequence=None, standalone=True):
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer}
         if decoder:
@@ -340,8 +340,8 @@ class UnlockFactory(AbstractFactory):
             cmd_receiver = self.command_factory.create_receiver(
                 'raw', **receiver_args)
 
-        trainer = self.state_factory.create_msequence_trainer(stimuli,
-                                                              sequences)
+        trainer = self.state_factory.create_msequence_trainer(
+            stimuli, sequences, n_trials, trial_sequence)
         # super horrible hack
         decoder.decoders[0].task_state = stimuli.stimuli.state
 

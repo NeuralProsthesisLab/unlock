@@ -112,6 +112,8 @@ class UnlockStateFactory(object):
         trial_state = self.create_trial_state(stimuli_duration, rest_duration)
         return TimedStimuli(trial_state, stimuli)
 
-    def create_msequence_trainer(self, stimuli, sequences):
-        trainer_state = MsequenceTrainerState(stimuli.stimuli, sequences)
+    def create_msequence_trainer(self, stimuli, sequences, n_trials,
+                                 trial_sequence):
+        trainer_state = MsequenceTrainerState(stimuli.stimuli, sequences,
+                                              n_trials, trial_sequence)
         return trainer_state
