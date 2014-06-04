@@ -37,7 +37,7 @@ class MsequenceTrainerState(UnlockState):
         super(MsequenceTrainerState, self).__init__()
         self.stimuli = stimuli
         self.sequences = sequences
-        self.cursor = 0
+        self.sequence_idx = 0
         self.n_trials = n_trials
         self.trial_count = 0
         if trial_sequence is None or trial_sequence == 'manual':
@@ -85,20 +85,18 @@ class MsequenceTrainerState(UnlockState):
 
     def handle_decision(self, decision):
         if decision == MsequenceTrainerState.NextStimulus:
-            self.cursor += 1
-            if self.cursor >= len(self.sequences):
-                self.cursor = 0
+            self.sequence_idx += 1
+            if self.sequence_idx >= len(self.sequences):
+                self.sequence_idx = 0
             self.update_sequence()
         elif decision == MsequenceTrainerState.PrevStimulus:
-            self.cursor -= 1
-            if self.cursor < 0:
-                self.cursor = len(self.sequences) - 1
+            self.sequence_idx -= 1
+            if self.sequence_idx < 0:
+                self.sequence_idx = len(self.sequences) - 1
             self.update_sequence()
 
     def update_sequence(self):
-        if self.trial_sequence is None:
-            seq = self.sequences[self.cursor]
-        else:
-            seq = self.sequences[self.trial_sequence[self.trial_count-1]]
-            print(self.trial_sequence[self.trial_count-1])
+        if self.trial_sequence is not None:
+            self.sequence_idx = self.trial_sequence[self.trial_count-1]
+        seq = self.sequences[self.sequence_idx]
         self.stimuli.stimuli[0].seq_state.sequence = seq

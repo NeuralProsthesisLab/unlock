@@ -43,6 +43,7 @@ class UnlockDecoderFactory(object):
             'fixed_time': self.create_fixed_time_buffering,
             'absolute': self.create_absolute_threshold,
             'lda': self.create_lda_threshold,
+            'offline': self.create_offline_trial_data,
             'unknown': self.unknown
         }.get(decoder, self.unknown)
         if func is None:
@@ -77,14 +78,19 @@ class UnlockDecoderFactory(object):
                                                      selected_channels,
                                                      reference_channel)
         decider = ScoredTemplateMatch(templates, threshold_decoder)
+        logger = OfflineTrialDataDecoder('tm')
 
         decoder_chain = UnlockDecoderChain()
         decoder_chain.add(trial_state_decoder)
         decoder_chain.add(buffering_decoder)
         decoder_chain.add(feature_extractor)
         decoder_chain.add(decider)
+        decoder_chain.add(logger)
 
         return decoder_chain
+
+    def create_offline_trial_data(self, label='trial'):
+        return OfflineTrialDataDecoder(label)
 
     def create_fixed_time_buffering(self, electrodes=8, window_length=768):
         return FixedTimeBufferingDecoder(electrodes, window_length)
@@ -106,4 +112,3 @@ class UnlockDecoderFactory(object):
         
     def unknown(self, **kwargs):
         raise("Unsupported")
-        

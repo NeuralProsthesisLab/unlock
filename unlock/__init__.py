@@ -344,6 +344,7 @@ class UnlockFactory(AbstractFactory):
             stimuli, sequences, n_trials, trial_sequence)
         # super horrible hack
         decoder.decoders[0].task_state = stimuli.stimuli.state
+        decoder.decoders[-1].task_state = trainer
 
         return self.controller_factory.create_controller_chain(
             self.window, stimuli, cmd_receiver, trainer, [],

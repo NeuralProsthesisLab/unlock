@@ -24,11 +24,12 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import time
 
-import unlock.bci
 import numpy as np
-from unlock.state import TrialState
 from sklearn import lda
+
+from unlock.state import TrialState
 
 
 class UnlockDecoder(object):
@@ -66,7 +67,10 @@ class UnlockDecoderChain(UnlockDecoder):
         for decoder in self.decoders:
             command = decoder.decode(command)
             if not command.is_ready():
-                return command
+                if hasattr(command, 'reset'):
+                    break
+                else:
+                    return command
                 
         for decoder in self.decoders:
             command = decoder.update(command)
@@ -94,6 +98,7 @@ class TrialStateControlledDecoder(UnlockDecoder):
         if self.task_state is not None:
             if self.task_state.is_stopped():
                 command.set_ready_value(False)
+                command.reset = True
                 return command
 
             state_change = self.task_state.get_state()
@@ -235,3 +240,25 @@ class LdaThresholdDecoder(UnlockDecoder):
         command.accept = command.confidence >= self.min_confidence
         return command
 
+
+class OfflineTrialDataDecoder(UnlockDecoder):
+    """
+    Writes the intermediate and final results and of a trial to disk as a
+    compressed numpy archive.
+    """
+    def __init__(self, label):
+        super(OfflineTrialDataDecoder, self).__init__()
+        self.label = label
+
+    def decode(self, command):
+        log = dict(
+            data=command.data,
+            features=command.features,
+            scores=command.scores,
+            predicted_class=command.winner,
+            accepted=command.accept,
+            confidence=command.confidence,
+            actual_class=self.task_state.sequence_idx,
+        )
+        np.savez("%s-%d" % (self.label, time.time()), **log)
+        return command
