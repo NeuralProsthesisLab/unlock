@@ -128,13 +128,28 @@ class UnlockFactory(AbstractFactory):
         ssvep_views = self.view_factory.create_single_ssvep_view(stimulus, canvas, width, height, horizontal_blocks, vertical_blocks)
         return Stimulation(canvas, stimulus, ssvep_views)
 
+    def single_msequence(self, cb_properties=None, stimulus='time',
+                         frequency=30.0, repeat_count=150, sequence=(0,1)):
+        assert cb_properties
+        if stimulus == 'frame_count':
+            stimulus = self.state_factory.create_frame_counted_timed_stimulus(
+                frequency, repeat_count=repeat_count, sequence=sequence)
+        else:
+            stimulus = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequence)
+
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        msequence_views = self.view_factory.create_single_msequence_view(
+            stimulus, canvas, cb_properties)
+        return Stimulation(canvas, stimulus, msequence_views)
+
     def harmonic_sum(self, buffering_decoder, threshold_decoder, fs=256, trial_length=3, n_electrodes=8,
                      targets=[12.0, 13.0, 14.0, 15.0], target_window=0.1, nfft=2048, n_harmonics=1):
 
         return self.decoder_factory.create_harmonic_sum_decision(buffering_decoder, threshold_decoder, **{'fs': fs, 'trial_length': trial_length,
-                                                                                                          'n_electrodes': n_electrodes, 'targets': targets, 'target_window': target_window,
-                                                                                                          'nfft': nfft,
-                                                                                                          'n_harmonics': n_harmonics})
+            'n_electrodes': n_electrodes, 'targets': targets, 'target_window': target_window, 'nfft': nfft,
+            'n_harmonics': n_harmonics})
 
     def fixed_time_buffering_decoder(self, window_length=768, electrodes=8):
         return self.decoder_factory.create_fixed_time_buffering(**{'window_length': window_length, 'electrodes': electrodes})
@@ -161,7 +176,7 @@ class UnlockFactory(AbstractFactory):
         gridspeak_view = self.view_factory.create_gridspeak(grid_state, stimulation.canvas)
 
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
-                                                               [gridspeak_view], name="Gridspeak", icon="gridspeak.png")
+            [gridspeak_view], name="Gridspeak", icon="gridspeak.png")
 
     def gridcursor(self, stimulation=None, decoder=None, grid_radius=2, offline_data=False):
         assert stimulation and decoder
@@ -178,7 +193,7 @@ class UnlockFactory(AbstractFactory):
         gridspeak_view = self.view_factory.create_hierarchy_grid_view(grid_state, stimulation.canvas)
 
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
-                                                               [gridspeak_view], name="Gridcursor", icon="gridcursor.png")
+            [gridspeak_view], name="Gridcursor", icon="gridcursor.png")
 
     def fastpad(self, stimulation=None, decoder=None, offline_data=False):
         assert stimulation and decoder
@@ -194,7 +209,7 @@ class UnlockFactory(AbstractFactory):
 
         fastpad_view = self.view_factory.create_fastpad_view(fastpad_state, stimulation.canvas)
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
-                                                               [fastpad_view], name="Fastpad", icon="fastpad.png")
+            [fastpad_view], name="Fastpad", icon="fastpad.png")
 
     def time_scope(self, stimulation=None, channels=1, fs=256, duration=2, offline_data=False):
         assert stimulation
@@ -210,7 +225,7 @@ class UnlockFactory(AbstractFactory):
 
         time_scope_view = TimeScopeView(scope_model, stimulation.canvas)
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
-                                                               [time_scope_view], name='TimeScope', icon='time-128x128.jpg')
+            [time_scope_view], name='TimeScope', icon='time-128x128.jpg')
 
     def frequency_scope(self, stimulation=None, channels=1, fs=256, duration=2, offline_data=False):
         assert stimulation
@@ -226,7 +241,7 @@ class UnlockFactory(AbstractFactory):
 
         frequency_scope_view = FrequencyScopeView(scope_model, stimulation.canvas, labels=scope_model.labels)
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
-                                                               [frequency_scope_view], name='FrequencyScope', icon='frequency2-128x128.png')
+            [frequency_scope_view], name='FrequencyScope', icon='frequency2-128x128.png')
 
 
     def spectrogram(self, schema=None, data_table=None):
@@ -282,7 +297,7 @@ class UnlockFactory(AbstractFactory):
         receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
         cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
         cc_frag = self.controller_factory.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
-                                                                            stimulation.views, cmd_receiver)
+            stimulation.views, cmd_receiver)
 
         icons = []
         for c in controllers:
@@ -297,7 +312,7 @@ class UnlockFactory(AbstractFactory):
 
         grid_view = self.view_factory.create_grid_view(grid_state, stimulation.canvas, icons)
         return self.controller_factory.create_dashboard(self.window, stimulation.canvas, controllers, cc_frag,
-                                                        [grid_view], state_chain)
+            [grid_view], state_chain)
 
     def ssvep_diagnostic(self, stimulation=None, decoder=None, output_file='ssvep-diagnostic', duration=10, standalone=True):
         receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
@@ -308,8 +323,15 @@ class UnlockFactory(AbstractFactory):
             cmd_receiver = self.command_factory.create_receiver('raw', **receiver_args)
 
         cc_frag = self.controller_factory.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
-                                                                            stimulation.views, cmd_receiver)
+            stimulation.views, cmd_receiver)
 
         offline_data = self.state_factory.create_offline_data(output_file)
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, offline_data, [],
-                                                               standalone=standalone)
+            standalone=standalone)
+
+    def checkerboard_properties(self, width=300, height=300, x_tiles=4,
+                                y_tiles=4, x_ratio=1, y_ratio=1,
+                                color1=(0, 0, 0), color2=(255, 255, 255)):
+        assert x_tiles >= 2, y_tiles >= 2
+        return CheckerboardProperties(width, height, x_tiles, y_tiles, x_ratio,
+                                      y_ratio, color1, color2)                                                               standalone=standalone)

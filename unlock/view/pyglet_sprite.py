@@ -145,3 +145,38 @@ class FlickeringPygletSprite(PygletSprite):
             self.reversed_sprite.sprite.visible = not state
             #print('flickeringsprit state = ', state)
 
+
+class CheckerboardProperties(object):
+    """
+    An object that collects all the properties used to generate a
+    checkerboard sprite.
+
+    :param width: width of the checkerboard in pixels
+    :param height: height of the checkerboard in pixels
+    :param x_tiles: total number of horizontal checks
+    :param y_tiles: total number of vertical checks
+    :param x_ratio: width ratio between alternating checks
+    :param y_ratio: height ratio between alternating checks
+    :param color1: RGB color of one set of checks
+    :param color2: RGB color of the other set of checks
+    """
+    def __init__(self, width=300, height=300, x_tiles=4, y_tiles=4,
+                 x_ratio=1, y_ratio=1, color1=(0, 0, 0),
+                 color2=(255, 255, 255)):
+        self.width = width
+        self.height = height
+        self.x_tiles = x_tiles
+        self.y_tiles = y_tiles
+        self.x_ratio = x_ratio
+        self.y_ratio = y_ratio
+        self.color1 = color1
+        self.color2 = color2
+
+        # Computed properties
+        pair_width = int(width / x_tiles * 2)
+        self.tile1_width = int(pair_width * (x_ratio / (x_ratio + 1)))
+        self.tile2_width = pair_width - self.tile1_width
+
+        pair_height = int(height / y_tiles * 2)
+        self.tile1_height = int(pair_height * (y_ratio / (y_ratio + 1)))
+        self.tile2_height = pair_height - self.tile1_height
