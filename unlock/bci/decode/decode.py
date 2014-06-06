@@ -186,6 +186,8 @@ class FixedTimeBufferingDecoder(BufferedDecoder):
         self.started = False
         if self.cursor >= 0.9*self.window_length:
             self.decode_now = True
+        else:
+            self.update(None)
             
     def is_ready(self):
         return self.cursor >= self.window_length or self.decode_now
