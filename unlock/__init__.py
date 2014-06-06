@@ -343,7 +343,7 @@ class UnlockFactory(AbstractFactory):
         trainer = self.state_factory.create_msequence_trainer(
             stimuli, sequences, n_trials, trial_sequence)
         # super horrible hack
-        decoder.decoders[0].task_state = stimuli.stimuli.state
+        decoder.decoders[0].task_state = trainer  # stimuli.stimuli.state
         decoder.decoders[-1].task_state = trainer
 
         return self.controller_factory.create_controller_chain(

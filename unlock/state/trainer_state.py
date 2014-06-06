@@ -32,6 +32,8 @@ from unlock.state.state import UnlockState, TrialState
 class MsequenceTrainerState(UnlockState):
     NextStimulus = 1
     PrevStimulus = 2
+    TrialStart = 1
+    TrialEnd = 2
 
     def __init__(self, stimuli, sequences, n_trials=None, trial_sequence=None):
         super(MsequenceTrainerState, self).__init__()
@@ -49,11 +51,24 @@ class MsequenceTrainerState(UnlockState):
             )
         else:
             self.trial_sequence = trial_sequence
+        self.state = None
+        self.state_change = False
+
+    def get_state(self):
+        if self.state_change:
+            self.state_change = False
+            return self.state
+
+    def set_state(self, state):
+        self.state = state
+        self.state_change = True
 
     def trial_start(self):
+        self.set_state(MsequenceTrainerState.TrialStart)
         self.stimuli.start()
 
     def trial_stop(self):
+        self.set_state(MsequenceTrainerState.TrialEnd)
         self.stimuli.stop()
         for stimulus in self.stimuli.stimuli:
             stimulus.state = None

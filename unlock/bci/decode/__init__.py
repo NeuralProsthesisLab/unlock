@@ -73,7 +73,7 @@ class UnlockDecoderFactory(object):
                               threshold_decoder=None, n_electrodes=8,
                               selected_channels=None, reference_channel=None):
         assert buffering_decoder and threshold_decoder
-        trial_state_decoder = TrialStateControlledDecoder(None)
+        trial_state_decoder = MsequenceTrainerStateControlledDecoder(None)
         feature_extractor = TemplateFeatureExtractor(n_electrodes,
                                                      selected_channels,
                                                      reference_channel)

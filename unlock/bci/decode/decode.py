@@ -29,7 +29,7 @@ import time
 import numpy as np
 from sklearn import lda
 
-from unlock.state import TrialState
+from unlock.state import TrialState, MsequenceTrainerState
 
 
 class UnlockDecoder(object):
@@ -66,11 +66,14 @@ class UnlockDecoderChain(UnlockDecoder):
     def decode(self, command):
         for decoder in self.decoders:
             command = decoder.decode(command)
+            if hasattr(command, 'trial_start'):
+                self.start()
+                delattr(command, 'trial_start')
+            elif hasattr(command, 'trial_stop'):
+                self.stop()
+                delattr(command, 'trial_stop')
             if not command.is_ready():
-                if hasattr(command, 'reset'):
-                    break
-                else:
-                    return command
+                return command
                 
         for decoder in self.decoders:
             command = decoder.update(command)
@@ -88,7 +91,7 @@ class UnlockDecoderChain(UnlockDecoder):
         for decoder in self.decoders:
             decoder.reset()
             
-            
+
 class TrialStateControlledDecoder(UnlockDecoder):
     def decode(self, command):
         """
@@ -96,18 +99,28 @@ class TrialStateControlledDecoder(UnlockDecoder):
         accordingly.
         """
         if self.task_state is not None:
-            if self.task_state.is_stopped():
-                command.set_ready_value(False)
-                command.reset = True
-                return command
-
             state_change = self.task_state.get_state()
             if state_change == TrialState.RestExpiry:
                 self.start()
             elif state_change == TrialState.TrialExpiry:
                 self.stop()
         return command
-        
+
+
+class MsequenceTrainerStateControlledDecoder(UnlockDecoder):
+    def decode(self, command):
+        """
+        Check if the task state has entered or left a rest state and handles
+        accordingly.
+        """
+        if self.task_state is not None:
+            state_change = self.task_state.get_state()
+            if state_change == MsequenceTrainerState.TrialStart:
+                command.trial_start = True
+            elif state_change == MsequenceTrainerState.TrialEnd:
+                command.trial_stop = True
+        return command
+
         
 class BufferedDecoder(UnlockDecoder):
     def __init__(self, buffer_shape, electrodes):
@@ -123,11 +136,12 @@ class BufferedDecoder(UnlockDecoder):
         further samples cause the early samples to be discarded.
         data is assumed to have a shape of (n_samples, n_channels)
         """
-        if not command.is_valid() or not self.started:
+        if (not command.is_valid() or not self.started) and not self.is_ready():
+            command.set_ready_value(False)
             return command
-        
+
         data = command.matrix[:, 0:self.electrodes]
-            
+
         n_samples = data.shape[0]
         if self.cursor + n_samples >= self.buffer.shape[0]:
             shift = self.cursor + n_samples - self.buffer.shape[0]
@@ -252,12 +266,12 @@ class OfflineTrialDataDecoder(UnlockDecoder):
 
     def decode(self, command):
         log = dict(
-            data=command.data,
-            features=command.features,
-            scores=command.scores,
-            predicted_class=command.winner,
-            accepted=command.accept,
-            confidence=command.confidence,
+            data=getattr(command, 'data', None),
+            features=getattr(command, 'features', None),
+            scores=getattr(command, 'scores', None),
+            predicted_class=getattr(command, 'winner', None),
+            accepted=getattr(command, 'accept', None),
+            confidence=getattr(command, 'confidence', None),
             actual_class=self.task_state.sequence_idx,
         )
         np.savez("%s-%d" % (self.label, time.time()), **log)
