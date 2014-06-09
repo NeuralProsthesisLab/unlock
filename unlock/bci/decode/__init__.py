@@ -89,6 +89,19 @@ class UnlockDecoderFactory(object):
 
         return decoder_chain
 
+    def create_offline_msequence_trial_recorder(
+            self, buffering_decoder=None, label='trial'):
+        trial_state_decoder = MsequenceTrainerStateControlledDecoder(None)
+        logger = OfflineTrialDataDecoder(label)
+
+        decoder_chain = UnlockDecoderChain()
+        decoder_chain.add(trial_state_decoder)
+        decoder_chain.add(buffering_decoder)
+        decoder_chain.add(logger)
+
+        return decoder_chain
+
+
     def create_offline_trial_data(self, label='trial'):
         return OfflineTrialDataDecoder(label)
 

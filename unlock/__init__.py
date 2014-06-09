@@ -195,6 +195,10 @@ class UnlockFactory(AbstractFactory):
             templates, buffering_decoder, threshold_decoder, n_electrodes,
             selected_channels, reference_channel)
 
+    def trial_logger(self, buffering_decoder, label='trial'):
+        return self.decoder_factory.create_offline_msequence_trial_recorder(
+            buffering_decoder, label)
+
     def fixed_time_buffering_decoder(self, window_length=768, electrodes=8):
         return self.decoder_factory.create_fixed_time_buffering(electrodes,
                                                                 window_length)
