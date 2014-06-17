@@ -5,14 +5,16 @@
         "args" : {
             "fullscreen" : true,
             "fps" : true,
-            "vsync" : true
+            "vsync" : false
         }
     },
 
     "signal" : {
         "singleton" : 0,
         "name" : "mobilab",
-        "com_port" : "7"
+        "args" : {
+            "com_port" : "COM3"
+        }
     },
 
     "harmonic_sum" : {
@@ -99,8 +101,6 @@
             "channels" : 8,
             "fs" : 256,
             "duration" : 3,
-            ""
-            "margin" : 0.1,
             "offline_data" : true
         }
     },
@@ -114,8 +114,8 @@
             "stimuli_duration" : 3.0,
             "rest_duration" : 1.0,
             "frequencies" : [12.0, 13.0, 14.0, 15.0],
-            "color" : [0, 0, 0],
-            "color1" : [255, 255, 255],
+            "color" : [255, 0, 0],
+            "color1" : [255, 255, 0],
             "width" : 500,
             "height" : 100,
             "horizontal_blocks" : 5,
