@@ -65,6 +65,12 @@ class UnlockDecoderChain(UnlockDecoder):
     def decode(self, command):
         for decoder in self.decoders:
             command = decoder.decode(command)
+            if hasattr(command, "trial_start"):
+                self.start()
+                delattr(command, "trial_start")
+            if hasattr(command, "trial_stop"):
+                self.stop()
+                delattr(command, "trial_stop")
             if not command.is_ready():
                 return command
                 
@@ -82,7 +88,7 @@ class UnlockDecoderChain(UnlockDecoder):
             
     def reset(self):
         for decoder in self.decoders:
-            self.decoder.reset()
+            decoder.reset()
             
             
 class TrialStateControlledDecoder(UnlockDecoder):
@@ -97,9 +103,9 @@ class TrialStateControlledDecoder(UnlockDecoder):
         if self.task_state is not None:
             state_change = self.task_state.get_state()
             if state_change == TrialState.RestExpiry:
-                self.start()
+                command.trial_start = True
             elif state_change == TrialState.TrialExpiry:
-                self.stop()
+                command.trial_stop = True
         return command
         
         
@@ -117,10 +123,14 @@ class BufferedDecoder(UnlockDecoder):
         further samples cause the early samples to be discarded.
         data is assumed to have a shape of (n_samples, n_channels)
         """
-        if not command.is_valid() or not self.started:
+        if (not command.is_valid() or not self.started) and not self.is_ready():
+            command.set_ready_value(False)
             return command
         
         data = command.matrix[:, 0:self.electrodes]
+
+        if len(data) > len(self.buffer):
+            data = data[-len(self.buffer):]
             
         n_samples = data.shape[0]
         if self.cursor + n_samples >= self.buffer.shape[0]:
@@ -134,7 +144,6 @@ class BufferedDecoder(UnlockDecoder):
 
         if self.is_ready():
             command.buffered_data = self.get_data()
-            command.set_ready_value(True)
         else:
             command.set_ready_value(False)
         return command
@@ -167,6 +176,8 @@ class FixedTimeBufferingDecoder(BufferedDecoder):
         self.started = False
         if self.cursor >= 0.9*self.window_length:
             self.decode_now = True
+        else:
+            self.update(None)
             
     def is_ready(self):
         return self.cursor >= self.window_length or self.decode_now
