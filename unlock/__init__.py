@@ -88,25 +88,29 @@ class UnlockFactory(AbstractFactory):
         assert 'fullscreen' in pyglet_args and 'fps' in pyglet_args and 'vsync' in pyglet_args
         return self.controller_factory.create_pyglet_window(self.signal, **pyglet_args)
             
-    def quad_ssvep(self, stimulus='frame_count', color=[0,0,0], color1=[255,255,255], stimuli_duration=3.0,
-            rest_duration=1.0, frequencies=[12.0,13.0,14.0,15.0], width=500, height=100, horizontal_blocks=5,
-            vertical_blocks=1):
+    def quad_ssvep(self, cb_properties=None, stimulus='time',
+                   frequencies=(12.0, 13.0, 14.0, 15.0), stimuli_duration=3.0,
+                   rest_duration=1.0):
+        assert cb_properties
 
         if stimulus == 'frame_count':
-            stimulus = self.state_factory.create_frame_counted_timed_stimulus(frequencies[0])
-            stimulus1 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[1])
-            stimulus2 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[2])
-            stimulus3 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[3])
+            stim1 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[0])
+            stim2 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[1])
+            stim3 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[2])
+            stim4 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[3])
         else:
-            stimulus = self.state_factory.create_wall_clock_timed_stimulus(frequencies[0] * 2)
-            stimulus1 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[1] * 2)
-            stimulus2 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[2] * 2)
-            stimulus3 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[3] * 2)
+            stim1 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[0] * 2)
+            stim2 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[1] * 2)
+            stim3 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[2] * 2)
+            stim4 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[3] * 2)
 
-        canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
-        stimuli = self.state_factory.create_timed_stimuli(stimuli_duration, rest_duration,  *[stimulus, stimulus1, stimulus2, stimulus3])
-        ssvep_views = self.view_factory.create_quad_ssvep_views(stimuli, canvas, width, height, horizontal_blocks, vertical_blocks)
-        #print("canvas, stimuli , ssvep_views ", canvas, stimuli, ssvep_views)
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        stimuli = self.state_factory.create_timed_stimuli(
+            stimuli_duration, rest_duration, *[stim1, stim2, stim3, stim4])
+        ssvep_views = self.view_factory.create_quad_ssvep_views(
+            stimuli, canvas, cb_properties)
+
         return Stimulation(canvas, stimuli, ssvep_views)
 
     def single_ssvep(self, stimulus='frame_count', color=[0,0,0], color1=[255,255,255], stimuli_duration=3.0,
@@ -281,6 +285,6 @@ class UnlockFactory(AbstractFactory):
     def checkerboard_properties(self, width=300, height=300, x_tiles=4,
                                 y_tiles=4, x_ratio=1, y_ratio=1,
                                 color1=(0, 0, 0), color2=(255, 255, 255)):
-        assert x_tiles >= 2, y_tiles >= 2
+        assert x_tiles >= 2 and y_tiles >= 2
         return CheckerboardProperties(width, height, x_tiles, y_tiles, x_ratio,
                                       y_ratio, color1, color2)
