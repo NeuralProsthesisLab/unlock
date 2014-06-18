@@ -40,6 +40,7 @@ class Stimulation(object):
         self.stimuli = stimuli
         self.views = views
 
+
 class UnlockFactory(AbstractFactory):
     def __init__(self):
         super(UnlockFactory, self).__init__()
@@ -50,6 +51,9 @@ class UnlockFactory(AbstractFactory):
         self.state_factory = UnlockStateFactory()
         self.view_factory = UnlockViewFactory()
 
+    ###########################################################################
+    ## Logging
+    ###########################################################################
     def database(self, host=None, user=None, name=None, port=None, addr=None):
         assert host and user and name and port and addr
         engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (name, host, user, port, addr))
@@ -64,6 +68,9 @@ class UnlockFactory(AbstractFactory):
             
         return logging.getLogger(__name__)
 
+    ###########################################################################
+    ## Data Acquisition
+    ###########################################################################
     def nidaq(self):
         return self.acquisition_factory.create_nidaq_signal()
 
@@ -84,10 +91,16 @@ class UnlockFactory(AbstractFactory):
     def random(self):
         return self.acquisition_factory.create_random_signal()
 
+    ###########################################################################
+    ## Display
+    ###########################################################################
     def pyglet(self, **pyglet_args):
         assert 'fullscreen' in pyglet_args and 'fps' in pyglet_args and 'vsync' in pyglet_args
         return self.controller_factory.create_pyglet_window(self.signal, **pyglet_args)
-            
+
+    ###########################################################################
+    ## Stimuli
+    ###########################################################################
     def quad_ssvep(self, cb_properties=None, stimulus='time',
                    frequencies=(12.0, 13.0, 14.0, 15.0), stimuli_duration=3.0,
                    rest_duration=1.0):
@@ -143,6 +156,16 @@ class UnlockFactory(AbstractFactory):
             stimulus, canvas, cb_properties)
         return Stimulation(canvas, stimulus, msequence_views)
 
+    def checkerboard_properties(self, width=300, height=300, x_tiles=4,
+                                y_tiles=4, x_ratio=1, y_ratio=1,
+                                color1=(0, 0, 0), color2=(255, 255, 255)):
+        assert x_tiles >= 2 and y_tiles >= 2
+        return CheckerboardProperties(width, height, x_tiles, y_tiles, x_ratio,
+                                      y_ratio, color1, color2)
+
+    ###########################################################################
+    ## Decoders
+    ###########################################################################
     def harmonic_sum(self, buffering_decoder, threshold_decoder, fs=256,
                      trial_length=3, n_electrodes=8, target_window=0.1,
                      nfft=2048, n_harmonics=1, targets=(12.0,13.0,14.0,15.0)):
@@ -161,6 +184,9 @@ class UnlockFactory(AbstractFactory):
         canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
         return Stimulation(canvas, UnlockState(True), [])
 
+    ###########################################################################
+    ## Applications
+    ###########################################################################
     def gridspeak(self, stimulation=None, decoder=None, grid_radius=2, offline_data=False):
         assert stimulation and decoder
         receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
@@ -294,10 +320,3 @@ class UnlockFactory(AbstractFactory):
         offline_data = self.state_factory.create_offline_data(output_file)
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, offline_data, [],
             standalone=standalone)
-
-    def checkerboard_properties(self, width=300, height=300, x_tiles=4,
-                                y_tiles=4, x_ratio=1, y_ratio=1,
-                                color1=(0, 0, 0), color2=(255, 255, 255)):
-        assert x_tiles >= 2 and y_tiles >= 2
-        return CheckerboardProperties(width, height, x_tiles, y_tiles, x_ratio,
-                                      y_ratio, color1, color2)
