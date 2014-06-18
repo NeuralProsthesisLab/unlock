@@ -226,21 +226,33 @@ class UnlockFactory(AbstractFactory):
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
             [time_scope_view], name='TimeScope', icon='time-128x128.jpg')
 
-    def frequency_scope(self, stimulation=None, channels=1, fs=256, duration=2, offline_data=False):
+    def frequency_scope(self, stimulation=None, channels=1, fs=256, duration=2,
+                        nfft=2048, freq_range=None, display_channels=None,
+                        labels=None, margin=0.05, offline_data=False):
         assert stimulation
-        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
-        cmd_receiver = self.command_factory.create_receiver('raw', **receiver_args)
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer}
+        cmd_receiver = self.command_factory.create_receiver('raw',
+                                                            **receiver_args)
 
-        scope_model = FrequencyScopeState(channels, fs, duration)
+        scope_model = FrequencyScopeState(channels, fs, duration, nfft,
+                                          freq_range, display_channels, labels)
         if offline_data:
-            offline_data = self.state_factory.create_offline_data('time_scope')
-            state_chain = self.state_factory.create_state_chain(scope_model, offline_data)
+            offline_data = self.state_factory.create_offline_data('freq_scope')
+            state_chain = self.state_factory.create_state_chain(scope_model,
+                                                                offline_data)
         else:
             state_chain = scope_model
 
-        frequency_scope_view = FrequencyScopeView(scope_model, stimulation.canvas, labels=scope_model.labels)
-        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
-            [frequency_scope_view], name='FrequencyScope', icon='frequency2-128x128.png')
+        frequency_scope_view = FrequencyScopeView(scope_model,
+                                                  stimulation.canvas,
+                                                  margin=margin,
+                                                  labels=scope_model.labels)
+
+        return self.controller_factory.create_controller_chain(
+            self.window, stimulation, cmd_receiver, state_chain,
+            [frequency_scope_view], name='FrequencyScope',
+            icon='frequency2-128x128.png')
 
     def dashboard(self, stimulation=None, decoder=None, controllers=None, offline_data=False):
         assert stimulation and decoder
