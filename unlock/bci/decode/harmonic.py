@@ -35,8 +35,6 @@ SetResultHandler = 0
 LogResultHandler = 1
 PrintResultHandler = 2
 
-#class HarmonicSumDecisionDecorator(UnlockDecoder):
-#    def __init__(self, buffered_decoder, trial_controlled_decoder, feature_extractor, )
 
 class HarmonicFeatureExtractor(UnlockDecoder):
     """
@@ -45,9 +43,9 @@ class HarmonicFeatureExtractor(UnlockDecoder):
     frequencies and their harmonics. The target with the highest sum is chosen
     as the attended frequency.
     """
-    def __init__(self, fs=256, n_electrodes=8, targets=(12.0, 13.0, 14.0, 15.0), target_window=0.1, nfft=2048,
-            n_harmonics=1, selected_channels=None):
-
+    def __init__(self, fs=256, n_electrodes=8, target_window=0.1, nfft=2048,
+                 targets=(12.0, 13.0, 14.0, 15.0), n_harmonics=1,
+                 selected_channels=None):
         super(HarmonicFeatureExtractor, self).__init__()
         self.fs = fs
         self.n_electrodes = n_electrodes
@@ -72,32 +70,29 @@ class HarmonicFeatureExtractor(UnlockDecoder):
                     freqs > harmonic * target - self.target_window,
                     freqs < harmonic * target + self.target_window))[0]
                 harmonic_idx.append(idx)
-                print("Harmonic ---", harmonic, " idx ", idx)
             self.harmonics.append(harmonic_idx)
 
-        print("harmonics = ", self.harmonics)
-        #import sys
-        #sys.exit(0)
         self.file_handle = None
-        self.output_file_prefix = 'harmonic_feature_extractor'
+        self.output_file_prefix = 'hsd_feature_extractor'
 
     def decode(self, command):
         """
-        The features used by harmonic sum decision are the summed magnitudes of one or more
-        harmonics of the target frequencies across one or more channels of recorded data.
+        The features used by harmonic sum decision are the summed magnitudes of
+        one or more harmonics of the target frequencies across one or more
+        channels of recorded data.
         """
-        y = command.matrix[:, self.selected_channels]
+        assert hasattr(command, "buffered_data")
+        y = command.buffered_data[:, self.selected_channels]
         y -= np.mean(y, axis=0)
         y = np.abs(np.fft.rfft(y, n=self.nfft, axis=0))
-        # XXX - frequency values are y (amplitude of each frequency)  nfft == 2048 (window size)
-        #       
-        #      calculate from nfft 
-        command.scores = np.zeros(len(self.targets))
+
+        scores = np.zeros(len(self.targets))
         for i in range(len(self.targets)):
             score = 0
             for harmonic in self.harmonics[i]:
                 score += np.mean(y[harmonic, :])
-            command.scores[i] = score
+            scores[i] = score
+        command.features = scores
         return command
         
         
@@ -112,23 +107,25 @@ class ScoredHarmonicSumDecision(UnlockDecoder):
         Find the largest frequency magnitude and determine if it meets
         threshold criteria.
         """
-        assert hasattr(command, 'scores')
+        assert hasattr(command, 'features')
         result_string = None
 
-        command.winner = np.argmax(command.scores)
+        command.winner = np.argmax(command.features)
         command = self.threshold_decoder.decode(command)
             
         if command.accept:
-            # XXX made a change here
+            command.decision = command.winner + 1
             command.class_label = command.winner
             np.set_printoptions(precision=2)
-            print("Targets ", self.targets, ' command classlabel ', command.class_label)
-            result_string = "ScoredHarmonicSumDecision: %d (%.1f Hz)" % (command.class_label,
-                self.targets[command.class_label])
+            print("Targets ", self.targets, ' command classlabel ',
+                  command.class_label)
+            result_string = "ScoredHarmonicSumDecision: %d (%.1f Hz)" % \
+                            (command.class_label,
+                             self.targets[command.class_label])
                 
             if command.confidence:
-                result_string = "%s [%.2f]" % (result_string, command.confidence)
-                
+                result_string = "%s [%.2f]" % (result_string,
+                                               command.confidence)
         else:
             command.class_label = -1
             result_string = "ScoredHarmonicSumDecision: could not make a decision"

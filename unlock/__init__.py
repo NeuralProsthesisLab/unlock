@@ -143,12 +143,13 @@ class UnlockFactory(AbstractFactory):
             stimulus, canvas, cb_properties)
         return Stimulation(canvas, stimulus, msequence_views)
 
-    def harmonic_sum(self, buffering_decoder, threshold_decoder, fs=256, trial_length=3, n_electrodes=8,
-                     targets=[12.0, 13.0, 14.0, 15.0], target_window=0.1, nfft=2048, n_harmonics=1):
-
-        return self.decoder_factory.create_harmonic_sum_decision(buffering_decoder, threshold_decoder, **{'fs': fs, 'trial_length': trial_length,
-            'n_electrodes': n_electrodes, 'targets': targets, 'target_window': target_window, 'nfft': nfft,
-            'n_harmonics': n_harmonics})
+    def harmonic_sum(self, buffering_decoder, threshold_decoder, fs=256,
+                     trial_length=3, n_electrodes=8, target_window=0.1,
+                     nfft=2048, n_harmonics=1, targets=(12.0,13.0,14.0,15.0)):
+        return self.decoder_factory.create_harmonic_sum_decision(
+            buffering_decoder, threshold_decoder, n_electrodes=n_electrodes,
+            fs=fs, trial_length=trial_length, target_window=target_window,
+            nfft=nfft, n_harmonics=n_harmonics, targets=targets)
 
     def fixed_time_buffering_decoder(self, window_length=768, electrodes=8):
         return self.decoder_factory.create_fixed_time_buffering(**{'window_length': window_length, 'electrodes': electrodes})

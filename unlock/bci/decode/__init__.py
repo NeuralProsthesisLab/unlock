@@ -47,15 +47,17 @@ class UnlockDecoderFactory(object):
             raise Exception("Undefined Decoder: "+str(decoder)+" kwargs = "+str(kwargs))
         return func(**kwargs)
         
-    def create_harmonic_sum_decision(self, buffering_decoder=None, threshold_decoder=None,
-            fs=256, trial_length=3, n_electrodes=8, targets=(12.0, 13.0, 14.0, 15.0),
-            target_window=0.1, nfft=2048, n_harmonics=1, selected_channels=None):
-
+    def create_harmonic_sum_decision(self, buffering_decoder=None,
+            threshold_decoder=None, fs=256, trial_length=3, n_electrodes=8,
+            targets=(12.0, 13.0, 14.0, 15.0), target_window=0.1, nfft=2048,
+            n_harmonics=1, selected_channels=None):
         assert buffering_decoder and threshold_decoder
+
         trial_state_decoder = TrialStateControlledDecoder(None)
-        feature_extractor = HarmonicFeatureExtractor(fs, n_electrodes, targets, target_window, nfft,
-            n_harmonics, selected_channels)
-        
+        feature_extractor = HarmonicFeatureExtractor(fs=fs, nfft=nfft,
+            targets=targets, n_electrodes=n_electrodes,
+            target_window=target_window, n_harmonics=n_harmonics,
+            selected_channels=selected_channels)
         decider = ScoredHarmonicSumDecision(threshold_decoder, targets)
         
         decoder_chain = UnlockDecoderChain()

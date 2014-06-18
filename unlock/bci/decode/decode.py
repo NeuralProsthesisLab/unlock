@@ -131,8 +131,12 @@ class BufferedDecoder(UnlockDecoder):
         else:
             self.buffer[self.cursor:self.cursor+n_samples] = data
             self.cursor += n_samples
-        
-        command.set_ready_value(self.is_ready())
+
+        if self.is_ready():
+            command.buffered_data = self.get_data()
+            command.set_ready_value(True)
+        else:
+            command.set_ready_value(False)
         return command
             
     def get_data(self):
@@ -196,8 +200,9 @@ class SlidingWindowDecoder(BufferedDecoder):
 class NoThresholdDecoder(UnlockDecoder):
     """Accepts everything"""
     def decode(self, command):
-        assert hasattr(command, 'scores')
-        command.accept, command.confidence = True, 1.0
+        assert hasattr(command, 'features')
+        command.confidence = 1.0
+        command.accept = True
         return command
         
         
@@ -208,8 +213,9 @@ class AbsoluteThresholdDecoder(UnlockDecoder):
         self.reduction_fn = eval(reduction_fn)
         
     def decode(self, command):
-        assert hasattr(command, 'scores')
-        command.accept, command.confidence = self.reduction_fn(command.scores) >= self.threshold, 1.0
+        assert hasattr(command, 'features')
+        command.confidence = 1.0
+        command.accept = self.reduction_fn(command.features) >= self.threshold
         return command
         
         
@@ -219,15 +225,17 @@ class LdaThresholdDecoder(UnlockDecoder):
     above a provided confidence level are accepted. Training data must be
     supplied to the decoder.
     """
-    def __init__(self, x=(0, 1), y=(0, 1), min_confidence=0.5, reduction_fn='np.mean'):
+    def __init__(self, x=(0, 1), y=(0, 1), min_confidence=0.5,
+                 reduction_fn='np.mean'):
         self.min_confidence = min_confidence
         self.clf = lda.LDA()
         self.clf.fit(x, y)
         self.reduction_fn = eval(reduction_fn)
         
     def decode(self, command):
-        assert hasattr(command, 'scores')        
-        command.confidence = self.clf.predict_proba(self.reduction_fn(command.scores))[0, 1]
+        assert hasattr(command, 'features')
+        command.confidence = self.clf.predict_proba(
+            self.reduction_fn(command.features))[0, 1]
         command.accept = command.confidence >= self.min_confidence
         return command
 

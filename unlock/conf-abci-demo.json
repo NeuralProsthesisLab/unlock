@@ -13,7 +13,7 @@
         "singleton" : 0,
         "name" : "mobilab",
         "args" : {
-            "com_port" : "COM3"
+            "com_port" : "COM7"
         }
     },
 
