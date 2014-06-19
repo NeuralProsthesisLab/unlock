@@ -4,7 +4,7 @@
        "name" : "pyglet",
         "args" : {
             "fullscreen" : true,
-            "fps" : true,
+            "fps" : false,
             "vsync" : false
         }
     },
@@ -13,7 +13,7 @@
         "singleton" : 0,
         "name" : "mobilab",
         "args" : {
-            "com_port" : "COM7"
+            "com_port" : "COM3"
         }
     },
 
@@ -48,17 +48,18 @@
     "harmonic_sum" : {
         "deps" : {
             "buffering_decoder" : "fixed_time_buffering_decoder",
-            "threshold_decoder" : "absolute_threshold_decoder"            
+            "threshold_decoder" : "absolute_threshold_decoder",
+            "selector" : "eyeblink_detector"
         },
         
         "args" : {
            "fs" : 256,
-           "trial_length" : 3,
            "n_electrodes" : 8,
            "targets" : [12.0, 13.0, 14.0, 15.0],
            "target_window" : 0.1,
            "nfft" : 2048,
-           "n_harmonics" : 1
+           "n_harmonics" : 1,
+           "selected_channels" : [2]
         }
     },
 
@@ -72,6 +73,14 @@
         "args" : {
             "threshold" : 0,
             "reduction_fn" : "np.mean"
+        }
+    },
+
+    "eyeblink_detector" : {
+        "args" : {
+            "eog_channels" : [7],
+            "strategy" : "count",
+            "rms_threshold" : 6000
         }
     },
 
@@ -114,10 +123,10 @@
             "stimulation" : "no_stimulation"
         },
         "args" : {
-            "channels" : 1,
+            "channels" : 8,
             "fs" : 256,
-            "duration" : 2,
-            "offline_data" : true
+            "duration" : 5,
+            "offline_data" : false
         }
     },
 

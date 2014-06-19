@@ -168,5 +168,3 @@ class BlinkCountStrategy:
                 return ret
             else:
                 self.reset()
-                
-                

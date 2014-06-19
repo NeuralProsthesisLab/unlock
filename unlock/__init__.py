@@ -168,11 +168,13 @@ class UnlockFactory(AbstractFactory):
     ###########################################################################
     def harmonic_sum(self, buffering_decoder, threshold_decoder, selector=None,
                      fs=256, n_electrodes=8, target_window=0.1, nfft=2048,
-                     n_harmonics=1, targets=(12.0,13.0,14.0,15.0)):
+                     n_harmonics=1, targets=(12.0,13.0,14.0,15.0),
+                     selected_channels=None):
         return self.decoder_factory.create_harmonic_sum_decision(
             buffering_decoder, threshold_decoder, selector=selector,
             n_electrodes=n_electrodes, fs=fs, target_window=target_window,
-            nfft=nfft, n_harmonics=n_harmonics, targets=targets)
+            nfft=nfft, n_harmonics=n_harmonics, targets=targets,
+            selected_channels=selected_channels)
 
     def eyeblink_detector(self, eog_channels=(7,), strategy="length",
                           rms_threshold=0):
@@ -199,7 +201,7 @@ class UnlockFactory(AbstractFactory):
     def gridspeak(self, stimulation=None, decoder=None, grid_radius=2,
                   offline_data=False):
         assert stimulation and decoder
-        decoder.decoders[0].task_state = stimulation.stimuli.state
+        decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}
@@ -225,7 +227,7 @@ class UnlockFactory(AbstractFactory):
                    offline_data=False):
         assert stimulation and decoder
 
-        decoder.decoders[0].task_state = stimulation.stimuli.state
+        decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}
@@ -249,7 +251,7 @@ class UnlockFactory(AbstractFactory):
 
     def fastpad(self, stimulation=None, decoder=None, offline_data=False):
         assert stimulation and decoder
-        decoder.decoders[0].task_state = stimulation.stimuli.state
+        decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}
@@ -324,7 +326,7 @@ class UnlockFactory(AbstractFactory):
         assert stimulation and decoder
         if not controllers:
             controllers = []
-        decoder.decoders[0].task_state = stimulation.stimuli.state
+        decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}

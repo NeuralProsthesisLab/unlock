@@ -61,13 +61,13 @@ class UnlockDecoderFactory(object):
         decider = ScoredHarmonicSumDecision(threshold_decoder, targets)
 
         decoder_chain = UnlockDecoderChain()
+        if selector is not None:
+            decoder_chain.add(selector)
         decoder_chain.add(trial_state_decoder)
         decoder_chain.add(buffering_decoder)
         decoder_chain.add(feature_extractor)
         decoder_chain.add(decider)
-        if selector is not None:
-            decoder_chain.add(selector)
-        
+
         return decoder_chain
         
     def create_fixed_time_buffering(self, electrodes=8, window_length=768):
