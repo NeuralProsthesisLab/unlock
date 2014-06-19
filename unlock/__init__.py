@@ -166,22 +166,31 @@ class UnlockFactory(AbstractFactory):
     ###########################################################################
     ## Decoders
     ###########################################################################
-    def harmonic_sum(self, buffering_decoder, threshold_decoder, fs=256,
-                     trial_length=3, n_electrodes=8, target_window=0.1,
-                     nfft=2048, n_harmonics=1, targets=(12.0,13.0,14.0,15.0)):
+    def harmonic_sum(self, buffering_decoder, threshold_decoder, selector=None,
+                     fs=256, n_electrodes=8, target_window=0.1, nfft=2048,
+                     n_harmonics=1, targets=(12.0,13.0,14.0,15.0)):
         return self.decoder_factory.create_harmonic_sum_decision(
-            buffering_decoder, threshold_decoder, n_electrodes=n_electrodes,
-            fs=fs, trial_length=trial_length, target_window=target_window,
+            buffering_decoder, threshold_decoder, selector=selector,
+            n_electrodes=n_electrodes, fs=fs, target_window=target_window,
             nfft=nfft, n_harmonics=n_harmonics, targets=targets)
 
+    def eyeblink_detector(self, eog_channels=(7,), strategy="length",
+                          rms_threshold=0):
+        return self.decoder_factory.create_eyeblink_detector(eog_channels,
+                                                             strategy,
+                                                             rms_threshold)
+
     def fixed_time_buffering_decoder(self, window_length=768, electrodes=8):
-        return self.decoder_factory.create_fixed_time_buffering(**{'window_length': window_length, 'electrodes': electrodes})
+        return self.decoder_factory.create_fixed_time_buffering(
+            window_length=window_length, electrodes=electrodes)
 
     def absolute_threshold_decoder(self, threshold, reduction_fn):
-        return self.decoder_factory.create_absolute_threshold(**{'threshold': threshold, 'reduction_fn': reduction_fn})
+        return self.decoder_factory.create_absolute_threshold(
+            threshold=threshold, reduction_fn=reduction_fn)
 
     def no_stimulation(self):
-        canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
         return Stimulation(canvas, UnlockState(True), [])
 
     ###########################################################################

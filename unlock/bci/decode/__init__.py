@@ -48,8 +48,8 @@ class UnlockDecoderFactory(object):
         return func(**kwargs)
         
     def create_harmonic_sum_decision(self, buffering_decoder=None,
-            threshold_decoder=None, fs=256, trial_length=3, n_electrodes=8,
-            targets=(12.0, 13.0, 14.0, 15.0), target_window=0.1, nfft=2048,
+            threshold_decoder=None, selector=None, fs=256, n_electrodes=8,
+            targets=(12.0, 13.0, 14.0, 15.0), nfft=2048, target_window=0.1,
             n_harmonics=1, selected_channels=None):
         assert buffering_decoder and threshold_decoder
 
@@ -59,14 +59,14 @@ class UnlockDecoderFactory(object):
             target_window=target_window, n_harmonics=n_harmonics,
             selected_channels=selected_channels)
         decider = ScoredHarmonicSumDecision(threshold_decoder, targets)
-        selector = EyeBlinkDetector(eog_channels=[7])
 
         decoder_chain = UnlockDecoderChain()
         decoder_chain.add(trial_state_decoder)
         decoder_chain.add(buffering_decoder)
         decoder_chain.add(feature_extractor)
         decoder_chain.add(decider)
-        decoder_chain.add(selector)
+        if selector is not None:
+            decoder_chain.add(selector)
         
         return decoder_chain
         
@@ -82,8 +82,9 @@ class UnlockDecoderFactory(object):
     def create_lda_threshold(self, x=(0, 1), y=(0, 1), min_confidence=0.5, reduction_fn='np.mean'):
         return LdaThresholdDecoder(x, y, min_confidence, reduction_fn)
         
-    def create_eyeblink_detector(self):
-        return EyeBlinkDetector()
+    def create_eyeblink_detector(self, eog_channels=(7,), strategy='length',
+                                 rms_threshold=0):
+        return EyeBlinkDetector(eog_channels, strategy, rms_threshold)
         
     def create_facial_emg_detector(self):
         return None
