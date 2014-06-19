@@ -187,21 +187,29 @@ class UnlockFactory(AbstractFactory):
     ###########################################################################
     ## Applications
     ###########################################################################
-    def gridspeak(self, stimulation=None, decoder=None, grid_radius=2, offline_data=False):
+    def gridspeak(self, stimulation=None, decoder=None, grid_radius=2,
+                  offline_data=False):
         assert stimulation and decoder
-        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
-        cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
+        decoder.decoders[0].task_state = stimulation.stimuli.state
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer,
+                         'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding',
+                                                            **receiver_args)
 
         grid_state = self.state_factory.create_grid_hierarchy(grid_radius)
         if offline_data:
             offline_data = self.state_factory.create_offline_data('gridspeak')
-            state_chain = self.state_factory.create_state_chain(grid_state, offline_data)
+            state_chain = self.state_factory.create_state_chain(grid_state,
+                                                                offline_data)
         else:
             state_chain = grid_state
 
-        gridspeak_view = self.view_factory.create_gridspeak(grid_state, stimulation.canvas)
+        gridspeak_view = self.view_factory.create_gridspeak(grid_state,
+                                                            stimulation.canvas)
 
-        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
+        return self.controller_factory.create_controller_chain(
+            self.window, stimulation, cmd_receiver, state_chain,
             [gridspeak_view], name="Gridspeak", icon="gridspeak.png")
 
     def gridcursor(self, stimulation=None, decoder=None, grid_radius=2,
@@ -232,34 +240,46 @@ class UnlockFactory(AbstractFactory):
 
     def fastpad(self, stimulation=None, decoder=None, offline_data=False):
         assert stimulation and decoder
-        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
-        cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
+        decoder.decoders[0].task_state = stimulation.stimuli.state
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer,
+                         'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding',
+                                                            **receiver_args)
 
         fastpad_state = self.state_factory.create_fastpad()
         if offline_data:
             offline_data = self.state_factory.create_offline_data('fastpad')
-            state_chain = self.state_factory.create_state_chain(fastpad_state, offline_data)
+            state_chain = self.state_factory.create_state_chain(fastpad_state,
+                                                                offline_data)
         else:
             state_chain = fastpad_state
 
-        fastpad_view = self.view_factory.create_fastpad_view(fastpad_state, stimulation.canvas)
-        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
+        fastpad_view = self.view_factory.create_fastpad_view(fastpad_state,
+                                                             stimulation.canvas)
+        return self.controller_factory.create_controller_chain(
+            self.window, stimulation, cmd_receiver, state_chain,
             [fastpad_view], name="Fastpad", icon="fastpad.png")
 
-    def time_scope(self, stimulation=None, channels=1, fs=256, duration=2, offline_data=False):
+    def time_scope(self, stimulation=None, channels=1, fs=256, duration=2,
+                   offline_data=False):
         assert stimulation
-        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
-        cmd_receiver = self.command_factory.create_receiver('raw', **receiver_args)
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer}
+        cmd_receiver = self.command_factory.create_receiver('raw',
+                                                            **receiver_args)
 
         scope_model = TimeScopeState(channels, fs, duration)
         if offline_data:
             offline_data = self.state_factory.create_offline_data('time_scope')
-            state_chain = self.state_factory.create_state_chain(scope_model, offline_data)
+            state_chain = self.state_factory.create_state_chain(scope_model,
+                                                                offline_data)
         else:
             state_chain = scope_model
 
         time_scope_view = TimeScopeView(scope_model, stimulation.canvas)
-        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
+        return self.controller_factory.create_controller_chain(
+            self.window, stimulation, cmd_receiver, state_chain,
             [time_scope_view], name='TimeScope', icon='time-128x128.jpg')
 
     def frequency_scope(self, stimulation=None, channels=1, fs=256, duration=2,
@@ -290,15 +310,20 @@ class UnlockFactory(AbstractFactory):
             [frequency_scope_view], name='FrequencyScope',
             icon='frequency2-128x128.png')
 
-    def dashboard(self, stimulation=None, decoder=None, controllers=None, offline_data=False):
+    def dashboard(self, stimulation=None, decoder=None, controllers=None,
+                  offline_data=False):
         assert stimulation and decoder
         if not controllers:
             controllers = []
-        #canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
-        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
-        cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
-        cc_frag = self.controller_factory.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
-            stimulation.views, cmd_receiver)
+        decoder.decoders[0].task_state = stimulation.stimuli.state
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer,
+                         'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding',
+                                                            **receiver_args)
+        cc_frag = self.controller_factory.create_command_connected_fragment(
+            stimulation.canvas, stimulation.stimuli, stimulation.views,
+            cmd_receiver)
 
         icons = []
         for c in controllers:
@@ -307,13 +332,17 @@ class UnlockFactory(AbstractFactory):
         grid_state = self.state_factory.create_grid_state(controllers, icons)
         if offline_data:
             offline_data = self.state_factory.create_offline_data('dashboard')
-            state_chain = self.state_factory.create_state_chain(grid_state, offline_data)
+            state_chain = self.state_factory.create_state_chain(grid_state,
+                                                                offline_data)
         else:
             state_chain = grid_state
 
-        grid_view = self.view_factory.create_grid_view(grid_state, stimulation.canvas, icons)
-        return self.controller_factory.create_dashboard(self.window, stimulation.canvas, controllers, cc_frag,
-            [grid_view], state_chain)
+        grid_view = self.view_factory.create_grid_view(grid_state,
+                                                       stimulation.canvas,
+                                                       icons)
+        return self.controller_factory.create_dashboard(
+            self.window, stimulation.canvas, controllers, cc_frag, [grid_view],
+            state_chain)
 
     def ssvep_diagnostic(self, stimulation=None, decoder=None, output_file='ssvep-diagnostic', duration=10, standalone=True):
         receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
