@@ -59,12 +59,14 @@ class UnlockDecoderFactory(object):
             target_window=target_window, n_harmonics=n_harmonics,
             selected_channels=selected_channels)
         decider = ScoredHarmonicSumDecision(threshold_decoder, targets)
-        
+        selector = EyeBlinkDetector(eog_channels=[7])
+
         decoder_chain = UnlockDecoderChain()
         decoder_chain.add(trial_state_decoder)
         decoder_chain.add(buffering_decoder)
         decoder_chain.add(feature_extractor)
         decoder_chain.add(decider)
+        decoder_chain.add(selector)
         
         return decoder_chain
         
