@@ -29,19 +29,22 @@ from unlock.bci.decode.decode import *
 from unlock.bci.decode.harmonic import *
 from unlock.bci.decode.femg import *
 from unlock.bci.decode.eyeblink import *
+from unlock.bci.decode.tm import *
 
     
 class UnlockDecoderFactory(object):
     def create_decoder(self, decoder, **kwargs):
         func = {
-            'harmonic_sum' : self.create_harmonic_sum_decision,
-            'eyeblink_detector' : self.create_eyeblink_detector,
-            'facial_emg' : self.create_facial_emg_detector,
-            'sliding' : self.create_sliding,
-            'fixed_time' : self.create_fixed_time_buffering,
-            'absolute' : self.create_absolute_threshold,
-            'lda' : self.create_lda_threshold,
-            'unknown' : self.unknown
+            'harmonic_sum': self.create_harmonic_sum_decision,
+            'template_match': self.create_template_match,
+            'eyeblink_detector': self.create_eyeblink_detector,
+            'facial_emg': self.create_facial_emg_detector,
+            'sliding': self.create_sliding,
+            'fixed_time': self.create_fixed_time_buffering,
+            'absolute': self.create_absolute_threshold,
+            'lda': self.create_lda_threshold,
+            'offline': self.create_offline_trial_data,
+            'unknown': self.unknown
         }.get(decoder, self.unknown)
         if func is None:
             raise Exception("Undefined Decoder: "+str(decoder)+" kwargs = "+str(kwargs))
@@ -69,7 +72,43 @@ class UnlockDecoderFactory(object):
         decoder_chain.add(decider)
 
         return decoder_chain
-        
+
+    def create_template_match(self, templates=None, buffering_decoder=None,
+                              threshold_decoder=None, n_electrodes=8,
+                              selected_channels=None, reference_channel=None):
+        assert buffering_decoder and threshold_decoder
+        trial_state_decoder = MsequenceTrainerStateControlledDecoder(None)
+        feature_extractor = TemplateFeatureExtractor(n_electrodes,
+                                                     selected_channels,
+                                                     reference_channel)
+        decider = ScoredTemplateMatch(templates, threshold_decoder)
+        logger = OfflineTrialDataDecoder('tm')
+
+        decoder_chain = UnlockDecoderChain()
+        decoder_chain.add(trial_state_decoder)
+        decoder_chain.add(buffering_decoder)
+        decoder_chain.add(feature_extractor)
+        decoder_chain.add(decider)
+        decoder_chain.add(logger)
+
+        return decoder_chain
+
+    def create_offline_msequence_trial_recorder(
+            self, buffering_decoder=None, label='trial'):
+        trial_state_decoder = MsequenceTrainerStateControlledDecoder(None)
+        logger = OfflineTrialDataDecoder(label)
+
+        decoder_chain = UnlockDecoderChain()
+        decoder_chain.add(trial_state_decoder)
+        decoder_chain.add(buffering_decoder)
+        decoder_chain.add(logger)
+
+        return decoder_chain
+
+
+    def create_offline_trial_data(self, label='trial'):
+        return OfflineTrialDataDecoder(label)
+
     def create_fixed_time_buffering(self, electrodes=8, window_length=768):
         return FixedTimeBufferingDecoder(electrodes, window_length)
     
@@ -91,4 +130,3 @@ class UnlockDecoderFactory(object):
         
     def unknown(self, **kwargs):
         raise("Unsupported")
-        
