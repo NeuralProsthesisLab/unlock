@@ -20,7 +20,9 @@
     "signal" : {
         "singleton" : 0,
         "name" : "mobilab",
-        "com_port" : 7
+        "args" : {
+            "com_port" : "COM7"
+        }
     },
 
     "window" : {
@@ -32,7 +34,18 @@
             "vsync" : true
         }
     },
-    
+
+    "template_match" : {
+        "deps" : {
+            "buffering_decoder" : "fixed_time_buffering_decoder",
+            "threshold_decoder" : "absolute_threshold_decoder"
+        },
+
+        "args" : {
+           "n_electrodes" : 8
+        }
+    },
+
     "fixed_time_buffering_decoder" : {
         "args" : {
             "window_length" : 3072
@@ -48,7 +61,7 @@
     
     "trial_logger" : {
         "deps" : {
-            "buffering_decoder" : "fixed_time_buffering_decoder",
+            "buffering_decoder" : "fixed_time_buffering_decoder"
         },
         
         "args" : {

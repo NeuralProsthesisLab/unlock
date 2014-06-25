@@ -59,7 +59,7 @@ class TemplateFeatureExtractor(UnlockDecoder):
         The feature used by template matching is the filtered and averaged
         signal over a single presentation.
         """
-        y = command.data[:]
+        y = command.buffered_data[:]
         y -= np.mean(y, axis=0)
         if self.reference_channel is not None:
             y -= y[:, [self.reference_channel]]
@@ -84,8 +84,9 @@ class ScoredTemplateMatch(UnlockDecoder):
         scores = np.zeros(1)
         if self.templates is not None:
             scores = np.dot(command.features, self.templates)
-        command.scores = scores
-        command.winner = np.argmax(command.scores)
+        # TODO: rethink "features" vs "scores" for thresholding
+        command.features = scores
+        command.winner = np.argmax(command.features)
         command = self.threshold_decoder.decode(command)
 
         result_string = None
