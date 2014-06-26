@@ -93,7 +93,8 @@
                              "time_scope",
                              "frequency_scope",
                              "gridcursor",
-                             "fastpad"]
+                             "fastpad",
+                             "robot"]
         }
     },
 
@@ -112,6 +113,13 @@
     },
 
     "gridcursor" : {
+        "deps" : {
+            "stimulation" : "quad_ssvep",
+            "decoder" : "harmonic_sum"
+        }
+    },
+
+    "robot" : {
         "deps" : {
             "stimulation" : "quad_ssvep",
             "decoder" : "harmonic_sum"

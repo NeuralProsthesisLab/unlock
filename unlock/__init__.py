@@ -321,6 +321,32 @@ class UnlockFactory(AbstractFactory):
             self.window, stimulation, cmd_receiver, state_chain,
             [grid_view], name="Target Practice", icon="gridcursor.png")
 
+    def robot(self, stimulation=None, decoder=None, grid_radius=1,
+                   offline_data=False):
+        assert stimulation and decoder
+
+        decoder.decoders[1].task_state = stimulation.stimuli.state
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer,
+                         'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding',
+                                                            **receiver_args)
+        grid_state = self.state_factory.create_grid_hierarchy(grid_radius)
+
+        if offline_data:
+            offline_data = self.state_factory.create_offline_data('gridspeak')
+            state_chain = self.state_factory.create_state_chain(grid_state,
+                                                                offline_data)
+        else:
+            state_chain = grid_state
+
+        grid_view = self.view_factory.create_robot_grid_view(
+            grid_state, stimulation.canvas)
+
+        return self.controller_factory.create_controller_chain(
+            self.window, stimulation, cmd_receiver, state_chain,
+            [grid_view], name="Target Practice", icon="gridcursor.png")
+
     def fastpad(self, stimulation=None, decoder=None, offline_data=False):
         assert stimulation and decoder
         decoder.decoders[1].task_state = stimulation.stimuli.state

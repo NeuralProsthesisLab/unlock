@@ -202,6 +202,10 @@ class UnlockViewFactory(object):
         center_x, center_y = canvas.center()
         return GridView(state, canvas, icons, center_x, center_y)
 
+    def create_robot_grid_view(self, state, canvas):
+        return RobotGridView(state, canvas, xtiles=3, ytiles=3, tile_width=150,
+                             tile_height=150)
+
     def create_hierarchy_grid_view(self, state, canvas):
         return HierarchyGridView(state, canvas,)
 

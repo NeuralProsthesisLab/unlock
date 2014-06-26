@@ -139,6 +139,12 @@ class GridSpeakView(HierarchyGridView):
         # XXX - this needs to get pushed into configuration data
         self.target.delete()
         self.target = None
+        self.cursor.delete()
+        self.cursor = self.drawRect(self.xcenter - (tile_width-10) / 2,
+                                    self.ycenter - (tile_height-10) / 2,
+                                    tile_width - 10, tile_height - 10,
+                                    canvas.batch, color=(255,0,0),
+                                    fill=False)
         path = os.path.dirname(inspect.getfile(GridSpeakView))
         self.alone = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender, 'alone.wav')))
         self.bored = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender, 'bored.wav')))
@@ -167,7 +173,7 @@ class GridSpeakView(HierarchyGridView):
         self.yes = pyglet.media.StaticSource(pyglet.media.load(os.path.join(path, 'resource', 'sounds', gender,  'yes.wav')))                        
         self.words = {
             (-2, -2): ('alone', self.alone), (-2, -1): ('bored',self.bored), (-2,0): ('down', self.down), (-2,1):('explain', self.explain),(-2,2):('get', self.get),
-            (-1,-2):('goodbye', self.goodbye), (-1,-1):('hello', self.hello), (-1,0):('help', self.help), (-1,1):('how R U', self.howareyou), (-1,2):('hungrey', self.hungah),
+            (-1,-2):('goodbye', self.goodbye), (-1,-1):('hello', self.hello), (-1,0):('help', self.help), (-1,1):('how R U', self.howareyou), (-1,2):('hungry', self.hungah),
             (0,-2):('left', self.left), (0,-1):('move', self.move), (0,0):('no',self.no), (0,1):('nose', self.nose), (0,2):('pain',self.pain),
             (1,-2):('repeat', self.repeat), (1,-1):('right', self.right), (1,0):('sorry', self.sorry), (1,1):('thanks', self.thanks), (1,2):('thirsty', self.thirsty),
             (2,-2): ('up', self.up), (2,-1):('when', self.when), (2,0):('where', self.where), (2,1):('who', self.who), (2,2):('yes', self.yes)
@@ -194,4 +200,38 @@ class GridSpeakView(HierarchyGridView):
             self.cursor.vertices[1::2] = [i + int(state.step_value)*self.tile_height for i in self.cursor.vertices[1::2]]
         elif state.change == GridStateChange.Select:
             self.words[state.step_value][1].play()
-           
+
+
+class RobotGridView(HierarchyGridView):
+    def __init__(self, model, canvas, xtiles=5, ytiles=5, tile_width=100,
+                 tile_height=100):
+        super(RobotGridView, self).__init__(model, canvas, xtiles, ytiles,
+                                            tile_width, tile_height)
+        self.target.delete()
+        self.target = None
+        self.cursor.delete()
+        self.cursor = self.drawRect(self.xcenter - (tile_width-10) / 2,
+                                    self.ycenter - (tile_height-10) / 2,
+                                    tile_width - 10, tile_height - 10,
+                                    canvas.batch, color=(255,0,0),
+                                    fill=False)
+        self.obj1 = self.drawRect((self.xcenter + tile_height) - (tile_width-50) / 2,
+                                  self.ycenter - (tile_height-50) / 2,
+                                  tile_width - 50, tile_height - 50,
+                                  canvas.batch, color=(0,255,0),
+                                  fill=True)
+        self.obj2 = self.drawRect((self.xcenter - tile_height) - (tile_width-50) / 2,
+                                  self.ycenter - (tile_height-50) / 2,
+                                  tile_width - 50, tile_height - 50,
+                                  canvas.batch, color=(255,0,255),
+                                  fill=True)
+        self.obj3 = self.drawRect(self.xcenter - (tile_width-50) / 2,
+                                  (self.ycenter + tile_height) - (tile_height-50) / 2,
+                                  tile_width - 50, tile_height - 50,
+                                  canvas.batch, color=(255,69,0),
+                                  fill=True)
+        self.obj4 = self.drawRect(self.xcenter - (tile_width-50) / 2,
+                                  (self.ycenter - tile_height) - (tile_height-50) / 2,
+                                  tile_width - 50, tile_height - 50,
+                                  canvas.batch, color=(139,0,0),
+                                  fill=True)
