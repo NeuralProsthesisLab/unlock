@@ -71,8 +71,8 @@
 
     "absolute_threshold_decoder" : {
         "args" : {
-            "threshold" : 0,
-            "reduction_fn" : "np.mean"
+            "threshold" : 40000,
+            "reduction_fn" : "np.max"
         }
     },
 

@@ -233,9 +233,9 @@ class NoThresholdDecoder(UnlockDecoder):
         
 class AbsoluteThresholdDecoder(UnlockDecoder):
     """Accepts everything greater than or equal to a set value."""
-    def __init__(self, threshold=0, reduction_fn='np.mean'):
+    def __init__(self, threshold=0, reduction_fn=np.mean):
         self.threshold = threshold
-        self.reduction_fn = eval(reduction_fn)
+        self.reduction_fn = reduction_fn
         
     def decode(self, command):
         assert hasattr(command, 'features')

@@ -24,6 +24,7 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import numpy as np
 
 from unlock.bci.decode.decode import *
 from unlock.bci.decode.harmonic import *
@@ -114,7 +115,7 @@ class UnlockDecoderFactory(object):
     def create_sliding(self, electrodes=8, step_size=32, trial_limit=768):
         return SlidingWindowDecoder(electrodes, step_size, trial_limit)
     
-    def create_absolute_threshold(self, threshold=0, reduction_fn='np.mean'):
+    def create_absolute_threshold(self, threshold=0, reduction_fn=np.mean):
         return AbsoluteThresholdDecoder(threshold, reduction_fn)
         
     def create_lda_threshold(self, x=(0, 1), y=(0, 1), min_confidence=0.5, reduction_fn='np.mean'):

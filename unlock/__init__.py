@@ -258,6 +258,7 @@ class UnlockFactory(AbstractFactory):
             window_length=window_length, electrodes=electrodes)
 
     def absolute_threshold_decoder(self, threshold, reduction_fn):
+        reduction_fn = np.max
         return self.decoder_factory.create_absolute_threshold(
             threshold=threshold, reduction_fn=reduction_fn)
 
