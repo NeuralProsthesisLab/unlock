@@ -29,28 +29,28 @@ import numpy as np
 from unlock.state.state import UnlockState, TrialState
 
 
-class MsequenceTrainerState(UnlockState):
-    NextStimulus = 1
-    PrevStimulus = 2
+class VepTrainerState(UnlockState):
+    NextTarget = 1
+    PrevTarget = 2
     TrialStart = 1
     TrialEnd = 2
 
-    def __init__(self, stimuli, sequences, n_trials=None, trial_sequence=None):
-        super(MsequenceTrainerState, self).__init__()
+    def __init__(self, stimuli, targets, n_trials=None, trial_sequence=None):
+        super(VepTrainerState, self).__init__()
         self.stimuli = stimuli
-        self.sequences = sequences
-        self.sequence_idx = 0
+        self.targets = targets
+        self.target_idx = 0
         self.n_trials = n_trials
         self.trial_count = 0
         if trial_sequence is None or trial_sequence == 'manual':
             self.trial_sequence = None
         elif trial_sequence == 'random':
-            assert n_trials % len(self.sequences) == 0
+            assert n_trials % len(self.targets) == 0
             self.trial_sequence = np.random.permutation(np.repeat(
-                np.arange(len(self.sequences)), n_trials / len(self.sequences))
-            )
+                np.arange(len(self.targets)), n_trials / len(self.targets)))
         else:
             self.trial_sequence = trial_sequence
+
         self.state = None
         self.state_change = False
 
@@ -64,11 +64,11 @@ class MsequenceTrainerState(UnlockState):
         self.state_change = True
 
     def trial_start(self):
-        self.set_state(MsequenceTrainerState.TrialStart)
+        self.set_state(VepTrainerState.TrialStart)
         self.stimuli.start()
 
     def trial_stop(self):
-        self.set_state(MsequenceTrainerState.TrialEnd)
+        self.set_state(VepTrainerState.TrialEnd)
         self.stimuli.stop()
         for stimulus in self.stimuli.stimuli:
             stimulus.state = None
@@ -92,26 +92,34 @@ class MsequenceTrainerState(UnlockState):
         if command.selection:
             self.trial_count += 1
             if self.trial_count <= self.n_trials:
-                self.update_sequence()
+                self.handle_selection()
                 self.trial_start()
 
         if command.decision is not None:
             self.handle_decision(command.decision)
 
     def handle_decision(self, decision):
-        if decision == MsequenceTrainerState.NextStimulus:
-            self.sequence_idx += 1
-            if self.sequence_idx >= len(self.sequences):
-                self.sequence_idx = 0
-            self.update_sequence()
-        elif decision == MsequenceTrainerState.PrevStimulus:
-            self.sequence_idx -= 1
-            if self.sequence_idx < 0:
-                self.sequence_idx = len(self.sequences) - 1
-            self.update_sequence()
+        if decision == VepTrainerState.NextTarget:
+            self.target_idx = (self.target_idx + 1) % len(self.targets)
+            self.update_stimulus(self.targets[self.target_idx])
+        elif decision == VepTrainerState.PrevTarget:
+            self.target_idx = (self.target_idx - 1) % len(self.targets)
+            self.update_stimulus(self.targets[self.target_idx])
 
-    def update_sequence(self):
+    def handle_selection(self):
         if self.trial_sequence is not None:
-            self.sequence_idx = self.trial_sequence[self.trial_count-1]
-        seq = self.sequences[self.sequence_idx]
-        self.stimuli.stimuli[0].seq_state.sequence = seq
+            self.target_idx = self.trial_sequence[self.trial_count-1]
+        self.update_stimulus(self.targets[self.target_idx])
+
+    def update_stimulus(self, target):
+        pass
+
+
+class MsequenceTrainerState(VepTrainerState):
+    def update_stimulus(self, sequence):
+        self.stimuli.stimuli[0].seq_state.sequence = sequence
+
+
+class SsvepTrainerState(VepTrainerState):
+    def update_stimulus(self, frequency):
+        self.stimuli.stimuli[0].time_state.duration = 1 / (2 * frequency)

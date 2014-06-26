@@ -77,7 +77,7 @@ class UnlockDecoderFactory(object):
                               threshold_decoder=None, n_electrodes=8,
                               selected_channels=None, reference_channel=None):
         assert buffering_decoder and threshold_decoder
-        trial_state_decoder = MsequenceTrainerStateControlledDecoder(None)
+        trial_state_decoder = VepTrainerStateControlledDecoder(None)
         feature_extractor = TemplateFeatureExtractor(n_electrodes,
                                                      selected_channels,
                                                      reference_channel)
@@ -93,9 +93,9 @@ class UnlockDecoderFactory(object):
 
         return decoder_chain
 
-    def create_offline_msequence_trial_recorder(
+    def create_offline_vep_trial_recorder(
             self, buffering_decoder=None, label='trial'):
-        trial_state_decoder = MsequenceTrainerStateControlledDecoder(None)
+        trial_state_decoder = VepTrainerStateControlledDecoder(None)
         logger = OfflineTrialDataDecoder(label)
 
         decoder_chain = UnlockDecoderChain()
@@ -104,7 +104,6 @@ class UnlockDecoderFactory(object):
         decoder_chain.add(logger)
 
         return decoder_chain
-
 
     def create_offline_trial_data(self, label='trial'):
         return OfflineTrialDataDecoder(label)

@@ -29,7 +29,7 @@ import time
 import numpy as np
 from sklearn import lda
 
-from unlock.state import TrialState, MsequenceTrainerState
+from unlock.state import TrialState, VepTrainerState
 
 
 class UnlockDecoder(object):
@@ -107,7 +107,7 @@ class TrialStateControlledDecoder(UnlockDecoder):
         return command
 
 
-class MsequenceTrainerStateControlledDecoder(UnlockDecoder):
+class VepTrainerStateControlledDecoder(UnlockDecoder):
     def decode(self, command):
         """
         Check if the task state has entered or left a rest state and handles
@@ -115,9 +115,9 @@ class MsequenceTrainerStateControlledDecoder(UnlockDecoder):
         """
         if self.task_state is not None:
             state_change = self.task_state.get_state()
-            if state_change == MsequenceTrainerState.TrialStart:
+            if state_change == VepTrainerState.TrialStart:
                 command.trial_start = True
-            elif state_change == MsequenceTrainerState.TrialEnd:
+            elif state_change == VepTrainerState.TrialEnd:
                 command.trial_stop = True
         return command
 
@@ -276,13 +276,13 @@ class OfflineTrialDataDecoder(UnlockDecoder):
 
     def decode(self, command):
         log = dict(
-            data=getattr(command, 'data', None),
+            data=getattr(command, 'buffered_data', None),
             features=getattr(command, 'features', None),
             scores=getattr(command, 'scores', None),
             predicted_class=getattr(command, 'winner', None),
             accepted=getattr(command, 'accept', None),
             confidence=getattr(command, 'confidence', None),
-            actual_class=self.task_state.sequence_idx,
+            actual_class=self.task_state.target_idx,
         )
         np.savez("%s-%d" % (self.label, time.time()), **log)
         return command

@@ -117,3 +117,9 @@ class UnlockStateFactory(object):
         trainer_state = MsequenceTrainerState(stimuli.stimuli, sequences,
                                               n_trials, trial_sequence)
         return trainer_state
+
+    def create_ssvep_trainer(self, stimuli, frequencies, n_trials,
+                             trial_sequence):
+        trainer_state = SsvepTrainerState(stimuli.stimuli, frequencies,
+                                          n_trials, trial_sequence)
+        return trainer_state

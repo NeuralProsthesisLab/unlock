@@ -140,6 +140,24 @@ class UnlockFactory(AbstractFactory):
         ssvep_views = self.view_factory.create_single_ssvep_view(stimulus, canvas, width, height, horizontal_blocks, vertical_blocks)
         return Stimulation(canvas, stimulus, ssvep_views)
 
+    def single_dynamic_ssvep(self, cb_properties=None, stimulus='time',
+                             frequency=10.0, trial_duration=3.0,
+                             rest_duration=1.0):
+        assert cb_properties
+        if stimulus == 'frame_count':
+            raise NotImplementedError('frame count not supported')
+        else:
+            stimulus1 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency)
+
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        stimuli = self.state_factory.create_timed_stimuli(
+            trial_duration, rest_duration, stimulus1)
+        msequence_views = self.view_factory.create_single_ssvep_view(
+            stimulus1, canvas, cb_properties)
+        return Stimulation(canvas, stimuli, msequence_views)
+
     def single_msequence(self, cb_properties=None, stimulus='time',
                          frequency=30.0, repeat_count=150, sequence=(0,1)):
         assert cb_properties
@@ -231,8 +249,8 @@ class UnlockFactory(AbstractFactory):
             templates, buffering_decoder, threshold_decoder, n_electrodes,
             selected_channels, reference_channel)
 
-    def trial_logger(self, buffering_decoder, label='trial'):
-        return self.decoder_factory.create_offline_msequence_trial_recorder(
+    def vep_trial_logger(self, buffering_decoder, label='trial'):
+        return self.decoder_factory.create_offline_vep_trial_recorder(
             buffering_decoder, label)
 
     def fixed_time_buffering_decoder(self, window_length=768, electrodes=8):
@@ -437,6 +455,28 @@ class UnlockFactory(AbstractFactory):
 
         trainer = self.state_factory.create_msequence_trainer(
             stimuli, sequences, n_trials, trial_sequence)
+        # super horrible hack
+        decoder.decoders[0].task_state = trainer  # stimuli.stimuli.state
+        decoder.decoders[-1].task_state = trainer
+
+        return self.controller_factory.create_controller_chain(
+            self.window, stimuli, cmd_receiver, trainer, [],
+            standalone=standalone)
+
+    def ssvep_trainer(self, stimuli=None, decoder=None, frequencies=None,
+                      n_trials=None, trial_sequence=None, standalone=True):
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer}
+        if decoder:
+            receiver_args['decoder'] = decoder
+            cmd_receiver = self.command_factory.create_receiver(
+                'decoding', **receiver_args)
+        else:
+            cmd_receiver = self.command_factory.create_receiver(
+                'raw', **receiver_args)
+
+        trainer = self.state_factory.create_ssvep_trainer(
+            stimuli, frequencies, n_trials, trial_sequence)
         # super horrible hack
         decoder.decoders[0].task_state = trainer  # stimuli.stimuli.state
         decoder.decoders[-1].task_state = trainer
