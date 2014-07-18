@@ -235,3 +235,13 @@ class RobotGridView(HierarchyGridView):
                                   tile_width - 50, tile_height - 50,
                                   canvas.batch, color=(139,0,0),
                                   fill=True)
+
+    def render(self):
+        state = self.model.get_state()
+        if not state:
+            return
+
+        if state.change == GridStateChange.XChange:
+            self.cursor.vertices[::2] = [i + int(state.step_value)*self.tile_width for i in self.cursor.vertices[::2]]
+        elif state.change == GridStateChange.YChange:
+            self.cursor.vertices[1::2] = [i + int(state.step_value)*self.tile_height for i in self.cursor.vertices[1::2]]

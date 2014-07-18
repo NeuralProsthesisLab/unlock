@@ -26,7 +26,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from unlock.state.state import UnlockState
-
+from unlock.util.streamclient import StreamClient
 
 class GridStateChange(object):
     XChange = 0
@@ -143,5 +143,45 @@ class HierarchyGridState(GridState):
         """
         assert not self.state_change
         self.state_change = GridStateChange(GridStateChange.Select, self.state)
-        
-        
+
+
+class RobotGridState(GridState):
+    """
+    The Hierarchy Grid is a 2D grid interface for selecting targets arranged
+     in a hierarchical fashion. The grid contains 2 or more layers, where
+     certain tiles in the grid correspond to descend/ascend actions and the
+     rest are target actions. The grid is laid our radially, with (0, 0)
+     corresponding to the center.
+
+    1) Create a square grid of tiles
+    2) Each tile's state is its label and action
+    3) On layer change, set tile states accordingly
+    """
+    def __init__(self, grid_radius):
+        super(RobotGridState, self).__init__()
+        self.radius = grid_radius
+        self.state = (0, 0)
+        self.state_change = None
+        self.sc = StreamClient('128.197.61.111', 21567)
+
+    def handle_state_change(self, new_state, change):
+        if new_state and abs(new_state[0]) <= self.radius and abs(new_state[1]) <= self.radius:
+            self.state = new_state
+            self.state_change = GridStateChange(*change)
+
+    def process_selection(self):
+        """
+        Determine and execute current tile's associated action
+        """
+        target = None
+        print(self.state)
+        if self.state == (0, 1):
+            target = '0'
+        elif self.state == (-1, 0):
+            target = '1'
+        elif self.state == (1, 0):
+            target = '2'
+        elif self.state == (0, -1):
+            target = '3'
+        if target is not None:
+            self.sc.set('bri/target', target)

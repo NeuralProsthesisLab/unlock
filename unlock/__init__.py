@@ -331,7 +331,7 @@ class UnlockFactory(AbstractFactory):
                          'decoder': decoder}
         cmd_receiver = self.command_factory.create_receiver('decoding',
                                                             **receiver_args)
-        grid_state = self.state_factory.create_grid_hierarchy(grid_radius)
+        grid_state = self.state_factory.create_robot_grid(grid_radius)
 
         if offline_data:
             offline_data = self.state_factory.create_offline_data('gridspeak')
