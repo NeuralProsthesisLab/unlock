@@ -131,11 +131,25 @@ class HierarchyGridState(GridState):
         self.radius = grid_radius
         self.state = (0, 0)
         self.state_change = None
+
+        self.cue = None
             
     def handle_state_change(self, new_state, change):
         if new_state and abs(new_state[0]) <= self.radius and abs(new_state[1]) <= self.radius:
             self.state = new_state
             self.state_change = GridStateChange(*change)
+
+    def process_command(self, command):
+        """ TEMP HACK FOR DATA COLLECTION """
+        # a selection event supersedes a decision event
+        if self.cue is not None and command.matrix is not None and len(command.matrix) > 0:
+            command.set_cue_trigger(self.cue)
+            command.make_matrix()
+            self.cue = None
+
+        if command.decision:
+            if command.__class__.__name__ == 'PygletKeyboardCommand':
+                self.cue = command.decision
 
     def process_selection(self):
         """
