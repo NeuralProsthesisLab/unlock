@@ -1,4 +1,4 @@
-# Copyright (c) James Percent, Byron Galibrith and Unlock contributors.
+# Copyright (c) James Percent, Byron Galbraith and Unlock contributors.
 # All rights reserved.
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -24,11 +24,12 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import time
 
-import unlock.bci
 import numpy as np
-from unlock.state import TrialState
 from sklearn import lda
+
+from unlock.state import TrialState, VepTrainerState
 
 
 class UnlockDecoder(object):
@@ -65,6 +66,12 @@ class UnlockDecoderChain(UnlockDecoder):
     def decode(self, command):
         for decoder in self.decoders:
             command = decoder.decode(command)
+            if hasattr(command, 'trial_start'):
+                self.start()
+                delattr(command, 'trial_start')
+            elif hasattr(command, 'trial_stop'):
+                self.stop()
+                delattr(command, 'trial_stop')
             if not command.is_ready():
                 return command
                 
@@ -82,13 +89,10 @@ class UnlockDecoderChain(UnlockDecoder):
             
     def reset(self):
         for decoder in self.decoders:
-            self.decoder.reset()
+            decoder.reset()
             
-            
+
 class TrialStateControlledDecoder(UnlockDecoder):
-    def __init__(self, task_state):
-        self.task_state = task_state
-        
     def decode(self, command):
         """
         Check if the task state has entered or left a rest state and handles
@@ -97,11 +101,26 @@ class TrialStateControlledDecoder(UnlockDecoder):
         if self.task_state is not None:
             state_change = self.task_state.get_state()
             if state_change == TrialState.RestExpiry:
-                self.start()
+                command.trial_start = True
             elif state_change == TrialState.TrialExpiry:
-                self.stop()
+                command.trial_stop = True
         return command
-        
+
+
+class VepTrainerStateControlledDecoder(UnlockDecoder):
+    def decode(self, command):
+        """
+        Check if the task state has entered or left a rest state and handles
+        accordingly.
+        """
+        if self.task_state is not None:
+            state_change = self.task_state.get_state()
+            if state_change == VepTrainerState.TrialStart:
+                command.trial_start = True
+            elif state_change == VepTrainerState.TrialEnd:
+                command.trial_stop = True
+        return command
+
         
 class BufferedDecoder(UnlockDecoder):
     def __init__(self, buffer_shape, electrodes):
@@ -117,11 +136,16 @@ class BufferedDecoder(UnlockDecoder):
         further samples cause the early samples to be discarded.
         data is assumed to have a shape of (n_samples, n_channels)
         """
-        if not command.is_valid() or not self.started:
+        if (not command.is_valid() or not self.started) and not self.is_ready():
+            command.set_ready_value(False)
             return command
-        
+
         data = command.matrix[:, 0:self.electrodes]
+
+        if len(data) > len(self.buffer):
+            data = data[-len(self.buffer):]
             
+
         n_samples = data.shape[0]
         if self.cursor + n_samples >= self.buffer.shape[0]:
             shift = self.cursor + n_samples - self.buffer.shape[0]
@@ -131,8 +155,11 @@ class BufferedDecoder(UnlockDecoder):
         else:
             self.buffer[self.cursor:self.cursor+n_samples] = data
             self.cursor += n_samples
-        
-        command.set_ready_value(self.is_ready())
+
+        if self.is_ready():
+            command.buffered_data = self.get_data()
+        else:
+            command.set_ready_value(False)
         return command
             
     def get_data(self):
@@ -163,6 +190,8 @@ class FixedTimeBufferingDecoder(BufferedDecoder):
         self.started = False
         if self.cursor >= 0.9*self.window_length:
             self.decode_now = True
+        else:
+            self.update(None)
             
     def is_ready(self):
         return self.cursor >= self.window_length or self.decode_now
@@ -196,20 +225,22 @@ class SlidingWindowDecoder(BufferedDecoder):
 class NoThresholdDecoder(UnlockDecoder):
     """Accepts everything"""
     def decode(self, command):
-        assert hasattr(command, 'scores')
-        command.accept, command.confidence = True, 1.0
+        assert hasattr(command, 'features')
+        command.confidence = 1.0
+        command.accept = True
         return command
         
         
 class AbsoluteThresholdDecoder(UnlockDecoder):
     """Accepts everything greater than or equal to a set value."""
-    def __init__(self, threshold=0, reduction_fn='np.mean'):
+    def __init__(self, threshold=0, reduction_fn=np.mean):
         self.threshold = threshold
-        self.reduction_fn = eval(reduction_fn)
+        self.reduction_fn = reduction_fn
         
     def decode(self, command):
-        assert hasattr(command, 'scores')
-        command.accept, command.confidence = self.reduction_fn(command.scores) >= self.threshold, 1.0
+        assert hasattr(command, 'features')
+        command.confidence = 1.0
+        command.accept = self.reduction_fn(command.features) >= self.threshold
         return command
         
         
@@ -219,15 +250,39 @@ class LdaThresholdDecoder(UnlockDecoder):
     above a provided confidence level are accepted. Training data must be
     supplied to the decoder.
     """
-    def __init__(self, x=(0, 1), y=(0, 1), min_confidence=0.5, reduction_fn='np.mean'):
+    def __init__(self, x=(0, 1), y=(0, 1), min_confidence=0.5,
+                 reduction_fn='np.mean'):
         self.min_confidence = min_confidence
         self.clf = lda.LDA()
         self.clf.fit(x, y)
         self.reduction_fn = eval(reduction_fn)
         
     def decode(self, command):
-        assert hasattr(command, 'scores')        
-        command.confidence = self.clf.predict_proba(self.reduction_fn(command.scores))[0, 1]
+        assert hasattr(command, 'features')
+        command.confidence = self.clf.predict_proba(
+            self.reduction_fn(command.features))[0, 1]
         command.accept = command.confidence >= self.min_confidence
         return command
 
+
+class OfflineTrialDataDecoder(UnlockDecoder):
+    """
+    Writes the intermediate and final results and of a trial to disk as a
+    compressed numpy archive.
+    """
+    def __init__(self, label):
+        super(OfflineTrialDataDecoder, self).__init__()
+        self.label = label
+
+    def decode(self, command):
+        log = dict(
+            data=getattr(command, 'buffered_data', None),
+            features=getattr(command, 'features', None),
+            scores=getattr(command, 'scores', None),
+            predicted_class=getattr(command, 'winner', None),
+            accepted=getattr(command, 'accept', None),
+            confidence=getattr(command, 'confidence', None),
+            actual_class=self.task_state.target_idx,
+        )
+        np.savez("%s-%d" % (self.label, time.time()), **log)
+        return command

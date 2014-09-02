@@ -32,6 +32,7 @@ from unlock.state.grid_state import *
 from unlock.state.fastpad_state import *
 from unlock.state.scope_state import *
 from unlock.state.diagnostic_state import *
+from unlock.state.trainer_state import *
 
 
 class UnlockStateFactory(object):
@@ -99,6 +100,9 @@ class UnlockStateFactory(object):
     def create_grid_hierarchy(self, grid_radius):
         return HierarchyGridState(grid_radius)
 
+    def create_robot_grid(self, grid_radius):
+        return RobotGridState(grid_radius)
+
     def create_offline_data(self, output_file_name):
         offline_data = OfflineData(output_file_name)
         return offline_data
@@ -110,3 +114,15 @@ class UnlockStateFactory(object):
     def create_timed_stimuli(self, stimuli_duration=3.0, rest_duration=1.0, *stimuli):
         trial_state = self.create_trial_state(stimuli_duration, rest_duration)
         return TimedStimuli(trial_state, stimuli)
+
+    def create_msequence_trainer(self, stimuli, sequences, n_trials,
+                                 trial_sequence):
+        trainer_state = MsequenceTrainerState(stimuli.stimuli, sequences,
+                                              n_trials, trial_sequence)
+        return trainer_state
+
+    def create_ssvep_trainer(self, stimuli, frequencies, n_trials,
+                             trial_sequence):
+        trainer_state = SsvepTrainerState(stimuli.stimuli, frequencies,
+                                          n_trials, trial_sequence)
+        return trainer_state

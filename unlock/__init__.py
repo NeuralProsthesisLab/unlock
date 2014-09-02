@@ -40,6 +40,7 @@ class Stimulation(object):
         self.stimuli = stimuli
         self.views = views
 
+
 class UnlockFactory(AbstractFactory):
     def __init__(self):
         super(UnlockFactory, self).__init__()
@@ -50,6 +51,9 @@ class UnlockFactory(AbstractFactory):
         self.state_factory = UnlockStateFactory()
         self.view_factory = UnlockViewFactory()
 
+    ###########################################################################
+    ## Logging
+    ###########################################################################
     def database(self, host=None, user=None, name=None, port=None, addr=None):
         assert host and user and name and port and addr
         engine = create_engine('postgresql://%s:%s@%s:%s/%s' % (name, host, user, port, addr))
@@ -64,6 +68,9 @@ class UnlockFactory(AbstractFactory):
             
         return logging.getLogger(__name__)
 
+    ###########################################################################
+    ## Data Acquisition
+    ###########################################################################
     def nidaq(self):
         return self.acquisition_factory.create_nidaq_signal()
 
@@ -84,29 +91,39 @@ class UnlockFactory(AbstractFactory):
     def random(self):
         return self.acquisition_factory.create_random_signal()
 
+    ###########################################################################
+    ## Display
+    ###########################################################################
     def pyglet(self, **pyglet_args):
         assert 'fullscreen' in pyglet_args and 'fps' in pyglet_args and 'vsync' in pyglet_args
         return self.controller_factory.create_pyglet_window(self.signal, **pyglet_args)
-            
-    def quad_ssvep(self, stimulus='frame_count', color=[0,0,0], color1=[255,255,255], stimuli_duration=3.0,
-            rest_duration=1.0, frequencies=[12.0,13.0,14.0,15.0], width=500, height=100, horizontal_blocks=5,
-            vertical_blocks=1):
+
+    ###########################################################################
+    ## Stimuli
+    ###########################################################################
+    def quad_ssvep(self, cb_properties=None, stimulus='time',
+                   frequencies=(12.0, 13.0, 14.0, 15.0), stimuli_duration=3.0,
+                   rest_duration=1.0):
+        assert cb_properties
 
         if stimulus == 'frame_count':
-            stimulus = self.state_factory.create_frame_counted_timed_stimulus(frequencies[0])
-            stimulus1 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[1])
-            stimulus2 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[2])
-            stimulus3 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[3])
+            stim1 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[0])
+            stim2 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[1])
+            stim3 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[2])
+            stim4 = self.state_factory.create_frame_counted_timed_stimulus(frequencies[3])
         else:
-            stimulus = self.state_factory.create_wall_clock_timed_stimulus(frequencies[0] * 2)
-            stimulus1 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[1] * 2)
-            stimulus2 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[2] * 2)
-            stimulus3 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[3] * 2)
+            stim1 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[0] * 2)
+            stim2 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[1] * 2)
+            stim3 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[2] * 2)
+            stim4 = self.state_factory.create_wall_clock_timed_stimulus(frequencies[3] * 2)
 
-        canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
-        stimuli = self.state_factory.create_timed_stimuli(stimuli_duration, rest_duration,  *[stimulus, stimulus1, stimulus2, stimulus3])
-        ssvep_views = self.view_factory.create_quad_ssvep_views(stimuli, canvas, width, height, horizontal_blocks, vertical_blocks)
-        #print("canvas, stimuli , ssvep_views ", canvas, stimuli, ssvep_views)
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        stimuli = self.state_factory.create_timed_stimuli(
+            stimuli_duration, rest_duration, *[stim1, stim2, stim3, stim4])
+        ssvep_views = self.view_factory.create_quad_ssvep_views(
+            stimuli, canvas, cb_properties)
+
         return Stimulation(canvas, stimuli, ssvep_views)
 
     def single_ssvep(self, stimulus='frame_count', color=[0,0,0], color1=[255,255,255], stimuli_duration=3.0,
@@ -122,6 +139,24 @@ class UnlockFactory(AbstractFactory):
         #stimuli = self.state_factory.create_timed_stimuli(stimuli_duration, rest_duration,  *[stimulus])
         ssvep_views = self.view_factory.create_single_ssvep_view(stimulus, canvas, width, height, horizontal_blocks, vertical_blocks)
         return Stimulation(canvas, stimulus, ssvep_views)
+
+    def single_dynamic_ssvep(self, cb_properties=None, stimulus='time',
+                             frequency=10.0, trial_duration=3.0,
+                             rest_duration=1.0):
+        assert cb_properties
+        if stimulus == 'frame_count':
+            raise NotImplementedError('frame count not supported')
+        else:
+            stimulus1 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency)
+
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        stimuli = self.state_factory.create_timed_stimuli(
+            trial_duration, rest_duration, stimulus1)
+        msequence_views = self.view_factory.create_single_ssvep_view(
+            stimulus1, canvas, cb_properties)
+        return Stimulation(canvas, stimuli, msequence_views)
 
     def single_msequence(self, cb_properties=None, stimulus='time',
                          frequency=30.0, repeat_count=150, sequence=(0,1)):
@@ -139,114 +174,266 @@ class UnlockFactory(AbstractFactory):
             stimulus, canvas, cb_properties)
         return Stimulation(canvas, stimulus, msequence_views)
 
-    def harmonic_sum(self, buffering_decoder, threshold_decoder, fs=256, trial_length=3, n_electrodes=8,
-                     targets=[12.0, 13.0, 14.0, 15.0], target_window=0.1, nfft=2048, n_harmonics=1):
+    def single_dynamic_msequence(self, cb_properties=None, stimulus='time',
+                                 frequency=30.0, trial_duration=12.0,
+                                 rest_duration=1.0):
+        assert cb_properties
+        if stimulus == 'frame_count':
+            raise NotImplementedError('frame count not supported')
+        else:
+            stimulus1 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency)
 
-        return self.decoder_factory.create_harmonic_sum_decision(buffering_decoder, threshold_decoder, **{'fs': fs, 'trial_length': trial_length,
-            'n_electrodes': n_electrodes, 'targets': targets, 'target_window': target_window, 'nfft': nfft,
-            'n_harmonics': n_harmonics})
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        stimuli = self.state_factory.create_timed_stimuli(
+            trial_duration, rest_duration, stimulus1)
+        msequence_views = self.view_factory.create_single_msequence_view(
+            stimulus1, canvas, cb_properties)
+        return Stimulation(canvas, stimuli, msequence_views)
+
+    def quad_msequence(self, cb_properties=None, stimulus='time',
+                       frequency=30.0, trial_duration=12.0, rest_duration=1.0,
+                       sequences=None):
+        assert cb_properties and sequences
+        if stimulus == 'frame_count':
+            raise NotImplementedError('frame count not supported')
+        else:
+            stimulus1 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[0])
+            stimulus2 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[1])
+            stimulus3 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[2])
+            stimulus4 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[3])
+
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        stimuli = self.state_factory.create_timed_stimuli(
+            trial_duration, rest_duration, stimulus1, stimulus2, stimulus3,
+            stimulus4)
+        msequence_views = self.view_factory.create_quad_msequence_view(
+            [stimulus1, stimulus2, stimulus3, stimulus4], canvas,
+            cb_properties)
+        return Stimulation(canvas, stimuli, msequence_views)
+
+    def checkerboard_properties(self, width=300, height=300, x_tiles=4,
+                                y_tiles=4, x_ratio=1, y_ratio=1,
+                                color1=(0, 0, 0), color2=(255, 255, 255)):
+        return CheckerboardProperties(width, height, x_tiles, y_tiles, x_ratio,
+                                      y_ratio, color1, color2)
+
+    ###########################################################################
+    ## Decoders
+    ###########################################################################
+    def harmonic_sum(self, buffering_decoder, threshold_decoder, selector=None,
+                     fs=256, n_electrodes=8, target_window=0.1, nfft=2048,
+                     n_harmonics=1, targets=(12.0,13.0,14.0,15.0),
+                     selected_channels=None):
+        return self.decoder_factory.create_harmonic_sum_decision(
+            buffering_decoder, threshold_decoder, selector=selector,
+            n_electrodes=n_electrodes, fs=fs, target_window=target_window,
+            nfft=nfft, n_harmonics=n_harmonics, targets=targets,
+            selected_channels=selected_channels)
+
+    def eyeblink_detector(self, eog_channels=(7,), strategy="length",
+                          rms_threshold=0):
+        return self.decoder_factory.create_eyeblink_detector(eog_channels,
+                                                             strategy,
+                                                             rms_threshold)
+    
+    def template_match(self, buffering_decoder, threshold_decoder,
+                       templates=None, n_electrodes=8,
+                       selected_channels=None, reference_channel=None):
+        return self.decoder_factory.create_template_match(
+            templates, buffering_decoder, threshold_decoder, n_electrodes,
+            selected_channels, reference_channel)
+
+    def vep_trial_logger(self, buffering_decoder, label='trial'):
+        return self.decoder_factory.create_offline_vep_trial_recorder(
+            buffering_decoder, label)
 
     def fixed_time_buffering_decoder(self, window_length=768, electrodes=8):
-        return self.decoder_factory.create_fixed_time_buffering(**{'window_length': window_length, 'electrodes': electrodes})
+        return self.decoder_factory.create_fixed_time_buffering(
+            window_length=window_length, electrodes=electrodes)
 
     def absolute_threshold_decoder(self, threshold, reduction_fn):
-        return self.decoder_factory.create_absolute_threshold(**{'threshold': threshold, 'reduction_fn': reduction_fn})
+        reduction_fn = np.max
+        return self.decoder_factory.create_absolute_threshold(
+            threshold=threshold, reduction_fn=reduction_fn)
 
     def no_stimulation(self):
-        canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
         return Stimulation(canvas, UnlockState(True), [])
 
-    def gridspeak(self, stimulation=None, decoder=None, grid_radius=2, offline_data=False):
+    ###########################################################################
+    ## Applications
+    ###########################################################################
+    def gridspeak(self, stimulation=None, decoder=None, grid_radius=2,
+                  offline_data=False):
         assert stimulation and decoder
-        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
-        cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
+        decoder.decoders[1].task_state = stimulation.stimuli.state
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer,
+                         'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding',
+                                                            **receiver_args)
 
         grid_state = self.state_factory.create_grid_hierarchy(grid_radius)
         if offline_data:
             offline_data = self.state_factory.create_offline_data('gridspeak')
-            state_chain = self.state_factory.create_state_chain(grid_state, offline_data)
+            state_chain = self.state_factory.create_state_chain(grid_state,
+                                                                offline_data)
         else:
             state_chain = grid_state
 
-        gridspeak_view = self.view_factory.create_gridspeak(grid_state, stimulation.canvas)
+        gridspeak_view = self.view_factory.create_gridspeak(grid_state,
+                                                            stimulation.canvas)
 
-        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
+        return self.controller_factory.create_controller_chain(
+            self.window, stimulation, cmd_receiver, state_chain,
             [gridspeak_view], name="Gridspeak", icon="gridspeak.png")
 
-    def gridcursor(self, stimulation=None, decoder=None, grid_radius=2, offline_data=False):
+    def gridcursor(self, stimulation=None, decoder=None, grid_radius=2,
+                   offline_data=False):
         assert stimulation and decoder
-        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
-        cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
 
+        decoder.decoders[1].task_state = stimulation.stimuli.state
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer,
+                         'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding',
+                                                            **receiver_args)
         grid_state = self.state_factory.create_grid_hierarchy(grid_radius)
+
         if offline_data:
-            offline_data = self.state_factory.create_offline_data('gridspeak')
-            state_chain = self.state_factory.create_state_chain(grid_state, offline_data)
+            offline_data = self.state_factory.create_offline_data('gridcursor')
+            state_chain = self.state_factory.create_state_chain(grid_state,
+                                                                offline_data)
         else:
             state_chain = grid_state
 
-        gridspeak_view = self.view_factory.create_hierarchy_grid_view(grid_state, stimulation.canvas)
+        grid_view = self.view_factory.create_hierarchy_grid_view(
+            grid_state, stimulation.canvas)
 
-        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
-            [gridspeak_view], name="Gridcursor", icon="gridcursor.png")
+        return self.controller_factory.create_controller_chain(
+            self.window, stimulation, cmd_receiver, state_chain,
+            [grid_view], name="Target Practice", icon="gridcursor.png")
+
+    def robot(self, stimulation=None, decoder=None, grid_radius=1,
+                   offline_data=False):
+        assert stimulation and decoder
+
+        decoder.decoders[1].task_state = stimulation.stimuli.state
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer,
+                         'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding',
+                                                            **receiver_args)
+        grid_state = self.state_factory.create_robot_grid(grid_radius)
+
+        if offline_data:
+            offline_data = self.state_factory.create_offline_data('gridspeak')
+            state_chain = self.state_factory.create_state_chain(grid_state,
+                                                                offline_data)
+        else:
+            state_chain = grid_state
+
+        grid_view = self.view_factory.create_robot_grid_view(
+            grid_state, stimulation.canvas)
+
+        return self.controller_factory.create_controller_chain(
+            self.window, stimulation, cmd_receiver, state_chain,
+            [grid_view], name="Target Practice", icon="gridcursor.png")
 
     def fastpad(self, stimulation=None, decoder=None, offline_data=False):
         assert stimulation and decoder
-        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
-        cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
+        decoder.decoders[1].task_state = stimulation.stimuli.state
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer,
+                         'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding',
+                                                            **receiver_args)
 
         fastpad_state = self.state_factory.create_fastpad()
         if offline_data:
             offline_data = self.state_factory.create_offline_data('fastpad')
-            state_chain = self.state_factory.create_state_chain(fastpad_state, offline_data)
+            state_chain = self.state_factory.create_state_chain(fastpad_state,
+                                                                offline_data)
         else:
             state_chain = fastpad_state
 
-        fastpad_view = self.view_factory.create_fastpad_view(fastpad_state, stimulation.canvas)
-        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
+        fastpad_view = self.view_factory.create_fastpad_view(fastpad_state,
+                                                             stimulation.canvas)
+        return self.controller_factory.create_controller_chain(
+            self.window, stimulation, cmd_receiver, state_chain,
             [fastpad_view], name="Fastpad", icon="fastpad.png")
 
-    def time_scope(self, stimulation=None, channels=1, fs=256, duration=2, offline_data=False):
+    def time_scope(self, stimulation=None, channels=1, fs=256, duration=2,
+                   offline_data=False):
         assert stimulation
-        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
-        cmd_receiver = self.command_factory.create_receiver('raw', **receiver_args)
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer}
+        cmd_receiver = self.command_factory.create_receiver('raw',
+                                                            **receiver_args)
 
         scope_model = TimeScopeState(channels, fs, duration)
         if offline_data:
             offline_data = self.state_factory.create_offline_data('time_scope')
-            state_chain = self.state_factory.create_state_chain(scope_model, offline_data)
+            state_chain = self.state_factory.create_state_chain(scope_model,
+                                                                offline_data)
         else:
             state_chain = scope_model
 
         time_scope_view = TimeScopeView(scope_model, stimulation.canvas)
-        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
+        return self.controller_factory.create_controller_chain(
+            self.window, stimulation, cmd_receiver, state_chain,
             [time_scope_view], name='TimeScope', icon='time-128x128.jpg')
 
-    def frequency_scope(self, stimulation=None, channels=1, fs=256, duration=2, offline_data=False):
+    def frequency_scope(self, stimulation=None, channels=1, fs=256, duration=2,
+                        nfft=2048, freq_range=None, display_channels=None,
+                        labels=None, margin=0.05, offline_data=False):
         assert stimulation
-        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
-        cmd_receiver = self.command_factory.create_receiver('raw', **receiver_args)
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer}
+        cmd_receiver = self.command_factory.create_receiver('raw',
+                                                            **receiver_args)
 
-        scope_model = FrequencyScopeState(channels, fs, duration)
+        scope_model = FrequencyScopeState(channels, fs, duration, nfft,
+                                          freq_range, display_channels, labels)
         if offline_data:
-            offline_data = self.state_factory.create_offline_data('time_scope')
-            state_chain = self.state_factory.create_state_chain(scope_model, offline_data)
+            offline_data = self.state_factory.create_offline_data('freq_scope')
+            state_chain = self.state_factory.create_state_chain(scope_model,
+                                                                offline_data)
         else:
             state_chain = scope_model
 
-        frequency_scope_view = FrequencyScopeView(scope_model, stimulation.canvas, labels=scope_model.labels)
-        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain,
-            [frequency_scope_view], name='FrequencyScope', icon='frequency2-128x128.png')
+        frequency_scope_view = FrequencyScopeView(scope_model,
+                                                  stimulation.canvas,
+                                                  margin=margin,
+                                                  labels=scope_model.labels)
 
-    def dashboard(self, stimulation=None, decoder=None, controllers=None, offline_data=False):
+        return self.controller_factory.create_controller_chain(
+            self.window, stimulation, cmd_receiver, state_chain,
+            [frequency_scope_view], name='FrequencyScope',
+            icon='frequency2-128x128.png')
+
+    def dashboard(self, stimulation=None, decoder=None, controllers=None,
+                  offline_data=False):
         assert stimulation and decoder
         if not controllers:
             controllers = []
-        #canvas = self.controller_factory.create_canvas(self.window.width, self.window.height)
-        receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer, 'decoder': decoder}
-        cmd_receiver = self.command_factory.create_receiver('decoding', **receiver_args)
-        cc_frag = self.controller_factory.create_command_connected_fragment(stimulation.canvas, stimulation.stimuli,
-            stimulation.views, cmd_receiver)
+        decoder.decoders[1].task_state = stimulation.stimuli.state
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer,
+                         'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding',
+                                                            **receiver_args)
+        cc_frag = self.controller_factory.create_command_connected_fragment(
+            stimulation.canvas, stimulation.stimuli, stimulation.views,
+            cmd_receiver)
 
         icons = []
         for c in controllers:
@@ -255,13 +442,17 @@ class UnlockFactory(AbstractFactory):
         grid_state = self.state_factory.create_grid_state(controllers, icons)
         if offline_data:
             offline_data = self.state_factory.create_offline_data('dashboard')
-            state_chain = self.state_factory.create_state_chain(grid_state, offline_data)
+            state_chain = self.state_factory.create_state_chain(grid_state,
+                                                                offline_data)
         else:
             state_chain = grid_state
 
-        grid_view = self.view_factory.create_grid_view(grid_state, stimulation.canvas, icons)
-        return self.controller_factory.create_dashboard(self.window, stimulation.canvas, controllers, cc_frag,
-            [grid_view], state_chain)
+        grid_view = self.view_factory.create_grid_view(grid_state,
+                                                       stimulation.canvas,
+                                                       icons)
+        return self.controller_factory.create_dashboard(
+            self.window, stimulation.canvas, controllers, cc_frag, [grid_view],
+            state_chain)
 
     def ssvep_diagnostic(self, stimulation=None, decoder=None, output_file='ssvep-diagnostic', duration=10, standalone=True):
         receiver_args = {'signal': self.signal, 'timer': self.acquisition_factory.timer}
@@ -278,9 +469,46 @@ class UnlockFactory(AbstractFactory):
         return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, offline_data, [],
             standalone=standalone)
 
-    def checkerboard_properties(self, width=300, height=300, x_tiles=4,
-                                y_tiles=4, x_ratio=1, y_ratio=1,
-                                color1=(0, 0, 0), color2=(255, 255, 255)):
-        assert x_tiles >= 2, y_tiles >= 2
-        return CheckerboardProperties(width, height, x_tiles, y_tiles, x_ratio,
-                                      y_ratio, color1, color2)
+    def msequence_trainer(self, stimuli=None, decoder=None, sequences=None,
+                          n_trials=None, trial_sequence=None, standalone=True):
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer}
+        if decoder:
+            receiver_args['decoder'] = decoder
+            cmd_receiver = self.command_factory.create_receiver(
+                'decoding', **receiver_args)
+        else:
+            cmd_receiver = self.command_factory.create_receiver(
+                'raw', **receiver_args)
+
+        trainer = self.state_factory.create_msequence_trainer(
+            stimuli, sequences, n_trials, trial_sequence)
+        # super horrible hack
+        decoder.decoders[0].task_state = trainer  # stimuli.stimuli.state
+        decoder.decoders[-1].task_state = trainer
+
+        return self.controller_factory.create_controller_chain(
+            self.window, stimuli, cmd_receiver, trainer, [],
+            standalone=standalone)
+
+    def ssvep_trainer(self, stimuli=None, decoder=None, frequencies=None,
+                      n_trials=None, trial_sequence=None, standalone=True):
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer}
+        if decoder:
+            receiver_args['decoder'] = decoder
+            cmd_receiver = self.command_factory.create_receiver(
+                'decoding', **receiver_args)
+        else:
+            cmd_receiver = self.command_factory.create_receiver(
+                'raw', **receiver_args)
+
+        trainer = self.state_factory.create_ssvep_trainer(
+            stimuli, frequencies, n_trials, trial_sequence)
+        # super horrible hack
+        decoder.decoders[0].task_state = trainer  # stimuli.stimuli.state
+        decoder.decoders[-1].task_state = trainer
+
+        return self.controller_factory.create_controller_chain(
+            self.window, stimuli, cmd_receiver, trainer, [],
+            standalone=standalone)

@@ -5,3 +5,6 @@
 *komodoproject
 .idea
 *.obj
+
+PythonSignalLog.txt
+unlock.log

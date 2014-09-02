@@ -94,7 +94,7 @@ class TimeScopeView(UnlockView):
                     
                     
 class FrequencyScopeView(UnlockView):
-    def __init__(self, model, canvas, labels=None):
+    def __init__(self, model, canvas, margin=0.05, labels=None):
         """
         the scope view has n_channel traces w/ labels and a single cursor bar
         additionally having range indicators would be good
@@ -103,8 +103,8 @@ class FrequencyScopeView(UnlockView):
 
         self.model = model
 
-        self.xlim = (canvas.width*0.05, canvas.width*0.95)
-        self.ylim = (canvas.height*0.05, canvas.height*0.95)
+        self.xlim = (canvas.width*margin, canvas.width*(1-margin))
+        self.ylim = (canvas.height*margin, canvas.height*(1-margin))
 
         plot_points = len(self.model.trace)
         display_channels = len(self.model.display_channels)

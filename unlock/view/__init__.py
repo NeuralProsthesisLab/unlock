@@ -1,4 +1,5 @@
 import array
+import copy
 
 import pyglet
 
@@ -28,24 +29,25 @@ class UnlockViewFactory(object):
                               spc.y + y_offset, rotation)
         return sprite
 
-    def create_flickering_checkerboard_sprite(
-            self, model, canvas, cb_properties,
-            position=SpritePositionComputer.Center, x_offset=0, y_offset=0,
-            rotation=0, reversal=True):
+    def create_flickering_checkerboard_sprite(self, model, canvas,
+            cb_properties, position=SpritePositionComputer.Center, x_offset=0,
+            y_offset=0, rotation=0, reversal=True):
 
         sprite = self.create_checkerboard_sprite(
             model, canvas, cb_properties, position, x_offset, y_offset,
             rotation)
 
-        ## TODO: create a copy and update that instead of modifying original
+        cb_properties_reversal = copy.deepcopy(cb_properties)
         if reversal:
-            cb_properties.color1, cb_properties.color2 = \
-                cb_properties.color2, cb_properties.color1
+            cb_properties_reversal.color1 = cb_properties.color2
+            cb_properties_reversal.color2 = cb_properties.color1
         else:
-            cb_properties.color1, cb_properties.color2 = (0, 0, 0), (0, 0, 0)
+            cb_properties_reversal.color1 = (0, 0, 0)
+            cb_properties_reversal.color2 = (0, 0, 0)
+
         reversed_sprite = self.create_checkerboard_sprite(
-            model, canvas, cb_properties, position, x_offset, y_offset,
-            rotation)
+            model, canvas, cb_properties_reversal, position, x_offset,
+            y_offset, rotation)
 
         return FlickeringPygletSprite(sprite, reversed_sprite, canvas.batch)
 
@@ -200,51 +202,51 @@ class UnlockViewFactory(object):
         center_x, center_y = canvas.center()
         return GridView(state, canvas, icons, center_x, center_y)
 
+    def create_robot_grid_view(self, state, canvas):
+        return RobotGridView(state, canvas, xtiles=3, ytiles=3, tile_width=150,
+                             tile_height=150)
+
     def create_hierarchy_grid_view(self, state, canvas):
         return HierarchyGridView(state, canvas,)
 
     def create_gridspeak(self, state, canvas):
         return GridSpeakView(None, state, canvas)
 
-    def create_quad_ssvep_views(self, stimuli, canvas, width=500, height=100, horizontal_blocks=5, vertical_blocks=1,
-            color=[0,0,0], color1=[255,255,255]):
-
+    def create_quad_ssvep_views(self, stimuli, canvas, cb_properties):
         assert len(stimuli.stimuli) == 4
 
-        views = []
+        views = list()
 
-        fs = self.create_flickering_checkered_box_sprite(stimuli.stimuli[0], canvas,
-            SpritePositionComputer.North, width=width, height=height, xfreq=horizontal_blocks, yfreq=vertical_blocks,
-            color_on=color, color_off=color1, reversal=False)
-
-        fs1 = self.create_flickering_checkered_box_sprite(stimuli.stimuli[1], canvas,
-            SpritePositionComputer.South, width=width, height=height, xfreq=horizontal_blocks, yfreq=vertical_blocks,
-            color_on=color, color_off=color1, reversal=False)
-
-        fs2 = self.create_flickering_checkered_box_sprite(stimuli.stimuli[2], canvas,
-            SpritePositionComputer.West, width=width, height=height, xfreq=horizontal_blocks, yfreq=vertical_blocks,
-            color_on=color, color_off=color1, reversal=False, rotation=90)
-
-        fs3 = self.create_flickering_checkered_box_sprite(stimuli.stimuli[3], canvas,
-            SpritePositionComputer.East, width=width, height=height, xfreq=horizontal_blocks, yfreq=vertical_blocks,
-            color_on=color, color_off=color1, reversal=False, rotation=90)
-
-        views.append(fs)
+        fs1 = self.create_flickering_checkerboard_sprite(
+            stimuli.stimuli[0], canvas, cb_properties,
+            position=SpritePositionComputer.North, reversal=False)
         views.append(fs1)
+
+        fs2 = self.create_flickering_checkerboard_sprite(
+            stimuli.stimuli[1], canvas, cb_properties,
+            position=SpritePositionComputer.South, reversal=False)
         views.append(fs2)
+
+        fs3 = self.create_flickering_checkerboard_sprite(
+            stimuli.stimuli[2], canvas, cb_properties,
+            position=SpritePositionComputer.West, x_offset=300, rotation=90,
+            reversal=False)
         views.append(fs3)
+
+        fs4 = self.create_flickering_checkerboard_sprite(
+            stimuli.stimuli[3], canvas, cb_properties,
+            position=SpritePositionComputer.East, x_offset=-300, rotation=90,
+            reversal=False)
+        views.append(fs4)
+
         return views
 
-    def create_single_ssvep_view(self, stimulus, canvas, width=300, height=300, horizontal_blocks=2, vertical_blocks=2,
-            color=[0,0,0], color1=[255,255,255]):
-
-        views = []
-
-        fs = self.create_flickering_checkered_box_sprite(stimulus, canvas,
-            SpritePositionComputer.Center, width=width, height=height, xfreq=horizontal_blocks, yfreq=vertical_blocks,
-            color_on=color, color_off=color1, reversal=False)
-
+    def create_single_ssvep_view(self, stimulus, canvas, cb_properties):
+        views = list()
+        fs = self.create_flickering_checkerboard_sprite(stimulus, canvas,
+            cb_properties, SpritePositionComputer.Center, reversal=False)
         views.append(fs)
+
         return views
 
     def create_single_msequence_view(self, stimulus, canvas, cb_properties):
@@ -254,3 +256,17 @@ class UnlockViewFactory(object):
         views.append(fs)
 
         return views
+
+    def create_quad_msequence_view(self, stimuli, canvas, cb_properties):
+        fs1 = self.create_flickering_checkerboard_sprite(stimuli[0], canvas,
+            cb_properties, SpritePositionComputer.North, reversal=True)
+        fs2 = self.create_flickering_checkerboard_sprite(stimuli[1], canvas,
+            cb_properties, SpritePositionComputer.South, reversal=True)
+        fs3 = self.create_flickering_checkerboard_sprite(stimuli[2], canvas,
+            cb_properties, SpritePositionComputer.West, x_offset=250,
+            reversal=True)
+        fs4 = self.create_flickering_checkerboard_sprite(stimuli[3], canvas,
+            cb_properties, SpritePositionComputer.East, x_offset=-250,
+            reversal=True)
+
+        return [fs1, fs2, fs3, fs4]

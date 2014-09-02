@@ -29,14 +29,15 @@ from unlock.bci.decode.decode import UnlockDecoder
 import numpy as np
 import time
 
+
 class EyeBlinkDetector(UnlockDecoder):
     NoEvent = 0
     SelectionEvent = 1
     EscapeEvent = 2
 
-    def __init__(self, task_state=None, eog_channels=(5, 7), strategy='length',
+    def __init__(self, eog_channels=(5, 7), strategy='length',
                  rms_threshold=60000):
-        super(EyeBlinkDetector, self).__init__(task_state)
+        super(EyeBlinkDetector, self).__init__()
 
         # blink detection method
         if strategy == 'length':
@@ -44,7 +45,6 @@ class EyeBlinkDetector(UnlockDecoder):
         else:
             self.blink_strategy = BlinkCountStrategy(rms_threshold, 0.5, 0.75)
 
-        ## enobio setup: 5 - left eye, 7 - right eye
         self.eog_channels = eog_channels
         
         # adaptive demean
@@ -168,5 +168,3 @@ class BlinkCountStrategy:
                 return ret
             else:
                 self.reset()
-                
-                
