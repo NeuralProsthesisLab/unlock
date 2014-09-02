@@ -193,7 +193,8 @@ class UnlockFactory(AbstractFactory):
         return Stimulation(canvas, stimuli, msequence_views)
 
     def quad_msequence(self, cb_properties=None, stimulus='time',
-                       frequency=30.0, sequences=None):
+                       frequency=30.0, trial_duration=12.0, rest_duration=1.0,
+                       sequences=None):
         assert cb_properties and sequences
         if stimulus == 'frame_count':
             raise NotImplementedError('frame count not supported')
@@ -210,7 +211,8 @@ class UnlockFactory(AbstractFactory):
         canvas = self.controller_factory.create_canvas(self.window.width,
                                                        self.window.height)
         stimuli = self.state_factory.create_timed_stimuli(
-            5.0, 1.0, stimulus1, stimulus2, stimulus3, stimulus4)
+            trial_duration, rest_duration, stimulus1, stimulus2, stimulus3,
+            stimulus4)
         msequence_views = self.view_factory.create_quad_msequence_view(
             [stimulus1, stimulus2, stimulus3, stimulus4], canvas,
             cb_properties)
@@ -219,7 +221,6 @@ class UnlockFactory(AbstractFactory):
     def checkerboard_properties(self, width=300, height=300, x_tiles=4,
                                 y_tiles=4, x_ratio=1, y_ratio=1,
                                 color1=(0, 0, 0), color2=(255, 255, 255)):
-        assert x_tiles >= 2 and y_tiles >= 2
         return CheckerboardProperties(width, height, x_tiles, y_tiles, x_ratio,
                                       y_ratio, color1, color2)
 
@@ -308,7 +309,7 @@ class UnlockFactory(AbstractFactory):
         grid_state = self.state_factory.create_grid_hierarchy(grid_radius)
 
         if offline_data:
-            offline_data = self.state_factory.create_offline_data('gridspeak')
+            offline_data = self.state_factory.create_offline_data('gridcursor')
             state_chain = self.state_factory.create_state_chain(grid_state,
                                                                 offline_data)
         else:
