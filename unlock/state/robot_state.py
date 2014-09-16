@@ -1,6 +1,5 @@
 import io
 
-from PIL import Image
 import pyglet
 
 from unlock.state import UnlockState
@@ -14,6 +13,9 @@ class RobotManualDriveState(UnlockState):
         self.frame = None
 
     def process_command(self, command):
-        data = self.sc.get('bri/create/video.jpg')
-        buffer = io.BytesIO(data)
-        self.frame = pyglet.image.load('video.jpg', buffer)
+        try:
+            data = self.sc.get('bri/create/video.jpg')
+            buffer = io.BytesIO(data)
+            self.frame = pyglet.image.load('video.jpg', buffer)
+        except:
+            pass
