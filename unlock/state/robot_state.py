@@ -9,7 +9,7 @@ from unlock.util.streamclient import StreamClient
 
 class RobotManualDriveState(UnlockState):
     SERVO_SPEED = 0.175
-    WHEEL_SPEED = 50
+    WHEEL_SPEED = 100
 
     def __init__(self):
         super(RobotManualDriveState, self).__init__()
