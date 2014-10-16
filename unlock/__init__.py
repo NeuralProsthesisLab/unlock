@@ -324,6 +324,8 @@ class UnlockFactory(AbstractFactory):
 
     def robot_controller(self, stimulation=None, decoder=None,
                          offline_data=False):
+
+        decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}
