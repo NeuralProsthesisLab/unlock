@@ -218,6 +218,25 @@ class UnlockFactory(AbstractFactory):
             cb_properties)
         return Stimulation(canvas, stimuli, msequence_views)
 
+    def dual_image_cvep(self, filenames, stimulus='time',
+                       frequency=30.0, trial_duration=12.0, rest_duration=1.0,
+                       sequences=None):
+        if stimulus == 'frame_count':
+            raise NotImplementedError('frame count not supported')
+        else:
+            stimulus1 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[0])
+            stimulus2 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[1])
+
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        stimuli = self.state_factory.create_timed_stimuli(
+            trial_duration, rest_duration, stimulus1, stimulus2)
+        msequence_views = self.view_factory.create_dual_image_cvep_view(
+            [stimulus1, stimulus2], canvas, filenames)
+        return Stimulation(canvas, stimuli, msequence_views)
+
     def dual_overlapping_cvep(self, cb_properties=None, stimulus='time',
                        frequency=30.0, trial_duration=12.0, rest_duration=1.0,
                        sequences=None):

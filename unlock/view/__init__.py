@@ -29,6 +29,19 @@ class UnlockViewFactory(object):
                               spc.y + y_offset, rotation)
         return sprite
 
+    def create_image_sprite(self, model, canvas, filename,
+                            position=SpritePositionComputer.Center,
+                            x_offset=0, y_offset=0, rotation=0):
+        texture = pyglet.image.load(filename)
+        spc = SpritePositionComputer(canvas, texture.width, texture.height,
+                                     rotation)
+        spc.compute(position)
+
+        sprite = PygletSprite(model, canvas, texture, spc.x + x_offset,
+                              spc.y + y_offset, rotation)
+        sprite.sprite.scale = 0.75
+        return sprite
+
     def create_flickering_checkerboard_sprite(self, model, canvas,
             cb_properties, position=SpritePositionComputer.Center, x_offset=0,
             y_offset=0, rotation=0, reversal=True):
@@ -278,5 +291,13 @@ class UnlockViewFactory(object):
             cb_properties[0], SpritePositionComputer.Center, reversal=False)
         fs2 = self.create_flickering_checkerboard_sprite(stimuli[1], canvas,
             cb_properties[1], SpritePositionComputer.Center, reversal=False)
+
+        return [fs1, fs2]
+
+    def create_dual_image_cvep_view(self, stimuli, canvas, filenames):
+        fs1 = self.create_image_sprite(stimuli[0], canvas,
+            filenames[0], SpritePositionComputer.Center, x_offset=-400)
+        fs2 = self.create_image_sprite(stimuli[1], canvas,
+            filenames[1], SpritePositionComputer.Center, x_offset=400)
 
         return [fs1, fs2]
