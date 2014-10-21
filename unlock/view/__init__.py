@@ -29,7 +29,7 @@ class UnlockViewFactory(object):
                               spc.y + y_offset, rotation)
         return sprite
 
-    def create_image_sprite(self, model, canvas, filename,
+    def create_image_sprite(self, model, canvas, filename, scale,
                             position=SpritePositionComputer.Center,
                             x_offset=0, y_offset=0, rotation=0):
         texture = pyglet.image.load(filename)
@@ -39,7 +39,7 @@ class UnlockViewFactory(object):
 
         sprite = PygletSprite(model, canvas, texture, spc.x + x_offset,
                               spc.y + y_offset, rotation)
-        sprite.sprite.scale = 0.75
+        sprite.sprite.scale = scale
         return sprite
 
     def create_flickering_checkerboard_sprite(self, model, canvas,
