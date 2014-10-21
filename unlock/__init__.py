@@ -543,7 +543,8 @@ class UnlockFactory(AbstractFactory):
             standalone=standalone)
 
     def ssvep_trainer(self, stimuli=None, decoder=None, frequencies=None,
-                      n_trials=None, trial_sequence=None, standalone=True):
+                      n_trials=None, trial_sequence=None, standalone=True,
+                      position_sequence=None):
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer}
         if decoder:
@@ -555,11 +556,17 @@ class UnlockFactory(AbstractFactory):
                 'raw', **receiver_args)
 
         trainer = self.state_factory.create_ssvep_trainer(
-            stimuli, frequencies, n_trials, trial_sequence)
+            stimuli, frequencies, n_trials, trial_sequence, position_sequence)
         # super horrible hack
         decoder.decoders[0].task_state = trainer  # stimuli.stimuli.state
         decoder.decoders[-1].task_state = trainer
 
+        cx, cy = stimuli.canvas.center()
+        fixation = PygletTextLabel(UnlockState(True), stimuli.canvas, '+', cx, cy)
+        # fixation = self.view_factory.create_image_sprite(UnlockState(True),
+        #                                                  stimuli.canvas,
+        #                                                  'obama.png')
+
         return self.controller_factory.create_controller_chain(
-            self.window, stimuli, cmd_receiver, trainer, [],
+            self.window, stimuli, cmd_receiver, trainer, [fixation],
             standalone=standalone)

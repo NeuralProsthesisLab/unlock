@@ -35,9 +35,12 @@ class VepTrainerState(UnlockState):
     TrialStart = 1
     TrialEnd = 2
 
-    def __init__(self, stimuli, targets, n_trials=None, trial_sequence=None):
+    def __init__(self, stimuli, targets, n_trials=None, trial_sequence=None,
+                 position_sequence=None):
         super(VepTrainerState, self).__init__()
-        self.stimuli = stimuli
+        self.stimuli = stimuli.stimuli
+        self.views = stimuli.views
+        self.init_pos = np.array(self.views[0].sprite.sprite.position)
         self.targets = targets
         self.target_idx = 0
         self.n_trials = n_trials
@@ -50,6 +53,11 @@ class VepTrainerState(UnlockState):
                 np.arange(len(self.targets)), n_trials / len(self.targets)))
         else:
             self.trial_sequence = trial_sequence
+
+        self.position_sequence = position_sequence
+        if position_sequence is None:
+            self.position_sequence = ((0, 0),)
+        self.position_sequence *= int(self.n_trials / len(self.position_sequence))
 
         self.state = None
         self.state_change = False
@@ -109,10 +117,15 @@ class VepTrainerState(UnlockState):
     def handle_selection(self):
         if self.trial_sequence is not None:
             self.target_idx = self.trial_sequence[self.trial_count-1]
+        if self.position_sequence is not None:
+            self.update_position(self.position_sequence[self.trial_count-1])
         self.update_stimulus(self.targets[self.target_idx])
 
     def update_stimulus(self, target):
         pass
+
+    def update_position(self, new_position):
+        self.views[0].sprite.sprite.position = self.init_pos + new_position
 
 
 class MsequenceTrainerState(VepTrainerState):
