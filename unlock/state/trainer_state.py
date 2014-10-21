@@ -74,12 +74,14 @@ class VepTrainerState(UnlockState):
     def trial_start(self):
         self.set_state(VepTrainerState.TrialStart)
         self.stimuli.start()
+        self.views[1].model.state = True
 
     def trial_stop(self):
         self.set_state(VepTrainerState.TrialEnd)
         self.stimuli.stop()
         for stimulus in self.stimuli.stimuli:
             stimulus.state = None
+        self.views[1].model.state = False
 
     def process_command(self, command):
         if not self.stimuli.state.is_stopped():
@@ -125,7 +127,10 @@ class VepTrainerState(UnlockState):
         pass
 
     def update_position(self, new_position):
-        self.views[0].sprite.sprite.position = self.init_pos + new_position
+        position = self.init_pos + new_position
+        self.views[0].sprite.sprite.position = position
+        self.views[0].reversed_sprite.sprite.position = position
+        self.views[1].sprite.position = position
 
 
 class MsequenceTrainerState(VepTrainerState):
