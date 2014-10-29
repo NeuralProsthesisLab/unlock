@@ -2,14 +2,17 @@
     "robot_controller" : {
         "main" : true,
         "deps" : {
-            "stimulation": "no_stimulation",
+            "stimulation": "quad_ssvep",
             "decoder": "harmonic_sum"
         }
     },
     
     "signal" : {
         "singleton" : 0,
-        "name" : "random"
+        "name" : "mobilab",
+        "args" : {
+            "com_port" : "COM7"
+        }
     },
 
     "window" : {
@@ -18,11 +21,36 @@
         "args" : {
             "fullscreen" : true,
             "fps" : true,
-            "vsync" : true
+            "vsync" : false
         }
     },
 
     "no_stimulation" : {
+    },
+
+    "quad_ssvep" : {
+        "deps" : {
+            "cb_properties" : "checkerboard_properties"
+        },
+        "args" : {
+            "stimulus" : "time",
+            "stimuli_duration" : 3.0,
+            "rest_duration" : 1.0,
+            "frequencies" : [12.0, 13.0, 14.0, 15.0]
+        }
+    },
+
+    "checkerboard_properties" : {
+        "args" : {
+            "width" : 500,
+            "height" : 100,
+            "x_tiles" : 10,
+            "y_tiles" : 2,
+            "x_ratio" : 1,
+            "y_ratio" : 1,
+            "color1" : [255, 0, 0],
+            "color2" : [255, 255, 0]
+        }
     },
 
     "harmonic_sum" : {

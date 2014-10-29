@@ -13,7 +13,7 @@
         "singleton" : 0,
         "name" : "mobilab",
         "args" : {
-            "com_port" : "COM3"
+            "com_port" : "COM7"
         }
     },
 
@@ -94,7 +94,7 @@
                              "frequency_scope",
                              "gridcursor",
                              "fastpad",
-                             "robot"]
+                             "robot_controller"]
         }
     },
 
@@ -119,7 +119,7 @@
         }
     },
 
-    "robot" : {
+    "robot_controller" : {
         "deps" : {
             "stimulation" : "quad_ssvep",
             "decoder" : "harmonic_sum"

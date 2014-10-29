@@ -11,4 +11,5 @@ class RobotView(UnlockView):
         self.y = cy - 240/2
 
     def render(self):
-        self.model.frame.blit(self.x, self.y)
+        if self.model.frame is not None:
+            self.model.frame.blit(self.x, self.y)

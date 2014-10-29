@@ -220,23 +220,23 @@ class UnlockViewFactory(object):
 
         fs1 = self.create_flickering_checkerboard_sprite(
             stimuli.stimuli[0], canvas, cb_properties,
-            position=SpritePositionComputer.North, reversal=False)
+            position=SpritePositionComputer.North, y_offset=-100, reversal=False)
         views.append(fs1)
 
         fs2 = self.create_flickering_checkerboard_sprite(
             stimuli.stimuli[1], canvas, cb_properties,
-            position=SpritePositionComputer.South, reversal=False)
+            position=SpritePositionComputer.South, y_offset=100, reversal=False)
         views.append(fs2)
 
         fs3 = self.create_flickering_checkerboard_sprite(
             stimuli.stimuli[2], canvas, cb_properties,
-            position=SpritePositionComputer.West, x_offset=300, rotation=90,
+            position=SpritePositionComputer.West, x_offset=400, rotation=90,
             reversal=False)
         views.append(fs3)
 
         fs4 = self.create_flickering_checkerboard_sprite(
             stimuli.stimuli[3], canvas, cb_properties,
-            position=SpritePositionComputer.East, x_offset=-300, rotation=90,
+            position=SpritePositionComputer.East, x_offset=-400, rotation=90,
             reversal=False)
         views.append(fs4)
 
