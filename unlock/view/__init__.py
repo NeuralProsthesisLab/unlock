@@ -9,6 +9,7 @@ from unlock.view.view import *
 from unlock.view.grid import *
 from unlock.view.fastpad_view import *
 from unlock.view.scope_view import *
+from unlock.view.robot_view import *
 
 
 class UnlockViewFactory(object):
@@ -270,3 +271,6 @@ class UnlockViewFactory(object):
             reversal=True)
 
         return [fs1, fs2, fs3, fs4]
+
+    def create_robot_controller_view(self, model, canvas):
+        return RobotView(model, canvas)

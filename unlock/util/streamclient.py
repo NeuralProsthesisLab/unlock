@@ -54,7 +54,7 @@ class StreamClient:
         if blocking:
             self.sock.settimeout(self.timeout)
 
-        return data.split('\r\n', 1)[1][:-2]
+        return data.split(b'\r\n', 1)[1][:-2]
 
     def set(self, key, value):
         data = 'SET ' + key + ' ' + str(self.tseq) + ' ' + str(len(value)) + '\r\n' + str(value) + '\r\n'
