@@ -49,7 +49,7 @@
 
     "fixed_time_buffering_decoder" : {
         "args" : {
-            "window_length" : 3072
+            "window_length" : 1792
         }
     },
 
@@ -81,8 +81,8 @@
             "y_tiles" : 4,
             "x_ratio" : 1,
             "y_ratio" : 1,
-            "color1" : [0, 0, 0],
-            "color2" : [255, 255, 255]
+            "color1" : [0, 0, 0, 0],
+            "color2" : [255, 255, 255, 255]
         }
     },
 
@@ -93,7 +93,7 @@
         "args" : {
             "stimulus" : "time",
             "frequency" : 30.0,
-            "trial_duration" : 12.0,
+            "trial_duration" : 7.0,
             "rest_duration" : 1.0
         }
     },
