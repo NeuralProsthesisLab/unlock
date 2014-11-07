@@ -319,10 +319,17 @@ class SequenceState(object):
         self.sequence = sequence
         self.value_transformer_fn = value_transformer_fn
         self.index = 0
+
+        from unlock.bci.acquire.pylsl import StreamInfo, StreamOutlet
+        info = StreamInfo(b'Presentation', b'Markers', 1, 0, 'int32',
+                          b'unlock-uid-1')
+        self.outlet = StreamOutlet(info)
+        self.seq_id = 0
         
     def start(self):
         self.index = 0
-       
+        self.outlet.push_sample([self.seq_id])
+
     def step(self):
         self.index += 1        
         if self.index == len(self.sequence):
@@ -340,5 +347,3 @@ class SequenceState(object):
     def is_end(self):
         if self.index+1 == len(self.sequence):
             return True
-           
-           

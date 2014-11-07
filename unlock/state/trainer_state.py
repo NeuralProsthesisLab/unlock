@@ -72,6 +72,7 @@ class VepTrainerState(UnlockState):
         self.stimuli.stop()
         for stimulus in self.stimuli.stimuli:
             stimulus.state = None
+        self.stimuli.stimuli[0].seq_state.outlet.push_sample([5])
 
     def process_command(self, command):
         if not self.stimuli.state.is_stopped():
@@ -101,25 +102,26 @@ class VepTrainerState(UnlockState):
     def handle_decision(self, decision):
         if decision == VepTrainerState.NextTarget:
             self.target_idx = (self.target_idx + 1) % len(self.targets)
-            self.update_stimulus(self.targets[self.target_idx])
+            self.update_stimulus(self.targets[self.target_idx], self.target_idx+1)
         elif decision == VepTrainerState.PrevTarget:
             self.target_idx = (self.target_idx - 1) % len(self.targets)
-            self.update_stimulus(self.targets[self.target_idx])
+            self.update_stimulus(self.targets[self.target_idx], self.target_idx+1)
 
     def handle_selection(self):
         if self.trial_sequence is not None:
             self.target_idx = self.trial_sequence[self.trial_count-1]
-        self.update_stimulus(self.targets[self.target_idx])
+        self.update_stimulus(self.targets[self.target_idx], self.target_idx+1)
 
-    def update_stimulus(self, target):
+    def update_stimulus(self, target, tid):
         pass
 
 
 class MsequenceTrainerState(VepTrainerState):
-    def update_stimulus(self, sequence):
+    def update_stimulus(self, sequence, seq_id):
         self.stimuli.stimuli[0].seq_state.sequence = sequence
+        self.stimuli.stimuli[0].seq_state.seq_id = seq_id
 
 
 class SsvepTrainerState(VepTrainerState):
-    def update_stimulus(self, frequency):
+    def update_stimulus(self, frequency, freq_id):
         self.stimuli.stimuli[0].time_state.duration = 1 / (2 * frequency)
