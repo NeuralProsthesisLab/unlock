@@ -582,7 +582,7 @@ class StreamInlet:
         """
         errcode = c_int()
         lib.lsl_open_stream(self.obj,c_double(timeout),byref(errcode))
-        handle_error(errcode)
+        handle_error(errcode.value)
         
     def close_stream(self):
         """Drop the current data stream.
@@ -648,7 +648,7 @@ class StreamInlet:
         errcode = c_int()
         timestamp = self.do_pull_sample(self.obj, byref(self.sample), self.
             channel_count, c_double(timeout), byref(errcode))
-        handle_error(errcode)        
+        handle_error(errcode.value)
         if timestamp:
             sample = [v for v in self.sample]
             if assign_to is not None:
@@ -683,10 +683,10 @@ class StreamInlet:
         num_elements = self.do_pull_chunk(self.obj, byref(buffer[0]), 
             byref(buffer[1]), max_values, max_samples, c_double(timeout), 
             byref(errcode))
-        handle_error(errcode)
+        handle_error(errcode.value)
         # return results (note: could offer a more efficient format in the 
         # future, e.g., a numpy array)
-        num_samples = num_elements/num_channels
+        num_samples = int(num_elements/num_channels)
         samples = [[buffer[0][s*num_channels+c] for c in range(num_channels)]   
             for s in range(num_samples)]
         timestamps = [buffer[1][s] for s in range(num_samples)]

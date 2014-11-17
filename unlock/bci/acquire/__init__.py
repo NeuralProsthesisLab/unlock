@@ -162,6 +162,17 @@ class UnlockAcquisitionFactory:
             raise RuntimeError('mobilab device did not start streaming')
         return signal
 
+    def create_lsl_signal(self, stream_name, stream_type):
+        from unlock.bci.acquire.lsl_signal import LSLSignal
+        signal = LSLSignal(stream_name, stream_type)
+        if not signal.open():
+            raise RuntimeError('LSL outlet (%s, %s) was not found' %
+                               (stream_name, stream_type))
+        if not signal.start():
+            raise RuntimeError('LSL outlet (%s, %s) did not start streaming' %
+                               (stream_name, stream_type))
+        return signal
+
     def create_file_signal(self, timer):
         from unlock.bci import acquire
         timer = acquire.create_timer()

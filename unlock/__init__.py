@@ -91,6 +91,10 @@ class UnlockFactory(AbstractFactory):
     def random(self):
         return self.acquisition_factory.create_random_signal()
 
+    def lsl(self, stream_name, stream_type):
+        return self.acquisition_factory.create_lsl_signal(stream_name,
+                                                          stream_type)
+
     ###########################################################################
     ## Display
     ###########################################################################

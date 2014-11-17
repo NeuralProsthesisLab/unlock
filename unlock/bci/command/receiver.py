@@ -200,8 +200,8 @@ class RawInlineSignalReceiver(CommandReceiver):
             
             raw_data_vector = np.array(c_data)
             assert raw_data_vector.size % self.signal.channels() == 0
-            assert raw_data_vector[-1] == 0
-            raw_data_vector[-1] = self.timer.elapsedMicroSecs()
+            # assert raw_data_vector[-1] == 0
+            # raw_data_vector[-1] = self.timer.elapsedMicroSecs()
             raw_command = RawSignalCommand(delta, raw_data_vector, samples/self.signal.channels(),
                 self.signal.channels(), self.timer)
         else:
