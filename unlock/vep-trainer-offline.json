@@ -3,7 +3,7 @@
         "main" : true,
         "deps" : {
             "stimuli" : "single_dynamic_msequence",
-            "decoder" : "template_match"
+            "decoder" : "vep_trial_logger"
         },
         "args" : {
             "sequences" : [
@@ -21,10 +21,7 @@
     
     "signal" : {
         "singleton" : 0,
-        "name" : "mobilab",
-        "args" : {
-            "com_port" : "COM3"
-        }
+        "name" : "random"
     },
 
     "window" : {
@@ -37,14 +34,12 @@
         }
     },
 
-    "template_match" : {
+    "vep_trial_logger" : {
         "deps" : {
-            "buffering_decoder" : "fixed_time_buffering_decoder",
-            "threshold_decoder" : "absolute_threshold_decoder"
+            "buffering_decoder" : "fixed_time_buffering_decoder"
         },
-
         "args" : {
-           "n_electrodes" : 8
+            "label" : "ssvep"
         }
     },
 
@@ -76,10 +71,10 @@
 
     "checkerboard_properties" : {
         "args" : {
-            "width" : 150,
-            "height" : 150,
-            "x_tiles" : 5,
-            "y_tiles" : 5,
+            "width" : 180,
+            "height" : 180,
+            "x_tiles" : 1,
+            "y_tiles" : 1,
             "x_ratio" : 1,
             "y_ratio" : 1,
             "color1" : [0, 0, 0],
@@ -94,7 +89,7 @@
         "args" : {
             "stimulus" : "time",
             "frequency" : 30.0,
-            "trial_duration" : 12.0,
+            "trial_duration" : 5.0,
             "rest_duration" : 1.0
         }
     },
