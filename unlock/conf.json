@@ -54,10 +54,6 @@
     },
 
   "facial_emg" : {
-    "deps" : {
-
-    },
-
     "args" : {
       "channels": 4,
       "thresholds": false,

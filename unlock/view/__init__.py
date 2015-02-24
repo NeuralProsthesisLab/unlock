@@ -10,6 +10,7 @@ from unlock.view.grid import *
 from unlock.view.fastpad_view import *
 from unlock.view.scope_view import *
 from unlock.view.robot_view import *
+from unlock.view.femg_view import *
 
 
 class UnlockViewFactory(object):
@@ -212,6 +213,9 @@ class UnlockViewFactory(object):
 
     def create_gridspeak(self, state, canvas):
         return GridSpeakView(None, state, canvas)
+
+    def create_fEMG_view(self,model,canvas):
+        return FEMGView(model,canvas)
 
     def create_quad_ssvep_views(self, stimuli, canvas, cb_properties):
         assert len(stimuli.stimuli) == 4
