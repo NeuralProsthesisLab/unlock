@@ -268,6 +268,8 @@ class UnlockFactory(AbstractFactory):
                                                        self.window.height)
         return Stimulation(canvas, UnlockState(True), [])
 
+    def facial_emg(self, thresholds=None, channels=4, window_size=22050):
+        return self.decoder_factory.create_facial_emg_detector(thresholds, channels, window_size)
     ###########################################################################
     ## Applications
     ###########################################################################
@@ -296,6 +298,12 @@ class UnlockFactory(AbstractFactory):
             self.window, stimulation, cmd_receiver, state_chain,
             [gridspeak_view], name="Gridspeak", icon="gridspeak.png")
 
+    def fEMG(self,stimulation=None, decoder=None):
+        assert stimulation and decoder
+        cmd_receiver = self.command_factory.create_receiver()
+        state_chain = self.state_factory.create_state_chain()
+        view = self.view_factory.create_fEMG_view(stimulation.canvas)
+        return self.controller_factory.create_controller_chain(self.window, stimulation, cmd_receiver, state_chain, view, name="fEMG", icon="fEMG.png")
     def gridcursor(self, stimulation=None, decoder=None, grid_radius=2,
                    offline_data=False):
         assert stimulation and decoder

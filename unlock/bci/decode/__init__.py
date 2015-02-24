@@ -125,8 +125,8 @@ class UnlockDecoderFactory(object):
                                  rms_threshold=0):
         return EyeBlinkDetector(eog_channels, strategy, rms_threshold)
         
-    def create_facial_emg_detector(self):
-        return None
+    def create_facial_emg_detector(self, thresholds=None, channels=4, window_size=22050):
+        return FacialEMGDetector(thresholds, channels, window_size)
         
     def unknown(self, **kwargs):
         raise("Unsupported")
