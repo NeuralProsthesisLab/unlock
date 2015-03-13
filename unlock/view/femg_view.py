@@ -6,3 +6,7 @@ class FEMGView(UnlockView):
         super(FEMGView, self).__init__()
         self.state = state
         self.canvas = canvas
+
+    def render(self):
+        pass
+    
