@@ -67,7 +67,7 @@ class FacialEMGDetector(UnlockDecoder):
         # (Left, Right, Bottom) is above threshold. Ordered to coincide with
         # the control scheme of Up,Down,Left,Right
         self.decision_patterns = {
-#            FacialEMGDetector.Undecided : np.array([False, False, False]),
+#           FacialEMGDetector.Undecided : np.array([False, False, False]),
             FacialEMGDetector.UpDecision : np.array([True, True, True]),
             FacialEMGDetector.DownDecision : np.array([True, False, True]),
             FacialEMGDetector.LeftDecision : np.array([True, False, False]),
