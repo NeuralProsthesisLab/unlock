@@ -1,6 +1,8 @@
+import uuid
+
 import numpy as np
 
-from unlock.bci.acquire.pylsl import StreamInlet, resolve_bypred
+import unlock.bci.acquire.pylsl as lsl
 
 
 class LSLSignal(object):
@@ -10,18 +12,29 @@ class LSLSignal(object):
     def __init__(self, stream_name, stream_type):
         self.stream_name = stream_name
         self.stream_type = stream_type
+        self.n_channels = 0
+
+        self.outlet = None
 
         self.data = None
-        self.inlet = None
+        self.inlets = dict()
+        self.events = list()
 
     def open(self):
-        pred = "name='%s' and type='%s'" % (self.stream_name, self.stream_type)
-        streams = resolve_bypred(pred.encode('ascii'))
+        uid = 'unlock-%s' % uuid.uuid1()
+        info = lsl.StreamInfo(b'Presentation', b'Markers', 1, 0, 'int32',
+                              uid.encode('ascii'))
+        self.outlet = lsl.StreamOutlet(info)
+
+        pred = "name='%s' and type='%s' or name='Presentation'" % (self.stream_name, self.stream_type)
+        streams = lsl.resolve_bypred(pred.encode('ascii'))
         if len(streams) == 0:
             return False
-
         try:
-            self.inlet = StreamInlet(streams[0])
+            for stream in streams:
+                self.inlets[stream.type()] = lsl.StreamInlet(stream)
+                print(stream.type())
+            self.n_channels = self.inlets[b'EEG'].channel_count + 2
         except:
             return False
         return True
@@ -31,18 +44,35 @@ class LSLSignal(object):
 
     def start(self):
         try:
-            self.inlet.open_stream()
+            for stream in self.inlets.values():
+                stream.open_stream()
         except:
             return False
         return True
 
     def acquire(self):
-        chunk, timestamps = self.inlet.pull_chunk()
-        if len(chunk) == 0:
+        marker, timestamp = self.inlets[b'Markers'].pull_sample(timeout=0.0)
+        if marker is not None:
+            #print(timestamp)
+            self.events.append((marker[0], timestamp))
+        eeg, timestamps = self.inlets[b'EEG'].pull_chunk()
+        if len(eeg) == 0:
             return 0
-        chunk = np.array(chunk)
+        chunk = np.array(eeg)
         timestamps = np.array(timestamps, ndmin=2).T
-        data = np.hstack((chunk, timestamps))
+        markers = np.zeros((len(chunk), 1))
+        clear = list()
+        for event in self.events:
+            idx = np.where(event[1] < timestamps)[0]
+            if len(idx) == 0:
+                break
+            markers[idx[0]] = event[0]
+            clear.append(event)
+        for event in clear:
+            self.events.remove(event)
+
+        data = np.hstack((chunk, markers, timestamps))
+
         self.data = data.flatten()
         return len(self.data)
 
@@ -50,11 +80,12 @@ class LSLSignal(object):
         return self.data[0:samples]
 
     def stop(self):
-        self.inlet.close_stream()
+        for stream in self.inlets.values():
+            stream.close_stream()
         return True
 
     def close(self):
         return True
 
     def channels(self):
-        return self.inlet.channel_count + 1
+        return self.n_channels
