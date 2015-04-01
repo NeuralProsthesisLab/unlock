@@ -217,6 +217,7 @@ class UnlockFactory(AbstractFactory):
         stimuli = self.state_factory.create_timed_stimuli(
             trial_duration, rest_duration, stimulus1, stimulus2, stimulus3,
             stimulus4)
+        stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
         msequence_views = self.view_factory.create_quad_msequence_view(
             [stimulus1, stimulus2, stimulus3, stimulus4], canvas,
             cb_properties)
@@ -254,6 +255,13 @@ class UnlockFactory(AbstractFactory):
             templates, buffering_decoder, threshold_decoder, n_electrodes,
             selected_channels, reference_channel)
 
+    def msequence_template_match(self, templates, n_electrodes=8, center=2,
+                                 surround=(0, 4, 7), alpha=0.05,
+                                 trial_marker=1, buffer_size=1000):
+        return self.decoder_factory.create_msequence_template_match(
+            templates, n_electrodes, center, surround, alpha, trial_marker,
+            buffer_size)
+
     def vep_trial_logger(self, buffering_decoder, label='trial'):
         return self.decoder_factory.create_offline_vep_trial_recorder(
             buffering_decoder, label)
@@ -278,7 +286,7 @@ class UnlockFactory(AbstractFactory):
     def gridspeak(self, stimulation=None, decoder=None, grid_radius=2,
                   offline_data=False):
         assert stimulation and decoder
-        decoder.decoders[1].task_state = stimulation.stimuli.state
+        #decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}
@@ -304,7 +312,7 @@ class UnlockFactory(AbstractFactory):
                    offline_data=False):
         assert stimulation and decoder
 
-        decoder.decoders[1].task_state = stimulation.stimuli.state
+        #decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}
@@ -346,7 +354,7 @@ class UnlockFactory(AbstractFactory):
                    offline_data=False):
         assert stimulation and decoder
 
-        decoder.decoders[1].task_state = stimulation.stimuli.state
+        #decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}
@@ -446,7 +454,7 @@ class UnlockFactory(AbstractFactory):
         assert stimulation and decoder
         if not controllers:
             controllers = []
-        decoder.decoders[1].task_state = stimulation.stimuli.state
+        #decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}

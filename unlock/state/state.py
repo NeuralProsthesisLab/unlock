@@ -236,7 +236,7 @@ class FrameCountTimerState(object):
     """
     def __init__(self, duration_in_frames):
         assert duration_in_frames >= 1
-        self.duration = int(60/int(duration_in_frames))
+        self.duration = int(duration_in_frames)
         self.elapsed = 0
 
     def begin_timer(self):
@@ -312,7 +312,7 @@ class TrialState(object):
             ret = self.last_change
             self.last_change = TrialState.Unchanged
             return ret
-            
+
 
 class SequenceState(object):
     def __init__(self, sequence, value_transformer_fn=lambda x: x):
@@ -321,14 +321,18 @@ class SequenceState(object):
         self.index = 0
 
         from unlock.bci.acquire.pylsl import StreamInfo, StreamOutlet
-        info = StreamInfo(b'Presentation', b'Markers', 1, 0, 'int32',
-                          b'unlock-uid-1')
-        self.outlet = StreamOutlet(info)
-        self.seq_id = 0
+        # uid = 'unlock-uid-%s' % "".join(map(str, sequence))
+        # info = StreamInfo(b'Presentation', b'Markers', 1, 0, 'int32',
+        #                   uid.encode('ascii'))
+        # self.outlet = StreamOutlet(info)
+        # self.seq_id = 0
+        self.seq_id = 1
+        self.outlet = None
         
     def start(self):
         self.index = 0
-        self.outlet.push_sample([self.seq_id])
+        if self.outlet is not None:
+            self.outlet.push_sample([self.seq_id])
 
     def step(self):
         self.index += 1        
