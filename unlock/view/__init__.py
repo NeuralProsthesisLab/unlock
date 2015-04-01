@@ -259,16 +259,22 @@ class UnlockViewFactory(object):
         return views
 
     def create_quad_msequence_view(self, stimuli, canvas, cb_properties):
+        offset = 360  # for online session
+        #offset = 270  # for offline covert session
         fs1 = self.create_flickering_checkerboard_sprite(stimuli[0], canvas,
-            cb_properties, SpritePositionComputer.North, reversal=True)
+            cb_properties, SpritePositionComputer.Center, y_offset=-offset,
+            reversal=True)
         fs2 = self.create_flickering_checkerboard_sprite(stimuli[1], canvas,
-            cb_properties, SpritePositionComputer.South, reversal=True)
+            cb_properties, SpritePositionComputer.Center, y_offset=offset,
+            reversal=True)
         fs3 = self.create_flickering_checkerboard_sprite(stimuli[2], canvas,
-            cb_properties, SpritePositionComputer.West, x_offset=250,
+            cb_properties, SpritePositionComputer.Center, x_offset=-offset,
             reversal=True)
         fs4 = self.create_flickering_checkerboard_sprite(stimuli[3], canvas,
-            cb_properties, SpritePositionComputer.East, x_offset=-250,
+            cb_properties, SpritePositionComputer.Center, x_offset=offset,
             reversal=True)
+        fixation = PygletTextLabel(UnlockState(True), canvas, '+',
+                                   *canvas.center())
 
         return [fs1, fs2, fs3, fs4]
 
