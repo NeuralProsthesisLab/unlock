@@ -24,9 +24,11 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from unlock.bci.decode.decode import UnlockDecoder
 import numpy as np
-import time
+import scipy.signal as sig
+
+from unlock.bci.decode.decode import UnlockDecoder
+
 
 SetResultHandler = 0
 LogResultHandler = 1
@@ -107,3 +109,56 @@ class ScoredTemplateMatch(UnlockDecoder):
             print(result_string)
 
         return command
+
+
+class MsequenceTemplateMatcher(UnlockDecoder):
+    def __init__(self, templates, n_electrodes=8, center=2, surround=(0, 4, 7),
+                 alpha=0.05, trial_marker=1, buffer_size=1000):
+        super(MsequenceTemplateMatcher, self).__init__()
+        self.templates = templates
+        self.n_electrodes = n_electrodes
+        self.center = center
+        self.surround = surround
+        self.alpha = alpha
+        self.mu = np.zeros(n_electrodes)
+        self.trial_marker = trial_marker
+        self.downsample = templates.shape[1]
+
+        self.buffer = np.zeros((buffer_size, n_electrodes))
+        self.cursor = 0
+
+    def decode(self, command):
+        if not command.is_valid():
+            return command
+
+        data = command.matrix[:, 0:self.n_electrodes+1]
+        if self.cursor + len(data) >= 2000:
+            return command
+        event = None
+        for d in data:
+            marker = d[self.n_electrodes]
+            if marker == self.trial_marker:
+                event = self.cursor
+
+            sample = d[0:self.n_electrodes]
+            self.mu = (1-self.alpha) * self.mu + self.alpha * sample
+            self.buffer[self.cursor] = sample - self.mu
+            self.cursor += 1
+
+        if event is None:
+            return command
+        #print(event)
+
+        trial_data = self.buffer[0:event]
+        self.buffer = np.roll(self.buffer, -(event-1), axis=0)
+        self.cursor = 0
+        trial = (np.sum(trial_data[:, self.surround], axis=1) -
+                 len(self.surround)*trial_data[:, self.center])
+        trial = sig.resample(trial, self.downsample)
+        scores = np.corrcoef(self.templates, trial)[4, 0:4]
+        predict = np.argmax(scores)
+        print(predict, scores)
+        if scores[predict] > 0.3:
+            command.decision = predict + 1
+        return command
+
