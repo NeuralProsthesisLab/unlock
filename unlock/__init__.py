@@ -283,6 +283,20 @@ class UnlockFactory(AbstractFactory):
     ###########################################################################
     ## Applications
     ###########################################################################
+    def experiment(self, stimulation=None, decoder=None):
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer,
+                         'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding',
+                                                            **receiver_args)
+        from unlock.state.experiment_state import ExperimentState
+        model = ExperimentState()
+        from unlock.view.experiment_view import ExperimentView
+        view = ExperimentView(model, stimulation.canvas)
+
+        return self.controller_factory.create_controller_chain(
+            self.window, stimulation, cmd_receiver, model, [view])
+
     def gridspeak(self, stimulation=None, decoder=None, grid_radius=2,
                   offline_data=False):
         assert stimulation and decoder
