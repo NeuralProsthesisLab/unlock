@@ -217,7 +217,7 @@ class UnlockFactory(AbstractFactory):
         stimuli = self.state_factory.create_timed_stimuli(
             trial_duration, rest_duration, stimulus1, stimulus2, stimulus3,
             stimulus4)
-        stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
+        #stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
         msequence_views = self.view_factory.create_quad_msequence_view(
             [stimulus1, stimulus2, stimulus3, stimulus4], canvas,
             cb_properties)
@@ -290,7 +290,7 @@ class UnlockFactory(AbstractFactory):
         cmd_receiver = self.command_factory.create_receiver('decoding',
                                                             **receiver_args)
         from unlock.state.experiment_state import ExperimentState
-        model = ExperimentState()
+        model = ExperimentState(stimulation)
         from unlock.view.experiment_view import ExperimentView
         view = ExperimentView(model, stimulation.canvas)
 

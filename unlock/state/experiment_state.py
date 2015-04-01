@@ -24,12 +24,17 @@ class ExperimentState(UnlockState):
     FeedbackState = 3
     RestState = 4
 
-    def __init__(self):
+    def __init__(self, stimuli):
         super(ExperimentState, self).__init__()
-        self.state_durations = [0.5, 0.2, 2, 0.2, 0.5]
+        self.state_durations = [0.4, 0.2, 2, 0.4, 1]
         self.state = -1
         self.state_change = False
         self.timer = TimerState(0)
+
+        self.stimuli = stimuli.stimuli
+        self.stimuli.stop()
+        for stimulus in self.stimuli.stimuli:
+            stimulus.state = None
 
     def get_state(self):
         if self.state_change:
@@ -41,6 +46,13 @@ class ExperimentState(UnlockState):
         self.timer = TimerState(self.state_durations[self.state])
         self.timer.begin_timer()
         self.state_change = True
+        if self.state == 2:
+            self.stimuli.start()
+        else:
+            self.stimuli.stop()
+            for stimulus in self.stimuli.stimuli:
+                stimulus.state = None
+
 
     def process_command(self, command):
         self.timer.update_timer(command.delta)
