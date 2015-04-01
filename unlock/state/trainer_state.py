@@ -65,17 +65,18 @@ class VepTrainerState(UnlockState):
 
     def trial_start(self):
         self.set_state(VepTrainerState.TrialStart)
-        self.stimuli.stimuli[0].seq_state.outlet.push_sample([8])
+        for stim in self.stimuli.stimuli:
+            stim.seq_state.outlet.push_sample([8])
         #self.stimuli.stimuli[0].seq_state.outlet.push_sample([self.target_idx+1])
         self.stimuli.start()
-
 
     def trial_stop(self):
         self.set_state(VepTrainerState.TrialEnd)
         self.stimuli.stop()
         for stimulus in self.stimuli.stimuli:
             stimulus.state = None
-        self.stimuli.stimuli[0].seq_state.outlet.push_sample([9])
+        for stim in self.stimuli.stimuli:
+            stim.seq_state.outlet.push_sample([9])
 
     def process_command(self, command):
         if not self.stimuli.state.is_stopped():
@@ -121,8 +122,9 @@ class VepTrainerState(UnlockState):
 
 class MsequenceTrainerState(VepTrainerState):
     def update_stimulus(self, sequence, seq_id):
-        self.stimuli.stimuli[0].seq_state.sequence = sequence
-        self.stimuli.stimuli[0].seq_state.seq_id = seq_id
+        #self.stimuli.stimuli[0].seq_state.sequence = sequence
+        for stim in self.stimuli.stimuli:
+            stim.seq_state.seq_id = seq_id
 
 
 class SsvepTrainerState(VepTrainerState):
