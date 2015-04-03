@@ -273,8 +273,8 @@ class UnlockViewFactory(object):
         fs4 = self.create_flickering_checkerboard_sprite(stimuli[3], canvas,
             cb_properties, SpritePositionComputer.Center, x_offset=offset,
             reversal=True)
-        fixation = PygletTextLabel(UnlockState(True), canvas, '+',
-                                   *canvas.center())
+        # fixation = PygletTextLabel(UnlockState(True), canvas, '+',
+        #                            *canvas.center())
 
         return [fs1, fs2, fs3, fs4]
 

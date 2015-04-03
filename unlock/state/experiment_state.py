@@ -10,51 +10,179 @@ templates. Only run as long as needed to get high accuracy templates or for a fi
 
 Testing
 cue target. prep period. trial display (stop when confident or ~3 sec). feedback. rest.
-
-
-
 """
+import numpy as np
+
 from unlock.state import UnlockState, TimerState
 
 
-class ExperimentState(UnlockState):
-    CueState = 0
-    PrepState = 1
-    TrialState = 2
-    FeedbackState = 3
-    RestState = 4
+class CueState:
+    duration = 0.4
+    size = 200
+    hold = False
 
+    @staticmethod
+    def next(state):
+        state.trial_count += 1
+        return PrepState
+
+
+class CueUpState(CueState):
+    trigger = 1
+    label = '\u21e7'
+
+
+class CueDownState(CueState):
+    trigger = 2
+    label = '\u21e9'
+
+
+class CueLeftState(CueState):
+    trigger = 3
+    label = '\u21e6'
+
+
+class CueRightState(CueState):
+    trigger = 4
+    label = '\u21e8'
+
+
+class PrepState:
+    trigger = 5
+    duration = 0.4
+    label = '+'
+    size = 48
+    hold = False
+
+    @staticmethod
+    def next(state):
+        state.stimuli.start()
+        return TrialState
+
+
+class TrialState:
+    trigger = 6
+    duration = 1.034
+    label = '+'
+    size = 48
+    hold = False
+
+    @staticmethod
+    def next(state):
+        state.stimuli.stop()
+        for stimulus in state.stimuli.stimuli:
+            stimulus.state = None
+
+        if np.random.choice([True, False]):
+            return FeedbackGoodState
+        else:
+            return FeedbackBadState
+
+
+class FeedbackState:
+    duration = 0.4
+    size = 120
+    hold = False
+
+    @staticmethod
+    def next(state):
+        return RestState
+
+
+class FeedbackGoodState(FeedbackState):
+    trigger = 7
+    label = '\u2714'
+
+
+class FeedbackBadState(FeedbackState):
+    trigger = 8
+    label = '\u2718'
+
+
+class RestState:
+    trigger = 9
+    duration = 0.4
+    label = ''
+    size = 48
+    hold = False
+
+    @staticmethod
+    def next(state):
+        if state.trial_count >= state.trials_per_block:
+            return BlockEndState
+        else:
+            return np.random.choice([CueUpState, CueDownState, CueLeftState, CueRightState])
+
+
+class BlockStartState:
+    trigger = 10
+    duration = 1.6
+    label = 'Block Start'
+    size = 48
+    hold = False
+
+    @staticmethod
+    def next(state):
+        return RestState
+
+
+class BlockEndState:
+    trigger = 11
+    duration = 0
+    label = 'Press space bar to continue.'
+    size = 48
+    hold = True
+
+    @staticmethod
+    def next(state):
+        return BlockStartState
+
+
+class ExperimentStartState:
+    trigger = 0
+    duration = 0
+    label = ''
+    size = 48
+    hold = False
+
+    @staticmethod
+    def next(state):
+        state.stimuli.stop()
+        for stimulus in state.stimuli.stimuli:
+            stimulus.state = None
+        return BlockStartState
+
+
+class ExperimentState(UnlockState):
     def __init__(self, stimuli):
         super(ExperimentState, self).__init__()
-        self.state_durations = [0.4, 0.2, 2, 0.4, 1]
-        self.state = -1
-        self.state_change = False
-        self.timer = TimerState(0)
+        self.state = ExperimentStartState
+        self.timer = TimerState(self.state.duration)
+        self.timer.begin_timer()
+        self.state_change = True
+
+        self.trials_per_block = 4
+        self.trial_count = 0
 
         self.stimuli = stimuli.stimuli
-        self.stimuli.stop()
-        for stimulus in self.stimuli.stimuli:
-            stimulus.state = None
 
     def get_state(self):
         if self.state_change:
             self.state_change = False
             return self.state
 
-    def next(self):
-        self.state = (self.state + 1) % len(self.state_durations)
-        self.timer = TimerState(self.state_durations[self.state])
+    def next_state(self):
+        self.state = self.state.next(self)
+        self.timer = TimerState(self.state.duration)
         self.timer.begin_timer()
         self.state_change = True
-        if self.state == 2:
-            self.stimuli.start()
-        else:
-            self.stimuli.stop()
-            for stimulus in self.stimuli.stimuli:
-                stimulus.state = None
-
 
     def process_command(self, command):
-        self.timer.update_timer(command.delta)
-        if self.timer.is_complete():
-            self.next()
+        if self.state.hold:
+            if command.selection:
+                self.trial_count = 0
+                self.next_state()
+        else:
+            self.timer.update_timer(command.delta)
+            if self.timer.is_complete():
+                self.next_state()
