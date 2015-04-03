@@ -290,9 +290,12 @@ class UnlockFactory(AbstractFactory):
         cmd_receiver = self.command_factory.create_receiver('decoding',
                                                             **receiver_args)
         from unlock.state.experiment_state import ExperimentState
-        model = ExperimentState(stimulation)
+        model = ExperimentState(stimulation.stimuli, self.signal.outlet)
         from unlock.view.experiment_view import ExperimentView
         view = ExperimentView(model, stimulation.canvas)
+
+        # LSL hack
+        stimulation.stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
 
         return self.controller_factory.create_controller_chain(
             self.window, stimulation, cmd_receiver, model, [view])

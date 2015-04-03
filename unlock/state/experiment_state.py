@@ -28,27 +28,27 @@ class CueState:
 
 
 class CueUpState(CueState):
-    trigger = 1
+    marker = 2
     label = '\u21e7'
 
 
 class CueDownState(CueState):
-    trigger = 2
+    marker = 3
     label = '\u21e9'
 
 
 class CueLeftState(CueState):
-    trigger = 3
+    marker = 4
     label = '\u21e6'
 
 
 class CueRightState(CueState):
-    trigger = 4
+    marker = 5
     label = '\u21e8'
 
 
 class PrepState:
-    trigger = 5
+    marker = 6
     duration = 0.4
     label = '+'
     size = 48
@@ -61,8 +61,8 @@ class PrepState:
 
 
 class TrialState:
-    trigger = 6
-    duration = 1.034
+    marker = 7
+    duration = 1.1
     label = '+'
     size = 48
     hold = False
@@ -90,17 +90,17 @@ class FeedbackState:
 
 
 class FeedbackGoodState(FeedbackState):
-    trigger = 7
+    marker = 8
     label = '\u2714'
 
 
 class FeedbackBadState(FeedbackState):
-    trigger = 8
+    marker = 9
     label = '\u2718'
 
 
 class RestState:
-    trigger = 9
+    marker = 10
     duration = 0.4
     label = ''
     size = 48
@@ -111,23 +111,24 @@ class RestState:
         if state.trial_count >= state.trials_per_block:
             return BlockEndState
         else:
-            return np.random.choice([CueUpState, CueDownState, CueLeftState, CueRightState])
+            return state.next_cue()
 
 
 class BlockStartState:
-    trigger = 10
-    duration = 1.6
+    marker = 11
+    duration = 2
     label = 'Block Start'
     size = 48
     hold = False
 
     @staticmethod
     def next(state):
-        return RestState
+        state.trial_count = 0
+        return state.next_cue()
 
 
 class BlockEndState:
-    trigger = 11
+    marker = 12
     duration = 0
     label = 'Press space bar to continue.'
     size = 48
@@ -139,7 +140,7 @@ class BlockEndState:
 
 
 class ExperimentStartState:
-    trigger = 0
+    marker = 0
     duration = 0
     label = ''
     size = 48
@@ -154,7 +155,7 @@ class ExperimentStartState:
 
 
 class ExperimentState(UnlockState):
-    def __init__(self, stimuli):
+    def __init__(self, stimuli, outlet):
         super(ExperimentState, self).__init__()
         self.state = ExperimentStartState
         self.timer = TimerState(self.state.duration)
@@ -164,15 +165,20 @@ class ExperimentState(UnlockState):
         self.trials_per_block = 4
         self.trial_count = 0
 
-        self.stimuli = stimuli.stimuli
+        self.stimuli = stimuli
+        self.outlet = outlet
 
     def get_state(self):
         if self.state_change:
             self.state_change = False
             return self.state
 
+    def next_cue(self):
+        return np.random.choice([CueUpState, CueDownState, CueLeftState, CueRightState])
+
     def next_state(self):
         self.state = self.state.next(self)
+        self.outlet.push_sample([self.state.marker])
         self.timer = TimerState(self.state.duration)
         self.timer.begin_timer()
         self.state_change = True
@@ -180,7 +186,6 @@ class ExperimentState(UnlockState):
     def process_command(self, command):
         if self.state.hold:
             if command.selection:
-                self.trial_count = 0
                 self.next_state()
         else:
             self.timer.update_timer(command.delta)
