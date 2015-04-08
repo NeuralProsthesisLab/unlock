@@ -30,6 +30,19 @@ class UnlockViewFactory(object):
                               spc.y + y_offset, rotation)
         return sprite
 
+    def create_image_sprite(self, model, canvas, filename, scale,
+                            position=SpritePositionComputer.Center,
+                            x_offset=0, y_offset=0, rotation=0):
+        texture = pyglet.image.load(filename)
+        spc = SpritePositionComputer(canvas, texture.width, texture.height,
+                                     rotation)
+        spc.compute(position)
+
+        sprite = PygletSprite(model, canvas, texture, spc.x + x_offset,
+                              spc.y + y_offset, rotation)
+        sprite.sprite.scale = scale
+        return sprite
+
     def create_flickering_checkerboard_sprite(self, model, canvas,
             cb_properties, position=SpritePositionComputer.Center, x_offset=0,
             y_offset=0, rotation=0, reversal=True):
@@ -68,6 +81,9 @@ class UnlockViewFactory(object):
         tile1_texture = tuple(properties.color1) * properties.tile1_width
         tile2_texture = tuple(properties.color2) * properties.tile2_width
 
+        n_chan = len(properties.color1)
+        chan_type = 'RGBA' if n_chan == 4 else 'RGB'
+
         row1_texture = tuple()
         row2_texture = tuple()
 
@@ -78,10 +94,10 @@ class UnlockViewFactory(object):
             else:
                 row1_texture += tile2_texture
                 row2_texture += tile1_texture
-        x_remain = properties.width - len(row1_texture) / 3
+        x_remain = properties.width - len(row1_texture) / n_chan
         if x_remain > 0:
-            row1_texture += row1_texture[-3:] * x_remain
-            row2_texture += row2_texture[-3:] * x_remain
+            row1_texture += row1_texture[-n_chan:] * x_remain
+            row2_texture += row2_texture[-n_chan:] * x_remain
 
         board_texture = tuple()
 
@@ -90,13 +106,13 @@ class UnlockViewFactory(object):
                 board_texture += row1_texture * properties.tile1_height
             else:
                 board_texture += row2_texture * properties.tile2_height
-        y_remain = properties.height - len(board_texture) / 3
+        y_remain = properties.height - len(board_texture) / n_chan
         if y_remain > 0:
             board_texture += board_texture[-properties.width:] * y_remain
 
         texture_data = array.array('B', board_texture).tobytes()
         image = pyglet.image.ImageData(properties.width, properties.height,
-                                       'RGB', texture_data)
+                                       chan_type, texture_data)
         texture = image.get_texture().get_transform(flip_y=True)
         return texture
 
@@ -275,8 +291,26 @@ class UnlockViewFactory(object):
             reversal=True)
         # fixation = PygletTextLabel(UnlockState(True), canvas, '+',
         #                            *canvas.center())
+        
+         return [fs1, fs2, fs3, fs4]
 
-        return [fs1, fs2, fs3, fs4]
+    def create_dual_overlapping_cvep_view(self, stimuli, canvas,
+                                          cb_properties):
+        fs1 = self.create_flickering_checkerboard_sprite(stimuli[0], canvas,
+            cb_properties[0], SpritePositionComputer.Center, reversal=False)
+        fs2 = self.create_flickering_checkerboard_sprite(stimuli[1], canvas,
+            cb_properties[1], SpritePositionComputer.Center, reversal=False)
+
+        return [fs1, fs2]
+
+    def create_dual_image_cvep_view(self, stimuli, canvas, filenames):
+        fs1 = self.create_image_sprite(stimuli[0], canvas,
+            filenames[0], SpritePositionComputer.Center, x_offset=-400)
+        fs2 = self.create_image_sprite(stimuli[1], canvas,
+            filenames[1], SpritePositionComputer.Center, x_offset=400)
+
+        return [fs1, fs2]
+       
 
     def create_robot_controller_view(self, model, canvas):
         return RobotView(model, canvas)

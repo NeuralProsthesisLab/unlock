@@ -223,11 +223,62 @@ class UnlockFactory(AbstractFactory):
             cb_properties)
         return Stimulation(canvas, stimuli, msequence_views)
 
+    def dual_image_cvep(self, filenames, stimulus='time',
+                       frequency=30.0, trial_duration=12.0, rest_duration=1.0,
+                       sequences=None):
+        if stimulus == 'frame_count':
+            raise NotImplementedError('frame count not supported')
+        else:
+            stimulus1 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[0])
+            stimulus2 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[1])
+
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        stimuli = self.state_factory.create_timed_stimuli(
+            trial_duration, rest_duration, stimulus1, stimulus2)
+        msequence_views = self.view_factory.create_dual_image_cvep_view(
+            [stimulus1, stimulus2], canvas, filenames)
+        return Stimulation(canvas, stimuli, msequence_views)
+
+    def dual_overlapping_cvep(self, cb_properties=None, stimulus='time',
+                       frequency=30.0, trial_duration=12.0, rest_duration=1.0,
+                       sequences=None):
+        assert cb_properties and sequences
+        if stimulus == 'frame_count':
+            raise NotImplementedError('frame count not supported')
+        else:
+            stimulus1 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[0])
+            stimulus2 = self.state_factory.create_wall_clock_timed_stimulus(
+                frequency, sequence=sequences[1])
+
+        canvas = self.controller_factory.create_canvas(self.window.width,
+                                                       self.window.height)
+        stimuli = self.state_factory.create_timed_stimuli(
+            trial_duration, rest_duration, stimulus1, stimulus2)
+        msequence_views = self.view_factory.create_dual_overlapping_cvep_view(
+            [stimulus1, stimulus2], canvas, cb_properties)
+        return Stimulation(canvas, stimuli, msequence_views)
+
     def checkerboard_properties(self, width=300, height=300, x_tiles=4,
                                 y_tiles=4, x_ratio=1, y_ratio=1,
                                 color1=(0, 0, 0), color2=(255, 255, 255)):
         return CheckerboardProperties(width, height, x_tiles, y_tiles, x_ratio,
                                       y_ratio, color1, color2)
+
+    def checkerboard_properties_list(self, width=(300,), height=(300,),
+                                     x_tiles=(4,), y_tiles=(4,), x_ratio=(1,),
+                                     y_ratio=(1,), color1=((0, 0, 0),),
+                                     color2=((255, 255, 255),)):
+        properties = list()
+        for i in range(len(width)):
+            properties.append(CheckerboardProperties(width[i], height[i],
+                                                     x_tiles[i], y_tiles[i],
+                                                     x_ratio[i], y_ratio[i],
+                                                     color1[i], color2[i]))
+        return properties
 
     ###########################################################################
     ## Decoders
@@ -523,7 +574,8 @@ class UnlockFactory(AbstractFactory):
             standalone=standalone)
 
     def msequence_trainer(self, stimuli=None, decoder=None, sequences=None,
-                          n_trials=None, trial_sequence=None, standalone=True):
+                          n_trials=None, trial_sequence=None, standalone=True,
+                          position_sequence=None):
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer}
         if decoder:
@@ -535,17 +587,25 @@ class UnlockFactory(AbstractFactory):
                 'raw', **receiver_args)
 
         trainer = self.state_factory.create_msequence_trainer(
-            stimuli, sequences, n_trials, trial_sequence)
+            stimuli, sequences, n_trials, trial_sequence, position_sequence)
         # super horrible hack
         decoder.decoders[0].task_state = trainer  # stimuli.stimuli.state
         decoder.decoders[-1].task_state = trainer
 
+        cx, cy = stimuli.canvas.center()
+        fixation = PygletTextLabel(UnlockState(True), stimuli.canvas, '+', cx, cy)
+        aide = self.view_factory.create_image_sprite(UnlockState(True),
+                                                     stimuli.canvas,
+                                                     'obama.png', 0.25)
+        stimuli.views.append(aide)
+
         return self.controller_factory.create_controller_chain(
-            self.window, stimuli, cmd_receiver, trainer, [],
+            self.window, stimuli, cmd_receiver, trainer, [fixation],
             standalone=standalone)
 
     def ssvep_trainer(self, stimuli=None, decoder=None, frequencies=None,
-                      n_trials=None, trial_sequence=None, standalone=True):
+                      n_trials=None, trial_sequence=None, standalone=True,
+                      position_sequence=None):
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer}
         if decoder:
@@ -557,11 +617,17 @@ class UnlockFactory(AbstractFactory):
                 'raw', **receiver_args)
 
         trainer = self.state_factory.create_ssvep_trainer(
-            stimuli, frequencies, n_trials, trial_sequence)
+            stimuli, frequencies, n_trials, trial_sequence, position_sequence)
         # super horrible hack
         decoder.decoders[0].task_state = trainer  # stimuli.stimuli.state
         decoder.decoders[-1].task_state = trainer
 
+        cx, cy = stimuli.canvas.center()
+        fixation = PygletTextLabel(UnlockState(True), stimuli.canvas, '+', cx, cy)
+        # fixation = self.view_factory.create_image_sprite(UnlockState(True),
+        #                                                  stimuli.canvas,
+        #                                                  'obama.png')
+
         return self.controller_factory.create_controller_chain(
-            self.window, stimuli, cmd_receiver, trainer, [],
+            self.window, stimuli, cmd_receiver, trainer, [fixation],
             standalone=standalone)

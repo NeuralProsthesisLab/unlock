@@ -1,0 +1,148 @@
+{
+    "window" : {
+       "singleton" : 1,
+       "name" : "pyglet",
+        "args" : {
+            "fullscreen" : true,
+            "fps" : false,
+            "vsync" : true
+        }
+    },
+
+    "signal" : {
+        "singleton" : 0,
+        "name" : "random"
+    },
+
+    "no_stimulation" : {
+    },
+
+    "dual_overlapping_cvep" : {
+        "deps" : {
+            "cb_properties" : "checkerboard_properties_list"
+        },
+        "args" : {
+            "stimulus" : "time",
+            "frequency" : 30.0,
+            "trial_duration" : 3.0,
+            "rest_duration" : 0.0,
+            "sequences" : [
+                [1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1],
+                [1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1,0,1,0,1,0,0,0,0,0,1,0,1,1,0]
+            ]
+        }
+    },
+
+    "checkerboard_properties_list" : {
+        "args" : {
+            "width" : [600, 600],
+            "height" : [600, 600],
+            "x_tiles" : [8, 8],
+            "y_tiles" : [8, 8],
+            "x_ratio" : [1, 1],
+            "y_ratio" : [1, 1],
+            "color1" : [[255, 0, 0, 128], [0, 0, 0, 0]],
+            "color2" : [[0, 0, 0, 0], [0, 0, 255, 128]]
+        }
+    },
+
+    "harmonic_sum" : {
+        "deps" : {
+            "buffering_decoder" : "fixed_time_buffering_decoder",
+            "threshold_decoder" : "absolute_threshold_decoder",
+            "selector" : "eyeblink_detector"
+        },
+        
+        "args" : {
+           "fs" : 256,
+           "n_electrodes" : 8,
+           "targets" : [12.0, 13.0, 14.0, 15.0],
+           "target_window" : 0.1,
+           "nfft" : 2048,
+           "n_harmonics" : 1,
+           "selected_channels" : [2]
+        }
+    },
+
+    "fixed_time_buffering_decoder" : {
+        "args" : {
+            "window_length" : 768
+        }
+    },
+
+    "absolute_threshold_decoder" : {
+        "args" : {
+            "threshold" : 40000,
+            "reduction_fn" : "np.max"
+        }
+    },
+
+    "eyeblink_detector" : {
+        "args" : {
+            "eog_channels" : [7],
+            "strategy" : "count",
+            "rms_threshold" : 6000
+        }
+    },
+
+    "dashboard" : {
+        "main" : true,
+        "deps" : {
+            "stimulation" : "dual_overlapping_cvep",
+            "decoder" : "harmonic_sum",
+            "controllers" : ["gridspeak",
+                             "gridcursor"]
+        }
+    },
+
+    "gridspeak" : {
+        "deps" : {
+            "stimulation" : "dual_overlapping_cvep",
+            "decoder" : "harmonic_sum"
+        }
+    },
+
+    "gridcursor" : {
+        "deps" : {
+            "stimulation" : "dual_overlapping_cvep",
+            "decoder" : "harmonic_sum"
+        }
+    },
+
+    "logger": {
+        "singleton" : 0,
+        "name" : "logging",
+        "args" : {
+            "version": 1,
+            "disable_existing_loggers": false,
+            "formatters": {
+                "simple": {
+                    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                }
+            },
+     
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "level": "DEBUG",
+                    "formatter": "simple",
+                    "stream": "ext://sys.stdout"
+                },
+                
+                "file_handler": {
+                    "class": "logging.handlers.RotatingFileHandler",
+                    "formatter": "simple",
+                    "filename": "unlock.log",
+                    "maxBytes": 10485760,
+                    "backupCount": 20,
+                    "encoding": "utf8"
+                }
+            },
+        
+            "root": {
+                "level": "INFO",
+                "handlers": ["console", "file_handler"]
+            }
+        }
+    }
+}
