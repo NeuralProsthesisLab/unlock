@@ -289,6 +289,13 @@ class UnlockFactory(AbstractFactory):
                          'decoder': decoder}
         cmd_receiver = self.command_factory.create_receiver('decoding',
                                                             **receiver_args)
+
+        if not hasattr(self.signal, 'outlet'):
+            class MockOutlet:
+                def push_sample(self, x):
+                    pass
+            self.signal.outlet = MockOutlet()
+
         from unlock.state.experiment_state import ExperimentState
         model = ExperimentState(stimulation.stimuli, self.signal.outlet)
         from unlock.view.experiment_view import ExperimentView
