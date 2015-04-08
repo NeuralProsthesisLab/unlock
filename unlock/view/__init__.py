@@ -292,7 +292,7 @@ class UnlockViewFactory(object):
         # fixation = PygletTextLabel(UnlockState(True), canvas, '+',
         #                            *canvas.center())
         
-         return [fs1, fs2, fs3, fs4]
+        return [fs1, fs2, fs3, fs4]
 
     def create_dual_overlapping_cvep_view(self, stimuli, canvas,
                                           cb_properties):
