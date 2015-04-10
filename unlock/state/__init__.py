@@ -82,7 +82,7 @@ class UnlockStateFactory(object):
         time_state = TimerState(duration)
         return CueState(state_id, time_state)
 
-    def create_trial_state(self, stimuli_duration, rest_duration, run_state=RunState()):
+    def create_trial_state(self, stimuli_duration, rest_duration, run_state=RunState()):  # this reuses the same runstate object for all calls, should be fixed
         trial_timer = TimerState(stimuli_duration)
         rest_timer = TimerState(rest_duration)
         return TrialState(trial_timer, rest_timer, run_state)
@@ -116,7 +116,8 @@ class UnlockStateFactory(object):
         return state_chain
 
     def create_timed_stimuli(self, stimuli_duration=3.0, rest_duration=1.0, *stimuli):
-        trial_state = self.create_trial_state(stimuli_duration, rest_duration)
+        run_state = RunState()
+        trial_state = self.create_trial_state(stimuli_duration, rest_duration, run_state)
         return TimedStimuli(trial_state, stimuli)
 
     def create_msequence_trainer(self, stimuli, sequences, n_trials,
