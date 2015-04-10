@@ -56,8 +56,8 @@ class UnlockViewFactory(object):
             cb_properties_reversal.color1 = cb_properties.color2
             cb_properties_reversal.color2 = cb_properties.color1
         else:
-            cb_properties_reversal.color1 = (0, 0, 0)
-            cb_properties_reversal.color2 = (0, 0, 0)
+            cb_properties_reversal.color1 = (0, 0, 0, 0)
+            cb_properties_reversal.color2 = (0, 0, 0, 0)
 
         reversed_sprite = self.create_checkerboard_sprite(
             model, canvas, cb_properties_reversal, position, x_offset,
@@ -279,16 +279,16 @@ class UnlockViewFactory(object):
         #offset = 270  # for offline covert session
         fs1 = self.create_flickering_checkerboard_sprite(stimuli[0], canvas,
             cb_properties, SpritePositionComputer.Center, y_offset=-offset,
-            reversal=True)
+            reversal=False)
         fs2 = self.create_flickering_checkerboard_sprite(stimuli[1], canvas,
             cb_properties, SpritePositionComputer.Center, y_offset=offset,
-            reversal=True)
+            reversal=False)
         fs3 = self.create_flickering_checkerboard_sprite(stimuli[2], canvas,
             cb_properties, SpritePositionComputer.Center, x_offset=-offset,
-            reversal=True)
+            reversal=False)
         fs4 = self.create_flickering_checkerboard_sprite(stimuli[3], canvas,
             cb_properties, SpritePositionComputer.Center, x_offset=offset,
-            reversal=True)
+            reversal=False)
         # fixation = PygletTextLabel(UnlockState(True), canvas, '+',
         #                            *canvas.center())
         
@@ -297,9 +297,9 @@ class UnlockViewFactory(object):
     def create_dual_overlapping_cvep_view(self, stimuli, canvas,
                                           cb_properties):
         fs1 = self.create_flickering_checkerboard_sprite(stimuli[0], canvas,
-            cb_properties[0], SpritePositionComputer.Center, reversal=False)
+            cb_properties[0], SpritePositionComputer.Center, reversal=False, x_offset=0, y_offset=0)
         fs2 = self.create_flickering_checkerboard_sprite(stimuli[1], canvas,
-            cb_properties[1], SpritePositionComputer.Center, reversal=False)
+            cb_properties[1], SpritePositionComputer.Center, reversal=False, x_offset=0, y_offset=0)
 
         return [fs1, fs2]
 
