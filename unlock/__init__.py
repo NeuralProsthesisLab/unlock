@@ -262,6 +262,7 @@ class UnlockFactory(AbstractFactory):
             [stimulus1, stimulus2], canvas, cb_properties)
         return Stimulation(canvas, stimuli, msequence_views)
 
+
     def checkerboard_properties(self, width=300, height=300, x_tiles=4,
                                 y_tiles=4, x_ratio=1, y_ratio=1,
                                 color1=(0, 0, 0), color2=(255, 255, 255)):
@@ -341,6 +342,39 @@ class UnlockFactory(AbstractFactory):
         cmd_receiver = self.command_factory.create_receiver('decoding',
                                                             **receiver_args)
 
+        normal_prop = CheckerboardProperties(180, 180, 1, 1, 1, 1, (255, 255, 255, 255), (0, 0, 0, 0))
+        normal_models = list()
+        normal_models.append(self.state_factory.create_wall_clock_timed_stimulus(
+            30.0, [1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1]))
+        normal_models.append(self.state_factory.create_wall_clock_timed_stimulus(
+            30.0, [0,0,1,1,1,0,0,1,0,1,0,1,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1]))
+        normal_models.append(self.state_factory.create_wall_clock_timed_stimulus(
+            30.0, [0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0]))
+        normal_models.append(self.state_factory.create_wall_clock_timed_stimulus(
+            30.0, [0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,1,1,1,0,1,1,0,1,0,0,1,1,0]))
+
+        normal_stimuli = self.state_factory.create_timed_stimuli(10.0, 0, *normal_models)
+        normal_views = self.view_factory.create_quad_msequence_view(normal_models, stimulation.canvas, normal_prop)
+
+        w = self.window.width
+        h = self.window.height
+        s = int(h / 10)
+        x = int(w / s)
+        y = int(h / s)
+        overlap_props = list()
+        overlap_props.append(CheckerboardProperties(x*s, y*s, x, y, 1, 1, (0, 255, 0, 196), (0, 0, 0, 0)))
+        overlap_props.append(CheckerboardProperties(x*s, y*s, x, y, 1, 1, (0, 0, 0, 0), (255, 0, 255, 196)))
+
+        overlap_models = list()
+        overlap_models.append(self.state_factory.create_wall_clock_timed_stimulus(
+            30.0, [1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1]))
+        overlap_models.append(self.state_factory.create_wall_clock_timed_stimulus(
+            30.0, [0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,1,1,1,0,1,1,0,1,0,0,1,1,0]))
+
+        overlap_stimuli = self.state_factory.create_timed_stimuli(10.0, 0, *overlap_models)
+        overlap_views = self.view_factory.create_dual_overlapping_cvep_view(
+            overlap_models, stimulation.canvas, overlap_props)
+
         if not hasattr(self.signal, 'outlet'):
             class MockOutlet:
                 def push_sample(self, x):
@@ -348,12 +382,16 @@ class UnlockFactory(AbstractFactory):
             self.signal.outlet = MockOutlet()
 
         from unlock.state.experiment_state import ExperimentState
-        model = ExperimentState(stimulation.stimuli, self.signal.outlet)
+        model = ExperimentState(normal_stimuli, overlap_stimuli, self.signal.outlet)
         from unlock.view.experiment_view import ExperimentView
-        view = ExperimentView(model, stimulation.canvas)
+        view = ExperimentView(model, stimulation.canvas, normal_views, overlap_views)
+
+        # state_chain = self.state_factory.create_state_chain(model, normal_stimuli, overlap_stimuli)
 
         # LSL hack
-        stimulation.stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
+        #stimulation.stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
+        normal_stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
+        overlap_stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
 
         return self.controller_factory.create_controller_chain(
             self.window, stimulation, cmd_receiver, model, [view])
