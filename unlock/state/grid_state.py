@@ -31,12 +31,14 @@ from unlock.util.streamclient import StreamClient
 class GridStateChange(object):
     XChange = 0
     YChange = 1
+    NoChange = 2
     Select = 2
-    def __init__(self, change, step_value=None):
+    def __init__(self, change, step_value=None, gaze=None):
         super(GridStateChange, self).__init__()
         self.change = change
         self.step_value = step_value
-        
+        self.gaze = gaze
+
         
 class GridState(UnlockState):
     IncrementYCursor = 1
@@ -49,6 +51,7 @@ class GridState(UnlockState):
                          (1, 1), (1, -1), (-1, -1), (-1, 1)]
         self.state = (0, 0)
         self.state_change = None
+        self.gaze_pos = None
 
     def process_command(self, command):
         # a selection event supersedes a decision event
@@ -60,7 +63,10 @@ class GridState(UnlockState):
             
         if command.selection:
             self.process_selection()
-            
+
+        if command.gaze is not None:
+            self.state_change = GridStateChange(GridStateChange.NoChange, 0, gaze=command.gaze)
+
     def process_decision(self, decision):
         current_x, current_y = self.state
         new_state = None
@@ -137,7 +143,7 @@ class HierarchyGridState(GridState):
     def handle_state_change(self, new_state, change):
         if new_state and abs(new_state[0]) <= self.radius and abs(new_state[1]) <= self.radius:
             self.state = new_state
-            self.state_change = GridStateChange(*change)
+            self.state_change = GridStateChange(*change, gaze=None)
 
     # def process_command(self, command):
     #     """ TEMP HACK FOR DATA COLLECTION """
