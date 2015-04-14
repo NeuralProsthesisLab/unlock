@@ -104,6 +104,8 @@ class UnlockDecoderFactory(object):
                                            buffer_size)
         decoder_chain = UnlockDecoderChain()
         decoder_chain.add(decoder)
+        from unlock.bci.decode.gaze import GazeDecoder
+        decoder_chain.add(GazeDecoder())
 
         return decoder_chain
 
