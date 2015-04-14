@@ -26,7 +26,7 @@ class LSLSignal(object):
                               uid.encode('ascii'))
         self.outlet = lsl.StreamOutlet(info)
 
-        pred = "name='%s' and type='%s' or name='Presentation'" % (self.stream_name, self.stream_type)
+        pred = "name='%s' and type='%s' or name='Presentation' or type='Gaze'" % (self.stream_name, self.stream_type)
         streams = lsl.resolve_bypred(pred.encode('ascii'))
         if len(streams) == 0:
             return False
@@ -34,7 +34,7 @@ class LSLSignal(object):
             for stream in streams:
                 self.inlets[stream.type()] = lsl.StreamInlet(stream)
                 print(stream.type())
-            self.n_channels = self.inlets[b'EEG'].channel_count + 2
+            self.n_channels = self.inlets[b'EEG'].channel_count + 2 + 1 + 1  # gaze channels, marker channel, timestamps
         except:
             return False
         return True
@@ -53,25 +53,31 @@ class LSLSignal(object):
     def acquire(self):
         marker, timestamp = self.inlets[b'Markers'].pull_sample(timeout=0.0)
         if marker is not None:
-            #print(timestamp)
-            self.events.append((marker[0], timestamp))
+            self.events.append((0, marker[0], timestamp))
+        gaze, timestamp = self.inlets[b'Gaze'].pull_sample(timeout=0.0)
+        if gaze is not None:
+            self.events.append((1, gaze, timestamp))
         eeg, timestamps = self.inlets[b'EEG'].pull_chunk()
         if len(eeg) == 0:
             return 0
         chunk = np.array(eeg)
         timestamps = np.array(timestamps, ndmin=2).T
         markers = np.zeros((len(chunk), 1))
+        gaze = np.zeros((len(chunk), 2))
         clear = list()
         for event in self.events:
-            idx = np.where(event[1] < timestamps)[0]
+            idx = np.where(event[2] < timestamps)[0]
             if len(idx) == 0:
                 break
-            markers[idx[0]] = event[0]
+            if event[0] == 0:
+                markers[idx[0]] = event[1]
+            else:
+                gaze[idx[0]] = event[1]
             clear.append(event)
         for event in clear:
             self.events.remove(event)
 
-        data = np.hstack((chunk, markers, timestamps))
+        data = np.hstack((chunk, gaze, markers, timestamps))
 
         self.data = data.flatten()
         return len(self.data)
