@@ -54,9 +54,10 @@ class LSLSignal(object):
         marker, timestamp = self.inlets[b'Markers'].pull_sample(timeout=0.0)
         if marker is not None:
             self.events.append((0, marker[0], timestamp))
-        gaze, timestamp = self.inlets[b'Gaze'].pull_sample(timeout=0.0)
-        if gaze is not None:
-            self.events.append((1, gaze, timestamp))
+        if b'Gaze' in self.inlets:
+            gaze, timestamp = self.inlets[b'Gaze'].pull_sample(timeout=0.0)
+            if gaze is not None:
+                self.events.append((1, gaze, timestamp))
         eeg, timestamps = self.inlets[b'EEG'].pull_chunk()
         if len(eeg) == 0:
             return 0
