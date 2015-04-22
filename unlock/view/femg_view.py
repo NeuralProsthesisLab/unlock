@@ -10,16 +10,4 @@ class FEMGView(UnlockView):
         self.canvas = canvas
 
     def render(self):
-        screenWidth, screenHeight = pyautogui.size()
-        #currentMouseX, currentMouseY = pyautogui.position()
-        #pyautogui.moveTo(100, 150)
-        #pyautogui.moveTo(500, 500, duration=2, tween=pyautogui.tweens.easeInOutQuad)  # use tweening/easing function to move mouse over 2 seconds.
-        #pyautogui.press('esc')
-        pyautogui.keyDown('left',2)
-
-
-       # m = PyMouse()
-       #  x,y = m.screen_size()
-       #  mx,my=m.position()
-       #  m.move(0,0)
-       #  m.move(x,y)
+       pass
