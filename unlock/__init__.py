@@ -341,7 +341,6 @@ class UnlockFactory(AbstractFactory):
                          'decoder': decoder}
         cmd_receiver = self.command_factory.create_receiver('decoding',
                                                             **receiver_args)
-
         normal_prop = CheckerboardProperties(180, 180, 1, 1, 1, 1, (255, 255, 255, 255), (0, 0, 0, 0))
         normal_models = list()
         normal_models.append(self.state_factory.create_wall_clock_timed_stimulus(
@@ -362,15 +361,17 @@ class UnlockFactory(AbstractFactory):
         x = int(w / s)
         y = int(h / s)
         overlap_props = list()
-        overlap_props.append(CheckerboardProperties(x*s, y*s, x, y, 1, 1, (0, 255, 0, 196), (0, 0, 0, 0)))
-        overlap_props.append(CheckerboardProperties(x*s, y*s, x, y, 1, 1, (0, 0, 0, 0), (255, 0, 255, 196)))
+        alpha = 191
+        overlap_props.append(CheckerboardProperties(x*s, y*s, x, y, 1, 1, (0, 255, 0, alpha), (0, 0, 0, 0)))
+        overlap_props.append(CheckerboardProperties(x*s, y*s, x, y, 1, 1, (0, 0, 0, 0), (255, 0, 255, alpha)))
 
         overlap_models = list()
         overlap_models.append(self.state_factory.create_wall_clock_timed_stimulus(
-            30.0, [1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1]))
+            30.0, [0,0,1,1,1,0,0,1,0,1,0,1,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1]))
+        # overlap_models.append(self.state_factory.create_wall_clock_timed_stimulus(
+        #     30.0, np.logical_not([0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0])))
         overlap_models.append(self.state_factory.create_wall_clock_timed_stimulus(
-            30.0, [0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,1,1,1,0,1,1,0,1,0,0,1,1,0]))
-
+            30.0, np.roll(np.logical_not([0,0,1,1,1,0,0,1,0,1,0,1,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1]), 16)))
         overlap_stimuli = self.state_factory.create_timed_stimuli(10.0, 0, *overlap_models)
         overlap_views = self.view_factory.create_dual_overlapping_cvep_view(
             overlap_models, stimulation.canvas, overlap_props)

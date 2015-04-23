@@ -2,14 +2,18 @@
     "experiment" : {
         "main" : true,
         "deps" : {
-            "stimulation": "quad_msequence",
-            "decoder": "harmonic_sum"
+            "stimulation": "no_stimulation",
+            "decoder": "msequence_template_match"
         }
     },
     
     "signal" : {
         "singleton" : 0,
-        "name" : "random"
+        "name" : "lsl",
+        "args" : {
+            "stream_name" : "NIC",
+            "stream_type" : "EEG"
+        }
     },
 
     "window" : {
@@ -17,8 +21,8 @@
        "name" : "pyglet",
         "args" : {
             "fullscreen" : true,
-            "fps" : true,
-            "vsync" : false
+            "fps" :false,
+            "vsync" : true
         }
     },
 
@@ -53,6 +57,13 @@
             "y_ratio" : 1,
             "color1" : [0, 0, 0],
             "color2" : [255, 255, 255]
+        }
+    },
+
+    "msequence_template_match" : {
+        "args" : {
+            "templates" : "templates.npz",
+            "buffer_size" : 2000
         }
     },
 

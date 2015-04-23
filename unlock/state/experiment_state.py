@@ -17,7 +17,7 @@ from unlock.state import UnlockState, TimerState
 
 
 class ExperimentState(UnlockState):
-    def __init__(self, stim1, stim2, outlet, block_sequence=None, trials_per_block=6):
+    def __init__(self, stim1, stim2, outlet, block_sequence=None, trials_per_block=20):
         super(ExperimentState, self).__init__()
         self.stim1 = stim1
         self.stim2 = stim2
@@ -30,7 +30,8 @@ class ExperimentState(UnlockState):
         self.trials_per_block = trials_per_block
 
         self.trial_sequence = None
-        self.cues = [CueUpState, CueDownState, CueLeftState, CueRightState, CueTileAState, CueTileBState]
+        self.cues = [CueUpState, CueDownState, CueLeftState, CueRightState]
+        #self.cues = [CueTileAState, CueTileBState]
 
         self.block_count = 0
         self.trial_count = 0
@@ -64,13 +65,13 @@ class ExperimentState(UnlockState):
         return self.cues[self.trial_sequence[self.trial_count]]
 
     def next_block(self):
-        block = np.random.choice([BlockStartOvertState, BlockStartCovertState, BlockStartGazeState])
+        block = BlockStartOvertState #  np.random.choice([BlockStartOvertState, BlockStartCovertState, BlockStartGazeState])
         if block is BlockStartGazeState:
             self.current_stim = self.stim2
-            n_targets = 6
+            n_targets = 2
         else:
             self.current_stim = self.stim1
-            n_targets = 6
+            n_targets = 4
 
         assert self.trials_per_block % n_targets == 0
         self.trial_sequence = np.random.permutation(
@@ -132,13 +133,13 @@ class CueRightState(CueState):
 
 
 class CueTileAState(CueState):
-    marker = 5
+    marker = 2
     label = '\u25a3'
     color = (0, 255, 0, 255)
 
 
 class CueTileBState(CueState):
-    marker = 5
+    marker = 3
     label = '\u25a3'
     color = (255, 0, 255, 255)
 
@@ -161,7 +162,7 @@ class PrepState:
 
 class TrialState:
     marker = 7
-    duration = 5
+    duration = 1.034
     label = '+'
     size = 48
     hold = False

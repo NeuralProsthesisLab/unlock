@@ -297,9 +297,9 @@ class UnlockViewFactory(object):
     def create_dual_overlapping_cvep_view(self, stimuli, canvas,
                                           cb_properties):
         fs1 = self.create_flickering_checkerboard_sprite(stimuli[0], canvas,
-            cb_properties[0], SpritePositionComputer.Center, reversal=False, x_offset=0, y_offset=0)
+            cb_properties[0], SpritePositionComputer.Center, reversal=False, x_offset=6, y_offset=6)
         fs2 = self.create_flickering_checkerboard_sprite(stimuli[1], canvas,
-            cb_properties[1], SpritePositionComputer.Center, reversal=False, x_offset=0, y_offset=0)
+            cb_properties[1], SpritePositionComputer.Center, reversal=False, x_offset=-6, y_offset=-6)
 
         return [fs1, fs2]
 

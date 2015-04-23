@@ -124,6 +124,7 @@ class MsequenceTemplateMatcher(UnlockDecoder):
         self.trial_marker = trial_marker
         self.downsample = templates.shape[1]
 
+        self.channels = list(range(n_electrodes)) + [8]
         self.buffer = np.zeros((buffer_size, n_electrodes))
         self.cursor = 0
 
@@ -131,12 +132,12 @@ class MsequenceTemplateMatcher(UnlockDecoder):
         if not command.is_valid():
             return command
 
-        data = command.matrix[:, 0:self.n_electrodes+1]
+        data = command.matrix[:, self.channels]
         if self.cursor + len(data) >= 2000:
             return command
         event = None
         for d in data:
-            marker = d[self.n_electrodes]
+            marker = d[-1]
             if marker == self.trial_marker:
                 event = self.cursor
 
@@ -147,7 +148,6 @@ class MsequenceTemplateMatcher(UnlockDecoder):
 
         if event is None:
             return command
-        #print(event)
 
         trial_data = self.buffer[0:event]
         self.buffer = np.roll(self.buffer, -(event-1), axis=0)
