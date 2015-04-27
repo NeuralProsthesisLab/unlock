@@ -95,6 +95,8 @@ class HierarchyGridView(UnlockView):
                                     tile_width - 1, tile_height - 1,
                                     canvas.batch, color=(0,128,255),
                                     fill=True)
+        cx,cy = canvas.center()
+        self.femg_cursor = PygletTextLabel(UnlockState(True), canvas, '\u271b', cx, cy )
         
     def generate_target_coordinates(self):
         return self.rand.randint(self.xmin, self.xmax), self.rand.randint(self.ymin, self.ymax)
@@ -127,6 +129,9 @@ class HierarchyGridView(UnlockView):
                 self.target.delete()
 #                self.mark_target()
                 self.assign_target()
+        if state.femg is not None:
+            self.femg_cursor.label.x = int(state.femg[0])
+            self.femg_cursor.label.y = self.canvas.height - int(state.femg[1])
     
 class GridSpeakView(HierarchyGridView):
     def __init__(self, gridtext_2d_tuple, model, canvas, tile_width=100, tile_height=100, gender='Female'):

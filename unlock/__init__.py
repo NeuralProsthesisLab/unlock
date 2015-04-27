@@ -309,7 +309,7 @@ class UnlockFactory(AbstractFactory):
                    offline_data=False):
         assert stimulation and decoder
 
-        decoder.decoders[1].task_state = stimulation.stimuli.state
+        #decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}

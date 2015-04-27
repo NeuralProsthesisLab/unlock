@@ -63,6 +63,7 @@ class FacialEMGDetector(UnlockDecoder):
         self.window_size = window_size
         self.window = np.zeros((window_size, channels))
 
+
         # The state of whether the maximum rms value of a channel
         # (Left, Right, Bottom) is above threshold. Ordered to coincide with
         # the control scheme of Up,Down,Left,Right
@@ -107,6 +108,7 @@ class FacialEMGDetector(UnlockDecoder):
                 
                 if decision is not None:
                     command.decision = decision
+                command.femg = np.mean(self.buffer,axis=0)
         except Exception as e:
             print('Exception in FacialEMGDetector.decode: ', e)
             

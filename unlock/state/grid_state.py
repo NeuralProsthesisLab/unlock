@@ -32,11 +32,11 @@ class GridStateChange(object):
     XChange = 0
     YChange = 1
     Select = 2
-    def __init__(self, change, step_value=None):
+    def __init__(self, change, step_value=None,femg=None):
         super(GridStateChange, self).__init__()
         self.change = change
         self.step_value = step_value
-        
+        self.femg = femg
         
 class GridState(UnlockState):
     IncrementYCursor = 1
@@ -60,6 +60,9 @@ class GridState(UnlockState):
             
         if command.selection:
             self.process_selection()
+
+        if command.femg is not None:
+            self.state_change = GridStateChange(GridStateChange.NoChange,0,femg=command.femg)
             
     def process_decision(self, decision):
         current_x, current_y = self.state

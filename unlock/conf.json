@@ -4,7 +4,7 @@
         "deps" : {
             "stimulation" : "quad_ssvep",
             "decoder" : "harmonic_sum",
-            "controllers" : ["gridspeak", "time_scope", "frequency_scope", "gridcursor", "fastpad","fEMG"]
+            "controllers" : ["gridspeak", "gridcursor", "fastpad"]
         }
     },
     
@@ -57,7 +57,7 @@
     "args" : {
       "channels": 4,
       "thresholds": false,
-      "window_size": 22050
+      "window_size": 50
     }
   },
     
@@ -84,8 +84,8 @@
 
     "gridcursor" : {
         "deps" : {
-            "stimulation" : "quad_ssvep",
-            "decoder" : "harmonic_sum"
+            "stimulation" : "no_stimulation",
+            "decoder" : "facial_emg"
         }
     },
 

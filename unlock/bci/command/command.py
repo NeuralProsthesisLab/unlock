@@ -33,11 +33,12 @@ import numpy as np
 
 
 class Command(object):
-    def __init__(self, delta=None, decision=None, selection=None, data=None, json=False):
+    def __init__(self, delta=None, decision=None, selection=None, femg=None, data=None, json=False):
         super(Command, self).__init__()        
         self.delta = delta
         self.decision = decision
         self.selection = selection
+        self.femg = femg
         self.predicted_decision = None
         self.predicted_decision_confidence = None
         self.data = data
