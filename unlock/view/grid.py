@@ -108,7 +108,8 @@ class HierarchyGridView(UnlockView):
                                     self.tile_width - 1, self.tile_height - 1,
                                     self.canvas.batch, color=(0,255,128),
                                     fill=True)
-    def mark_target(self, ):
+
+    def mark_target(self):
         self.target = self.drawRect(self.xcenter - self.tile_width / 2 + self.xcoord*self.tile_width,
                                     self.ycenter - self.tile_height / 2 + self.ycoord*self.tile_height,
                                     self.tile_width - 1, self.tile_height - 1,
@@ -133,12 +134,16 @@ class HierarchyGridView(UnlockView):
         if state.gaze is not None:
             gx = state.gaze[0]
             gy = self.canvas.height - state.gaze[1]
+            xtile = int((gx - self.xoffset) / self.tile_width)
+            ytile = int((gy - self.yoffset) / self.tile_height)
             if self.xoffset < gx < self.xoffset + self.tile_width * self.xtiles:
-                xtile = int((gx - self.xoffset) / self.tile_width)
                 self.gaze_cursor.label.x = int(self.xoffset + (xtile + 0.5) * self.tile_width)
             if self.yoffset < gy < self.yoffset + self.tile_height * self.ytiles:
-                ytile = int((gy - self.yoffset) / self.tile_height)
                 self.gaze_cursor.label.y = int(self.yoffset + (ytile + 0.5) * self.tile_height)
+            if state.change == GridStateChange.Select:
+                if (xtile - 2, ytile - 2) == (self.xcoord, self.ycoord):
+                    self.target.delete()
+                    self.assign_target()
 
 
 class GridSpeakView(HierarchyGridView):
