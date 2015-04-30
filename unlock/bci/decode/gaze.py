@@ -24,9 +24,11 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import time
+
+import numpy as np
 
 from unlock.bci.decode.decode import UnlockDecoder
-import numpy as np
 
 
 class GazeDecoder(UnlockDecoder):
@@ -35,6 +37,14 @@ class GazeDecoder(UnlockDecoder):
         self.n_electrodes = 8
         self.buffer = np.zeros((10, 2))
 
+        self.detect_eyeblinks = True
+        self.last_gaze_detected = 0
+        self.last_blink_detected = 0
+        self.blinks = 0
+        self.min_blink_length = 0.2
+        self.max_blink_length = 0.5
+        self.max_blink_interval = 0.5
+
     def decode(self, command):
         if not command.is_valid():
             return command
@@ -42,12 +52,26 @@ class GazeDecoder(UnlockDecoder):
         gaze_pos = np.where(gaze_data[:, 0] != 0)[0]
         samples = len(gaze_pos)
         if samples == 0:
+            self.last_gaze_detected += command.delta
             return command
+
+        if self.detect_eyeblinks:
+            if self.min_blink_length <= self.last_gaze_detected <= self.max_blink_length:
+                self.blinks += 1
+                self.last_blink_detected = time.time()
+            elif time.time() - self.last_blink_detected > self.max_blink_interval:
+                if self.blinks > 1:
+                    if self.blinks == 2:
+                        command.selection = True
+                    if self.blinks == 3:
+                        command.stop = True
+                self.blinks = 0
+                self.last_blink_detected = 0
+        self.last_gaze_detected = 0
 
         self.buffer = np.roll(self.buffer, -samples, axis=0)
         self.buffer[-samples:] = gaze_data[gaze_pos]
 
         command.gaze = np.mean(self.buffer, axis=0)
-        # if len(gaze_pos) > 0:
-        #     command.gaze = gaze_data[gaze_pos[-1]]
+
         return command

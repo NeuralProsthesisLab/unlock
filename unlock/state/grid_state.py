@@ -31,7 +31,7 @@ from unlock.util.streamclient import StreamClient
 class GridStateChange(object):
     XChange = 0
     YChange = 1
-    NoChange = 2
+    NoChange = -1
     Select = 2
     def __init__(self, change, step_value=None, gaze=None):
         super(GridStateChange, self).__init__()
@@ -65,7 +65,10 @@ class GridState(UnlockState):
             self.process_selection()
 
         if command.gaze is not None:
-            self.state_change = GridStateChange(GridStateChange.NoChange, 0, gaze=command.gaze)
+            if command.selection:
+                self.state_change = GridStateChange(GridStateChange.Select, self.state, gaze=command.gaze)
+            else:
+                self.state_change = GridStateChange(GridStateChange.NoChange, 0, gaze=command.gaze)
 
     def process_decision(self, decision):
         current_x, current_y = self.state
@@ -92,6 +95,7 @@ class GridState(UnlockState):
         ret = self.state_change
         self.state_change = None
         return ret
+
 
 class ControllerGridState(GridState):
     def __init__(self, controllers):
