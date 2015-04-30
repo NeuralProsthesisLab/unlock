@@ -131,9 +131,16 @@ class HierarchyGridView(UnlockView):
                 self.assign_target()
 
         if state.gaze is not None:
-            self.gaze_cursor.label.x = int(state.gaze[0])
-            self.gaze_cursor.label.y = self.canvas.height - int(state.gaze[1])
-    
+            gx = state.gaze[0]
+            gy = self.canvas.height - state.gaze[1]
+            if self.xoffset < gx < self.xoffset + self.tile_width * self.xtiles:
+                xtile = int((gx - self.xoffset) / self.tile_width)
+                self.gaze_cursor.label.x = int(self.xoffset + (xtile + 0.5) * self.tile_width)
+            if self.yoffset < gy < self.yoffset + self.tile_height * self.ytiles:
+                ytile = int((gy - self.yoffset) / self.tile_height)
+                self.gaze_cursor.label.y = int(self.yoffset + (ytile + 0.5) * self.tile_height)
+
+
 class GridSpeakView(HierarchyGridView):
     def __init__(self, gridtext_2d_tuple, model, canvas, tile_width=100, tile_height=100, gender='Female'):
         ''' Requires a 2d tuple of lists of equal length, a gridmodel and a canvas '''
