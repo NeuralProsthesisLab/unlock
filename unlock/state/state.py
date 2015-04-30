@@ -109,17 +109,17 @@ class OfflineData(UnlockState):
             return
 
         if command.is_valid():
-            np.savetxt(self.file_handle, command.matrix, fmt='%d', delimiter='\t')
-        else:
-            if (time.time() - self.last_invalid) < 1.5:
-                self.invalid_count += 1
-            else:
-                msg = 'invalid command cannot be logged'
-                if self.invalid_count > 0:
-                    msg += '; logging attempted '+str(self.invalid_count)+' times in the last 1.5 secs'
-                self.logger.warning(msg)
-                self.invalid_count = 0
-                self.last_invalid = time.time()
+            np.savetxt(self.file_handle, command.matrix[:, 0:-4], fmt='%.4f', delimiter='\t')
+        # else:
+        #     if (time.time() - self.last_invalid) < 1.5:
+        #         self.invalid_count += 1
+        #     else:
+        #         msg = 'invalid command cannot be logged'
+        #         if self.invalid_count > 0:
+        #             msg += '; logging attempted '+str(self.invalid_count)+' times in the last 1.5 secs'
+        #         self.logger.warning(msg)
+        #         self.invalid_count = 0
+        #         self.last_invalid = time.time()
         #else:
             #XXX - hack for test
         #    a = np.array([0,0,0,0,0,0])

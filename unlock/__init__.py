@@ -387,7 +387,8 @@ class UnlockFactory(AbstractFactory):
         from unlock.view.experiment_view import ExperimentView
         view = ExperimentView(model, stimulation.canvas, normal_views, overlap_views)
 
-        # state_chain = self.state_factory.create_state_chain(model, normal_stimuli, overlap_stimuli)
+        offline_data = self.state_factory.create_offline_data('experiment')
+        state_chain = self.state_factory.create_state_chain(model, offline_data)
 
         # LSL hack
         #stimulation.stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
@@ -395,7 +396,7 @@ class UnlockFactory(AbstractFactory):
         overlap_stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
 
         return self.controller_factory.create_controller_chain(
-            self.window, stimulation, cmd_receiver, model, [view])
+            self.window, stimulation, cmd_receiver, state_chain, [view])
 
     def gridspeak(self, stimulation=None, decoder=None, grid_radius=2,
                   offline_data=False):
