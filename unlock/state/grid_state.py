@@ -118,7 +118,7 @@ class ControllerGridState(GridState):
             controller.activate()
             
     def handle_state_change(self, new_state, change):
-        if new_state in self.controllers:
+        if new_state in self.controllers or new_state == (0, 0):
             self.state = new_state
             self.state_change = GridStateChange(*change)
           
