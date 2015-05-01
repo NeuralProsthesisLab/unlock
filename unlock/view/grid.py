@@ -216,8 +216,21 @@ class GridSpeakView(HierarchyGridView):
             self.cursor.vertices[::2] = [i + int(state.step_value)*self.tile_width for i in self.cursor.vertices[::2]]
         elif state.change == GridStateChange.YChange:
             self.cursor.vertices[1::2] = [i + int(state.step_value)*self.tile_height for i in self.cursor.vertices[1::2]]
-        elif state.change == GridStateChange.Select:
+        elif state.change == GridStateChange.Select and state.gaze is None:
             self.words[state.step_value][1].play()
+
+        if state.gaze is not None:
+            gx = state.gaze[0]
+            gy = self.canvas.height - state.gaze[1]
+            xtile = int((gx - self.xoffset) / self.tile_width)
+            ytile = int((gy - self.yoffset) / self.tile_height)
+            if self.xoffset < gx < self.xoffset + self.tile_width * self.xtiles:
+                self.gaze_cursor.label.x = int(self.xoffset + (xtile + 0.5) * self.tile_width)
+            if self.yoffset < gy < self.yoffset + self.tile_height * self.ytiles:
+                self.gaze_cursor.label.y = int(self.yoffset + (ytile + 0.5) * self.tile_height)
+            if state.change == GridStateChange.Select:
+                self.words[(xtile - 2, ytile - 2)][1].play()
+
 
 
 class RobotGridView(HierarchyGridView):
@@ -263,3 +276,13 @@ class RobotGridView(HierarchyGridView):
             self.cursor.vertices[::2] = [i + int(state.step_value)*self.tile_width for i in self.cursor.vertices[::2]]
         elif state.change == GridStateChange.YChange:
             self.cursor.vertices[1::2] = [i + int(state.step_value)*self.tile_height for i in self.cursor.vertices[1::2]]
+
+        if state.gaze is not None:
+            gx = state.gaze[0]
+            gy = self.canvas.height - state.gaze[1]
+            xtile = int((gx - self.xoffset) / self.tile_width)
+            ytile = int((gy - self.yoffset) / self.tile_height)
+            if self.xoffset < gx < self.xoffset + self.tile_width * self.xtiles:
+                self.gaze_cursor.label.x = int(self.xoffset + (xtile + 0.5) * self.tile_width)
+            if self.yoffset < gy < self.yoffset + self.tile_height * self.ytiles:
+                self.gaze_cursor.label.y = int(self.yoffset + (ytile + 0.5) * self.tile_height)
