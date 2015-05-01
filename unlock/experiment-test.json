@@ -55,8 +55,8 @@
             "y_tiles" : 1,
             "x_ratio" : 1,
             "y_ratio" : 1,
-            "color1" : [0, 0, 0],
-            "color2" : [255, 255, 255]
+            "color1" : [255, 255, 255],
+            "color2" : [0, 0, 0]
         }
     },
 
@@ -64,36 +64,6 @@
         "args" : {
             "templates" : "templates.npz",
             "buffer_size" : 2000
-        }
-    },
-
-    "harmonic_sum" : {
-        "deps" : {
-            "buffering_decoder" : "fixed_time_buffering_decoder",
-            "threshold_decoder" : "absolute_threshold_decoder"
-        },
-
-        "args" : {
-           "fs" : 256,
-           "n_electrodes" : 8,
-           "targets" : [12.0, 13.0, 14.0, 15.0],
-           "target_window" : 0.1,
-           "nfft" : 2048,
-           "n_harmonics" : 1,
-           "selected_channels" : [2]
-        }
-    },
-
-    "fixed_time_buffering_decoder" : {
-        "args" : {
-            "window_length" : 768
-        }
-    },
-
-    "absolute_threshold_decoder" : {
-        "args" : {
-            "threshold" : 40000,
-            "reduction_fn" : "np.max"
         }
     },
 
