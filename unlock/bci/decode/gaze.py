@@ -32,12 +32,12 @@ from unlock.bci.decode.decode import UnlockDecoder
 
 
 class GazeDecoder(UnlockDecoder):
-    def __init__(self):
+    def __init__(self, detect_eyeblinks=False):
         super(GazeDecoder, self).__init__()
         self.n_electrodes = 8
         self.buffer = np.zeros((10, 2))
 
-        self.detect_eyeblinks = True
+        self.detect_eyeblinks = detect_eyeblinks
         self.last_gaze_detected = 0
         self.last_blink_detected = 0
         self.blinks = 0
