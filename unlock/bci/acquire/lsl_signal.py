@@ -52,8 +52,9 @@ class LSLSignal(object):
 
     def acquire(self):
         marker, timestamp = self.inlets[b'Markers'].pull_sample(timeout=0.0)
-        if marker is not None:
+        while marker is not None:
             self.events.append((0, marker[0], timestamp))
+            marker, timestamp = self.inlets[b'Markers'].pull_sample(timeout=0.0)
         if b'Gaze' in self.inlets:
             gaze, timestamp = self.inlets[b'Gaze'].pull_sample(timeout=0.0)
             if gaze is not None:
@@ -71,7 +72,13 @@ class LSLSignal(object):
             if len(idx) == 0:
                 break
             if event[0] == 0:
-                markers[idx[0]] = event[1]
+                if markers[idx[0]] != 0:
+                    if idx[0]+1 < len(markers)-1:
+                        markers[idx[0]+1] = event[1]
+                    else:
+                        continue
+                else:
+                    markers[idx[0]] = event[1]
             else:
                 gaze[idx[0]] = event[1]
             clear.append(event)
