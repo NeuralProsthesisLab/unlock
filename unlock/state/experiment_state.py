@@ -236,12 +236,12 @@ class TrialStateSE(TrialState):
 
 
 class TrialStateSW(TrialState):
-    marker = 13
+    marker = 14
     position = (0.2, 0.2)
 
 
 class TrialStateNW(TrialState):
-    marker = 14
+    marker = 15
     position = (0.2, 0.8)
 
 
