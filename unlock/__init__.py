@@ -335,7 +335,8 @@ class UnlockFactory(AbstractFactory):
     ###########################################################################
     ## Applications
     ###########################################################################
-    def experiment(self, stimulation=None, decoder=None):
+    def experiment(self, stimulation=None, decoder=None, mode='test', block_sequence=(0,), trials_per_block=1,
+                   offline_data=False):
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}
@@ -368,10 +369,8 @@ class UnlockFactory(AbstractFactory):
         overlap_models = list()
         overlap_models.append(self.state_factory.create_wall_clock_timed_stimulus(
             30.0, [0,0,1,1,1,0,0,1,0,1,0,1,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1]))
-        # overlap_models.append(self.state_factory.create_wall_clock_timed_stimulus(
-        #     30.0, np.logical_not([0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0])))
         overlap_models.append(self.state_factory.create_wall_clock_timed_stimulus(
-            30.0, np.roll(np.logical_not([0,0,1,1,1,0,0,1,0,1,0,1,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1]), 16)))
+            30.0, np.logical_not([0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0])))
         overlap_stimuli = self.state_factory.create_timed_stimuli(10.0, 0, *overlap_models)
         overlap_views = self.view_factory.create_dual_overlapping_cvep_view(
             overlap_models, stimulation.canvas, overlap_props)
@@ -383,15 +382,18 @@ class UnlockFactory(AbstractFactory):
             self.signal.outlet = MockOutlet()
 
         from unlock.state.experiment_state import ExperimentState
-        model = ExperimentState(normal_stimuli, overlap_stimuli, self.signal.outlet)
+        model = ExperimentState(mode, normal_stimuli, overlap_stimuli, self.signal.outlet, block_sequence,
+                                trials_per_block)
         from unlock.view.experiment_view import ExperimentView
         view = ExperimentView(model, stimulation.canvas, normal_views, overlap_views)
 
-        offline_data = self.state_factory.create_offline_data('experiment')
-        state_chain = self.state_factory.create_state_chain(model, offline_data)
+        if offline_data:
+            offline_data = self.state_factory.create_offline_data('experiment')
+            state_chain = self.state_factory.create_state_chain(model, offline_data)
+        else:
+            state_chain = model
 
         # LSL hack
-        #stimulation.stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
         normal_stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
         overlap_stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
 

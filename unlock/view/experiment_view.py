@@ -18,6 +18,9 @@ class ExperimentView(UnlockView):
             self.text.label.font_size = state.size
             color = getattr(state, 'color', (255, 255, 255, 255))
             self.text.label.color = color
+            pos = getattr(state, 'position', (0.5, 0.5))
+            self.text.label.x = self.canvas.width * pos[0]
+            self.text.label.y = self.canvas.height * pos[1]
         for view in self.overlap_view:
             view.render()
         for view in self.normal_view:

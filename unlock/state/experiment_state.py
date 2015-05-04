@@ -17,21 +17,22 @@ from unlock.state import UnlockState, TimerState
 
 
 class ExperimentState(UnlockState):
-    def __init__(self, stim1, stim2, outlet, block_sequence=None, trials_per_block=20):
+    def __init__(self, mode, stim1, stim2, outlet, block_sequence, trials_per_block):
         super(ExperimentState, self).__init__()
+        self.mode = mode
         self.stim1 = stim1
         self.stim2 = stim2
         self.current_stim = self.stim1
         self.outlet = outlet
-        if block_sequence is None:
-            self.n_blocks = 3
-        else:
-            self.n_blocks = len(block_sequence)
+        self.block_sequence = block_sequence
+        self.n_blocks = len(block_sequence)
+        self.blocks = [BlockStartOvertState, BlockStartCovertState, BlockStartGazeState]
+
         self.trials_per_block = trials_per_block
 
         self.trial_sequence = None
-        self.cues = [CueUpState, CueDownState, CueLeftState, CueRightState]
-        #self.cues = [CueTileAState, CueTileBState]
+        self.cues = None
+        self.fixations = None
 
         self.block_count = 0
         self.trial_count = 0
@@ -62,20 +63,32 @@ class ExperimentState(UnlockState):
             return self.state
 
     def next_cue(self):
-        return self.cues[self.trial_sequence[self.trial_count]]
+        return self.cues[self.trial_sequence[self.trial_count][0]]
+
+    def next_trial(self):
+        return self.fixations[self.trial_sequence[self.trial_count][1]]
 
     def next_block(self):
-        block = BlockStartOvertState #  np.random.choice([BlockStartOvertState, BlockStartCovertState, BlockStartGazeState])
+        block_idx = self.block_sequence[self.block_count]
+        block = self.blocks[block_idx]
+        n_trials = self.trials_per_block[block_idx]
         if block is BlockStartGazeState:
             self.current_stim = self.stim2
-            n_targets = 2
+            self.cues = [CueTileAState, CueTileBState, CueNullState]
+            self.fixations = [TrialStateCenter, TrialStateNE, TrialStateSE, TrialStateSW, TrialStateNW]
         else:
             self.current_stim = self.stim1
-            n_targets = 4
+            self.cues = [CueUpState, CueDownState, CueLeftState, CueRightState, CueNullState]
+            self.fixations = [TrialStateCenter]
+        n_targets = len(self.cues)
+        n_fixations = len(self.fixations)
 
-        assert self.trials_per_block % n_targets == 0
-        self.trial_sequence = np.random.permutation(
-            np.repeat(np.arange(n_targets), self.trials_per_block / n_targets))
+        assert n_trials % n_targets == 0
+        assert n_trials % n_fixations == 0
+        cue_order = np.repeat(np.arange(n_targets), n_trials / n_targets)
+        fixation_order = np.tile(np.arange(n_fixations), n_trials / n_fixations)
+        order = np.vstack((cue_order, fixation_order))
+        self.trial_sequence = np.random.permutation(order.T)
         return block
 
     def next_state(self):
@@ -94,8 +107,30 @@ class ExperimentState(UnlockState):
             self.timer.update_timer(command.delta)
             if self.timer.is_complete():
                 self.next_state()
-            if self.state is TrialState:
+            if self.state.__base__ is TrialState:
                 self.current_stim.process_command(command)
+
+
+class ExperimentTrainState(ExperimentState):
+    def __init__(self, stim1, stim2, outlet, block_sequence=None, trials_per_block=20):
+        super(ExperimentTrainState, self).__init__(stim1, stim2, outlet, block_sequence, trials_per_block)
+
+    def next_cue(self):
+        return self.cues[self.trial_sequence[self.trial_count]]
+
+    def next_block(self):
+        block = BlockStartOvertState #  np.random.choice([BlockStartOvertState, BlockStartCovertState, BlockStartGazeState])
+        if block is BlockStartGazeState:
+            self.current_stim = self.stim2
+            n_targets = 2
+        else:
+            self.current_stim = self.stim1
+            n_targets = 4
+
+        assert self.trials_per_block % n_targets == 0
+        self.trial_sequence = np.random.permutation(
+            np.repeat(np.arange(n_targets), self.trials_per_block / n_targets))
+        return block
 
 
 class CueState:
@@ -109,7 +144,7 @@ class CueState:
 
     @staticmethod
     def enter(state):
-        state.trial_count += 1
+        pass
 
 
 class CueUpState(CueState):
@@ -144,25 +179,31 @@ class CueTileBState(CueState):
     color = (255, 0, 255, 255)
 
 
-class PrepState:
+class CueNullState(CueState):
     marker = 6
+    label = '+'
+
+
+class PrepState:
+    marker = 10
     duration = 0.4
     label = '+'
     size = 48
+    position = (0.5, 0.5)
     hold = False
 
     @staticmethod
     def next(state):
-        return TrialState
+        return state.next_trial()
 
     @staticmethod
     def enter(state):
-        pass
+        trial = state.next_trial()
+        PrepState.position = trial.position
 
 
 class TrialState:
-    marker = 7
-    duration = 1.034
+    duration = 3.1
     label = '+'
     size = 48
     hold = False
@@ -179,6 +220,31 @@ class TrialState:
         state.start_stim()
 
 
+class TrialStateCenter(TrialState):
+    marker = 11
+    position = (0.5, 0.5)
+
+
+class TrialStateNE(TrialState):
+    marker = 12
+    position = (0.8, 0.8)
+
+
+class TrialStateSE(TrialState):
+    marker = 13
+    position = (0.8, 0.2)
+
+
+class TrialStateSW(TrialState):
+    marker = 13
+    position = (0.2, 0.2)
+
+
+class TrialStateNW(TrialState):
+    marker = 14
+    position = (0.2, 0.8)
+
+
 class FeedbackState:
     duration = 0.4
     size = 120
@@ -190,21 +256,22 @@ class FeedbackState:
 
     @staticmethod
     def enter(state):
+        state.trial_count += 1
         state.stop_stim()
 
 
 class FeedbackGoodState(FeedbackState):
-    marker = 8
+    marker = 20
     label = '\u2714'
 
 
 class FeedbackBadState(FeedbackState):
-    marker = 9
+    marker = 21
     label = '\u2718'
 
 
 class RestState:
-    marker = 10
+    marker = 30
     duration = 0.4
     label = ''
     size = 48
@@ -212,7 +279,8 @@ class RestState:
 
     @staticmethod
     def next(state):
-        if state.trial_count >= state.trials_per_block:
+        if state.trial_count >= len(state.trial_sequence):
+            state.block_count += 1
             return BlockEndState
         else:
             return state.next_cue()
@@ -223,7 +291,6 @@ class RestState:
 
 
 class BlockStartState:
-    marker = 11
     duration = 2
     size = 48
     hold = False
@@ -234,27 +301,26 @@ class BlockStartState:
 
     @staticmethod
     def enter(state):
-        state.block_count += 1
         state.trial_count = 0
 
 
 class BlockStartOvertState(BlockStartState):
-    marker = 11
+    marker = 31
     label = 'Overt'
 
 
 class BlockStartCovertState(BlockStartState):
-    marker = 12
+    marker = 32
     label = 'Covert'
 
 
 class BlockStartGazeState(BlockStartState):
-    marker = 13
-    label = 'Gaze Independent'
+    marker = 33
+    label = 'Overlapping'
 
 
 class BlockEndState:
-    marker = 14
+    marker = 34
     duration = 0
     label = 'Press space bar to continue.'
     size = 48
@@ -273,7 +339,7 @@ class BlockEndState:
 
 
 class ExperimentStartState:
-    marker = 0
+    marker = 40
     duration = 0
     label = ''
     size = 48
@@ -289,7 +355,7 @@ class ExperimentStartState:
 
 
 class ExperimentEndState:
-    marker = 0
+    marker = 41
     duration = 0
     label = 'All done. Thanks!'
     size = 48
