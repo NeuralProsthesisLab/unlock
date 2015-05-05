@@ -109,7 +109,8 @@ class OfflineData(UnlockState):
             return
 
         if command.is_valid():
-            np.savetxt(self.file_handle, command.matrix[:, 0:-4], fmt='%.3f', delimiter='\t')
+            out = command.matrix[:, 0:-4] * [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1, 1, 1, 1000]
+            np.savetxt(self.file_handle, out, fmt='%d', delimiter='\t')
         # else:
         #     if (time.time() - self.last_invalid) < 1.5:
         #         self.invalid_count += 1
