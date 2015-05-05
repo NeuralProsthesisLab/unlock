@@ -45,6 +45,7 @@ class ExperimentState(UnlockState):
             stim.state = None
 
         self.state = ExperimentStartState
+        self.outlet.push_sample([self.state.marker])
         self.timer = TimerState(self.state.duration)
         self.timer.begin_timer()
         self.state_change = True
