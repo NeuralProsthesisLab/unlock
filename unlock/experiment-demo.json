@@ -7,7 +7,9 @@
         },
         "args" : {
           "mode" : "demo",
-          "offline_date" : false
+          "block_sequence" : [0, 1, 2],
+          "trials_per_block" : [5, 5, 5],
+          "offline_data" : false
         }
     },
     

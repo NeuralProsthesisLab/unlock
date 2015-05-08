@@ -76,6 +76,8 @@ class ExperimentState(UnlockState):
         if block is BlockStartGazeState:
             self.current_stim = self.stim2
             self.cues = [CueTileAState, CueTileBState, CueNullState]
+            if self.mode == 'demo':
+                self.cues = [CueTileAState, CueTileBState, CueNullState, CueTileAState, CueTileBState]
             self.fixations = [TrialStateCenter, TrialStateNE, TrialStateSE, TrialStateSW, TrialStateNW]
         else:
             self.current_stim = self.stim1
@@ -86,8 +88,8 @@ class ExperimentState(UnlockState):
 
         assert n_trials % n_targets == 0
         assert n_trials % n_fixations == 0
-        cue_order = np.repeat(np.arange(n_targets), n_trials / n_targets)
-        fixation_order = np.tile(np.arange(n_fixations), n_trials / n_fixations)
+        cue_order = np.repeat(np.arange(n_targets), int(n_trials / n_targets))
+        fixation_order = np.tile(np.arange(n_fixations), int(n_trials / n_fixations))
         order = np.vstack((cue_order, fixation_order))
         self.trial_sequence = np.random.permutation(order.T)
         return block
