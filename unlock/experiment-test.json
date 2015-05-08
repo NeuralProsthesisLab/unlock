@@ -4,7 +4,13 @@
         "deps" : {
             "stimulation": "no_stimulation",
             "decoder": "msequence_template_match"
-        }
+        },
+      "args" : {
+        "mode" : "test",
+        "block_sequence" : [0, 0, 1, 2, 1, 2, 1, 0, 2],
+        "trials_per_block" : [50, 50, 30],
+        "offline_data" : true
+      }
     },
     
     "signal" : {
