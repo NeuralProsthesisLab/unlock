@@ -50,6 +50,8 @@ class ExperimentState(UnlockState):
         self.timer.begin_timer()
         self.state_change = True
 
+        self.decoder_scores = np.zeros(4)
+
     def stop_stim(self):
         self.current_stim.stop()
         for stim in self.current_stim.stimuli:
@@ -103,6 +105,8 @@ class ExperimentState(UnlockState):
         self.state_change = True
 
     def process_command(self, command):
+        self.decoder_scores = np.random.randint(0, 255, size=4)
+
         if self.state.hold:
             if command.selection:
                 self.next_state()
