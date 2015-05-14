@@ -32,8 +32,6 @@ class ExperimentView(UnlockView):
 
 class ExperimentTrainerView(ExperimentView):
     def __init__(self, model, canvas, normal_view, overlap_view):
-        super(ExperimentTrainerView, self).__init__(model, canvas, normal_view, overlap_view)
-
         cx, cy = canvas.center()
         self.feedbacks = [
             canvas.batch.add(4, pyglet.gl.GL_QUADS, None,
@@ -49,6 +47,7 @@ class ExperimentTrainerView(ExperimentView):
                              ('v2f', (cx + 270, cy, cx + 210, cy + 60, cx + 150, cy, cx + 210, cy - 60)),
                              ('c3B', (0, 0, 0)*4)),
         ]
+        super(ExperimentTrainerView, self).__init__(model, canvas, normal_view, overlap_view)
 
     def render(self):
         super(ExperimentTrainerView, self).render()

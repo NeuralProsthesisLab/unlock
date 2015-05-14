@@ -382,8 +382,8 @@ class UnlockFactory(AbstractFactory):
             self.signal.outlet = MockOutlet()
 
         if mode == 'train':
-            from unlock.state.experiment_state import ExperimentState
-            model = ExperimentState(mode, normal_stimuli, overlap_stimuli, self.signal.outlet, decoder, block_sequence,
+            from unlock.state.experiment_state import ExperimentTrainerState
+            model = ExperimentTrainerState(mode, normal_stimuli, overlap_stimuli, self.signal.outlet, decoder, block_sequence,
                                     trials_per_block)
             from unlock.view.experiment_view import ExperimentTrainerView
             view = ExperimentTrainerView(model, stimulation.canvas, normal_views, overlap_views)

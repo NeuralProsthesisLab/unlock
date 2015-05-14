@@ -127,25 +127,18 @@ class ExperimentState(UnlockState):
 
 
 class ExperimentTrainerState(ExperimentState):
-    def __init__(self, stim1, stim2, outlet, block_sequence=None, trials_per_block=20):
-        super(ExperimentTrainerState, self).__init__(stim1, stim2, outlet, block_sequence, trials_per_block)
-
-    def next_cue(self):
-        return self.cues[self.trial_sequence[self.trial_count]]
-
-    def next_block(self):
-        block = BlockStartOvertState #  np.random.choice([BlockStartOvertState, BlockStartCovertState, BlockStartGazeState])
-        if block is BlockStartGazeState:
-            self.current_stim = self.stim2
-            n_targets = 2
-        else:
-            self.current_stim = self.stim1
-            n_targets = 4
-
-        assert self.trials_per_block % n_targets == 0
-        self.trial_sequence = np.random.permutation(
-            np.repeat(np.arange(n_targets), self.trials_per_block / n_targets))
-        return block
+    """
+    build initial templates
+     - run through each target individually for 12 seconds no feedback
+     - create templates, determine optimal spatial filter
+    reinforce templates
+     - run through normally, with extended training times, providing continual feedback
+     - stop after n trials with each target
+    """
+    def __init__(self, mode, stim1, stim2, outlet, decoder, block_sequence, trials_per_block):
+        super(ExperimentTrainerState, self).__init__(mode, stim1, stim2, outlet, decoder, block_sequence,
+                                                     trials_per_block)
+        TrialState.duration = 12
 
 
 class CueState:
