@@ -124,17 +124,31 @@ class MsequenceTemplateMatcher(UnlockDecoder):
         self.trial_marker = trial_marker
         self.downsample = templates.shape[1]
 
-        self.channels = list(range(n_electrodes)) + [8]
+        self.channels = list(range(n_electrodes)) + [10]
         self.buffer = np.zeros((buffer_size, n_electrodes))
         self.cursor = 0
+        self.decode_now = False
+        self.last_event = None
 
     def decode(self, command):
-        if not command.is_valid():
+        if self.decode_now:
+            trial_data = self.buffer[0:self.cursor]
+            trial = (np.sum(trial_data[:, self.surround], axis=1) -
+                     len(self.surround)*trial_data[:, self.center])
+            trial = sig.resample(trial, self.downsample)
+            scores = np.corrcoef(self.templates, trial)[4, 0:4]
+            command.decoder_scores = scores
+            predict = np.argmax(scores)
+            print(len(trial_data), predict, scores)
+            if scores[predict] > 0.3:
+                command.decision = predict + 1
+            self.decode_now = False
+            return command
+
+        if not command.is_valid() or not self.started:
             return command
 
         data = command.matrix[:, self.channels]
-        if self.cursor + len(data) >= 2000:
-            return command
         event = None
         for d in data:
             marker = d[-1]
@@ -149,16 +163,32 @@ class MsequenceTemplateMatcher(UnlockDecoder):
         if event is None:
             return command
 
-        trial_data = self.buffer[0:event]
-        self.buffer = np.roll(self.buffer, -(event-1), axis=0)
-        self.cursor = 0
-        trial = (np.sum(trial_data[:, self.surround], axis=1) -
-                 len(self.surround)*trial_data[:, self.center])
-        trial = sig.resample(trial, self.downsample)
-        scores = np.corrcoef(self.templates, trial)[4, 0:4]
-        predict = np.argmax(scores)
-        print(predict, scores)
-        if scores[predict] > 0.3:
-            command.decision = predict + 1
+        self.last_event = event
+        if event > 480:
+            trial_data = self.buffer[0:event]
+            trial = (np.sum(trial_data[:, self.surround], axis=1) -
+                     len(self.surround)*trial_data[:, self.center])
+            trial = sig.resample(trial, self.downsample)
+            scores = np.corrcoef(self.templates, trial)[4, 0:4]
+            command.decoder_scores = scores
+            predict = np.argmax(scores)
+            print(len(trial_data), predict, scores)
+            if scores[predict] > 0.3:
+                command.decision = predict + 1
+
+        self.buffer = np.roll(self.buffer, -event, axis=0)
+        self.cursor -= event
+
         return command
+
+    def start(self):
+        super(MsequenceTemplateMatcher, self).start()
+        self.cursor = 0
+        self.decode_now = False
+        self.last_event = None
+
+    def stop(self):
+        super(MsequenceTemplateMatcher, self).stop()
+        if self.cursor > 480 and self.last_event is not None:
+            self.decode_now = True
 
