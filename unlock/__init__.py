@@ -381,11 +381,18 @@ class UnlockFactory(AbstractFactory):
                     pass
             self.signal.outlet = MockOutlet()
 
-        from unlock.state.experiment_state import ExperimentState
-        model = ExperimentState(mode, normal_stimuli, overlap_stimuli, self.signal.outlet, block_sequence,
-                                trials_per_block)
-        from unlock.view.experiment_view import ExperimentView
-        view = ExperimentView(model, stimulation.canvas, normal_views, overlap_views)
+        if mode == 'train':
+            from unlock.state.experiment_state import ExperimentState
+            model = ExperimentState(mode, normal_stimuli, overlap_stimuli, self.signal.outlet, decoder, block_sequence,
+                                    trials_per_block)
+            from unlock.view.experiment_view import ExperimentTrainerView
+            view = ExperimentTrainerView(model, stimulation.canvas, normal_views, overlap_views)
+        else:
+            from unlock.state.experiment_state import ExperimentState
+            model = ExperimentState(mode, normal_stimuli, overlap_stimuli, self.signal.outlet, decoder, block_sequence,
+                                    trials_per_block)
+            from unlock.view.experiment_view import ExperimentView
+            view = ExperimentView(model, stimulation.canvas, normal_views, overlap_views)
 
         if offline_data:
             offline_data = self.state_factory.create_offline_data('experiment')

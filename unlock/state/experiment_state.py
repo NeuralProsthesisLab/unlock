@@ -17,13 +17,14 @@ from unlock.state import UnlockState, TimerState
 
 
 class ExperimentState(UnlockState):
-    def __init__(self, mode, stim1, stim2, outlet, block_sequence, trials_per_block):
+    def __init__(self, mode, stim1, stim2, outlet, decoder, block_sequence, trials_per_block):
         super(ExperimentState, self).__init__()
         self.mode = mode
         self.stim1 = stim1
         self.stim2 = stim2
         self.current_stim = self.stim1
         self.outlet = outlet
+        self.decoder = decoder
         self.block_sequence = block_sequence
         self.n_blocks = len(block_sequence)
         self.blocks = [BlockStartOvertState, BlockStartCovertState, BlockStartGazeState]
@@ -50,7 +51,7 @@ class ExperimentState(UnlockState):
         self.timer.begin_timer()
         self.state_change = True
 
-        self.decoder_scores = np.zeros(4)
+        self.decoder_scores = [0, 0, 0, 0]
 
     def stop_stim(self):
         self.current_stim.stop()
@@ -84,7 +85,10 @@ class ExperimentState(UnlockState):
         else:
             self.current_stim = self.stim1
             self.cues = [CueUpState, CueDownState, CueLeftState, CueRightState, CueNullState]
-            self.fixations = [TrialStateCenter]
+            if block is BlockStartOvertState:
+                self.fixations = [TrialStateN, TrialStateS, TrialStateW, TrialStateE, TrialStateCenter]
+            else:
+                self.fixations = [TrialStateCenter]
         n_targets = len(self.cues)
         n_fixations = len(self.fixations)
 
@@ -105,7 +109,11 @@ class ExperimentState(UnlockState):
         self.state_change = True
 
     def process_command(self, command):
-        self.decoder_scores = np.random.randint(0, 255, size=4)
+        if hasattr(command, "decoder_scores"):
+            scores = np.abs(command.decoder_scores)
+            scores -= np.min(scores)
+            scores = scores / np.max(scores) * 255
+            self.decoder_scores = scores.astype(np.int32)
 
         if self.state.hold:
             if command.selection:
@@ -118,9 +126,9 @@ class ExperimentState(UnlockState):
                 self.current_stim.process_command(command)
 
 
-class ExperimentTrainState(ExperimentState):
+class ExperimentTrainerState(ExperimentState):
     def __init__(self, stim1, stim2, outlet, block_sequence=None, trials_per_block=20):
-        super(ExperimentTrainState, self).__init__(stim1, stim2, outlet, block_sequence, trials_per_block)
+        super(ExperimentTrainerState, self).__init__(stim1, stim2, outlet, block_sequence, trials_per_block)
 
     def next_cue(self):
         return self.cues[self.trial_sequence[self.trial_count]]
@@ -193,7 +201,7 @@ class CueNullState(CueState):
 
 class PrepState:
     marker = 10
-    duration = 0.4
+    duration = 0.5
     label = '+'
     size = 48
     position = (0.5, 0.5)
@@ -224,6 +232,7 @@ class TrialState:
 
     @staticmethod
     def enter(state):
+        state.decoder.start()
         state.start_stim()
 
 
@@ -252,6 +261,26 @@ class TrialStateNW(TrialState):
     position = (0.2, 0.8)
 
 
+class TrialStateN(TrialState):
+    marker = 16
+    position = (0.5, 0.833)
+
+
+class TrialStateS(TrialState):
+    marker = 17
+    position = (0.5, 0.167)
+
+
+class TrialStateW(TrialState):
+    marker = 18
+    position = (0.3125, 0.5)
+
+
+class TrialStateE(TrialState):
+    marker = 19
+    position = (0.6875, 0.5)
+
+
 class FeedbackState:
     duration = 0.4
     size = 120
@@ -265,6 +294,7 @@ class FeedbackState:
     def enter(state):
         state.trial_count += 1
         state.stop_stim()
+        state.decoder.stop()
 
 
 class FeedbackGoodState(FeedbackState):
@@ -294,7 +324,7 @@ class RestState:
 
     @staticmethod
     def enter(state):
-        pass
+        state.decoder_scores = [0, 0, 0, 0]
 
 
 class BlockStartState:
@@ -342,7 +372,7 @@ class BlockEndState:
 
     @staticmethod
     def enter(state):
-        pass
+        state.decoder.stop()
 
 
 class ExperimentStartState:
