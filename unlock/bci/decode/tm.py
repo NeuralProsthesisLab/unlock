@@ -143,6 +143,7 @@ class MsequenceTemplateMatcher(UnlockDecoder):
             if scores[predict] > 0.3:
                 command.decision = predict + 1
             self.decode_now = False
+            self.cursor = 0
             return command
 
         if not command.is_valid() or not self.started:
