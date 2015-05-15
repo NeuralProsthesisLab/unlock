@@ -401,8 +401,8 @@ class UnlockFactory(AbstractFactory):
             state_chain = model
 
         # LSL hack
-        normal_stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
-        overlap_stimuli.stimuli[0].seq_state.outlet = self.signal.outlet
+        normal_stimuli.outlet = self.signal.outlet
+        overlap_stimuli.outlet = self.signal.outlet
 
         return self.controller_factory.create_controller_chain(
             self.window, stimulation, cmd_receiver, state_chain, [view])
