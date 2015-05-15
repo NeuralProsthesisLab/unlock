@@ -278,10 +278,10 @@ class UnlockViewFactory(object):
         offset = 360  # for online session
         #offset = 270  # for offline covert session
         fs1 = self.create_flickering_checkerboard_sprite(stimuli[0], canvas,
-            cb_properties, SpritePositionComputer.Center, y_offset=-offset,
+            cb_properties, SpritePositionComputer.Center, y_offset=offset,
             reversal=False)
         fs2 = self.create_flickering_checkerboard_sprite(stimuli[1], canvas,
-            cb_properties, SpritePositionComputer.Center, y_offset=offset,
+            cb_properties, SpritePositionComputer.Center, y_offset=-offset,
             reversal=False)
         fs3 = self.create_flickering_checkerboard_sprite(stimuli[2], canvas,
             cb_properties, SpritePositionComputer.Center, x_offset=-offset,
