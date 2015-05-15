@@ -41,6 +41,9 @@ class TimedStimuli(UnlockState):
         else:
             self.stimuli = list()
 
+        self.outlet = None
+        self.seq_id = 1
+
     def add_stimulus(self, stimulus):
         self.stimuli.append(stimulus)
             
@@ -73,9 +76,13 @@ class TimedStimuli(UnlockState):
         if state == RunState.Running:
             sequence_start_trigger = False
             for stimulus in self.stimuli:
-                sequence_start_trigger = stimulus.process_command(command)
+                response = stimulus.process_command(command)
+                if response is not Trigger.Null:
+                    sequence_start_trigger = response
             if sequence_start_trigger:
                 ret = Trigger.Start
+                if self.outlet is not None:
+                    self.outlet.push_sample([self.seq_id])
         elif change_value == TrialState.RestExpiry:
             self.start()
         elif change_value == TrialState.TrialExpiry:
@@ -132,7 +139,7 @@ class SequentialTimedStimuli(UnlockState):
             sequence_start_trigger = False
             sequence_start_trigger = self.stimulus.process_command(command)
             if sequence_start_trigger:
-                ret = Trigger.Start                
+                ret = Trigger.Start
         elif change_value == TrialState.RestExpiry:
             self.start()
             
@@ -180,6 +187,9 @@ class TimedStimulus(UnlockState):
         A value of Trigger.Start is returned at the start of the sequence.
         """
         trigger_value = Trigger.Null
+        if self.state is None:
+            return trigger_value
+
         self.time_state.update_timer(command.delta)
         if self.time_state.is_complete():
             self.state = self.seq_state.state()
