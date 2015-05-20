@@ -97,15 +97,15 @@ class UnlockDecoderFactory(object):
     def create_msequence_template_match(self, templates, n_electrodes=8,
                                         center=2, surround=(0, 4, 7),
                                         alpha=0.05, trial_marker=1,
-                                        buffer_size=1000):
-        _templates = np.load(templates)['templates']
-        decoder = MsequenceTemplateMatcher(_templates, n_electrodes, center,
+                                        buffer_size=1000, training=False):
+        # _templates = np.load(templates)['templates']
+        decoder = MsequenceTemplateMatcher(templates, n_electrodes, center,
                                            surround, alpha, trial_marker,
-                                           buffer_size)
+                                           buffer_size, training)
         decoder_chain = UnlockDecoderChain()
-        decoder_chain.add(decoder)
         from unlock.bci.decode.gaze import GazeDecoder
         decoder_chain.add(GazeDecoder())
+        decoder_chain.add(decoder)
 
         return decoder_chain
 

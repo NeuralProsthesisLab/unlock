@@ -309,10 +309,10 @@ class UnlockFactory(AbstractFactory):
 
     def msequence_template_match(self, templates, n_electrodes=8, center=2,
                                  surround=(0, 4, 7), alpha=0.05,
-                                 trial_marker=1, buffer_size=1000):
+                                 trial_marker=1, buffer_size=1000, training=False):
         return self.decoder_factory.create_msequence_template_match(
             templates, n_electrodes, center, surround, alpha, trial_marker,
-            buffer_size)
+            buffer_size, training)
 
     def vep_trial_logger(self, buffering_decoder, label='trial'):
         return self.decoder_factory.create_offline_vep_trial_recorder(
@@ -353,7 +353,7 @@ class UnlockFactory(AbstractFactory):
         normal_models.append(self.state_factory.create_wall_clock_timed_stimulus(
             30.0, [0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,1,1,1,0,1,1,0,1,0,0,1,1,0]))
 
-        normal_stimuli = self.state_factory.create_timed_stimuli(10.0, 0, *normal_models)
+        normal_stimuli = self.state_factory.create_timed_stimuli(20.0, 0, *normal_models)
         normal_views = self.view_factory.create_quad_msequence_view(normal_models, stimulation.canvas, normal_prop)
 
         w = self.window.width
@@ -371,7 +371,7 @@ class UnlockFactory(AbstractFactory):
             30.0, [0,0,1,1,1,0,0,1,0,1,0,1,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1]))
         overlap_models.append(self.state_factory.create_wall_clock_timed_stimulus(
             30.0, np.logical_not([0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0])))
-        overlap_stimuli = self.state_factory.create_timed_stimuli(10.0, 0, *overlap_models)
+        overlap_stimuli = self.state_factory.create_timed_stimuli(20.0, 0, *overlap_models)
         overlap_views = self.view_factory.create_dual_overlapping_cvep_view(
             overlap_models, stimulation.canvas, overlap_props)
 
@@ -395,7 +395,7 @@ class UnlockFactory(AbstractFactory):
             view = ExperimentView(model, stimulation.canvas, normal_views, overlap_views)
 
         if offline_data:
-            offline_data = self.state_factory.create_offline_data('experiment')
+            offline_data = self.state_factory.create_offline_data('experiment-%s' % mode)
             state_chain = self.state_factory.create_state_chain(model, offline_data)
         else:
             state_chain = model

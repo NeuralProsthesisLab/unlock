@@ -113,16 +113,17 @@ class ScoredTemplateMatch(UnlockDecoder):
 
 class MsequenceTemplateMatcher(UnlockDecoder):
     def __init__(self, templates, n_electrodes=8, center=2, surround=(0, 4, 7),
-                 alpha=0.05, trial_marker=1, buffer_size=1000):
+                 alpha=0.05, trial_marker=1, buffer_size=1000, training=False):
         super(MsequenceTemplateMatcher, self).__init__()
-        self.templates = templates
+        self.filename = templates
+        self.templates = []
         self.n_electrodes = n_electrodes
         self.center = center
         self.surround = surround
         self.alpha = alpha
         self.mu = np.zeros(n_electrodes)
         self.trial_marker = trial_marker
-        self.downsample = templates.shape[1]
+        self.downsample = [64, 64, 64]
 
         self.channels = list(range(n_electrodes)) + [10]
         self.buffer = np.zeros((buffer_size, n_electrodes))
@@ -130,18 +131,28 @@ class MsequenceTemplateMatcher(UnlockDecoder):
         self.decode_now = False
         self.last_event = None
 
+        self.training = training
+        self.updating = False
+        self.n_targets = 4
+        self.training_buffer = np.zeros((self.n_targets, 8, 64))
+        self.trial_idx = np.zeros(self.n_targets, dtype=np.int32)
+        self.target_idx = 0
+        self.template_idx = 0
+
+        if self.training:
+            self.templates.append(np.zeros((4, 64)))
+            self.templates.append(np.zeros((4, 64)))
+            self.templates.append(np.zeros((2, 64)))
+            self.initial_templates = []
+        else:
+            try:
+                self.templates = np.load(self.filename)['templates']
+            except IOError:
+                raise Exception("Missing template file!")
+
     def decode(self, command):
         if self.decode_now:
-            trial_data = self.buffer[0:self.cursor]
-            trial = (np.sum(trial_data[:, self.surround], axis=1) -
-                     len(self.surround)*trial_data[:, self.center])
-            trial = sig.resample(trial, self.downsample)
-            scores = np.corrcoef(self.templates, trial)[4, 0:4]
-            command.decoder_scores = scores
-            predict = np.argmax(scores)
-            print(len(trial_data), predict, scores)
-            if scores[predict] > 0.3:
-                command.decision = predict + 1
+            command = self.classify(command)
             self.decode_now = False
             self.cursor = 0
             return command
@@ -163,24 +174,41 @@ class MsequenceTemplateMatcher(UnlockDecoder):
 
         if event is None:
             return command
-
         self.last_event = event
-        if event > 480:
-            trial_data = self.buffer[0:event]
-            trial = (np.sum(trial_data[:, self.surround], axis=1) -
-                     len(self.surround)*trial_data[:, self.center])
-            trial = sig.resample(trial, self.downsample)
-            scores = np.corrcoef(self.templates, trial)[4, 0:4]
-            command.decoder_scores = scores
-            predict = np.argmax(scores)
-            print(len(trial_data), predict, scores)
-            if scores[predict] > 0.3:
-                command.decision = predict + 1
 
-        self.buffer = np.roll(self.buffer, -event, axis=0)
-        self.cursor -= event
+        if self.training:
+            if 480 < event < 525:
+                self.training_buffer[self.target_idx, self.trial_idx[self.target_idx]] = self.extract_trial()
+                self.trial_idx[self.target_idx] += 1
+        else:
+            if event > 480:
+                command = self.classify(command)
+
+        self.buffer = np.roll(self.buffer, -self.last_event, axis=0)
+        self.cursor -= self.last_event
 
         return command
+
+    def classify(self, command):
+        trial = self.extract_trial()
+        scores = np.corrcoef(self.templates[self.template_idx], trial)[self.n_targets, 0:self.n_targets]
+        predict = np.argmax(scores)
+        print(self.last_event, self.target_idx, predict, scores)
+
+        command.decoder_scores = scores
+        if scores[predict] > 0.3:
+            command.decision = predict + 1
+            if self.updating:
+                template = self.templates[self.template_idx][self.target_idx]
+                self.templates[self.template_idx][self.target_idx] = np.mean([template, trial], axis=0)
+
+        return command
+
+    def extract_trial(self):
+        trial_data = self.buffer[0:self.last_event]
+        trial = (np.sum(trial_data[:, self.surround], axis=1) -
+                 len(self.surround)*trial_data[:, self.center])
+        return sig.resample(trial, self.downsample[self.template_idx])
 
     def start(self):
         super(MsequenceTemplateMatcher, self).start()
@@ -190,6 +218,21 @@ class MsequenceTemplateMatcher(UnlockDecoder):
 
     def stop(self):
         super(MsequenceTemplateMatcher, self).stop()
-        if self.cursor > 480 and self.last_event is not None:
+        if not self.training and self.cursor > 480 and self.last_event is not None:
             self.decode_now = True
+
+    def save_templates(self):
+        if self.training:
+            self.initial_templates = [template.copy() for template in self.templates]
+            np.savez(self.filename, templates=self.templates, initial_tempaltes=self.initial_templates)
+        elif self.updating:
+            np.savez(self.filename, templates=self.templates, initial_tempaltes=self.initial_templates)
+
+    def set_block(self, block_idx):
+        for i in range(self.n_targets):
+            self.templates[self.template_idx][i] = np.median(self.training_buffer[i], axis=0)
+        self.template_idx = block_idx
+        self.n_targets = len(self.templates[self.template_idx])
+        self.training_buffer = np.zeros((self.n_targets, 8, self.downsample[self.template_idx]))
+        self.trial_idx = np.zeros(self.n_targets, dtype=np.int32)
 

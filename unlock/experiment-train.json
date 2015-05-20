@@ -7,11 +7,13 @@
         },
         "args" : {
           "mode" : "train",
-          "offline_data" : false
+          "block_sequence" : [0, 0, 1, 1, 2, 2],
+          "trials_per_block" : [8, 8, 4],
+          "offline_data" : true
         }
     },
     
-    "signal" : {
+   "signal" : {
         "singleton" : 0,
         "name" : "lsl",
         "args" : {
@@ -66,8 +68,9 @@
 
     "msequence_template_match" : {
         "args" : {
-            "templates" : "templates.npz",
-            "buffer_size" : 2000
+            "templates" : "s2-templates.npz",
+            "buffer_size" : 2000,
+            "training" : true
         }
     },
 
