@@ -335,8 +335,8 @@ class UnlockFactory(AbstractFactory):
     ###########################################################################
     ## Applications
     ###########################################################################
-    def experiment(self, stimulation=None, decoder=None, mode='test', block_sequence=(0,), trials_per_block=1,
-                   offline_data=False):
+    def experiment(self, stimulation=None, decoder=None, mode='test', demo=False, block_sequence=(0,),
+                   trials_per_block=1, offline_data=False):
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}
@@ -384,13 +384,13 @@ class UnlockFactory(AbstractFactory):
         if mode == 'train':
             from unlock.state.experiment_state import ExperimentTrainerState
             model = ExperimentTrainerState(mode, normal_stimuli, overlap_stimuli, self.signal.outlet, decoder, block_sequence,
-                                    trials_per_block)
+                                    trials_per_block, demo=demo)
             from unlock.view.experiment_view import ExperimentTrainerView
             view = ExperimentTrainerView(model, stimulation.canvas, normal_views, overlap_views)
         else:
             from unlock.state.experiment_state import ExperimentState
             model = ExperimentState(mode, normal_stimuli, overlap_stimuli, self.signal.outlet, decoder, block_sequence,
-                                    trials_per_block)
+                                    trials_per_block, demo=demo)
             from unlock.view.experiment_view import ExperimentView
             view = ExperimentView(model, stimulation.canvas, normal_views, overlap_views)
 

@@ -82,9 +82,10 @@ class Markers:
 
 
 class ExperimentState(UnlockState):
-    def __init__(self, mode, stim1, stim2, outlet, decoder, block_sequence, trials_per_block):
+    def __init__(self, mode, stim1, stim2, outlet, decoder, block_sequence, trials_per_block, demo=False):
         super(ExperimentState, self).__init__()
         self.mode = mode
+        self.demo = demo
         self.stim1 = stim1
         self.stim2 = stim2
         self.current_stim = self.stim1
@@ -128,7 +129,10 @@ class ExperimentState(UnlockState):
         self.feedback_scores = np.zeros(5)
 
     def get_feedback_score(self):
-        return int(self.feedback_scores[self.cue])
+        if self.demo:
+            return np.random.randint(63, 256)
+        else:
+            return int(self.feedback_scores[self.cue])
 
     def stop_stim(self):
         self.current_stim.stop()
@@ -171,7 +175,7 @@ class ExperimentState(UnlockState):
         if block is BlockStartGazeState:
             self.current_stim = self.stim2
             self.cues = [CueTileAState, CueTileBState, CueNullState]
-            if self.mode == 'demo':
+            if self.demo:
                 self.cues = [CueTileAState, CueTileBState, CueNullState, CueTileAState, CueTileBState]
             self.fixations = [TrialStateCenter, TrialStateNE, TrialStateSE, TrialStateSW, TrialStateNW]
             self.oddball_position = np.array([[60, 6], [-60, -6]])
@@ -202,7 +206,9 @@ class ExperimentState(UnlockState):
             fixation_order = np.tile(np.arange(n_fixations), (int(n_trials / n_fixations),))
         oddball = np.zeros(len(cue_order))
         valid = np.where(cue_order < n_targets-1)[0]
-        if block is BlockStartGazeState:
+        if self.demo:
+            oddball[valid[np.random.choice(len(valid), 1, replace=False)]] = 1
+        elif block is BlockStartGazeState:
             oddball[valid[np.random.choice(len(valid), np.random.randint(2, 4), replace=False)]] = 1
         else:
             oddball[valid[np.random.choice(len(valid), np.random.randint(4, 7), replace=False)]] = 1
@@ -270,9 +276,9 @@ class ExperimentTrainerState(ExperimentState):
      - run through normally, with extended training times, providing continual feedback
      - stop after n trials with each target
     """
-    def __init__(self, mode, stim1, stim2, outlet, decoder, block_sequence, trials_per_block):
+    def __init__(self, mode, stim1, stim2, outlet, decoder, block_sequence, trials_per_block, demo=False):
         super(ExperimentTrainerState, self).__init__(mode, stim1, stim2, outlet, decoder, block_sequence,
-                                                     trials_per_block)
+                                                     trials_per_block, demo=demo)
 
         self.feedback_scores = np.zeros(4)
         self.feedback_target = np.zeros(4)

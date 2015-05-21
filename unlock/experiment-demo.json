@@ -2,20 +2,25 @@
     "experiment" : {
         "main" : true,
         "deps" : {
-          "stimulation": "no_stimulation",
-          "decoder": "msequence_template_match"
+            "stimulation": "no_stimulation",
+            "decoder": "msequence_template_match"
         },
         "args" : {
-          "mode" : "demo",
-          "block_sequence" : [0, 1, 2],
-          "trials_per_block" : [5, 5, 5],
-          "offline_data" : false
+            "mode" : "test",
+            "demo" : true,
+            "block_sequence" : [0, 1, 2],
+            "trials_per_block" : [5, 5, 5],
+            "offline_data" : false
         }
     },
     
     "signal" : {
         "singleton" : 0,
-        "name" : "random"
+        "name" : "lsl",
+        "args" : {
+            "stream_name" : "NIC",
+            "stream_type" : "EEG"
+        }
     },
 
     "window" : {
@@ -64,7 +69,7 @@
 
     "msequence_template_match" : {
         "args" : {
-            "templates" : "templates.npz",
+            "templates" : "s0-templates.npz",
             "buffer_size" : 2000
         }
     },
