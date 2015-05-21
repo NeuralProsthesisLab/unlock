@@ -46,6 +46,41 @@ import numpy as np
 from unlock.state import UnlockState, TimerState
 
 
+class Markers:
+    SEQUENCE = 1
+    CUE_UP = 2
+    CUE_DOWN = 3
+    CUE_LEFT = 4
+    CUE_RIGHT = 5
+    CUE_A = 2
+    CUE_B = 3
+    CUE_NULL = 6
+    ODDBALL_ON = 7
+    ODDBALL_OFF = 8
+    SPACEBAR_PRESS = 9
+    PREP = 10
+    TRIAL_FIXATION_CENTER = 11
+    TRIAL_FIXATION_NORTHEAST = 12
+    TRIAL_FIXATION_SOUTHEAST = 13
+    TRIAL_FIXATION_SOUTHWEST = 14
+    TRIAL_FIXATION_NORTHWEST = 15
+    TRIAL_FIXATION_NORTH = 16
+    TRIAL_FIXATION_SOUTH = 17
+    TRIAL_FIXATION_WEST = 18
+    TRIAL_FIXATION_EAST = 19
+    FEEDBACK_GOOD = 20
+    FEEDBACK_BAD = 21
+    FEEDBACK_FIXATE = 22
+    FEEDBACK_QUALITATIVE = 23
+    REST = 30
+    BLOCK_OVERT = 31
+    BLOCK_COVERT = 32
+    BLOCK_OVERLAPPED = 33
+    BLOCK_END = 34
+    EXPERIMENT_START = 40
+    EXPERIMENT_END = 41
+
+
 class ExperimentState(UnlockState):
     def __init__(self, mode, stim1, stim2, outlet, decoder, block_sequence, trials_per_block):
         super(ExperimentState, self).__init__()
@@ -90,12 +125,10 @@ class ExperimentState(UnlockState):
         self.timer.begin_timer()
         self.state_change = True
 
-        self.feedback_scores = np.array([0, 0, 0, 0])
-        self.feedback_target = np.array([0, 0, 0, 0])
-        self.feedback_step = 0
+        self.feedback_scores = np.zeros(5)
 
     def get_feedback_score(self):
-        return int(self.feedback_target[self.cue])
+        return int(self.feedback_scores[self.cue])
 
     def stop_stim(self):
         self.current_stim.stop()
@@ -111,10 +144,7 @@ class ExperimentState(UnlockState):
             return self.state
 
     def get_feedback(self):
-        if self.cue == np.argmax(self.feedback_target):
-            return FeedbackGoodState
-        else:
-            return FeedbackBadState
+        return FeedbackQualitativeState
 
     def get_oddball_state(self):
         if self.oddball_change:
@@ -122,8 +152,8 @@ class ExperimentState(UnlockState):
             return self.oddball
 
     def get_oddball(self):
-        if self.cue < len(self.cues)-1 and np.random.random() < 0.15:
-            t = TrialState.duration / 2 + 0.5*np.random.random()
+        if self.trial_sequence[self.trial_count][2] == 1:
+            t = 0.5 + 0.5*np.random.random()
             self.oddball_timer = TimerState(t)
             self.oddball_timer.begin_timer()
 
@@ -169,9 +199,15 @@ class ExperimentState(UnlockState):
         if block is BlockStartOvertState:
             fixation_order = np.repeat(np.arange(n_fixations), int(n_trials / n_fixations))
         else:
-            fixation_order = np.tile(np.arange(n_fixations), int(n_trials / n_fixations))
-        order = np.vstack((cue_order, fixation_order))
-        self.trial_sequence = np.random.permutation(order.T)
+            fixation_order = np.tile(np.arange(n_fixations), (int(n_trials / n_fixations),))
+        oddball = np.zeros(len(cue_order))
+        valid = np.where(cue_order < n_targets-1)[0]
+        if block is BlockStartGazeState:
+            oddball[valid[np.random.choice(len(valid), np.random.randint(2, 4), replace=False)]] = 1
+        else:
+            oddball[valid[np.random.choice(len(valid), np.random.randint(4, 7), replace=False)]] = 1
+        order = np.vstack((cue_order, fixation_order, oddball))
+        self.trial_sequence = np.random.permutation(order.T).astype(np.int32)
         return block
 
     def next_state(self):
@@ -182,23 +218,26 @@ class ExperimentState(UnlockState):
         self.timer.begin_timer()
         self.state_change = True
 
-    def process_command(self, command):
-        if hasattr(command, "decoder_scores"):
-            scores = np.abs(command.decoder_scores)
+    def update_feedback_scores(self, scores=None):
+        if scores is not None:
+            scores = np.r_[scores, np.nan]
+            if np.isnan(scores[self.cue]):
+                return
             scores = 255 / (1 + np.exp(-10*(scores - 0.3)))
-            scores = np.r_[scores, 0]
-            # scores = 255 * np.exp(scores) / np.sum(np.exp(scores))
-            # scores -= np.min(scores)
-            # scores = scores / np.max(scores) * 255
-            self.feedback_target[self.cue] = int(scores[self.cue])
-            self.feedback_step = self.feedback_target[self.cue] - self.feedback_scores[self.cue] / 90.0
-        elif (self.feedback_scores != self.feedback_target).all():
-            self.feedback_scores[self.cue] += self.feedback_step
+            self.feedback_scores[self.cue] = int(scores[self.cue])
+
+    def process_command(self, command):
+        self.update_feedback_scores(scores=getattr(command, "decoder_scores", None))
 
         if self.state.hold:
             if command.selection:
+                self.outlet.push_sample([Markers.SPACEBAR_PRESS])
                 self.next_state()
         else:
+            if command.selection:
+                self.outlet.push_sample([Markers.SPACEBAR_PRESS])
+            if command.delta is None:
+                return
             self.timer.update_timer(command.delta)
             if self.timer.is_complete():
                 self.next_state()
@@ -211,14 +250,15 @@ class ExperimentState(UnlockState):
                             self.oddball_change = True
                             self.oddball = (False, (0, 0), (255, 255, 255), 1)
                             self.oddball_timer = None
+                            self.outlet.push_sample([Markers.ODDBALL_OFF])
                         else:
                             fixation = self.trial_sequence[self.trial_count][1]
                             pos = self.oddball_position[self.cue] + self.oddball_offset[fixation]
                             self.oddball = (True, pos, self.oddball_color[self.cue], self.oddball_scale)
                             self.oddball_change = True
-                            self.oddball_timer = TimerState(0.2)
+                            self.oddball_timer = TimerState(0.25)
                             self.oddball_timer.begin_timer()
-
+                            self.outlet.push_sample([Markers.ODDBALL_ON])
 
 
 class ExperimentTrainerState(ExperimentState):
@@ -233,6 +273,10 @@ class ExperimentTrainerState(ExperimentState):
     def __init__(self, mode, stim1, stim2, outlet, decoder, block_sequence, trials_per_block):
         super(ExperimentTrainerState, self).__init__(mode, stim1, stim2, outlet, decoder, block_sequence,
                                                      trials_per_block)
+
+        self.feedback_scores = np.zeros(4)
+        self.feedback_target = np.zeros(4)
+        self.feedback_step = 0
         self.initial_phase = False
         TrialState.duration = 5.5
 
@@ -247,7 +291,10 @@ class ExperimentTrainerState(ExperimentState):
                     stim.state = None
 
     def get_feedback(self):
-        return FeedbackBlankState
+        if self.initial_phase:
+            return FeedbackFixateState
+        else:
+            return FeedbackQualitativeState
 
     def next_cue(self):
         self.cue = self.trial_sequence[self.trial_count][0]
@@ -268,8 +315,8 @@ class ExperimentTrainerState(ExperimentState):
         self.decoder.decoders[1].set_block(block_idx)
         block = self.blocks[block_idx]
         n_trials = self.trials_per_block[block_idx]
-        # if not self.initial_phase:
-        #     n_trials *= 3
+        if not self.initial_phase:
+            n_trials *= 2
         if block is BlockStartGazeState:
             self.current_stim = self.stim2
             self.cues = [CueTileAState, CueTileBState]
@@ -289,10 +336,19 @@ class ExperimentTrainerState(ExperimentState):
         assert n_trials % n_fixations == 0
         cue_order = np.repeat(np.arange(n_targets), int(n_trials / n_targets))
         fixation_order = np.repeat(np.arange(n_fixations), int(n_trials / n_fixations))
-        order = np.vstack((cue_order, fixation_order))
-        self.trial_sequence = np.random.permutation(order.T)
+        oddball = np.zeros(len(cue_order))
+        order = np.vstack((cue_order, fixation_order, oddball))
+        self.trial_sequence = np.random.permutation(order.T).astype(np.int32)
         return block
 
+    def update_feedback_scores(self, scores=None):
+        if scores is None:
+            if (self.feedback_scores != self.feedback_target).all():
+                self.feedback_scores[self.cue] += self.feedback_step
+        else:
+            scores = 255 / (1 + np.exp(-10*(scores - 0.3)))
+            self.feedback_target[self.cue] = int(scores[self.cue])
+            self.feedback_step = self.feedback_target[self.cue] - self.feedback_scores[self.cue] / 90.0
 
 class CueState:
     duration = 0.5
@@ -309,44 +365,44 @@ class CueState:
 
 
 class CueUpState(CueState):
-    marker = 2
+    marker = Markers.CUE_UP
     label = '\u21e7'
 
 
 class CueDownState(CueState):
-    marker = 3
+    marker = Markers.CUE_DOWN
     label = '\u21e9'
 
 
 class CueLeftState(CueState):
-    marker = 4
+    marker = Markers.CUE_LEFT
     label = '\u21e6'
 
 
 class CueRightState(CueState):
-    marker = 5
+    marker = Markers.CUE_RIGHT
     label = '\u21e8'
 
 
 class CueTileAState(CueState):
-    marker = 2
+    marker = Markers.CUE_A
     label = '\u25a3'
     color = (0, 255, 0, 255)
 
 
 class CueTileBState(CueState):
-    marker = 3
+    marker = Markers.CUE_B
     label = '\u25a3'
     color = (255, 0, 255, 255)
 
 
 class CueNullState(CueState):
-    marker = 6
+    marker = Markers.CUE_NULL
     label = '+'
 
 
 class PrepState:
-    marker = 10
+    marker = Markers.PREP
     duration = 0.5
     label = '+'
     size = 48
@@ -381,47 +437,47 @@ class TrialState:
 
 
 class TrialStateCenter(TrialState):
-    marker = 11
+    marker = Markers.TRIAL_FIXATION_CENTER
     position = (0.5, 0.5)
 
 
 class TrialStateNE(TrialState):
-    marker = 12
+    marker = Markers.TRIAL_FIXATION_NORTHEAST
     position = (0.8, 0.8)
 
 
 class TrialStateSE(TrialState):
-    marker = 13
+    marker = Markers.TRIAL_FIXATION_SOUTHEAST
     position = (0.8, 0.2)
 
 
 class TrialStateSW(TrialState):
-    marker = 14
+    marker = Markers.TRIAL_FIXATION_SOUTHWEST
     position = (0.2, 0.2)
 
 
 class TrialStateNW(TrialState):
-    marker = 15
+    marker = Markers.TRIAL_FIXATION_NORTHWEST
     position = (0.2, 0.8)
 
 
 class TrialStateN(TrialState):
-    marker = 16
+    marker = Markers.TRIAL_FIXATION_NORTH
     position = (0.5, 0.833)
 
 
 class TrialStateS(TrialState):
-    marker = 17
+    marker = Markers.TRIAL_FIXATION_SOUTH
     position = (0.5, 0.167)
 
 
 class TrialStateW(TrialState):
-    marker = 18
+    marker = Markers.TRIAL_FIXATION_WEST
     position = (0.3125, 0.5)
 
 
 class TrialStateE(TrialState):
-    marker = 19
+    marker = Markers.TRIAL_FIXATION_EAST
     position = (0.6875, 0.5)
 
 
@@ -442,23 +498,28 @@ class FeedbackState:
 
 
 class FeedbackGoodState(FeedbackState):
-    marker = 20
+    marker = Markers.FEEDBACK_GOOD
     label = '\u2714'
 
 
 class FeedbackBadState(FeedbackState):
-    marker = 21
+    marker = Markers.FEEDBACK_BAD
     label = '\u2718'
 
 
-class FeedbackBlankState(FeedbackState):
-    marker = 22
+class FeedbackFixateState(FeedbackState):
+    marker = Markers.FEEDBACK_FIXATE
     size = 48
     label = '+'
 
 
+class FeedbackQualitativeState(FeedbackState):
+    marker = Markers.FEEDBACK_QUALITATIVE
+    label = ''
+
+
 class RestState:
-    marker = 30
+    marker = Markers.REST
     duration = 0.4
     label = ''
     size = 48
@@ -492,22 +553,22 @@ class BlockStartState:
 
 
 class BlockStartOvertState(BlockStartState):
-    marker = 31
+    marker = Markers.BLOCK_OVERT
     label = 'Overt'
 
 
 class BlockStartCovertState(BlockStartState):
-    marker = 32
+    marker = Markers.BLOCK_COVERT
     label = 'Covert'
 
 
 class BlockStartGazeState(BlockStartState):
-    marker = 33
+    marker = Markers.BLOCK_OVERLAPPED
     label = 'Overlapping'
 
 
 class BlockEndState:
-    marker = 34
+    marker = Markers.BLOCK_END
     duration = 0
     label = 'Press space bar to continue.'
     size = 48
@@ -526,7 +587,7 @@ class BlockEndState:
 
 
 class ExperimentStartState:
-    marker = 40
+    marker = Markers.EXPERIMENT_START
     duration = 0
     label = ''
     size = 48
@@ -542,7 +603,7 @@ class ExperimentStartState:
 
 
 class ExperimentEndState:
-    marker = 41
+    marker = Markers.EXPERIMENT_END
     duration = 0
     label = 'All done. Thanks!'
     size = 48
