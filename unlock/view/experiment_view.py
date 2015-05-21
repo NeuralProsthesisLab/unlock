@@ -3,7 +3,7 @@ import pyglet
 
 from unlock.view import UnlockView, PygletTextLabel, PygletSprite
 from unlock.state import UnlockState
-from unlock.state.experiment_state import TrialState, RestState
+from unlock.state.experiment_state import TrialState, RestState, FeedbackQualitativeState
 
 
 class ExperimentView(UnlockView):
@@ -15,9 +15,27 @@ class ExperimentView(UnlockView):
         self.overlap_view = overlap_view
         cx, cy = canvas.center()
         self.text = PygletTextLabel(UnlockState(True), canvas, '', cx, cy)
-        img = pyglet.image.load("oddball.png")
+        img = pyglet.image.load("view/resource/oddball.png")
         self.oddball = PygletSprite(UnlockState(True), canvas, img, cx, cy, 0)
         self.oddball.sprite.visible = False
+
+        self.feedback = None
+        self.feedback_mask = np.tile(np.array([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.uint8), (4,))
+
+    def create_feedback(self, score):
+        cx, cy = self.canvas.center()
+        r = 60
+        color = self.feedback_mask * score
+        self.feedback = self.canvas.batch.add(16, pyglet.gl.GL_QUADS, None,
+                                              ('v2f', (cx, cy, cx+r, cy+r, cx+2*r, cy, cx+r, cy-r,
+                                                       cx, cy, cx+r, cy-r, cx, cy-2*r, cx-r, cy-r,
+                                                       cx, cy, cx-r, cy-r, cx-2*r, cy, cx-r, cy+r,
+                                                       cx, cy, cx-r, cy+r, cx, cy+2*r, cx+r, cy+r)),
+                                              ('c3B', color))
+
+    def clear_feedback(self):
+        self.feedback.delete()
+        self.feedback = None
 
     def render(self):
         state = self.model.get_state()
@@ -29,6 +47,10 @@ class ExperimentView(UnlockView):
             pos = getattr(state, 'position', (0.5, 0.5))
             self.text.label.x = self.canvas.width * pos[0]
             self.text.label.y = self.canvas.height * pos[1]
+            if state is FeedbackQualitativeState:
+                self.create_feedback(self.model.get_feedback_score())
+            elif state is RestState:
+                self.clear_feedback()
         for view in self.overlap_view:
             view.render()
         for view in self.normal_view:
@@ -42,13 +64,10 @@ class ExperimentView(UnlockView):
 
 class ExperimentTrainerView(ExperimentView):
     def __init__(self, model, canvas, normal_view, overlap_view):
-        self.feedback = None
-        self.cue = None
-        self.feedback_mask = np.array([0, 1, 1])
         super(ExperimentTrainerView, self).__init__(model, canvas, normal_view, overlap_view)
+        self.feedback_mask = np.array([0, 1, 1])
 
     def create_feedback(self, cue):
-        self.cue = cue
         cx, cy = self.canvas.center()
         radius = 60
         offset = 210
@@ -81,11 +100,6 @@ class ExperimentTrainerView(ExperimentView):
                                                            cx + offset, cy - radius)),
                                                   ('c3B', (0, 0, 0)*4))
 
-    def clear_feedback(self):
-        self.feedback.delete()
-        self.feedback = None
-        self.cue = None
-
     def render(self):
         state = self.model.get_state()
         if state is not None:
@@ -98,7 +112,7 @@ class ExperimentTrainerView(ExperimentView):
             self.text.label.y = self.canvas.height * pos[1]
             if not self.model.initial_phase:
                 if state.__base__ is TrialState:
-                    self.create_feedback(self.model.trial_sequence[self.model.trial_count][0])
+                    self.create_feedback(self.model.cue)
                 elif state is RestState:
                     self.clear_feedback()
         for view in self.overlap_view:
