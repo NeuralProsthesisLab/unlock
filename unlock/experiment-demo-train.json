@@ -6,10 +6,10 @@
             "decoder": "msequence_template_match"
         },
         "args" : {
-            "mode" : "test",
+            "mode" : "train",
             "demo" : true,
-            "block_sequence" : [0, 1, 2],
-            "trials_per_block" : [5, 5, 5],
+            "block_sequence" : [2, 2, 1, 1, 2, 2],
+            "trials_per_block" : [4, 4, 2],
             "offline_data" : false
         }
     },
@@ -28,7 +28,7 @@
        "name" : "pyglet",
         "args" : {
             "fullscreen" : true,
-            "fps" :false,
+            "fps" : false,
             "vsync" : true
         }
     },

@@ -6,11 +6,11 @@
             "decoder": "msequence_template_match"
         },
         "args" : {
-            "mode" : "train",
-            "demo" : false,
-            "block_sequence" : [0, 0, 1, 1, 2, 2],
-            "trials_per_block" : [8, 8, 4],
-            "offline_data" : true
+            "mode" : "test",
+            "demo" : true,
+            "block_sequence" : [0, 1, 2],
+            "trials_per_block" : [5, 5, 5],
+            "offline_data" : false
         }
     },
     
@@ -69,9 +69,8 @@
 
     "msequence_template_match" : {
         "args" : {
-            "templates" : "s2-templates.npz",
-            "buffer_size" : 2000,
-            "training" : true
+            "templates" : "s0-templates.npz",
+            "buffer_size" : 2000
         }
     },
 

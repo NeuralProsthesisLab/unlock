@@ -65,9 +65,9 @@ class ExperimentView(UnlockView):
 class ExperimentTrainerView(ExperimentView):
     def __init__(self, model, canvas, normal_view, overlap_view):
         super(ExperimentTrainerView, self).__init__(model, canvas, normal_view, overlap_view)
-        self.feedback_mask = np.array([0, 1, 1])
+        self.feedback_online_mask = np.array([0, 1, 1])
 
-    def create_feedback(self, cue):
+    def create_online_feedback(self, cue):
         cx, cy = self.canvas.center()
         radius = 60
         offset = 210
@@ -111,8 +111,10 @@ class ExperimentTrainerView(ExperimentView):
             self.text.label.x = self.canvas.width * pos[0]
             self.text.label.y = self.canvas.height * pos[1]
             if not self.model.initial_phase:
-                if state.__base__ is TrialState:
-                    self.create_feedback(self.model.cue)
+                if self.model.block_sequence[self.model.block_count] == 2 and state is FeedbackQualitativeState:
+                    self.create_feedback(self.model.get_feedback_score())
+                elif self.model.block_sequence[self.model.block_count] != 2 and state.__base__ is TrialState:
+                    self.create_online_feedback(self.model.cue)
                 elif state is RestState:
                     self.clear_feedback()
         for view in self.overlap_view:
@@ -120,4 +122,4 @@ class ExperimentTrainerView(ExperimentView):
         for view in self.normal_view:
             view.render()
         if self.feedback is not None:
-            self.feedback.colors[0:3] = self.feedback_mask * self.model.get_feedback_score()
+            self.feedback.colors[0:3] = self.feedback_online_mask * self.model.get_feedback_score()

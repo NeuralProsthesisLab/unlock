@@ -129,10 +129,7 @@ class ExperimentState(UnlockState):
         self.feedback_scores = np.zeros(5)
 
     def get_feedback_score(self):
-        if self.demo:
-            return np.random.randint(63, 256)
-        else:
-            return int(self.feedback_scores[self.cue])
+        return int(self.feedback_scores[self.cue])
 
     def stop_stim(self):
         self.current_stim.stop()
@@ -226,10 +223,12 @@ class ExperimentState(UnlockState):
 
     def update_feedback_scores(self, scores=None):
         if scores is not None:
+            if self.demo:
+                scores = np.random.random(4)
             scores = np.r_[scores, np.nan]
             if np.isnan(scores[self.cue]):
                 return
-            scores = 255 / (1 + np.exp(-10*(scores - 0.3)))
+            scores = 255 / (1 + np.exp(-10*(np.abs(scores) - 0.3)))
             self.feedback_scores[self.cue] = int(scores[self.cue])
 
     def process_command(self, command):
@@ -284,7 +283,10 @@ class ExperimentTrainerState(ExperimentState):
         self.feedback_target = np.zeros(4)
         self.feedback_step = 0
         self.initial_phase = False
-        TrialState.duration = 5.5
+        if self.demo:
+            TrialState.duration = 3.3
+        else:
+            TrialState.duration = 5.5
 
     def start_stim(self):
         target_idx = self.trial_sequence[self.trial_count][0]
@@ -317,11 +319,15 @@ class ExperimentTrainerState(ExperimentState):
             self.initial_phase = True
             self.decoder.decoders[1].training = True
             self.decoder.decoders[1].updating = False
+        self.feedback_scores = np.zeros(4)
+        self.feedback_target = np.zeros(4)
+        self.feedback_step = 0
+
         block_idx = self.block_sequence[self.block_count]
         self.decoder.decoders[1].set_block(block_idx)
         block = self.blocks[block_idx]
         n_trials = self.trials_per_block[block_idx]
-        if not self.initial_phase:
+        if not self.initial_phase and not self.demo:
             n_trials *= 2
         if block is BlockStartGazeState:
             self.current_stim = self.stim2
@@ -349,12 +355,24 @@ class ExperimentTrainerState(ExperimentState):
 
     def update_feedback_scores(self, scores=None):
         if scores is None:
-            if (self.feedback_scores != self.feedback_target).all():
-                self.feedback_scores[self.cue] += self.feedback_step
+            if self.cue is None:
+                return
+            score = self.feedback_scores[self.cue]
+            if np.abs(self.feedback_target[self.cue] - score) > 5:
+                score += self.feedback_step
+                if score > 255:
+                    score = 255
+                if score < 0:
+                    score = 0
+                self.feedback_scores[self.cue] = score
         else:
-            scores = 255 / (1 + np.exp(-10*(scores - 0.3)))
+            if self.demo:
+                scores = np.random.random(4)
+            scores *= 255
+            if np.isnan(scores[self.cue]) or scores[self.cue] < self.feedback_target[self.cue]:
+                return
             self.feedback_target[self.cue] = int(scores[self.cue])
-            self.feedback_step = self.feedback_target[self.cue] - self.feedback_scores[self.cue] / 90.0
+            self.feedback_step = (self.feedback_target[self.cue] - self.feedback_scores[self.cue]) / 90.0
 
 class CueState:
     duration = 0.5
