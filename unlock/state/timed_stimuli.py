@@ -77,8 +77,8 @@ class TimedStimuli(UnlockState):
             sequence_start_trigger = False
             for stimulus in self.stimuli:
                 response = stimulus.process_command(command)
-                if response is not Trigger.Null:
-                    sequence_start_trigger = response
+                if response is Trigger.Start:
+                    sequence_start_trigger = True
             if sequence_start_trigger:
                 ret = Trigger.Start
                 if self.outlet is not None:
@@ -174,6 +174,7 @@ class TimedStimulus(UnlockState):
     def start(self):
         self.seq_state.start()
         self.state = self.seq_state.state()
+        self.time_state.elapsed = 0  # force hard reset to 0
         self.time_state.begin_timer()
 
     def stop(self):
@@ -194,7 +195,7 @@ class TimedStimulus(UnlockState):
         if self.time_state.is_complete():
             self.state = self.seq_state.state()
             if self.seq_state.is_start():
-                start_trigger = Trigger.Start
+                trigger_value = Trigger.Start
             elif self.seq_state.is_end():
                 self.count += 1
                 if self.count == self.repeat_count:
