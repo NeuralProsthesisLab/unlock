@@ -132,9 +132,13 @@ class MsequenceTemplateMatcher(UnlockDecoder):
         self.last_event = None
 
         self.training = training
-        self.updating = False
+        self.updating = not training
         self.n_targets = 4
-        self.training_buffer = np.zeros((self.n_targets, 8, 64))
+        self.training_buffer = [
+            np.zeros((4, 30, 64, self.n_electrodes)),
+            np.zeros((4, 30, 64, self.n_electrodes)),
+            np.zeros((2, 30, 64, self.n_electrodes))
+        ]
         self.trial_idx = np.zeros(self.n_targets, dtype=np.int32)
         self.target_idx = 0
         self.template_idx = 0
@@ -152,7 +156,9 @@ class MsequenceTemplateMatcher(UnlockDecoder):
 
     def decode(self, command):
         if self.decode_now:
-            command = self.classify(command)
+            trial = sig.resample(self.buffer[0:self.cursor], self.downsample[self.template_idx], axis=0)
+            features = self.extract_features(trial)
+            command = self.classify(command, features)
             self.decode_now = False
             self.cursor = 0
             return command
@@ -176,39 +182,35 @@ class MsequenceTemplateMatcher(UnlockDecoder):
             return command
         self.last_event = event
 
-        if self.training:
-            if 480 < event < 525:
-                self.training_buffer[self.target_idx, self.trial_idx[self.target_idx]] = self.extract_trial()
+        if 480 < event < 525:
+            trial = sig.resample(self.buffer[0:self.last_event], self.downsample[self.template_idx], axis=0)
+            if self.training:
+                self.training_buffer[self.template_idx][self.target_idx, self.trial_idx[self.target_idx]] = trial
                 self.trial_idx[self.target_idx] += 1
-        else:
-            if event > 480:
-                command = self.classify(command)
+            else:
+                features = self.extract_features(trial)
+                command = self.classify(command, features)
 
         self.buffer = np.roll(self.buffer, -self.last_event, axis=0)
         self.cursor -= self.last_event
 
         return command
 
-    def classify(self, command):
-        trial = self.extract_trial()
-        scores = np.corrcoef(self.templates[self.template_idx], trial)[self.n_targets, 0:self.n_targets]
+    def classify(self, command, features):
+        scores = np.corrcoef(self.templates[self.template_idx], features)[self.n_targets, 0:self.n_targets]
         predict = np.argmax(scores)
         print(self.last_event, self.target_idx, predict, scores)
 
         command.decoder_scores = scores
         if scores[predict] > 0.3:
             command.decision = predict + 1
-            if self.updating:
-                template = self.templates[self.template_idx][self.target_idx]
-                self.templates[self.template_idx][self.target_idx] = np.mean([template, trial], axis=0)
 
         return command
 
-    def extract_trial(self):
-        trial_data = self.buffer[0:self.last_event]
-        trial = (np.sum(trial_data[:, self.surround], axis=1) -
-                 len(self.surround)*trial_data[:, self.center])
-        return sig.resample(trial, self.downsample[self.template_idx])
+    def extract_features(self, trial):
+        features = (np.sum(trial[:, self.surround], axis=1) -
+                 len(self.surround)*trial[:, self.center])
+        return features
 
     def start(self):
         super(MsequenceTemplateMatcher, self).start()
@@ -218,21 +220,21 @@ class MsequenceTemplateMatcher(UnlockDecoder):
 
     def stop(self):
         super(MsequenceTemplateMatcher, self).stop()
+        if self.training:
+            self.save_templates()
         if not self.training and self.cursor > 480 and self.last_event is not None:
             self.decode_now = True
 
     def save_templates(self):
-        if self.training:
-            self.initial_templates = [template.copy() for template in self.templates]
-            np.savez(self.filename, templates=self.templates, initial_tempaltes=self.initial_templates)
-        elif self.updating:
-            np.savez(self.filename, templates=self.templates, initial_tempaltes=self.initial_templates)
+        for i in range(self.n_targets):
+            lap = (np.sum(self.training_buffer[self.template_idx][i, :, :, [0, 4, 7]], axis=0) -
+                   3*self.training_buffer[self.template_idx][i, :, :, 2])
+            self.templates[self.template_idx][i] = np.median(lap, axis=0)
+        np.savez(self.filename, templates=self.templates, training_buffer=self.training_buffer)
 
     def set_block(self, block_idx):
-        for i in range(self.n_targets):
-            self.templates[self.template_idx][i] = np.median(self.training_buffer[i], axis=0)
+        # TODO: perform channel analysis to determine ideal filter for generating template
         self.template_idx = block_idx
         self.n_targets = len(self.templates[self.template_idx])
-        self.training_buffer = np.zeros((self.n_targets, 8, self.downsample[self.template_idx]))
         self.trial_idx = np.zeros(self.n_targets, dtype=np.int32)
 

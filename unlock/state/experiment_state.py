@@ -101,6 +101,7 @@ class ExperimentState(UnlockState):
         self.cues = None
         self.fixations = None
         self.cue = None
+        self.block = None
 
         self.oddball_position = None
         self.oddball_offset = None
@@ -166,10 +167,10 @@ class ExperimentState(UnlockState):
         return self.fixations[self.trial_sequence[self.trial_count][1]]
 
     def next_block(self):
-        block_idx = self.block_sequence[self.block_count]
-        block = self.blocks[block_idx]
-        n_trials = self.trials_per_block[block_idx]
-        if block is BlockStartGazeState:
+        self.block = self.block_sequence[self.block_count]
+        block_state = self.blocks[self.block]
+        n_trials = self.trials_per_block[self.block]
+        if block_state is BlockStartGazeState:
             self.current_stim = self.stim2
             self.cues = [CueTileAState, CueTileBState, CueNullState]
             if self.demo:
@@ -182,7 +183,7 @@ class ExperimentState(UnlockState):
         else:
             self.current_stim = self.stim1
             self.cues = [CueUpState, CueDownState, CueLeftState, CueRightState, CueNullState]
-            if block is BlockStartOvertState:
+            if block_state is BlockStartOvertState:
                 self.fixations = [TrialStateN, TrialStateS, TrialStateW, TrialStateE, TrialStateCenter]
             else:
                 self.fixations = [TrialStateCenter]
@@ -197,7 +198,7 @@ class ExperimentState(UnlockState):
         assert n_trials % n_targets == 0
         assert n_trials % n_fixations == 0
         cue_order = np.repeat(np.arange(n_targets), int(n_trials / n_targets))
-        if block is BlockStartOvertState:
+        if block_state is BlockStartOvertState:
             fixation_order = np.repeat(np.arange(n_fixations), int(n_trials / n_fixations))
         else:
             fixation_order = np.tile(np.arange(n_fixations), (int(n_trials / n_fixations),))
@@ -205,13 +206,13 @@ class ExperimentState(UnlockState):
         valid = np.where(cue_order < n_targets-1)[0]
         if self.demo:
             oddball[valid[np.random.choice(len(valid), 1, replace=False)]] = 1
-        elif block is BlockStartGazeState:
+        elif block_state is BlockStartGazeState:
             oddball[valid[np.random.choice(len(valid), np.random.randint(2, 4), replace=False)]] = 1
         else:
             oddball[valid[np.random.choice(len(valid), np.random.randint(4, 7), replace=False)]] = 1
         order = np.vstack((cue_order, fixation_order, oddball))
         self.trial_sequence = np.random.permutation(order.T).astype(np.int32)
-        return block
+        return block_state
 
     def next_state(self):
         self.state = self.state.next(self)
@@ -289,11 +290,10 @@ class ExperimentTrainerState(ExperimentState):
             TrialState.duration = 5.5
 
     def start_stim(self):
-        target_idx = self.trial_sequence[self.trial_count][0]
         self.current_stim.start()
         if self.initial_phase:
             for i, stim in enumerate(self.current_stim.stimuli):
-                if i == target_idx:
+                if i == self.cue:
                     stim.state = False
                 else:
                     stim.state = None
@@ -310,26 +310,25 @@ class ExperimentTrainerState(ExperimentState):
         return self.cues[self.cue]
 
     def next_block(self):
+        self.block = self.block_sequence[self.block_count]
+        block_state = self.blocks[self.block]
+        n_trials = self.trials_per_block[self.block]
+
         if self.initial_phase:
             self.initial_phase = False
-            self.decoder.decoders[1].save_templates()
-            self.decoder.decoders[1].training = False
             self.decoder.decoders[1].updating = True
         else:
             self.initial_phase = True
-            self.decoder.decoders[1].training = True
             self.decoder.decoders[1].updating = False
+            self.decoder.decoders[1].set_block(self.block)
+
         self.feedback_scores = np.zeros(4)
         self.feedback_target = np.zeros(4)
         self.feedback_step = 0
 
-        block_idx = self.block_sequence[self.block_count]
-        self.decoder.decoders[1].set_block(block_idx)
-        block = self.blocks[block_idx]
-        n_trials = self.trials_per_block[block_idx]
         if not self.initial_phase and not self.demo:
             n_trials *= 2
-        if block is BlockStartGazeState:
+        if block_state is BlockStartGazeState:
             self.current_stim = self.stim2
             self.cues = [CueTileAState, CueTileBState]
             self.fixations = [TrialStateCenter]
@@ -337,7 +336,7 @@ class ExperimentTrainerState(ExperimentState):
         else:
             self.current_stim = self.stim1
             self.cues = [CueUpState, CueDownState, CueLeftState, CueRightState]
-            if block is BlockStartOvertState:
+            if block_state is BlockStartOvertState:
                 self.fixations = [TrialStateN, TrialStateS, TrialStateW, TrialStateE]
             else:
                 self.fixations = [TrialStateCenter]
@@ -351,7 +350,7 @@ class ExperimentTrainerState(ExperimentState):
         oddball = np.zeros(len(cue_order))
         order = np.vstack((cue_order, fixation_order, oddball))
         self.trial_sequence = np.random.permutation(order.T).astype(np.int32)
-        return block
+        return block_state
 
     def update_feedback_scores(self, scores=None):
         if scores is None:

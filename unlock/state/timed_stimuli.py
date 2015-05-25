@@ -174,8 +174,8 @@ class TimedStimulus(UnlockState):
     def start(self):
         self.seq_state.start()
         self.state = self.seq_state.state()
-        self.time_state.elapsed = 0  # force hard reset to 0
         self.time_state.begin_timer()
+        self.time_state.elapsed = 0  # force hard reset to 0
 
     def stop(self):
         self.state = False
