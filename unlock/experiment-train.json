@@ -9,7 +9,7 @@
             "mode" : "train",
             "demo" : false,
             "block_sequence" : [0, 0, 1, 1, 2, 2],
-            "trials_per_block" : [8, 8, 4],
+            "trials_per_block" : [10, 10, 6],
             "offline_data" : true
         }
     },

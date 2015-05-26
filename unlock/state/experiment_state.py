@@ -291,7 +291,7 @@ class ExperimentTrainerState(ExperimentState):
 
     def start_stim(self):
         self.current_stim.start()
-        if self.initial_phase:
+        if self.initial_phase and self.cue != len(self.cues)-1:
             for i, stim in enumerate(self.current_stim.stimuli):
                 if i == self.cue:
                     stim.state = False
@@ -327,17 +327,23 @@ class ExperimentTrainerState(ExperimentState):
         self.feedback_step = 0
 
         if not self.initial_phase and not self.demo:
-            n_trials *= 2
+            n_trials = (n_trials - 2)*2
         if block_state is BlockStartGazeState:
             self.current_stim = self.stim2
             self.cues = [CueTileAState, CueTileBState]
             self.fixations = [TrialStateCenter]
+            if self.initial_phase:
+                self.cues.append(CueNullState)
             # self.fixations = [TrialStateCenter, TrialStateNE, TrialStateSE, TrialStateSW, TrialStateNW]
         else:
             self.current_stim = self.stim1
             self.cues = [CueUpState, CueDownState, CueLeftState, CueRightState]
+            if self.initial_phase:
+                self.cues.append(CueNullState)
             if block_state is BlockStartOvertState:
                 self.fixations = [TrialStateN, TrialStateS, TrialStateW, TrialStateE]
+                if self.initial_phase:
+                    self.fixations.append(TrialStateCenter)
             else:
                 self.fixations = [TrialStateCenter]
         n_targets = len(self.cues)
@@ -354,7 +360,7 @@ class ExperimentTrainerState(ExperimentState):
 
     def update_feedback_scores(self, scores=None):
         if scores is None:
-            if self.cue is None:
+            if self.cue is None or self.cue == len(self.feedback_scores):
                 return
             score = self.feedback_scores[self.cue]
             if np.abs(self.feedback_target[self.cue] - score) > 5:
@@ -607,6 +613,7 @@ class BlockEndState:
     @staticmethod
     def enter(state):
         state.decoder.stop()
+        state.decoder.decoders[1].save_templates()
 
 
 class ExperimentStartState:

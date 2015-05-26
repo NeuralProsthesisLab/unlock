@@ -133,17 +133,19 @@ class MsequenceTemplateMatcher(UnlockDecoder):
 
         self.training = training
         self.updating = not training
-        self.n_targets = 4
+        self.n_targets = 5
         self.training_buffer = [
-            np.zeros((4, 30, 64, self.n_electrodes)),
-            np.zeros((4, 30, 64, self.n_electrodes)),
-            np.zeros((2, 30, 64, self.n_electrodes))
+            np.zeros((5, 30, 64, self.n_electrodes)),
+            np.zeros((5, 30, 64, self.n_electrodes)),
+            np.zeros((3, 30, 64, self.n_electrodes))
         ]
         self.template_features = [
             np.zeros((4, 30, 64)),
             np.zeros((4, 30, 64)),
             np.zeros((2, 30, 64))
         ]
+        self.baselines = np.zeros((3, 64, self.n_electrodes))
+        self.mmads = np.zeros(4)
         self.trial_idx = np.zeros(self.n_targets, dtype=np.int32)
         self.target_idx = 0
         self.template_idx = 0
@@ -191,16 +193,22 @@ class MsequenceTemplateMatcher(UnlockDecoder):
             trial = sig.resample(self.buffer[0:self.last_event], self.downsample[self.template_idx], axis=0)
             if self.training:
                 self.training_buffer[self.template_idx][self.target_idx, self.trial_idx[self.target_idx]] = trial
-                feature = self.extract_features(trial)
-                self.template_features[self.template_idx][self.target_idx, self.trial_idx[self.target_idx]] = feature
                 self.trial_idx[self.target_idx] += 1
 
-                if self.updating:
+                if self.updating and self.target_idx != len(self.trial_idx)-1:
+                    feature = self.extract_features(trial - self.baselines[self.template_idx])
+                    self.template_features[self.template_idx][self.target_idx, self.trial_idx[self.target_idx]-1] = feature
                     features = self.template_features[self.template_idx][self.target_idx, 0:self.trial_idx[self.target_idx]]
                     template = np.median(features, axis=0)
-                    absdev = np.abs(features - template)
-                    mad = np.median(absdev, axis=0)
-                    score = np.mean(np.abs(absdev[-1] - mad))
+                    mmad = np.mean(np.median(np.abs(features - template), axis=0))
+                    score = 1/(1+np.exp(10*(mmad-0.5)))
+                    scores = np.zeros(5)
+                    scores[self.target_idx] = score
+                    command.decoder_scores = scores
+                    if mmad < self.mmads[self.target_idx]:
+                        self.mmads[self.target_idx] = mmad
+                        self.templates[self.template_idx][self.target_idx] = template
+
             else:
                 features = self.extract_features(trial)
                 command = self.classify(command, features)
@@ -234,21 +242,29 @@ class MsequenceTemplateMatcher(UnlockDecoder):
 
     def stop(self):
         super(MsequenceTemplateMatcher, self).stop()
-        if self.training:
-            self.save_templates()
         if not self.training and self.cursor > 480 and self.last_event is not None:
             self.decode_now = True
 
     def save_templates(self):
-        for i in range(self.n_targets):
-            features = self.template_features[self.template_idx][i]
-            self.templates[self.template_idx][i] = np.median(features, axis=0)
+        if not self.updating:
+            if self.trial_idx[0] == 0:
+                return
+            self.baselines[self.template_idx] = np.median(self.training_buffer[self.template_idx][-1, 0:10], axis=0)
+            for i in range(self.n_targets - 1):
+                n_trials = self.trial_idx[i]
+                trials = self.training_buffer[self.template_idx][i] - self.baselines[self.template_idx]
+                features = np.sum(trials[0:n_trials, :, [0, 4, 7]], axis=2) - 3*trials[0:n_trials, :, 2]
+                self.template_features[self.template_idx][i, 0:n_trials] = features
+                template = np.median(features, axis=0)
+                self.templates[self.template_idx][i] = template
+                self.mmads[i] = np.mean(np.median(np.abs(features - template), axis=0))
         np.savez(self.filename, templates=self.templates, template_features=self.template_features,
                  training_buffer=self.training_buffer)
 
     def set_block(self, block_idx):
         # TODO: perform channel analysis to determine ideal filter for generating template
         self.template_idx = block_idx
-        self.n_targets = len(self.templates[self.template_idx])
+        self.n_targets = len(self.training_buffer[self.template_idx])
         self.trial_idx = np.zeros(self.n_targets, dtype=np.int32)
+        self.mmads = np.zeros(self.n_targets)
 
