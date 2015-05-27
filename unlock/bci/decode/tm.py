@@ -219,7 +219,9 @@ class MsequenceTemplateMatcher(UnlockDecoder):
         return command
 
     def classify(self, command, features):
-        scores = np.corrcoef(self.templates[self.template_idx], features)[self.n_targets, 0:self.n_targets]
+        if self.target_idx == len(self.trial_idx)-1:
+            return command
+        scores = np.corrcoef(self.templates[self.template_idx], features)[self.n_targets-1, 0:self.n_targets-1]
         predict = np.argmax(scores)
         print(self.last_event, self.target_idx, predict, scores)
 
