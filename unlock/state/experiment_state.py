@@ -72,6 +72,7 @@ class Markers:
     FEEDBACK_BAD = 21
     FEEDBACK_FIXATE = 22
     FEEDBACK_QUALITATIVE = 23
+    FEEDBACK_INVALID_GAZE = 24
     REST = 30
     BLOCK_OVERT = 31
     BLOCK_COVERT = 32
@@ -111,6 +112,9 @@ class ExperimentState(UnlockState):
         self.oddball_timer = None
         self.oddball_change = False
 
+        self.invalid_gaze = False
+        self.visual_angle_tolerance = 42  # 1 deg visual angle in pixels for 23" 1920x1080 LCD monitor
+
         self.block_count = 0
         self.trial_count = 0
 
@@ -146,6 +150,9 @@ class ExperimentState(UnlockState):
             return self.state
 
     def get_feedback(self):
+        if self.invalid_gaze:
+            return FeedbackInvalidGaze
+
         return FeedbackQualitativeState
 
     def get_oddball_state(self):
@@ -232,6 +239,16 @@ class ExperimentState(UnlockState):
             scores = 255 / (1 + np.exp(-10*(np.abs(scores) - 0.3)))
             self.feedback_scores[self.cue] = int(scores[self.cue])
 
+    def check_gaze(self, gaze):
+        # only check covert block trials
+        if gaze is None or not self.blocks[self.block] is BlockStartCovertState or self.invalid_gaze:
+            return
+
+        self.invalid_gaze = (gaze[0] < 960 - self.visual_angle_tolerance or
+                             gaze[0] > 960 + self.visual_angle_tolerance or
+                             gaze[1] < 540 - self.visual_angle_tolerance or
+                             gaze[1] > 540 + self.visual_angle_tolerance)
+
     def process_command(self, command):
         self.update_feedback_scores(scores=getattr(command, "decoder_scores", None))
 
@@ -248,6 +265,7 @@ class ExperimentState(UnlockState):
             if self.timer.is_complete():
                 self.next_state()
             if self.state.__base__ is TrialState:
+                self.check_gaze(command.gaze)
                 self.current_stim.process_command(command)
                 if self.oddball_timer is not None:
                     self.oddball_timer.update_timer(command.delta)
@@ -378,6 +396,9 @@ class ExperimentTrainerState(ExperimentState):
                 return
             self.feedback_target[self.cue] = int(scores[self.cue])
             self.feedback_step = (self.feedback_target[self.cue] - self.feedback_scores[self.cue]) / 90.0
+
+    def check_gaze(self, gaze):
+        pass
 
 class CueState:
     duration = 0.5
@@ -521,7 +542,11 @@ class FeedbackState:
 
     @staticmethod
     def enter(state):
-        state.trial_count += 1
+        if state.invalid_gaze:
+            state.invalid_gaze = False
+        else:
+            state.trial_count += 1
+
         state.stop_stim()
         state.decoder.stop()
 
@@ -545,6 +570,12 @@ class FeedbackFixateState(FeedbackState):
 class FeedbackQualitativeState(FeedbackState):
     marker = Markers.FEEDBACK_QUALITATIVE
     label = ''
+
+
+class FeedbackInvalidGaze(FeedbackState):
+    marker = Markers.FEEDBACK_INVALID_GAZE
+    label = '\u2718'
+    color = (255, 0, 0, 255)
 
 
 class RestState:
