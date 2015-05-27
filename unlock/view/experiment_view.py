@@ -34,8 +34,9 @@ class ExperimentView(UnlockView):
                                               ('c3B', color))
 
     def clear_feedback(self):
-        self.feedback.delete()
-        self.feedback = None
+        if self.feedback is not None:
+            self.feedback.delete()
+            self.feedback = None
 
     def render(self):
         state = self.model.get_state()
