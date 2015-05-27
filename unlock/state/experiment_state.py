@@ -210,7 +210,10 @@ class ExperimentState(UnlockState):
         else:
             fixation_order = np.tile(np.arange(n_fixations), (int(n_trials / n_fixations),))
         oddball = np.zeros(len(cue_order))
-        valid = np.where(cue_order < n_targets-1)[0]
+        valid_cues = n_targets-1
+        if self.demo and block_state is BlockStartGazeState:
+            valid_cues = 2
+        valid = np.where(cue_order < valid_cues)[0]
         if self.demo:
             oddball[valid[np.random.choice(len(valid), 1, replace=False)]] = 1
         elif block_state is BlockStartGazeState:
@@ -299,11 +302,11 @@ class ExperimentTrainerState(ExperimentState):
                                                      trials_per_block, demo=demo)
 
         self.feedback_scores = np.zeros(4)
-        self.feedback_target = np.zeros(4)
+        self.feedback_target = np.ones(4)*63
         self.feedback_step = 0
         self.initial_phase = False
         if self.demo:
-            TrialState.duration = 3.3
+            TrialState.duration = 2.25
         else:
             TrialState.duration = 5.5
 
@@ -344,8 +347,12 @@ class ExperimentTrainerState(ExperimentState):
         self.feedback_target = np.zeros(4)
         self.feedback_step = 0
 
-        if not self.initial_phase and not self.demo:
-            n_trials = (n_trials - 2)*2
+        if not self.initial_phase:
+            if self.demo:
+                n_trials -= 1
+            else:
+                n_trials = (n_trials - 2)*2
+
         if block_state is BlockStartGazeState:
             self.current_stim = self.stim2
             self.cues = [CueTileAState, CueTileBState]
@@ -392,8 +399,13 @@ class ExperimentTrainerState(ExperimentState):
             if self.demo:
                 scores = np.random.random(4)
             scores *= 255
-            if np.isnan(scores[self.cue]) or scores[self.cue] < self.feedback_target[self.cue]:
+            if np.isnan(scores[self.cue]):
                 return
+            if scores[self.cue] < self.feedback_target[self.cue]:
+                bump = self.feedback_target[self.cue] + 4
+                if bump > 255:
+                    bump = 255
+                scores[self.cue] = bump
             self.feedback_target[self.cue] = int(scores[self.cue])
             self.feedback_step = (self.feedback_target[self.cue] - self.feedback_scores[self.cue]) / 90.0
 
