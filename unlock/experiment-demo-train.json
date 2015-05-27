@@ -8,8 +8,8 @@
         "args" : {
             "mode" : "train",
             "demo" : true,
-            "block_sequence" : [2, 2, 1, 1, 2, 2],
-            "trials_per_block" : [4, 4, 2],
+            "block_sequence" : [0, 0, 1, 1, 2, 2],
+            "trials_per_block" : [5, 5, 3],
             "offline_data" : false
         }
     },
@@ -69,8 +69,9 @@
 
     "msequence_template_match" : {
         "args" : {
-            "templates" : "s0-templates.npz",
-            "buffer_size" : 2000
+            "templates" : "demo-templates.npz",
+            "buffer_size" : 2000,
+            "training" : true
         }
     },
 

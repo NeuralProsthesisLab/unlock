@@ -69,7 +69,7 @@
 
     "msequence_template_match" : {
         "args" : {
-            "templates" : "s0-templates.npz",
+            "templates" : "demo-templates.npz",
             "buffer_size" : 2000
         }
     },
