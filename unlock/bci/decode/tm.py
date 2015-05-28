@@ -157,12 +157,16 @@ class MsequenceTemplateMatcher(UnlockDecoder):
             self.initial_templates = []
         else:
             try:
-                self.templates = np.load(self.filename)['templates']
+                data = np.load(self.filename)
+                self.templates = data['templates']
+                self.template_features = data['template_features']
+                self.training_buffer = data['training_buffer']
             except IOError:
                 raise Exception("Missing template file!")
 
     def decode(self, command):
         if self.decode_now:
+            self.last_event = self.cursor
             trial = sig.resample(self.buffer[0:self.cursor], self.downsample[self.template_idx], axis=0)
             features = self.extract_features(trial)
             command = self.classify(command, features)
@@ -184,7 +188,6 @@ class MsequenceTemplateMatcher(UnlockDecoder):
             self.mu = (1-self.alpha) * self.mu + self.alpha * sample
             self.buffer[self.cursor] = sample - self.mu
             self.cursor += 1
-
         if event is None:
             return command
         self.last_event = event
@@ -201,14 +204,15 @@ class MsequenceTemplateMatcher(UnlockDecoder):
                     features = self.template_features[self.template_idx][self.target_idx, 0:self.trial_idx[self.target_idx]]
                     template = np.median(features, axis=0)
                     mmad = np.mean(np.median(np.abs(features - template), axis=0))
-                    score = 1/(1+np.exp(10*(mmad-0.5)))
+                    self.templates[self.template_idx][self.target_idx] = template
+                    diff = self.mmads[self.target_idx] - mmad
                     scores = np.zeros(5)
-                    scores[self.target_idx] = score
-                    command.decoder_scores = scores
-                    if mmad < self.mmads[self.target_idx]:
+                    if diff > 0:
                         self.mmads[self.target_idx] = mmad
-                        self.templates[self.template_idx][self.target_idx] = template
-
+                        scores[self.target_idx] = 12
+                    else:
+                        scores[self.target_idx] = 6
+                    command.decoder_scores = scores
             else:
                 features = self.extract_features(trial)
                 command = self.classify(command, features)
