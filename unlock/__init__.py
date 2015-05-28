@@ -262,7 +262,6 @@ class UnlockFactory(AbstractFactory):
             [stimulus1, stimulus2], canvas, cb_properties)
         return Stimulation(canvas, stimuli, msequence_views)
 
-
     def checkerboard_properties(self, width=300, height=300, x_tiles=4,
                                 y_tiles=4, x_ratio=1, y_ratio=1,
                                 color1=(0, 0, 0), color2=(255, 255, 255)):
@@ -411,6 +410,8 @@ class UnlockFactory(AbstractFactory):
                   offline_data=False):
         assert stimulation and decoder
         #decoder.decoders[1].task_state = stimulation.stimuli.state
+        stimulation.stimuli.decoder = decoder
+        stimulation.stimuli.outlet = self.signal.outlet
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}
@@ -435,7 +436,8 @@ class UnlockFactory(AbstractFactory):
     def gridcursor(self, stimulation=None, decoder=None, grid_radius=2,
                    offline_data=False):
         assert stimulation and decoder
-
+        stimulation.stimuli.decoder = decoder
+        stimulation.stimuli.outlet = self.signal.outlet
         #decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
@@ -463,6 +465,8 @@ class UnlockFactory(AbstractFactory):
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}
+        stimulation.stimuli.decoder = decoder
+        stimulation.stimuli.outlet = self.signal.outlet
         cmd_receiver = self.command_factory.create_receiver('decoding',
                                                             **receiver_args)
         robot_state = self.state_factory.create_robot_controller()
@@ -477,7 +481,8 @@ class UnlockFactory(AbstractFactory):
     def robot(self, stimulation=None, decoder=None, grid_radius=1,
                    offline_data=False):
         assert stimulation and decoder
-
+        stimulation.stimuli.decoder = decoder
+        stimulation.stimuli.outlet = self.signal.outlet
         #decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
@@ -499,7 +504,6 @@ class UnlockFactory(AbstractFactory):
         return self.controller_factory.create_controller_chain(
             self.window, stimulation, cmd_receiver, state_chain,
             [grid_view], name="Target Practice", icon="gridcursor.png")
-
 
     def fastpad(self, stimulation=None, decoder=None, offline_data=False):
         assert stimulation and decoder
@@ -578,6 +582,8 @@ class UnlockFactory(AbstractFactory):
         assert stimulation and decoder
         if not controllers:
             controllers = []
+        stimulation.stimuli.decoder = decoder
+        stimulation.stimuli.outlet = self.signal.outlet
         #decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,

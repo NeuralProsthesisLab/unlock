@@ -41,6 +41,8 @@ class TimedStimuli(UnlockState):
         else:
             self.stimuli = list()
 
+        # super hacky time
+        self.decoder = None
         self.outlet = None
         self.seq_id = 1
 
@@ -51,15 +53,24 @@ class TimedStimuli(UnlockState):
         self.state.start()
         for stimulus in self.stimuli:
             stimulus.start()
+        # super hacky time
+        if self.decoder is not None:
+            self.decoder.start()
             
     def pause(self):
         for stimulus in self.stimuli:
             stimulus.stop()
+        # super hacky time
+        if self.decoder is not None:
+            self.decoder.stop()
             
     def stop(self):
         self.state.stop()
         for stimulus in self.stimuli:
             stimulus.stop()
+        # super hacky time
+        if self.decoder is not None:
+            self.decoder.stop()
             
     def process_command(self, command):
         if self.state.is_stopped():
@@ -83,11 +94,12 @@ class TimedStimuli(UnlockState):
                 ret = Trigger.Start
                 if self.outlet is not None:
                     self.outlet.push_sample([self.seq_id])
-        elif change_value == TrialState.RestExpiry:
+
+        if change_value == TrialState.RestExpiry:
             self.start()
         elif change_value == TrialState.TrialExpiry:
             self.pause()
-            
+
         return ret
             
     def get_state(self):
