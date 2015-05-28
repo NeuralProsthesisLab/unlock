@@ -113,7 +113,7 @@ class ExperimentState(UnlockState):
         self.oddball_change = False
 
         self.invalid_gaze = False
-        self.visual_angle_tolerance = 42  # 1 deg visual angle in pixels for 23" 1920x1080 LCD monitor
+        self.visual_angle_tolerance = 84  # 2 deg visual angle in pixels for 23" 1920x1080 LCD monitor
 
         self.block_count = 0
         self.trial_count = 0
@@ -301,7 +301,7 @@ class ExperimentTrainerState(ExperimentState):
         super(ExperimentTrainerState, self).__init__(mode, stim1, stim2, outlet, decoder, block_sequence,
                                                      trials_per_block, demo=demo)
 
-        self.feedback_scores = np.zeros(4)
+        self.feedback_scores = np.ones(4)*63
         self.feedback_target = np.ones(4)*63
         self.feedback_step = 0
         self.initial_phase = False
@@ -343,8 +343,8 @@ class ExperimentTrainerState(ExperimentState):
             self.decoder.decoders[1].updating = False
             self.decoder.decoders[1].set_block(self.block)
 
-        self.feedback_scores = np.zeros(4)
-        self.feedback_target = np.zeros(4)
+        self.feedback_scores = np.ones(4)*63
+        self.feedback_target = np.ones(4)*63
         self.feedback_step = 0
 
         if not self.initial_phase:
@@ -396,17 +396,11 @@ class ExperimentTrainerState(ExperimentState):
                     score = 0
                 self.feedback_scores[self.cue] = score
         else:
-            if self.demo:
-                scores = np.random.random(4)
-            scores *= 255
             if np.isnan(scores[self.cue]):
                 return
-            if scores[self.cue] < self.feedback_target[self.cue]:
-                bump = self.feedback_target[self.cue] + 4
-                if bump > 255:
-                    bump = 255
-                scores[self.cue] = bump
-            self.feedback_target[self.cue] = int(scores[self.cue])
+            if self.demo:
+                scores[self.cue] = 64
+            self.feedback_target[self.cue] += scores[self.cue]
             self.feedback_step = (self.feedback_target[self.cue] - self.feedback_scores[self.cue]) / 90.0
 
     def check_gaze(self, gaze):
