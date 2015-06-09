@@ -298,6 +298,9 @@ class UnlockFactory(AbstractFactory):
         return self.decoder_factory.create_eyeblink_detector(eog_channels,
                                                              strategy,
                                                              rms_threshold)
+
+    def gaze_detector(self):
+        return self.decoder_factory.create_gaze_detector()
     
     def template_match(self, buffering_decoder, threshold_decoder,
                        templates=None, n_electrodes=8,
@@ -405,6 +408,23 @@ class UnlockFactory(AbstractFactory):
 
         return self.controller_factory.create_controller_chain(
             self.window, stimulation, cmd_receiver, state_chain, [view])
+
+    def eyeblink_calibration(self, stimulation=None, decoder=None):
+        assert stimulation and decoder
+
+        receiver_args = {'signal': self.signal,
+                         'timer': self.acquisition_factory.timer,
+                         'decoder': decoder}
+        cmd_receiver = self.command_factory.create_receiver('decoding',
+                                                            **receiver_args)
+
+        from unlock.state.eyeblink_calibration import EyeBlinkCalibrationState
+        model = EyeBlinkCalibrationState()
+        from unlock.view.eyeblink_calibration_view import EyeBlinkCalibrationView
+        view = EyeBlinkCalibrationView(model, stimulation.canvas)
+
+        return self.controller_factory.create_controller_chain(
+            self.window, stimulation, cmd_receiver, model, [view])
 
     def gridspeak(self, stimulation=None, decoder=None, grid_radius=2,
                   offline_data=False):

@@ -32,10 +32,11 @@ from unlock.bci.decode.decode import UnlockDecoder
 
 
 class GazeDecoder(UnlockDecoder):
-    def __init__(self, detect_eyeblinks=False):
+    def __init__(self, raw=False, detect_eyeblinks=False):
         super(GazeDecoder, self).__init__()
         self.n_electrodes = 8
         self.buffer = np.zeros((10, 2))
+        self.raw = raw
 
         self.detect_eyeblinks = detect_eyeblinks
         self.last_gaze_detected = 0
@@ -69,9 +70,13 @@ class GazeDecoder(UnlockDecoder):
                 self.last_blink_detected = 0
         self.last_gaze_detected = 0
 
-        self.buffer = np.roll(self.buffer, -samples, axis=0)
-        self.buffer[-samples:] = gaze_data[gaze_pos]
-
-        command.gaze = np.mean(self.buffer, axis=0)
-
+        if not self.raw:
+            self.buffer = np.roll(self.buffer, -samples, axis=0)
+            self.buffer[-samples:] = gaze_data[gaze_pos]
+            command.gaze = np.mean(self.buffer, axis=0)
+        else:
+            if samples > 1:
+                command.gaze = gaze_data[gaze_pos[-1]]
+            else:
+                command.gaze = gaze_data[gaze_pos]
         return command

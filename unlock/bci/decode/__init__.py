@@ -109,6 +109,12 @@ class UnlockDecoderFactory(object):
 
         return decoder_chain
 
+    def create_gaze_detector(self):
+        from unlock.bci.decode.gaze import GazeDecoder
+        decoder = GazeDecoder(raw=True)
+
+        return decoder
+
     def create_offline_vep_trial_recorder(
             self, buffering_decoder=None, label='trial'):
         trial_state_decoder = VepTrainerStateControlledDecoder(None)
