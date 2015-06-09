@@ -1,4 +1,5 @@
-from unlock.view import UnlockView
+from unlock.state import UnlockState
+from unlock.view import UnlockView, PygletTextLabel
 
 
 class EyeBlinkCalibrationView(UnlockView):
@@ -6,6 +7,10 @@ class EyeBlinkCalibrationView(UnlockView):
         super(EyeBlinkCalibrationView, self).__init__()
         self.model = model
         self.canvas = canvas
+        cx, cy = canvas.center()
+        self.text = PygletTextLabel(UnlockState(state=True), canvas, '', cx, cy)
 
     def render(self):
-        pass
+        state = self.model.get_state()
+        if state is not None:
+            self.text.label.text = "x: %d, y: %d" % (state[0], state[1])

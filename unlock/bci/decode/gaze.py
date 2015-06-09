@@ -75,8 +75,5 @@ class GazeDecoder(UnlockDecoder):
             self.buffer[-samples:] = gaze_data[gaze_pos]
             command.gaze = np.mean(self.buffer, axis=0)
         else:
-            if samples > 1:
-                command.gaze = gaze_data[gaze_pos[-1]]
-            else:
-                command.gaze = gaze_data[gaze_pos]
+            command.gaze = gaze_data[gaze_pos[-1]]
         return command
