@@ -301,7 +301,7 @@ class UnlockFactory(AbstractFactory):
 
     def gaze_detector(self):
         return self.decoder_factory.create_gaze_detector()
-    
+
     def template_match(self, buffering_decoder, threshold_decoder,
                        templates=None, n_electrodes=8,
                        selected_channels=None, reference_channel=None):
@@ -409,7 +409,8 @@ class UnlockFactory(AbstractFactory):
         return self.controller_factory.create_controller_chain(
             self.window, stimulation, cmd_receiver, state_chain, [view])
 
-    def eyeblink_calibration(self, stimulation=None, decoder=None):
+    def eyeblink_calibration(self, stimulation=None, decoder=None,
+                             subject_id="subject_id"):
         assert stimulation and decoder
 
         receiver_args = {'signal': self.signal,
@@ -419,7 +420,7 @@ class UnlockFactory(AbstractFactory):
                                                             **receiver_args)
 
         from unlock.state.eyeblink_calibration import EyeBlinkCalibrationState
-        model = EyeBlinkCalibrationState()
+        model = EyeBlinkCalibrationState(subject_id)
         from unlock.view.eyeblink_calibration_view import EyeBlinkCalibrationView
         view = EyeBlinkCalibrationView(model, stimulation.canvas)
 
