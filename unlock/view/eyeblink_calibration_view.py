@@ -13,4 +13,4 @@ class EyeBlinkCalibrationView(UnlockView):
     def render(self):
         state = self.model.get_state()
         if state is not None:
-            self.text.label.text = "x: %d, y: %d" % (state[0], state[1])
+            self.text.label.text = state.text

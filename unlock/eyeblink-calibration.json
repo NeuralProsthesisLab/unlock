@@ -4,6 +4,9 @@
         "deps" : {
             "stimulation": "no_stimulation",
             "decoder": "gaze_detector"
+        },
+        "args" : {
+            "subject_id" : "cvep_p1"
         }
     },
     
