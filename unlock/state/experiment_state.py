@@ -168,6 +168,7 @@ class ExperimentState(UnlockState):
 
     def next_cue(self):
         self.cue = self.trial_sequence[self.trial_count][0]
+        self.decoder.decoders[1].target_idx = self.cue
         return self.cues[self.cue]
 
     def next_trial(self):
@@ -175,13 +176,12 @@ class ExperimentState(UnlockState):
 
     def next_block(self):
         self.block = self.block_sequence[self.block_count]
+        self.decoder.decoders[1].set_block(self.block)
         block_state = self.blocks[self.block]
         n_trials = self.trials_per_block[self.block]
         if block_state is BlockStartGazeState:
             self.current_stim = self.stim2
             self.cues = [CueTileAState, CueTileBState, CueNullState]
-            if self.demo:
-                self.cues = [CueTileAState, CueTileBState, CueNullState, CueTileAState, CueTileBState]
             self.fixations = [TrialStateCenter, TrialStateNE, TrialStateSE, TrialStateSW, TrialStateNW]
             self.oddball_position = np.array([[60, 6], [-60, -6]])
             self.oddball_offset = np.array([[1014, 486], [1554, 810], [1554, 162], [366, 270], [366, 918]])
@@ -200,11 +200,16 @@ class ExperimentState(UnlockState):
             self.oddball_scale = 1
 
         n_targets = len(self.cues)
+        if self.demo:
+            n_targets = 5
         n_fixations = len(self.fixations)
 
         assert n_trials % n_targets == 0
         assert n_trials % n_fixations == 0
-        cue_order = np.repeat(np.arange(n_targets), int(n_trials / n_targets))
+        if self.demo:
+            cue_order = np.array([0, 1, 2, 0, 1])
+        else:
+            cue_order = np.repeat(np.arange(n_targets), int(n_trials / n_targets))
         if block_state is BlockStartOvertState:
             fixation_order = np.repeat(np.arange(n_fixations), int(n_trials / n_fixations))
         else:
@@ -235,11 +240,10 @@ class ExperimentState(UnlockState):
     def update_feedback_scores(self, scores=None):
         if scores is not None:
             if self.demo:
-                scores = np.random.random(4)
-            scores = np.r_[scores, np.nan]
+                scores = np.random.random(5)
             if np.isnan(scores[self.cue]):
                 return
-            scores = 255 / (1 + np.exp(-10*(np.abs(scores) - 0.3)))
+            scores = 255 / (1 + np.exp(-5*(np.abs(scores) - 0.2)))
             self.feedback_scores[self.cue] = int(scores[self.cue])
 
     def check_gaze(self, gaze):
@@ -301,8 +305,8 @@ class ExperimentTrainerState(ExperimentState):
         super(ExperimentTrainerState, self).__init__(mode, stim1, stim2, outlet, decoder, block_sequence,
                                                      trials_per_block, demo=demo)
 
-        self.feedback_scores = np.ones(4)*63
-        self.feedback_target = np.ones(4)*63
+        self.feedback_scores = np.ones(5)*63
+        self.feedback_target = np.ones(5)*63
         self.feedback_step = 0
         self.initial_phase = False
         if self.demo:
@@ -343,32 +347,29 @@ class ExperimentTrainerState(ExperimentState):
             self.decoder.decoders[1].updating = False
             self.decoder.decoders[1].set_block(self.block)
 
-        self.feedback_scores = np.ones(4)*63
-        self.feedback_target = np.ones(4)*63
+        self.feedback_scores = np.ones(5)*63
+        self.feedback_target = np.ones(5)*63
         self.feedback_step = 0
 
         if not self.initial_phase:
-            if self.demo:
-                n_trials -= 1
-            else:
-                n_trials = (n_trials - 2)*2
+            n_trials *= 2
 
         if block_state is BlockStartGazeState:
             self.current_stim = self.stim2
-            self.cues = [CueTileAState, CueTileBState]
+            self.cues = [CueTileAState, CueTileBState, CueNullState]
             self.fixations = [TrialStateCenter]
-            if self.initial_phase:
-                self.cues.append(CueNullState)
+            # if self.initial_phase:
+            #     self.cues.append(CueNullState)
             # self.fixations = [TrialStateCenter, TrialStateNE, TrialStateSE, TrialStateSW, TrialStateNW]
         else:
             self.current_stim = self.stim1
-            self.cues = [CueUpState, CueDownState, CueLeftState, CueRightState]
-            if self.initial_phase:
-                self.cues.append(CueNullState)
+            self.cues = [CueUpState, CueDownState, CueLeftState, CueRightState, CueNullState]
+            # if self.initial_phase:
+            #     self.cues.append(CueNullState)
             if block_state is BlockStartOvertState:
-                self.fixations = [TrialStateN, TrialStateS, TrialStateW, TrialStateE]
-                if self.initial_phase:
-                    self.fixations.append(TrialStateCenter)
+                self.fixations = [TrialStateN, TrialStateS, TrialStateW, TrialStateE, TrialStateCenter]
+                # if self.initial_phase:
+                #     self.fixations.append(TrialStateCenter)
             else:
                 self.fixations = [TrialStateCenter]
         n_targets = len(self.cues)
@@ -399,8 +400,12 @@ class ExperimentTrainerState(ExperimentState):
             if np.isnan(scores[self.cue]):
                 return
             if self.demo:
-                scores[self.cue] = 64
-            self.feedback_target[self.cue] += scores[self.cue]
+                scores = np.random.random(5)
+            scores = 255 / (1 + np.exp(-5*(np.abs(scores) - 0.2)))
+            self.feedback_target[self.cue] = int(scores[self.cue])
+            # if self.demo:
+            #     scores[self.cue] = 64
+            # self.feedback_target[self.cue] += scores[self.cue]
             self.feedback_step = (self.feedback_target[self.cue] - self.feedback_scores[self.cue]) / 90.0
 
     def check_gaze(self, gaze):
@@ -538,7 +543,7 @@ class TrialStateE(TrialState):
 
 
 class FeedbackState:
-    duration = 0.4
+    duration = 0.5
     size = 120
     hold = False
 
@@ -586,7 +591,7 @@ class FeedbackInvalidGaze(FeedbackState):
 
 class RestState:
     marker = Markers.REST
-    duration = 0.4
+    duration = 0.5
     label = ''
     size = 48
     hold = False
