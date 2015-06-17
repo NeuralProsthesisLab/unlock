@@ -65,7 +65,7 @@ class GridView(UnlockView):
 
 class HierarchyGridView(UnlockView):
     def __init__(self, model, canvas, xtiles=5, ytiles=5, tile_width=100,
-                 tile_height=100):
+                 tile_height=100, enable_gaze_control=False):
         super(HierarchyGridView, self).__init__()
 
         self.model = model
@@ -95,8 +95,12 @@ class HierarchyGridView(UnlockView):
                                     tile_width - 1, tile_height - 1,
                                     canvas.batch, color=(0,128,255),
                                     fill=True)
-        cx, cy = canvas.center()
-        self.gaze_cursor = PygletTextLabel(UnlockState(True), canvas, '\u271b', cx, cy)
+
+        if enable_gaze_control:
+            cx, cy = canvas.center()
+            self.gaze_cursor = PygletTextLabel(UnlockState(True), canvas, '\u271b', cx, cy)
+        else:
+            self.gaze_cursor = None
         
     def generate_target_coordinates(self):
         return self.rand.randint(self.xmin, self.xmax), self.rand.randint(self.ymin, self.ymax)
@@ -131,7 +135,7 @@ class HierarchyGridView(UnlockView):
 #                self.mark_target()
                 self.assign_target()
 
-        if state.gaze is not None:
+        if state.gaze is not None and self.gaze_cursor is not None:
             gx = state.gaze[0]
             gy = self.canvas.height - state.gaze[1]
             xtile = int((gx - self.xoffset) / self.tile_width)
@@ -219,7 +223,7 @@ class GridSpeakView(HierarchyGridView):
         elif state.change == GridStateChange.Select and state.gaze is None:
             self.words[state.step_value][1].play()
 
-        if state.gaze is not None:
+        if state.gaze is not None and self.gaze_cursor is not None:
             gx = state.gaze[0]
             gy = self.canvas.height - state.gaze[1]
             xtile = int((gx - self.xoffset) / self.tile_width)
@@ -277,7 +281,7 @@ class RobotGridView(HierarchyGridView):
         elif state.change == GridStateChange.YChange:
             self.cursor.vertices[1::2] = [i + int(state.step_value)*self.tile_height for i in self.cursor.vertices[1::2]]
 
-        if state.gaze is not None:
+        if state.gaze is not None and self.gaze_cursor is not None:
             gx = state.gaze[0]
             gy = self.canvas.height - state.gaze[1]
             xtile = int((gx - self.xoffset) / self.tile_width)
