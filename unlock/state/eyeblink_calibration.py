@@ -107,11 +107,17 @@ class CalibrationEndState:
         sigma_dbl_blink = np.std(np.diff(state.gaze_events[0:5, 0:4]), axis=0)
         mu_tpl_blink = np.mean(np.diff(state.gaze_events[5:]), axis=0)
         sigma_tpl_blink = np.std(np.diff(state.gaze_events[5:]), axis=0)
+
+        double_blink = [mu_dbl_blink - sigma_dbl_blink,
+                        mu_dbl_blink + sigma_dbl_blink]
+
+        triple_blink = [mu_tpl_blink - sigma_tpl_blink,
+                        mu_tpl_blink + sigma_tpl_blink]
+
         print("double blinks:", mu_dbl_blink, sigma_dbl_blink)
         print("triple blinks:", mu_tpl_blink, sigma_tpl_blink)
-        np.savez("%s_eyeblink_calibration" % state.subject_id,
-                 mu_dbl_blink=mu_dbl_blink, sigma_dbl_blink=sigma_dbl_blink,
-                 mu_tpl_blink=mu_tpl_blink, sigma_tpl_blink=sigma_tpl_blink)
+        np.savez("%s-eyeblink_calibration" % state.subject_id,
+                 double_blink=double_blink, triple_blink=triple_blink)
 
 class TrialState:
     text = ''
