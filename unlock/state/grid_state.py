@@ -67,8 +67,8 @@ class GridState(UnlockState):
         if command.gaze is not None:
             if command.selection:
                 self.state_change = GridStateChange(GridStateChange.Select, self.state, gaze=command.gaze)
-            else:
-                self.state_change = GridStateChange(GridStateChange.NoChange, 0, gaze=command.gaze)
+            # else:
+            #     self.state_change = GridStateChange(GridStateChange.NoChange, 0, gaze=command.gaze)
 
     def process_decision(self, decision):
         current_x, current_y = self.state
