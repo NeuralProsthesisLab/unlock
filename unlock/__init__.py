@@ -310,11 +310,13 @@ class UnlockFactory(AbstractFactory):
             selected_channels, reference_channel)
 
     def msequence_template_match(self, templates, n_electrodes=8, center=2,
-                                 surround=(0, 4, 7), alpha=0.05,
-                                 trial_marker=1, buffer_size=1000, training=False):
+                                 surround=(0, 4, 6), alpha=0.05,
+                                 trial_marker=1, buffer_size=1000,
+                                 training=False, updating=False,
+                                 eyeblink_calibration=None):
         return self.decoder_factory.create_msequence_template_match(
             templates, n_electrodes, center, surround, alpha, trial_marker,
-            buffer_size, training)
+            buffer_size, training, updating, eyeblink_calibration)
 
     def vep_trial_logger(self, buffering_decoder, label='trial'):
         return self.decoder_factory.create_offline_vep_trial_recorder(
@@ -337,14 +339,16 @@ class UnlockFactory(AbstractFactory):
     ###########################################################################
     ## Applications
     ###########################################################################
-    def experiment(self, stimulation=None, decoder=None, mode='test', demo=False, block_sequence=(0,),
-                   trials_per_block=1, offline_data=False):
+    def experiment(self, stimulation=None, decoder=None, mode='test',
+                   demo=False, block_sequence=(0,), trials_per_block=1,
+                   offline_data=False):
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}
         cmd_receiver = self.command_factory.create_receiver('decoding',
                                                             **receiver_args)
-        normal_prop = CheckerboardProperties(180, 180, 1, 1, 1, 1, (255, 255, 255, 255), (0, 0, 0, 0))
+        normal_prop = CheckerboardProperties(180, 180, 1, 1, 1, 1,
+                                             (255, 255, 255, 255), (0, 0, 0, 0))
         normal_models = list()
         normal_models.append(self.state_factory.create_wall_clock_timed_stimulus(
             30.0, [1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,0,0,0,1,1]))
@@ -355,8 +359,10 @@ class UnlockFactory(AbstractFactory):
         normal_models.append(self.state_factory.create_wall_clock_timed_stimulus(
             30.0, [0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,1,1,1,0,1,1,0,1,0,0,1,1,0]))
 
-        normal_stimuli = self.state_factory.create_timed_stimuli(20.0, 0, *normal_models)
-        normal_views = self.view_factory.create_quad_msequence_view(normal_models, stimulation.canvas, normal_prop)
+        normal_stimuli = self.state_factory.create_timed_stimuli(20.0, 0,
+                                                                 *normal_models)
+        normal_views = self.view_factory.create_quad_msequence_view(
+            normal_models, stimulation.canvas, normal_prop)
 
         w = self.window.width
         h = self.window.height
@@ -365,15 +371,20 @@ class UnlockFactory(AbstractFactory):
         y = int(h / s)
         overlap_props = list()
         alpha = 191
-        overlap_props.append(CheckerboardProperties(x*s, y*s, x, y, 1, 1, (0, 255, 0, alpha), (0, 0, 0, 0)))
-        overlap_props.append(CheckerboardProperties(x*s, y*s, x, y, 1, 1, (0, 0, 0, 0), (255, 0, 255, alpha)))
+        overlap_props.append(CheckerboardProperties(x*s, y*s, x, y, 1, 1,
+                                                    (0, 255, 0, alpha),
+                                                    (0, 0, 0, 0)))
+        overlap_props.append(CheckerboardProperties(x*s, y*s, x, y, 1, 1,
+                                                    (0, 0, 0, 0),
+                                                    (255, 0, 255, alpha)))
 
         overlap_models = list()
         overlap_models.append(self.state_factory.create_wall_clock_timed_stimulus(
             30.0, [0,0,1,1,1,0,0,1,0,1,0,1,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1]))
         overlap_models.append(self.state_factory.create_wall_clock_timed_stimulus(
             30.0, np.logical_not([0,0,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0])))
-        overlap_stimuli = self.state_factory.create_timed_stimuli(20.0, 0, *overlap_models)
+        overlap_stimuli = self.state_factory.create_timed_stimuli(
+            20.0, 0, *overlap_models)
         overlap_views = self.view_factory.create_dual_overlapping_cvep_view(
             overlap_models, stimulation.canvas, overlap_props)
 
@@ -385,20 +396,27 @@ class UnlockFactory(AbstractFactory):
 
         if mode == 'train':
             from unlock.state.experiment_state import ExperimentTrainerState
-            model = ExperimentTrainerState(mode, normal_stimuli, overlap_stimuli, self.signal.outlet, decoder, block_sequence,
-                                    trials_per_block, demo=demo)
+            model = ExperimentTrainerState(mode, normal_stimuli,
+                                           overlap_stimuli, self.signal.outlet,
+                                           decoder, block_sequence,
+                                           trials_per_block, demo=demo)
             from unlock.view.experiment_view import ExperimentTrainerView
-            view = ExperimentTrainerView(model, stimulation.canvas, normal_views, overlap_views)
+            view = ExperimentTrainerView(model, stimulation.canvas,
+                                         normal_views, overlap_views)
         else:
             from unlock.state.experiment_state import ExperimentState
-            model = ExperimentState(mode, normal_stimuli, overlap_stimuli, self.signal.outlet, decoder, block_sequence,
+            model = ExperimentState(mode, normal_stimuli, overlap_stimuli,
+                                    self.signal.outlet, decoder, block_sequence,
                                     trials_per_block, demo=demo)
             from unlock.view.experiment_view import ExperimentView
-            view = ExperimentView(model, stimulation.canvas, normal_views, overlap_views)
+            view = ExperimentView(model, stimulation.canvas, normal_views,
+                                  overlap_views)
 
         if offline_data:
-            offline_data = self.state_factory.create_offline_data('experiment-%s' % mode)
-            state_chain = self.state_factory.create_state_chain(model, offline_data)
+            offline_data = self.state_factory.create_offline_data(
+                'experiment-%s' % mode)
+            state_chain = self.state_factory.create_state_chain(model,
+                                                                offline_data)
         else:
             state_chain = model
 
