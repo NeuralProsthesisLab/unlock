@@ -29,22 +29,37 @@ import time
 import numpy as np
 
 from unlock.bci.decode.decode import UnlockDecoder
+from unlock.state import TimerState
 
 
 class GazeDecoder(UnlockDecoder):
-    def __init__(self, raw=False, detect_eyeblinks=False):
+    def __init__(self, raw=False, eyeblink_calibration=None):
         super(GazeDecoder, self).__init__()
         self.n_electrodes = 8
         self.buffer = np.zeros((10, 2))
         self.raw = raw
 
-        self.detect_eyeblinks = detect_eyeblinks
-        self.last_gaze_detected = 0
-        self.last_blink_detected = 0
-        self.blinks = 0
-        self.min_blink_length = 0.2
-        self.max_blink_length = 0.5
-        self.max_blink_interval = 0.5
+        if eyeblink_calibration is None:
+            self.detect_eyeblinks = False
+        else:
+            self.detect_eyeblinks = True
+            self.double_blink = eyeblink_calibration["double_blink"]
+            self.triple_blink = eyeblink_calibration["triple_blink"]
+
+            self.skip_counter = 0
+            self.skip_threshold = 10
+            self.gaze_detected = True
+            self.gaze_events = np.zeros(2)
+            self.double_detected = False
+            self.triple_detected = False
+            self.blinks = 0
+            # hold_duration = (self.double_blink[1, 1] + self.triple_blink[1, 1] +
+            #         self.triple_blink[1, 3]) / 3
+            # self.blink_duration = (np.sum(self.double_blink[1, [0, 2]]) +
+            #                   np.sum(self.triple_blink[1, [0, 2, 4]])) / 5
+            self.blink_duration = 1.0
+            self.hold_duration = 0.4
+            self.hold_timer = TimerState(self.hold_duration)
 
     def decode(self, command):
         if not command.is_valid():
@@ -52,23 +67,30 @@ class GazeDecoder(UnlockDecoder):
         gaze_data = command.matrix[:, self.n_electrodes:self.n_electrodes+2]
         gaze_pos = np.where(gaze_data[:, 0] != 0)[0]
         samples = len(gaze_pos)
-        if samples == 0:
-            self.last_gaze_detected += command.delta
-            return command
 
         if self.detect_eyeblinks:
-            if self.min_blink_length <= self.last_gaze_detected <= self.max_blink_length:
-                self.blinks += 1
-                self.last_blink_detected = time.time()
-            elif time.time() - self.last_blink_detected > self.max_blink_interval:
-                if self.blinks > 1:
+            if self.blinks > 0:
+                self.hold_timer.update_timer(command.delta)
+                if self.hold_timer.is_complete():
                     if self.blinks == 2:
+                        # print(self.blinks)
                         command.selection = True
-                    if self.blinks == 3:
+                    elif self.blinks == 3:
+                        # print(self.blinks)
                         command.stop = True
-                self.blinks = 0
-                self.last_blink_detected = 0
-        self.last_gaze_detected = 0
+                    self.blinks = 0
+            self.detect_gaze_event(samples)
+            # if self.triple_detected:
+            #     self.triple_detected = False
+            #     command.stop = True
+            # elif self.double_detected:
+            #     self.hold_timer.update_timer(command.delta)
+            #     if self.hold_timer.is_complete():
+            #         self.double_detected = False
+            #         command.selection = True
+
+        if samples == 0:
+            return command
 
         if not self.raw:
             self.buffer = np.roll(self.buffer, -samples, axis=0)
@@ -77,3 +99,41 @@ class GazeDecoder(UnlockDecoder):
         else:
             command.gaze = gaze_data[gaze_pos[-1]]
         return command
+
+    def detect_gaze_event(self, samples):
+        now = time.time()
+        if samples == 0:
+            self.skip_counter += 1
+            if self.gaze_detected and self.skip_counter >= self.skip_threshold:
+                self.gaze_detected = False
+                # self.gaze_events = np.roll(self.gaze_events, -1)
+                self.gaze_events[0] = now
+        else:
+            self.skip_counter = 0
+            if not self.gaze_detected:
+                self.gaze_detected = True
+                # self.gaze_events = np.roll(self.gaze_events, -1)
+                self.gaze_events[1] = now
+                if np.diff(self.gaze_events)[0] <= self.blink_duration:
+                    # print("blink")
+                    self.blinks += 1
+                    self.hold_timer.begin_timer()
+                # self.classify_blinks()
+
+    # def classify_blinks(self):
+    #     self.blinks += 1
+    #     if not self.double_detected:
+    #         dbl_blink = np.diff(self.gaze_events[-4:])
+    #
+    #         if ((dbl_blink >= 2*self.double_blink[0]) &
+    #            (dbl_blink <= 2*self.double_blink[1])).all():
+    #             print("double blink")
+    #             self.double_detected = True
+    #             self.hold_timer.begin_timer()
+    #
+    #     tpl_blink = np.diff(self.gaze_events)
+    #     if ((tpl_blink >= 2*self.triple_blink[0]) &
+    #        (tpl_blink <= 2*self.triple_blink[1])).all():
+    #         self.triple_detected = True
+    #         self.double_detected = False
+
