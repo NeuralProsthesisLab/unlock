@@ -212,6 +212,7 @@ class TimerState(object):
             self.reset = lambda t: t - self.duration
         self.elapsed = 0
         self.last_time = -1
+        self.eps = np.finfo(float).eps
 
     def begin_timer(self):
         # TODO: smarter time adjustment strategy
@@ -222,7 +223,7 @@ class TimerState(object):
         self.elapsed += delta
 
     def is_complete(self):
-        return self.elapsed >= self.duration
+        return np.round(self.elapsed, 3) >= (self.duration - self.eps)
 
     def set_duration(self, duration):
         self.duration = float(duration)
