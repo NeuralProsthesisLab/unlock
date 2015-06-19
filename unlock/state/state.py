@@ -223,7 +223,7 @@ class TimerState(object):
         self.elapsed += delta
 
     def is_complete(self):
-        return np.round(self.elapsed, 3) >= (self.duration - self.eps)
+        return self.elapsed + self.eps >= self.duration
 
     def set_duration(self, duration):
         self.duration = float(duration)
@@ -321,20 +321,9 @@ class SequenceState(object):
         self.sequence = sequence
         self.value_transformer_fn = value_transformer_fn
         self.index = 0
-
-        from unlock.bci.acquire.pylsl import StreamInfo, StreamOutlet
-        # uid = 'unlock-uid-%s' % "".join(map(str, sequence))
-        # info = StreamInfo(b'Presentation', b'Markers', 1, 0, 'int32',
-        #                   uid.encode('ascii'))
-        # self.outlet = StreamOutlet(info)
-        # self.seq_id = 0
-        self.seq_id = 1
-        self.outlet = None
         
     def start(self):
         self.index = 0
-        if self.outlet is not None:
-            self.outlet.push_sample([self.seq_id])
 
     def step(self):
         self.index += 1        
