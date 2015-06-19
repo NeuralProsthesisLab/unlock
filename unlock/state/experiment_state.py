@@ -80,6 +80,11 @@ class Markers:
     BLOCK_END = 34
     EXPERIMENT_START = 40
     EXPERIMENT_END = 41
+    DECODER_SELECTION = 50
+    DECODER_DECISION_1 = 51
+    DECODER_DECISION_2 = 52
+    DECODER_DECISION_3 = 53
+    DECODER_DECISION_4 = 54
 
 
 class ExperimentState(UnlockState):
@@ -525,21 +530,25 @@ class TrialStateNW(TrialState):
 class TrialStateN(TrialState):
     marker = Markers.TRIAL_FIXATION_NORTH
     position = (0.5, 0.833)
+    label = ''
 
 
 class TrialStateS(TrialState):
     marker = Markers.TRIAL_FIXATION_SOUTH
     position = (0.5, 0.167)
+    label = ''
 
 
 class TrialStateW(TrialState):
     marker = Markers.TRIAL_FIXATION_WEST
     position = (0.3125, 0.5)
+    label = ''
 
 
 class TrialStateE(TrialState):
     marker = Markers.TRIAL_FIXATION_EAST
     position = (0.6875, 0.5)
+    label = ''
 
 
 class FeedbackState:
