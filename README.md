@@ -1,6 +1,6 @@
 #Unlock
 
-<a href="http://d3js.org"><img src="http://d3js.org/logo.svg" align="left" hspace="10" vspace="6"></a>
+
 
 Our goal is to develop BCI technology to help individuals suffering from locked-in syndrome [1] communicate.
 Locked-in syndrome is characterized by an almost complete inability to communicate.  With current technology,
