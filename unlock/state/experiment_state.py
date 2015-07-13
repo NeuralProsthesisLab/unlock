@@ -211,7 +211,7 @@ class ExperimentState(UnlockState):
 
         assert n_trials % n_targets == 0
         assert n_trials % n_fixations == 0
-        if self.demo:
+        if self.demo and block_state is BlockStartGazeState:
             cue_order = np.array([0, 1, 2, 0, 1])
         else:
             cue_order = np.repeat(np.arange(n_targets), int(n_trials / n_targets))
@@ -248,7 +248,7 @@ class ExperimentState(UnlockState):
                 scores = np.random.random(5)
             if np.isnan(scores[self.cue]):
                 return
-            scores = 255 / (1 + np.exp(-5*(np.abs(scores) - 0.2)))
+            scores = 255 / (1 + np.exp(-5*(np.abs(scores) - 0.15)))
             self.feedback_scores[self.cue] = int(scores[self.cue])
 
     def check_gaze(self, gaze):
@@ -346,10 +346,10 @@ class ExperimentTrainerState(ExperimentState):
 
         if self.initial_phase:
             self.initial_phase = False
-            self.decoder.decoders[1].updating = True
+            # self.decoder.decoders[1].updating = True
         else:
             self.initial_phase = True
-            self.decoder.decoders[1].updating = False
+            # self.decoder.decoders[1].updating = False
             self.decoder.decoders[1].set_block(self.block)
 
         self.feedback_scores = np.ones(5)*63
@@ -406,7 +406,7 @@ class ExperimentTrainerState(ExperimentState):
                 return
             if self.demo:
                 scores = np.random.random(5)
-            scores = 255 / (1 + np.exp(-5*(np.abs(scores) - 0.2)))
+            scores = 255 / (1 + np.exp(-5*(np.abs(scores) - 0.15)))
             self.feedback_target[self.cue] = int(scores[self.cue])
             # if self.demo:
             #     scores[self.cue] = 64
@@ -594,7 +594,7 @@ class FeedbackQualitativeState(FeedbackState):
 
 class FeedbackInvalidGaze(FeedbackState):
     marker = Markers.FEEDBACK_INVALID_GAZE
-    label = '\u2718'
+    label = '\u0CA0'
     color = (255, 0, 0, 255)
 
 

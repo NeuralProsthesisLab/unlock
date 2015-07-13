@@ -113,7 +113,8 @@ class ExperimentTrainerView(ExperimentView):
             self.text.label.y = self.canvas.height * pos[1]
             if not self.model.initial_phase:
                 if self.model.block == 2 and state is FeedbackQualitativeState:
-                    self.create_feedback(self.model.get_feedback_score())
+                    if self.model.cue != 2:
+                        self.create_feedback(self.model.get_feedback_score())
                 elif self.model.block != 2 and state.__base__ is TrialState:
                     self.create_online_feedback(self.model.cue)
                 elif state is RestState:
