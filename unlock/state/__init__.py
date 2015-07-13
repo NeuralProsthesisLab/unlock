@@ -104,8 +104,8 @@ class UnlockStateFactory(object):
     def create_robot_grid(self, grid_radius):
         return RobotGridState(grid_radius)
 
-    def create_robot_controller(self):
-        return RobotManualDriveState()
+    def create_robot_controller(self, manual):
+        return RobotManualDriveState(manual)
 
     def create_offline_data(self, output_file_name):
         offline_data = OfflineData(output_file_name)
