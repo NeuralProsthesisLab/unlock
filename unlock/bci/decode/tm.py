@@ -170,8 +170,8 @@ class MsequenceTemplateMatcher(UnlockDecoder):
             self.last_event = self.cursor
             trial = sig.resample(self.buffer[0:self.cursor], self.downsample[self.template_idx], axis=0)
             features = self.extract_features(trial)
-            if self.updating:
-                self.update_template(features)
+            # if self.updating:
+            #     self.update_template(features)
             command = self.classify(command, features)
             self.decode_now = False
             self.cursor = 0
@@ -202,26 +202,6 @@ class MsequenceTemplateMatcher(UnlockDecoder):
                 self.trial_idx[self.target_idx] += 1
 
             features = self.extract_features(trial)
-            if self.updating:
-                self.update_template(features)
-
-            #     if self.updating and self.target_idx != len(self.trial_idx)-1:
-            #         feature = self.extract_features(trial - self.baselines[self.template_idx])
-            #         self.template_features[self.template_idx][self.target_idx, self.trial_idx[self.target_idx]-1] = feature
-            #         features = self.template_features[self.template_idx][self.target_idx, 0:self.trial_idx[self.target_idx]]
-            #         template = np.median(features, axis=0)
-            #         # mmad = np.mean(np.median(np.abs(features - template), axis=0))
-            #         # self.templates[self.template_idx][self.target_idx] = template
-            #         # diff = self.mmads[self.target_idx] - mmad
-            #         # scores = np.zeros(5)
-            #         # if diff > 0:
-            #         #     self.mmads[self.target_idx] = mmad
-            #         #     scores[self.target_idx] = 18
-            #         # else:
-            #         #     scores[self.target_idx] = 6
-            #         command.decoder_scores = scores
-            # else:
-            # features = self.extract_features(trial)
             command = self.classify(command, features)
 
         self.buffer = np.roll(self.buffer, -self.last_event, axis=0)
@@ -245,10 +225,23 @@ class MsequenceTemplateMatcher(UnlockDecoder):
     def classify(self, command, features):
         # if self.target_idx == len(self.trial_idx)-1:
         #     return command
-        scores = np.corrcoef(self.templates[self.template_idx], features)[-1, 0:-1]
-        predict = np.argmax(scores[0:-1])
-        scores[-1] = 0.5 - (scores[predict] - np.mean(scores[0:-1]))
+        templates = self.templates[self.template_idx]
+        offset = 0
+        if self.training:
+            scores = np.corrcoef(self.templates[self.template_idx], features)[-1, 0:-2]
+        else:
+            shift_scores = np.zeros((5, len(templates)-1))
+            for i in range(5):
+                shift = np.roll(features, i)
+                shift_scores[i] = np.corrcoef(templates, shift)[-1, 0:-2]
+            offset = int(np.argmax(shift_scores) / shift_scores.shape[1])
+            scores = shift_scores[offset]
+        predict = np.argmax(scores)
+        scores = np.r_[scores, 0.5 - (scores[predict] - np.mean(scores))]
         print(self.last_event, self.template_idx, self.target_idx, predict, scores)
+
+        if self.updating:
+            self.update_template(np.roll(features, offset))
 
         command.decoder_scores = scores
         if scores[predict] > 0.2:
@@ -258,7 +251,7 @@ class MsequenceTemplateMatcher(UnlockDecoder):
 
     def extract_features(self, trial):
         features = (np.sum(trial[:, self.surround], axis=1) -
-                 len(self.surround)*trial[:, self.center])
+                    len(self.surround)*trial[:, self.center])
         return features
 
     def start(self):
