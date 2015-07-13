@@ -25,6 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from unlock.state.state import UnlockState, TrialState, TimerState, RunState, SequenceState
+from unlock.state.experiment_state import Markers
 from unlock.util import Trigger
 
 import logging
@@ -44,7 +45,6 @@ class TimedStimuli(UnlockState):
         # super hacky time
         self.decoder = None
         self.outlet = None
-        self.seq_id = 1
 
     def add_stimulus(self, stimulus):
         self.stimuli.append(stimulus)
@@ -93,11 +93,15 @@ class TimedStimuli(UnlockState):
             if sequence_start_trigger:
                 ret = Trigger.Start
                 if self.outlet is not None:
-                    self.outlet.push_sample([self.seq_id])
+                    self.outlet.push_sample([Markers.SEQUENCE])
 
         if change_value == TrialState.RestExpiry:
+            if self.outlet is not None:
+                self.outlet.push_sample([Markers.SEQUENCE])
             self.start()
         elif change_value == TrialState.TrialExpiry:
+            if self.outlet is not None:
+                self.outlet.push_sample([Markers.REST])
             self.pause()
 
         return ret
@@ -205,19 +209,20 @@ class TimedStimulus(UnlockState):
 
         self.time_state.update_timer(command.delta)
         if self.time_state.is_complete():
+            # self.seq_state.step()
             self.state = self.seq_state.state()
             if self.seq_state.is_start():
                 trigger_value = Trigger.Start
-            elif self.seq_state.is_end():
-                self.count += 1
-                if self.count == self.repeat_count:
-                    self.count = 0 
-                    trigger_value = Trigger.Stop
-                    command.stop = True
-                else:
-                    trigger_value = Trigger.Repeat
-                    
+            # elif self.seq_state.is_end():
+            #     self.count += 1
+            #     if self.count == self.repeat_count:
+            #         self.count = 0
+            #         trigger_value = Trigger.Stop
+            #         command.stop = True
+            #     else:
+            #         trigger_value = Trigger.Repeat
+
             self.time_state.begin_timer()
             self.seq_state.step()
-            
+
         return trigger_value
