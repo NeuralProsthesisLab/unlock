@@ -499,7 +499,7 @@ class UnlockFactory(AbstractFactory):
             self.window, stimulation, cmd_receiver, state_chain,
             [grid_view], name="Target Practice", icon="gridcursor.png")
 
-    def robot_controller(self, stimulation=None, decoder=None,
+    def robot_controller(self, stimulation=None, decoder=None, manual=True,
                          offline_data=False):
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
@@ -508,13 +508,22 @@ class UnlockFactory(AbstractFactory):
         stimulation.stimuli.outlet = self.signal.outlet
         cmd_receiver = self.command_factory.create_receiver('decoding',
                                                             **receiver_args)
-        robot_state = self.state_factory.create_robot_controller()
+        robot_state = self.state_factory.create_robot_controller(manual)
+
+        if offline_data:
+            mode = 'manual' if manual else 'auto'
+            offline_data = self.state_factory.create_offline_data(
+                'robot-%s' % mode)
+            state_chain = self.state_factory.create_state_chain(robot_state,
+                                                                offline_data)
+        else:
+            state_chain = grid_state
 
         robot_view = self.view_factory.create_robot_controller_view(
             robot_state, stimulation.canvas)
 
         return self.controller_factory.create_controller_chain(
-            self.window, stimulation, cmd_receiver, robot_state,
+            self.window, stimulation, cmd_receiver, state_chain,
             [robot_view], name="Robot Controller", icon="gridcursor.png")
 
     def robot(self, stimulation=None, decoder=None, grid_radius=1,
