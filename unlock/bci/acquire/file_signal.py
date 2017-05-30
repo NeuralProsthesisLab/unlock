@@ -28,7 +28,6 @@ import numpy as np
 import threading
 import collections
 import struct
-import pyaudio
 import time
 
 import numpy as np

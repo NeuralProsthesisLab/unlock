@@ -450,7 +450,7 @@ class UnlockFactory(AbstractFactory):
         assert stimulation and decoder
         #decoder.decoders[1].task_state = stimulation.stimuli.state
         stimulation.stimuli.decoder = decoder
-        stimulation.stimuli.outlet = self.signal.outlet
+        # stimulation.stimuli.outlet = self.signal.outlet
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
                          'decoder': decoder}
@@ -476,7 +476,7 @@ class UnlockFactory(AbstractFactory):
                    offline_data=False):
         assert stimulation and decoder
         stimulation.stimuli.decoder = decoder
-        stimulation.stimuli.outlet = self.signal.outlet
+        # stimulation.stimuli.outlet = self.signal.outlet
         #decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,
@@ -631,7 +631,7 @@ class UnlockFactory(AbstractFactory):
         if not controllers:
             controllers = []
         stimulation.stimuli.decoder = decoder
-        stimulation.stimuli.outlet = self.signal.outlet
+        # stimulation.stimuli.outlet = self.signal.outlet
         #decoder.decoders[1].task_state = stimulation.stimuli.state
         receiver_args = {'signal': self.signal,
                          'timer': self.acquisition_factory.timer,

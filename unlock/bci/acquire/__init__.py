@@ -54,7 +54,7 @@ try:
 except:
     print("unlock/acquire.__init__.py: nidaq not present")
 
-from unlock.bci.acquire.audio_signal import *
+# from unlock.bci.acquire.audio_signal import *
 from unlock.bci.acquire.file_signal import *
 
 class NoBciRandomSignal(object):
