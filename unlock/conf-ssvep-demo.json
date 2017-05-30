@@ -89,8 +89,8 @@
             "controllers" : ["gridspeak",
                              "time_scope",
                              "frequency_scope",
-                             "gridcursor"
-                             ]
+                             "gridcursor",
+                             "laser_cannon"]
         }
     },
 
@@ -102,6 +102,13 @@
     },
 
     "gridcursor" : {
+        "deps" : {
+            "stimulation" : "quad_ssvep",
+            "decoder" : "harmonic_sum"
+        }
+    },
+
+    "laser_cannon" : {
         "deps" : {
             "stimulation" : "quad_ssvep",
             "decoder" : "harmonic_sum"
