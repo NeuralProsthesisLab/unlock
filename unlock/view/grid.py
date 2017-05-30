@@ -8,6 +8,7 @@ import inspect
 import pyglet
 import time
 import os
+import serial
 
 
 class GridView(UnlockView):
@@ -237,15 +238,17 @@ class GridSpeakView(HierarchyGridView):
 
 
 class LaserCannonView(HierarchyGridView):
-    def __init__(self, gridtext_2d_tuple, model, canvas, tile_width=100,
+    def __init__(self, model, canvas, arduino_port='COM11', tile_width=100,
                  tile_height=100):
-        ''' Requires a 2d tuple of lists of equal length, a gridmodel and a canvas '''
-        # length = len(gridtext_2d_tuple[0])
-        # for row in gridtext_2d_tuple:
-        #    assert len(row) == length
-
         super(LaserCannonView, self).__init__(model, canvas)
-        # XXX - this needs to get pushed into configuration data
+        try:
+            self.port = serial.Serial(port=arduino_port, baudrate=9600,
+                                      bytesize=serial.EIGHTBITS)
+            self.port.write(b'l')
+        except Exception as e:
+            self.port = None
+            print(e)
+
         self.target.delete()
         self.target = None
         self.cursor.delete()
@@ -270,7 +273,7 @@ class LaserCannonView(HierarchyGridView):
             label = PygletTextLabel(model, canvas, text, x_offset, y_offset,
                                     anchor_x='center', anchor_y='center',
                                     width=self.tile_width - 1, size=18)
-            self.buttons[(x_pos, y_pos)] = (label, code)
+            self.buttons[(x_pos, y_pos)] = (label, code.encode())
 
     def render(self):
         state = self.model.get_state()
@@ -286,7 +289,9 @@ class LaserCannonView(HierarchyGridView):
                 i + int(state.step_value) * self.tile_height for i in
                 self.cursor.vertices[1::2]]
         elif state.change == GridStateChange.Select and state.gaze is None:
-            self.buttons[state.step_value][1].play()
+            if state.step_value in self.buttons:
+                command = self.buttons[state.step_value][1]
+                self.port.write(command)
 
         if state.gaze is not None and self.gaze_cursor is not None:
             gx = state.gaze[0]

@@ -500,7 +500,7 @@ class UnlockFactory(AbstractFactory):
             [grid_view], name="Target Practice", icon="gridcursor.png")
 
     def laser_cannon(self, stimulation=None, decoder=None, grid_radius=2,
-                  offline_data=False):
+                  arduino_port='COM11', offline_data=False):
         assert stimulation and decoder
         #decoder.decoders[1].task_state = stimulation.stimuli.state
         stimulation.stimuli.decoder = decoder
@@ -520,7 +520,7 @@ class UnlockFactory(AbstractFactory):
             state_chain = grid_state
 
         laser_cannon_view = self.view_factory.create_laser_cannon(
-            grid_state, stimulation.canvas)
+            grid_state, stimulation.canvas, arduino_port)
 
         return self.controller_factory.create_controller_chain(
             self.window, stimulation, cmd_receiver, state_chain,

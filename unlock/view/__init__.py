@@ -229,8 +229,8 @@ class UnlockViewFactory(object):
     def create_gridspeak(self, state, canvas):
         return GridSpeakView(None, state, canvas)
 
-    def create_laser_cannon(self, state, canvas):
-        return LaserCannonView(None, state, canvas)
+    def create_laser_cannon(self, state, canvas, arduino_port):
+        return LaserCannonView(state, canvas, arduino_port)
 
     def create_quad_ssvep_views(self, stimuli, canvas, cb_properties):
         assert len(stimuli.stimuli) == 4
