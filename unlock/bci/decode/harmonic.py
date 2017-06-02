@@ -53,6 +53,8 @@ class HarmonicFeatureExtractor(UnlockDecoder):
         self.target_window = target_window
         self.nfft = nfft
         self.n_harmonics = n_harmonics
+        self.center = [1]
+        self.surround = [0,2,3]
         
         self.selected_channels = selected_channels
         if not selected_channels:
@@ -66,12 +68,13 @@ class HarmonicFeatureExtractor(UnlockDecoder):
         for i, target in enumerate(self.targets):
             harmonic_idx = list()
             for harmonic in range(1, self.n_harmonics+1):
-                idx = np.where(np.logical_and(
-                    freqs > harmonic * target - self.target_window,
-                    freqs < harmonic * target + self.target_window))[0]
+                upper = freqs > harmonic * target - self.target_window
+                lower = freqs < harmonic * target + self.target_window
+                idx = np.where(np.logical_and(lower, upper))[0]
+                if len(idx) == 0:
+                    idx = np.where(upper)[0][0]
                 harmonic_idx.append(idx)
             self.harmonics.append(harmonic_idx)
-
         self.file_handle = None
         self.output_file_prefix = 'hsd_feature_extractor'
 
@@ -82,7 +85,12 @@ class HarmonicFeatureExtractor(UnlockDecoder):
         channels of recorded data.
         """
         assert hasattr(command, "buffered_data")
+
         y = command.buffered_data[:, self.selected_channels]
+        # trial = command.buffered_data
+        # trial -= np.mean(trial, axis=0)
+        # y = (np.sum(trial[:, self.surround], axis=1) -
+        #      len(self.surround) * trial[:, self.center])
         y -= np.mean(y, axis=0)
         y = np.abs(np.fft.rfft(y, n=self.nfft, axis=0))
 
@@ -93,6 +101,7 @@ class HarmonicFeatureExtractor(UnlockDecoder):
                 score += np.mean(y[harmonic, :])
             scores[i] = score
         command.features = scores
+        print(scores)
         return command
         
         

@@ -5,7 +5,7 @@
         "args" : {
             "fullscreen" : true,
             "fps" : false,
-            "vsync" : false
+            "vsync" : true
         }
     },
 
@@ -27,9 +27,9 @@
         },
         "args" : {
             "stimulus" : "time",
-            "stimuli_duration" : 3.0,
-            "rest_duration" : 1.0,
-            "frequencies" : [12.0, 13.0, 14.0, 15.0]
+            "stimuli_duration" : 1.5,
+            "rest_duration" : 0.5,
+            "frequencies" : [8.0, 10.0, 12.0, 15.0]
         }
     },
 
@@ -55,33 +55,33 @@
         
         "args" : {
            "fs" : 500,
-           "n_electrodes" : 8,
-           "targets" : [12.0, 13.0, 14.0, 15.0],
+           "n_electrodes" : 4,
+           "targets" : [8.0, 10.0, 12.0, 15.0],
            "target_window" : 0.1,
            "nfft" : 2048,
-           "n_harmonics" : 1,
-           "selected_channels" : [2]
+           "n_harmonics" : 2,
+           "selected_channels" : [1]
         }
     },
 
     "fixed_time_buffering_decoder" : {
         "args" : {
-            "window_length" : 768
+            "window_length" : 750
         }
     },
 
     "absolute_threshold_decoder" : {
         "args" : {
-            "threshold" : 40000,
+            "threshold" : 1200,
             "reduction_fn" : "np.max"
         }
     },
 
     "eyeblink_detector" : {
         "args" : {
-            "eog_channels" : [7],
+            "eog_channels" : [4],
             "strategy" : "count",
-            "rms_threshold" : 6000
+            "rms_threshold" : 20
         }
     },
 
@@ -143,9 +143,9 @@
             "fs" : 500,
             "duration" : 3,
             "nfft" : 2048,
-            "freq_range" : [10.0, 17.0],
-            "display_channels" : [2],
-            "labels" : [11.0, 12.0, 13.0, 14.0, 15.0, 16.0],
+            "freq_range" : [6.0, 17.0],
+            "display_channels" : [1],
+            "labels" : [6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0],
             "margin" : 0.1,
             "offline_data" : false
         }
