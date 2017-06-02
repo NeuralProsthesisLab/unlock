@@ -9,9 +9,13 @@
         }
     },
 
-    "signal" : {
+     "signal" : {
         "singleton" : 0,
-        "name" : "random"
+        "name" : "lsl",
+        "args" : {
+            "stream_name" : "NIC",
+            "stream_type" : "EEG"
+        }
     },
 
     "no_stimulation" : {
@@ -31,14 +35,14 @@
 
     "checkerboard_properties" : {
         "args" : {
-            "width" : 500,
-            "height" : 100,
-            "x_tiles" : 10,
-            "y_tiles" : 2,
+            "width" : 180,
+            "height" : 180,
+            "x_tiles" : 1,
+            "y_tiles" : 1,
             "x_ratio" : 1,
             "y_ratio" : 1,
-            "color1" : [255, 0, 0],
-            "color2" : [255, 255, 0]
+            "color1" : [255, 255, 255],
+            "color2" : [0, 0, 0]
         }
     },
 
@@ -50,7 +54,7 @@
         },
         
         "args" : {
-           "fs" : 256,
+           "fs" : 500,
            "n_electrodes" : 8,
            "targets" : [12.0, 13.0, 14.0, 15.0],
            "target_window" : 0.1,
@@ -124,7 +128,7 @@
         },
         "args" : {
             "channels" : 8,
-            "fs" : 256,
+            "fs" : 500,
             "duration" : 5,
             "offline_data" : false
         }
@@ -136,7 +140,7 @@
         },
         "args" : {
             "channels" : 8,
-            "fs" : 256,
+            "fs" : 500,
             "duration" : 3,
             "nfft" : 2048,
             "freq_range" : [10.0, 17.0],
